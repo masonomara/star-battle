@@ -8,7 +8,7 @@ function printGrid(size: number, label: string) {
   console.log(`\n=== ${label} ===`);
   console.log(visualizeGrid(grid));
   console.log(
-    `Regions: ${grid.regions.length}, sizes: ${grid.regions
+    `Shapes: ${grid.shapes.length}, sizes: ${grid.shapes
       .map((r) => r.length)
       .join(", ")}`
   );
@@ -16,15 +16,15 @@ function printGrid(size: number, label: string) {
 }
 
 function verifyGrid(grid: Grid): boolean {
-  const { size, regions } = grid;
-  if (regions.length !== size) return false;
+  const { size, shapes } = grid;
+  if (shapes.length !== size) return false;
 
-  const totalCells = regions.reduce((sum, r) => sum + r.length, 0);
+  const totalCells = shapes.reduce((sum, r) => sum + r.length, 0);
   if (totalCells !== size * size) return false;
 
   const seen = new Set<string>();
-  for (const region of regions) {
-    for (const cell of region) {
+  for (const shape of shapes) {
+    for (const cell of shape) {
       const key = `${cell.row},${cell.col}`;
       if (seen.has(key)) return false;
       seen.add(key);

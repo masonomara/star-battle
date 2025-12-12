@@ -3,7 +3,7 @@
 ## Parts
 
 1. Need an algorithm `layout()` that generates a randomized Star Battle style grid
-   - Divides the grid into regions. A 5x5 grid means 5 regions, a 25x25 grid means 25 regions, and so on
+   - Divides the grid into shapes. A 5x5 grid means 5 shapes, a 25x25 grid means 25 shapes, and so on
    - This algorithm would not know anything about where the stars should go
    - The resulting layout MAY or MAY NOT be a valid puzzle
 2. Need an algorithm `solve()` that uses production rules to solve star battle puzzles
@@ -30,8 +30,25 @@
 
 ## Tech Flow
 
-1. **Durable Object** with **Alarm** triggers at scheduled times (daily at midnight, weekly on Monday, monthly on 1st)
-2. **Alarm** handler invokes a **Worker** to run the puzzle generator algorithm
-3. **Worker** then runs `layout()` and `solve()` in a loop until a valid puzzle is found
-4. **Worker** then writes the solved puzzle definition to R2 with a key like `daily/2025-12-11.json`
-5. **Worker** finally updates **KV** with puzzle metadata for fast CDN access
+1. DURABLE OBJECT with ALARM triggers at scheduled times (daily at midnight, weekly on Monday, monthly on 1st)
+2. ALARM handler invokes a WORKER to run the puzzle generator algorithm
+3. WORKER then runs `layout()` and `solve()` in a loop until a valid puzzle is found
+4. WORKER then writes the solved puzzle definition to R2 with a key like `daily/2025-12-11.json`
+5. WORKER finally updates KV with puzzle metadata for fast CDN access
+
+## Difficulty Measurement
+
+The solver applies rules in cycles, ordered by complexity. Difficulty is measured by:
+
+- Depth: How many deduction cycles needed
+- Rule complexity: If needed advanced rules to solve, score higher
+
+## Why PRODUCTION RULES?
+
+Three ways to build solvers: BRUTE FORCE, BACKTRACKING, and PRODUCTION RULES.
+
+BRUTE FORCE — Slowly and sloppily guarantees finding all solutions. Does not guarantee a human can discover a solution without guessing.
+
+BACKTRACKING — Brute computational search. Can solve guess-required puzzles (doesn't guarantee human solvable). Faster than pure brute force. Can solve puzzles requiring guessing. Just finds the answer, doesn't estimate difficulty. "I tried stuff until it worked"
+
+PRODUCTION RULES — Mimics human logic, applies a set of human-made rules for solving a puzzle over and over again in a cycle. You can determine difficulty by choosing to see if the puzzle is solvable only using certain rules. If it solves the puzzle, guaranteed solvable by a human without guessing, pure logic.

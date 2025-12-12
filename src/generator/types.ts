@@ -3,11 +3,11 @@ export type Cell = {
   col: number;
 };
 
-export type Region = Cell[];
+export type Shape = Cell[];
 
 export type Grid = {
   size: number;
-  regions: Region[];
+  shapes: Shape[];
 };
 
 export type LayoutConfig = {

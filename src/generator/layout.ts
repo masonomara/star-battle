@@ -1,45 +1,45 @@
-import type { Cell, Region, Grid, LayoutConfig } from "./types";
+import type { Cell, Shape, Grid, LayoutConfig } from "./types";
 
 export function layout(config: LayoutConfig): Grid {
   const { size } = config;
   if (size < 4 || size > 30)
     throw new Error("Grid size must be between 4 and 30");
 
-  const cellToRegion: number[][] = Array(size)
+  const cellToShape: number[][] = Array(size)
     .fill(null)
     .map(() => Array(size).fill(-1));
-  const regions: Region[] = Array(size)
+  const shapes: Shape[] = Array(size)
     .fill(null)
     .map(() => []);
 
-  generateSeedCells(size).forEach((cell, regionId) => {
-    regions[regionId].push(cell);
-    cellToRegion[cell.row][cell.col] = regionId;
+  generateSeedCells(size).forEach((cell, shapeId) => {
+    shapes[shapeId].push(cell);
+    cellToShape[cell.row][cell.col] = shapeId;
   });
 
   let assigned = 0;
   while (assigned < size * size - size) {
-    const growable = findGrowableRegions(regions, cellToRegion, size);
+    const growable = findGrowableShapes(shapes, cellToShape, size);
     if (growable.length === 0) {
-      fillRemainingCells(regions, cellToRegion, size);
+      fillRemainingCells(shapes, cellToShape, size);
       break;
     }
 
-    const regionId = growable[Math.floor(Math.random() * growable.length)];
+    const shapeId = growable[Math.floor(Math.random() * growable.length)];
     const candidates = getUnassignedNeighbors(
-      regions[regionId],
-      cellToRegion,
+      shapes[shapeId],
+      cellToShape,
       size
     );
     if (candidates.length === 0) continue;
 
     const cell = candidates[Math.floor(Math.random() * candidates.length)];
-    regions[regionId].push(cell);
-    cellToRegion[cell.row][cell.col] = regionId;
+    shapes[shapeId].push(cell);
+    cellToShape[cell.row][cell.col] = shapeId;
     assigned++;
   }
 
-  return { size, regions };
+  return { size, shapes };
 }
 
 function generateSeedCells(size: number): Cell[] {
@@ -79,23 +79,23 @@ function generateSeedCells(size: number): Cell[] {
   return seeds;
 }
 
-function findGrowableRegions(
-  regions: Region[],
-  cellToRegion: number[][],
+function findGrowableShapes(
+  shapes: Shape[],
+  cellToShape: number[][],
   size: number
 ): number[] {
-  return regions
+  return shapes
     .map((_, id) => ({
       id,
-      neighbors: getUnassignedNeighbors(regions[id], cellToRegion, size),
+      neighbors: getUnassignedNeighbors(shapes[id], cellToShape, size),
     }))
     .filter(({ neighbors }) => neighbors.length > 0)
     .map(({ id }) => id);
 }
 
 function getUnassignedNeighbors(
-  region: Region,
-  cellToRegion: number[][],
+  shape: Shape,
+  cellToShape: number[][],
   size: number
 ): Cell[] {
   const neighbors = new Set<string>();
@@ -106,7 +106,7 @@ function getUnassignedNeighbors(
     [0, 1],
   ];
 
-  for (const cell of region) {
+  for (const cell of shape) {
     for (const [dr, dc] of directions) {
       const newRow = cell.row + dr;
       const newCol = cell.col + dc;
@@ -115,7 +115,7 @@ function getUnassignedNeighbors(
         newRow < size &&
         newCol >= 0 &&
         newCol < size &&
-        cellToRegion[newRow][newCol] === -1
+        cellToShape[newRow][newCol] === -1
       ) {
         neighbors.add(`${newRow},${newCol}`);
       }
@@ -129,40 +129,40 @@ function getUnassignedNeighbors(
 }
 
 function fillRemainingCells(
-  regions: Region[],
-  cellToRegion: number[][],
+  shapes: Shape[],
+  cellToShape: number[][],
   size: number
 ): void {
   const unassigned: Cell[] = [];
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
-      if (cellToRegion[row][col] === -1) unassigned.push({ row, col });
+      if (cellToShape[row][col] === -1) unassigned.push({ row, col });
     }
   }
 
-  const regionSizes = regions
+  const shapeSizes = shapes
     .map((r, i) => ({ id: i, size: r.length }))
     .sort((a, b) => a.size - b.size);
   unassigned.forEach((cell, i) => {
-    const regionId = regionSizes[i % regionSizes.length].id;
-    regions[regionId].push(cell);
-    cellToRegion[cell.row][cell.col] = regionId;
+    const shapeId = shapeSizes[i % shapeSizes.length].id;
+    shapes[shapeId].push(cell);
+    cellToShape[cell.row][cell.col] = shapeId;
   });
 }
 
 export function visualizeGrid(grid: Grid): string {
-  const { size, regions } = grid;
-  const cellToRegion: string[][] = Array(size)
+  const { size, shapes } = grid;
+  const cellToShape: string[][] = Array(size)
     .fill(null)
     .map(() => Array(size).fill(" "));
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-  regions.forEach((region, regionId) => {
-    const char = chars[regionId % chars.length];
-    region.forEach((cell) => {
-      cellToRegion[cell.row][cell.col] = char;
+  shapes.forEach((shape, shapeId) => {
+    const char = chars[shapeId % chars.length];
+    shape.forEach((cell) => {
+      cellToShape[cell.row][cell.col] = char;
     });
   });
 
-  return cellToRegion.map((row) => row.join(" ")).join("\n") + "\n";
+  return cellToShape.map((row) => row.join(" ")).join("\n") + "\n";
 }
