@@ -1,6 +1,6 @@
 # Starly - Star Battle Generator and Puzzles
 
-**Starly** is a **Star Battle**/**Queens** by LinkedIn/**Two Not Touch** by NYT puzzle generator and app that has **daily/weekly/monthly puzzles** and  **library of puzzles** to do in your spare time.
+**Starly** is a **Star Battle**/**Queens** by LinkedIn/**Two Not Touch** by NYT puzzle generator and app that has **daily/weekly/monthly puzzles** and **library of puzzles** to do in your spare time.
 
 **CURRENT STATUS:** Puzzle Generator in Development. Working on Production Rules for Solver. Vibecoding `layout()` and `solver()` to make sure production Rules are 100%. Revisit `layout()` and `solver()` to prep for production later.
 
@@ -9,7 +9,8 @@
 - `specs/00-initial-planning.md`
 - `specs/01-puzzle-generator.md`
 - `specs/02-initial-architecture.md`
-- 
+-
+
 ## TODOS
 
 - Create Puzzle Generator

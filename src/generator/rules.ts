@@ -1,10 +1,4 @@
-import type {
-  Cell,
-  OneByNMarker,
-  SolverGrid,
-  TilingResult,
-  Rule,
-} from "./types";
+import type { Cell, SolverGrid, TilingResult, Rule } from "./types";
 
 // =============================================================================
 // UTILITIES (not rule logic - just basic operations)

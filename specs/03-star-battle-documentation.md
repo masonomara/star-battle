@@ -218,17 +218,3 @@ This region has four stars and is minimally tiled with seven 2×2s. It must ther
 Acknowledging that the remaining rooks lie in the central composite shape, a sea of squeezes reveals that all of these 2×2s contain a star:
 
 Observing that we've identified both stars in the middle-right shape gets us some marks. The rest is an exercise for the reader—try it here!
-
-### 4.6 Entanglement
-
-Entanglement refers to non-trivial marks obtained in the presence of specific star configurations. Such cases depend on puzzle size and are found by brute-forcing every valid star configuration.
-
-There are plenty of entanglement-related marks given three stars on a 10×10 2★ puzzle, but for practical memorization and ease-of-spotting, we'll only worry about the following two-star case:
-
-If a 10×10 2★ puzzle has two stars that are exactly the above distance apart, the red cells can't contain a star if the red cell lies in the ring of cells that's one cell from the edge of the puzzle. For example:
-
-One of the above red cells lies in the aforementioned ring (yellow) and gives a mark. In contrast, because it does not lie in the ring, the blue cell does not give a mark despite being in an entanglement location. Here are a few more examples:
-
-This page's example puzzle—which was used to demonstrate Star Battle's rules—is a hand-set puzzle of mine that was designed to be much easier if aware of entanglement (try it here!):
-
-While out of this page's scope—to showcase the entanglement rabbit-hole—below is a glimpse of what entanglement looks like on a 9×9 2★ puzzle...

@@ -1,0 +1,4 @@
+node_modules/
+.claude/
+specs/archive/
+CLAUDE.md
