@@ -1,167 +1,183 @@
-import type { Grid } from "./types";
+import type {
+  Grid,
+  CellState,
+  Difficulty,
+  SolveResult,
+  SolverGrid,
+  ShapeMeta,
+} from "./types";
+import { DIFFICULTY_ORDER } from "./types";
+import { allRules } from "./rules";
 
-export type CellState = "empty" | "star" | "eliminated";
-
-export type Difficulty = "easy" | "medium" | "hard";
-
-export type Rule = {
-  name: string;
-  difficulty: Difficulty;
-  apply: (grid: SolverGrid) => boolean;
-};
-
-const DIFFICULTY_ORDER: Record<Difficulty, number> = {
-  easy: 0,
-  medium: 1,
-  hard: 2,
-};
-
-export const rules: Rule[] = [];
-
-export type SolverGrid = {
-  grid: Grid;
-  starsPerContainer: number;
-  board: CellState[][];
-  shapeMap: number[][];
-};
-
-export type SolveResult = {
-  solved: boolean;
-  board: CellState[][];
-  iterations: number;
-  rulesApplied: string[];
-};
+/** Maps rule names to their difficulty for scoring solved puzzles */
+export function getHighestDifficulty(rulesApplied: string[]): Difficulty {
+  let highest: Difficulty = "easy";
+  for (const name of rulesApplied) {
+    const rule = allRules.find((r) => r.name === name);
+    if (rule && DIFFICULTY_ORDER[rule.difficulty] > DIFFICULTY_ORDER[highest]) {
+      highest = rule.difficulty;
+    }
+  }
+  return highest;
+}
 
 export function initializeSolver(
   grid: Grid,
   starsPerContainer: number
 ): SolverGrid {
   const { size, shapes } = grid;
-  const board: CellState[][] = Array(size)
-    .fill(null)
-    .map(() => Array(size).fill("empty"));
-  const shapeMap: number[][] = Array(size)
-    .fill(null)
-    .map(() => Array(size).fill(-1));
+  const board: CellState[][] = Array.from({ length: size }, () =>
+    Array(size).fill("empty")
+  );
+  const shapeMap: number[][] = Array.from({ length: size }, () =>
+    Array(size).fill(-1)
+  );
+  shapes.forEach((shape, id) =>
+    shape.forEach((c) => (shapeMap[c.row][c.col] = id))
+  );
 
-  shapes.forEach((shape, shapeId) => {
-    shape.forEach((cell) => {
-      shapeMap[cell.row][cell.col] = shapeId;
-    });
+  // Precompute shape metadata for O(1) row/col span lookups
+  const shapeMeta: ShapeMeta[] = shapes.map((shape) => {
+    const rows = new Set<number>();
+    const cols = new Set<number>();
+    for (const c of shape) {
+      rows.add(c.row);
+      cols.add(c.col);
+    }
+    return { rows, cols, rowCount: rows.size, colCount: cols.size };
   });
 
-  return { grid, starsPerContainer, board, shapeMap };
+  return {
+    grid,
+    starsPerContainer,
+    board,
+    shapeMap,
+    shapeMeta,
+    tilingCache: new Map(),
+  };
 }
 
 export function solve(
-  solverGrid: SolverGrid,
-  maxDifficulty: Difficulty = "hard"
+  g: SolverGrid,
+  maxDifficulty: Difficulty = "expert"
 ): SolveResult {
   const rulesApplied: string[] = [];
-  let iterations = 0;
-  const MAX_ITERATIONS = 10000;
+  const allowed = allRules
+    .filter(
+      (r) => DIFFICULTY_ORDER[r.difficulty] <= DIFFICULTY_ORDER[maxDifficulty]
+    )
+    .sort(
+      (a, b) => DIFFICULTY_ORDER[a.difficulty] - DIFFICULTY_ORDER[b.difficulty]
+    );
 
-  while (iterations < MAX_ITERATIONS) {
-    iterations++;
-    const changed = applyAllRules(solverGrid, rulesApplied, maxDifficulty);
+  const maxIterations = g.grid.size * g.grid.size * 2;
+  for (let i = 1; i <= maxIterations; i++) {
+    let changed = false;
+    for (const rule of allowed)
+      if (rule.apply(g)) {
+        rulesApplied.push(rule.name);
+        changed = true;
+        break;
+      }
+    if (isSolved(g))
+      return { solved: true, board: g.board, iterations: i, rulesApplied };
+    if (isInvalid(g))
+      return { solved: false, board: g.board, iterations: i, rulesApplied };
+    if (!changed)
+      return { solved: false, board: g.board, iterations: i, rulesApplied };
+  }
+  return {
+    solved: false,
+    board: g.board,
+    iterations: maxIterations,
+    rulesApplied,
+  };
+}
 
-    if (isSolved(solverGrid)) {
-      return {
-        solved: true,
-        board: solverGrid.board,
-        iterations,
-        rulesApplied,
-      };
-    }
+export function isSolved({
+  board,
+  grid,
+  starsPerContainer: S,
+  shapeMap,
+}: SolverGrid): boolean {
+  const { size, shapes } = grid;
+  const rowStars = new Array(size).fill(0);
+  const colStars = new Array(size).fill(0);
+  const shapeStars = new Array(shapes.length).fill(0);
 
-    if (!changed) {
-      return {
-        solved: false,
-        board: solverGrid.board,
-        iterations,
-        rulesApplied,
-      };
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (board[r][c] === "empty") return false;
+      if (board[r][c] === "star") {
+        rowStars[r]++;
+        colStars[c]++;
+        shapeStars[shapeMap[r][c]]++;
+      }
     }
   }
 
-  return { solved: false, board: solverGrid.board, iterations, rulesApplied };
+  return (
+    rowStars.every((n) => n === S) &&
+    colStars.every((n) => n === S) &&
+    shapeStars.every((n) => n === S)
+  );
 }
 
-function applyAllRules(
-  solverGrid: SolverGrid,
-  rulesApplied: string[],
-  maxDifficulty: Difficulty = "hard"
-): boolean {
-  const maxLevel = DIFFICULTY_ORDER[maxDifficulty];
-  const allowedRules = rules.filter(
-    (rule) => DIFFICULTY_ORDER[rule.difficulty] <= maxLevel
-  );
+/** Detects impossible states where a container can't reach required stars */
+export function isInvalid({
+  board,
+  grid,
+  starsPerContainer: S,
+  shapeMap,
+}: SolverGrid): boolean {
+  const { size, shapes } = grid;
+  const rowStars = new Array(size).fill(0);
+  const rowEmpty = new Array(size).fill(0);
+  const colStars = new Array(size).fill(0);
+  const colEmpty = new Array(size).fill(0);
+  const shapeStars = new Array(shapes.length).fill(0);
+  const shapeEmpty = new Array(shapes.length).fill(0);
 
-  for (const rule of allowedRules) {
-    if (rule.apply(solverGrid)) {
-      rulesApplied.push(rule.name);
-      return true;
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const cell = board[r][c];
+      const shapeId = shapeMap[r][c];
+      if (cell === "star") {
+        rowStars[r]++;
+        colStars[c]++;
+        shapeStars[shapeId]++;
+      } else if (cell === "empty") {
+        rowEmpty[r]++;
+        colEmpty[c]++;
+        shapeEmpty[shapeId]++;
+      }
     }
+  }
+
+  // Check rows: too many stars, or not enough cells to place remaining stars
+  for (let r = 0; r < size; r++) {
+    if (rowStars[r] > S) return true;
+    if (rowStars[r] + rowEmpty[r] < S) return true;
+  }
+
+  // Check columns
+  for (let c = 0; c < size; c++) {
+    if (colStars[c] > S) return true;
+    if (colStars[c] + colEmpty[c] < S) return true;
+  }
+
+  // Check shapes
+  for (let i = 0; i < shapes.length; i++) {
+    if (shapeStars[i] > S) return true;
+    if (shapeStars[i] + shapeEmpty[i] < S) return true;
   }
 
   return false;
 }
 
-function isSolved(solverGrid: SolverGrid): boolean {
-  const { board, grid, starsPerContainer } = solverGrid;
-  const { size } = grid;
-
-  for (let row = 0; row < size; row++) {
-    if (
-      board[row].filter((cell) => cell === "star").length !== starsPerContainer
-    )
-      return false;
-  }
-
-  for (let col = 0; col < size; col++) {
-    let stars = 0;
-    for (let row = 0; row < size; row++) {
-      if (board[row][col] === "star") stars++;
-    }
-    if (stars !== starsPerContainer) return false;
-  }
-
-  for (const shape of grid.shapes) {
-    const stars = shape.filter(
-      (cell) => board[cell.row][cell.col] === "star"
-    ).length;
-    if (stars !== starsPerContainer) return false;
-  }
-
-  for (let row = 0; row < size; row++) {
-    for (let col = 0; col < size; col++) {
-      if (board[row][col] === "empty") return false;
-    }
-  }
-
-  return true;
-}
-
-export function visualizeSolverBoard(solverGrid: SolverGrid): string {
-  return solverGrid.board
-    .map((row) =>
-      row
-        .map((cell) => {
-          if (cell === "star") return "★";
-          if (cell === "eliminated") return "·";
-          return " ";
-        })
-        .join(" ")
-    )
-    .join("\n");
-}
-
-export function canSolveWith(
+export const canSolveWith = (
   grid: Grid,
   maxDifficulty: Difficulty,
-  starsPerContainer: number = 1
-): boolean {
-  const solverGrid = initializeSolver(grid, starsPerContainer);
-  const result = solve(solverGrid, maxDifficulty);
-  return result.solved;
-}
+  starsPerContainer = 1
+): boolean =>
+  solve(initializeSolver(grid, starsPerContainer), maxDifficulty).solved;
