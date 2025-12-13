@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "example": "tsx src/generator/example.ts"
+    "generate": "tsx src/generator/commands/generate.ts",
+    "generate:verbose": "tsx src/generator/commands/generate-verbose.ts",
+    "solve": "tsx src/generator/commands/solve-custom.ts"
   },
   "devDependencies": {
     "tsx": "^4.19.2",

@@ -1,41 +1,36 @@
-import type { Puzzle, CellState, Cell, PuzzleCategory } from "../types";
-import { PUZZLE_SPECS } from "../types";
-import { layout } from "../layout";
-import { solve, initializeSolver, getHighestDifficulty } from "../solver";
+#!/usr/bin/env tsx
 
-function extractStars(board: CellState[][]): Cell[] {
-  const stars: Cell[] = [];
-  for (let row = 0; row < board.length; row++) {
-    for (let col = 0; col < board[row].length; col++) {
-      if (board[row][col] === "star") {
-        stars.push({ row, col });
-      }
-    }
-  }
-  return stars;
-}
+import { generate, formatGrid, formatRegions } from '../index';
 
-const MAX_ATTEMPTS = 10000;
+const args = process.argv.slice(2);
+const size = parseInt(args[0]) || 5;
+const seed = args[1] ? parseInt(args[1]) : undefined;
 
-export function generate(category: PuzzleCategory, seed?: number): Puzzle {
-  const { size, stars } = PUZZLE_SPECS[category];
-  const baseSeed = seed ?? Date.now();
+console.log(`Generating ${size}x${size} Star Battle puzzle...\n`);
 
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    const grid = layout({ size, seed: baseSeed + attempt });
-    const solverGrid = initializeSolver(grid, stars);
-    const result = solve(solverGrid);
+const result = generate({ size, seed, maxAttempts: 500 });
 
-    if (result.solved) {
-      return {
-        grid,
-        solution: extractStars(result.board),
-        difficulty: getHighestDifficulty(result.rulesApplied),
-      };
-    }
-  }
+if (result.success && result.puzzle) {
+  console.log('Regions:');
+  const regionGrid = {
+    size,
+    starsPerRegion: result.puzzle.starsPerRegion,
+    cells: [],
+    regions: result.puzzle.regions,
+    regionList: [],
+  };
+  console.log(formatRegions(regionGrid as any));
+  console.log();
 
-  throw new Error(
-    `Failed to generate ${category} puzzle after ${MAX_ATTEMPTS} attempts`
-  );
+  console.log('Solution:');
+  console.log(result.puzzle.solution.map(s => `(${s.row},${s.col})`).join(', '));
+  console.log();
+
+  console.log('Stats:');
+  console.log(`  Attempts: ${result.attempts}`);
+  console.log(`  Difficulty: Tier ${result.puzzle.difficulty.maxRuleTier}`);
+  console.log(`  Cycles: ${result.puzzle.difficulty.cycles}`);
+} else {
+  console.log(`Failed: ${result.error}`);
+  console.log(`Attempts: ${result.attempts}`);
 }
