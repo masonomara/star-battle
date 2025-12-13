@@ -41,7 +41,7 @@ GIIIDDDHH
 
 /*
 npx tsx -e "
-import { solveCustom } from './src/generator/solve-custom.ts';
+import { solveCustom } from './src/generator/commands/solve-custom.ts';
 solveCustom(\`
 AAAAAGGGGGGGOOOOSSSSSSSSS
 AAAGGGGGGHGGGOOOOOOSSSSSS
@@ -68,7 +68,7 @@ EEEFEEFJFJKKKKKRRVVWWWWWW
 EEEFFEFFFKKKKKKKKTVTWWWWW
 FEFFFFFKFKKKKKKKKTTTWWWWW
 FFFFKKKKKKKKKKKTTTTTTTTTW
-\`, 1);
+\`, 6);
 "
 */
 

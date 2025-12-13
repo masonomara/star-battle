@@ -2,6 +2,8 @@
 
 ## Parts
 
+**Based on Stack Overflow Comment I need to find**
+
 1. Need an algorithm `layout()` that generates a randomized Star Battle style grid
    - Divides the grid into shapes. A 5x5 grid means 5 shapes, a 25x25 grid means 25 shapes, and so on
    - This algorithm would not know anything about where the stars should go

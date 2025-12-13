@@ -1,4 +1,9 @@
-### Star Battle Rules
+# Solving Star Battle Documentation
+
+**Based off of Kris Pengy's Article:** https://kris.pengy.ca/starbattle
+
+
+### Rules
 
 Each puzzle consists of a subdivided grid and specifies a number of stars (e.g., 2★). The objective is to place stars such that:
 
