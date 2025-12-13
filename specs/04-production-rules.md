@@ -1,6 +1,6 @@
 # Production Rules
 
-**LONGER DOC**
+**LONG DOCUMENT**
 
 Production rules are logic-based rules a human might use to solve puzzles. They are determined from manually solving the puzzles and recording patterns. They are for a `solve()` algorithm that is basically a repeated loop of these rules.
 
@@ -18,7 +18,10 @@ All rules are Condition → action pairs so it is easier to turn into "functions
 - P - Shape
 - X - Cell
 - T - Star
-- K - Remaining unknown Xs in a constraint (R, C, or P)
+- K - Remaining unmarked Xs in a constraint (R, C, or P)
+- N(R), N(C), N(P) - Stars still needed in constraint: S minus Ts already placed
+- Unmarked - Cell that is neither starred nor eliminated
+- Targeted - Shape where minTiles = N(P), meaning each tile must contain exactly one star
 
 ## Rules
 
@@ -37,17 +40,17 @@ _Eliminations directly from the puzzle rules_
 ### R2.1 Row Complete
 
 - **Condition**: R contains S
-- **Action**: Eliminate all remaining Xs in R
+- **Action**: Eliminate all remaining unmarked Xs in R
 
 ### R2.2 Column Complete
 
 - **Condition**: C contains S
-- **Action**: Eliminate all remaining Xs in C
+- **Action**: Eliminate all remaining unmarked Xs in C
 
 ### R2.3 Shape Complete
 
 - **Condition**: P contains S
-- **Action**: Eliminate all remaining unknown Xs in P
+- **Action**: Eliminate all remaining unmarked Xs in P
 
 ## Tier 2. Forced Moves
 
@@ -68,37 +71,116 @@ _Direct star placements when remaining Xs exactly match Ts needed_
 - **Condition**: P has K remaining AND (S - Ts in P) = K
 - **Action**: Place T in all K in P
 
-### R4.1 Shape Fills Column
+### R4 Constraint Fills Shape
 
-- **Condition**: All remaining Xs in C belong to a single P AND (S - Ts in C) = (S - Ts in P)
-- **Action**: Eliminate all Xs in P not in C
+- **Condition**: All remaining unmarked Xs in a constraint (R or C) belong to a single P AND N(constraint) = N(P)
+- **Action**: Eliminate all unmarked Xs in P not in that constraint
 
-### R4.2 Shape Fills Row
+### R5 Shape Confined to Constraint
 
-- **Condition**: All remaining Xs in R belong to a single P AND (S - Ts in R) = (S - Ts in P)
-- **Action**: Eliminate all Xs in P not in R
+- **Condition**: All remaining unmarked Xs in P are in a single constraint (R or C) AND N(P) = N(constraint)
+- **Action**: Eliminate all unmarked Xs in the constraint not in P
 
-### R5.1 Shape Confined to Column
+## Tier 3: Counting
 
-- **Condition**: All remaining Xs in P are in a single C AND (S - Ts in P) = (S - Ts in C)
-- **Action**: Eliminate all Xs in C not in P
+### R6.1 Undercounting Rows
 
-### R5.2 Shape Confined to Row
+- **Condition**: All remaining unmarked Xs in Q shapes are completely contained within Q rows
+- **Action**: Eliminate any cell in those Q rows that is NOT in any of the Q shapes
 
-- **Condition**: All remaining Xs in P are in a single R AND (S - Ts in P) = (S - Ts in R)
-- **Action**: Eliminate all Xs in R not in P
+### R6.2 Undercounting Columns
 
-## Tier 3: Tiling and Eliminations
+- **Condition**: All remaining unmarked Xs in Q shapes are completely contained within Q columns
+- **Action**: Eliminate any cell in those Q columns that is NOT in any of the Q shapes
 
-### R6.1 Tiling - WIP
+### R7.1 Overcounting Rows
 
-- **Condition**: No Trivial or Forced Moves remain
-- **Action**: Tile shapes with 2×2 regions to bound star counts
-  1. Tile each P with non-overlapping 2×2 regions (4-cell squares)
-  2. Fill gaps with 3-cell L-shapes (2×2 minus corner)
-  3. Fill gaps with 3-cell 1×3 regions
-  4. Fill gaps with 2-cell 1×2 regions
-  5. Fill remaining with 1×1 tiles
-  6. Count minimum tiles needed to cover P
-  7. If min tiles = (S - Ts in P), each tile contains exactly one T
-  8. Apply exclusions to tiles with exactly one valid T placement
+- **Condition**: All remaining unmarked Xs in Q rows are completely contained within Q shapes
+- **Action**: Eliminate any cell in the Q shapes that is NOT in the Q rows
+
+### R7.2 Overcounting Columns
+
+- **Condition**: All remaining unmarked Xs in Q columns are completely contained within Q shapes
+- **Action**: Eliminate any cell in the Q shapes that is NOT in the Q columns
+
+## Tier 4: Tiling and Eliminations
+
+### MinTiles Algorithm
+
+Calculates the minimum number of tiles needed to cover a set of cells. Each tile holds at most 1 star, so `minTiles(P) = max stars P can hold`.
+
+```
+function minTiles(cells):
+  uncovered = cells.copy()
+  tileCount = 0
+
+  while uncovered not empty:
+    // Try 2×2 first (covers up to 4 cells)
+    best2x2 = find 2×2 position covering most uncovered (≥2)
+    if best2x2 exists:
+      mark those cells covered
+      tileCount++
+      continue
+
+    // Then L-shape (2×2 minus corner, covers 3 cells)
+    bestL = find L-shape covering ≥2 uncovered
+    if bestL exists:
+      mark covered
+      tileCount++
+      continue
+
+    // Then 1×3 or 3×1 (covers up to 3 cells)
+    best1x3 = find 1×3 covering ≥2 uncovered
+    if best1x3 exists:
+      mark covered
+      tileCount++
+      continue
+
+    // Then 1×2 or 2×1 (covers 2 cells)
+    best1x2 = find 1×2 covering 2 uncovered
+    if best1x2 exists:
+      mark covered
+      tileCount++
+      continue
+
+    // Remaining singles
+    tileCount += uncovered.length
+    break
+
+  return tileCount
+```
+
+### R8.1 Greedy Tiling
+
+- **Condition**: Tier 1-3 rules produced no eliminations or placements this iteration. Evaluate shapes in order of fewest unmarked cells.
+- **Action**: Run MinTiles on unmarked cells in P
+  1. If minTiles(P) = N(P), mark shape as "targeted"
+  2. If minTiles(P) != N(P), mark shape as "untargeted"
+
+### R9.1 Internal Exclusion
+
+- **Condition**: Shape is "Targeted"
+- **Action**:
+  1. Simulate placing a star in the first top-left unmarked cell in P
+  2. If the placement of the star forces the minimum amount of tiles to be less than the remaining stars in that shape, eliminate that cell
+  3. If the placement of that star does not force the minimum amount of tiles to be less than the remaining stars, then remove the simulated star and continue
+  4. Cycle through 1-3 with the next cell
+
+### R9.2 External Exclusion
+
+- **Condition**: Shape is "Targeted"
+- **Action**:
+  1. Simulate placing a star in a cell that borders the shape vertically, horizontally, or diagonally
+  2. If the placement of the star forces the minimum amount of tiles in the targeted shape to be less than the remaining stars in that shape, eliminate that cell
+  3. If the placement of that star does not force the minimum amount of tiles to be less than the remaining stars, then remove the simulated star and continue
+  4. Cycle through 1-3 with the next bordering cell
+
+### R10.1 Exhaustive Tiling
+
+- **Condition**: R8-R9 rules produced no progress this iteration AND P has K ≤ S×4 remaining unmarked cells
+- **Action**: Find true minimum tiles via exhaustive search
+  1. Generate all possible tilings of unmarked cells in P
+  2. Find the tiling with minimum tile count
+  3. If minTiles = N(P), mark shape as "targeted" and loop back to R9.1
+  4. If minTiles < N(P), puzzle is unsolvable
+  5. If minTiles > N(P), shape remains "untargeted"

@@ -2,7 +2,6 @@
 
 **Based off of Kris Pengy's Article:** https://kris.pengy.ca/starbattle
 
-
 ### Rules
 
 Each puzzle consists of a subdivided grid and specifies a number of stars (e.g., 2★). The objective is to place stars such that:
@@ -69,14 +68,6 @@ Exclusion refers to marks in cells where—should they contain a star—a shape,
 Pressured exclusion is like exclusion, but in the presence of other stars or 1×ns. For example, for 2★, we get the following exclusion mark when combined with the 1×n below:
 
 Pressured exclusions can be used extensively with identified star-containing-2×2s, e.g., those found via a squeeze. If the star-containing-2×2 contains marks forming an L or diagonal shape, there's potential for the following marks (highlighted in red) given a star or 1×n present in the corresponding row (or column):
-
-### 1.6 Simple Shapes
-
-By following the above principles—namely a combination of the 2×2 and exclusion—we can often deduce several marks (and occasionally stars) for simple shapes. Such shapes are easy to spot and typically how one starts a solve. It's good to work some of these out and internalize them—this lets you focus on harder-to-spot deductions!
-
-For 2★, below are the stars, marks, and star-containing-2×2s that can be deduced from select simple shapes. Many other shapes readily provide comparable information, but this should be a decent starting point. For each shape below—as an exercise—convince yourself that the deduced information is true:
-
-While the above diagrams highlight star-containing-2×2s, it's worth considering whether each shape also has a 1×n decomposition. In contrast with identifying 2×2 regions with exactly one star, having a row- (or column-) constrained region with at least one star can lead to different, further deductions.
 
 ## 2. Counting
 
