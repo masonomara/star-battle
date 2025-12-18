@@ -1,7 +1,5 @@
 # Initial Architecture
 
-_None of these decisons are currently set. Remain open to new architecture decisions right now._
-
 ## Client (React Native)
 
 - React Native 0.76+ (New Architecture)
@@ -11,22 +9,22 @@ _None of these decisons are currently set. Remain open to new architecture decis
 
 ## Server (Cloudflare)
 
-**Cloudflare Workers**
+**Cloudflare Workers:**
 API routing requests to durable objects, can handle auth, can handle rate limiting, can handle CORS. Perfect for stateless operations, request routing, API gateways, and edge caching. Use Workers with queues for bulk data processing.
 
-**Durable Objects**
+**Durable Objects:**
 DOs are globally unique instances with built-in SQLite. they are single threaded for strong consistency, support websockets for real-time. They are not a database by themselves, they use D1 for that. They are not for bulk storage, they use R2 for that. They are not global read-heavy data (they use KV for that). DOs are for real-time coordination, per-user states, websockets, transations, and strong consistency
 
-**D1 (Global Read-Heavy Data)**
+**D1 (Global Read-Heavy Data):**
 For global read-heavy data and data quieries. D1 is a type of database for global read-heavy data. perfect for analytics, historical data like leaderboards, user statistics, aggregations, and eventual consistency.
 
-**R2 (Puzzle Asset Storage)**
+**R2 (Puzzle Asset Storage):**
 For file storage and object storage, like daily/weekly/monthly puzzle definitions. Note: LIBRARY puzzles (300 total) are bundled in the app, not stored in R2.
 
-**KV (CDN Cache layer)**
+**KV (CDN Cache layer):**
 For key-value caches. Good for puzzle metadata, metadata chaches, CDN caching, app configuration, user badges
 
-**Alarms (background jobs)**
+**Alarms (background jobs):**
 Great for regenerating daily, weekly, and monthly puzzles. Backgroudn jobs, simialr to Cron jobs
 
 ## Sync (Last-write-wins)
@@ -41,7 +39,7 @@ Great for regenerating daily, weekly, and monthly puzzles. Backgroudn jobs, simi
 
 ## Authentication
 
-**First App Launch**
+**First App Launch:**
 
 - Auto-generate UUID v4
 - store in op-sqlite `user_settings` table (key: "user_id")
@@ -61,12 +59,12 @@ Great for regenerating daily, weekly, and monthly puzzles. Backgroudn jobs, simi
 
 ## Testing and Logging
 
-**Testing**
+**Testing:**
 
 - Unit tests (client)
 - Integration tests (sync)
 
-**Analytics**
+**Analytics:**
 
 - Client metrics (App launch time, puzzle laod time)
 - Business metrics (DAUs, MAUs, Daily Puzzle Completion)

@@ -2,7 +2,7 @@
 
 ## Parts
 
-**Based on Stack Overflow Comment I need to find**
+**TODO:** Find comment referenceing this plan on Stack Overflow to cite
 
 1. Need an algorithm `layout()` that generates a randomized Star Battle style grid
    - Divides the grid into shapes. A 5x5 grid means 5 shapes, a 25x25 grid means 25 shapes, and so on
