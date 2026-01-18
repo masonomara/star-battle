@@ -1,8 +1,7 @@
 import { Board } from "./types";
 
-// Seeded RNG (same seed = same board)
-
-function createRng(seed: number): () => number {
+// Linear Congruential Generator - deterministic RNG from seed
+function lcg(seed: number): () => number {
   let s = seed;
   return () => {
     s = (s * 1103515245 + 12345) & 0x7fffffff;
@@ -12,13 +11,18 @@ function createRng(seed: number): () => number {
 
 // Layout Generation
 
-export function layout(size: number, stars: number, seed: number): Board {
-  const rng = createRng(seed);
+export function layout(
+  size: number,
+  stars: number,
+  seed?: number,
+): { board: Board; seed: number } {
+  const actualSeed = seed ?? Math.floor(Math.random() * 0x7fffffff);
+  const rng = lcg(actualSeed);
   const grid: number[][] = Array.from({ length: size }, () =>
     Array.from({ length: size }, () => -1),
   );
 
-  // Place N seeds randomly
+  // Place N region starting cells randomly
   let placed = 0;
   while (placed < size) {
     const row = Math.floor(rng() * size);
@@ -54,7 +58,7 @@ export function layout(size: number, stars: number, seed: number): Board {
     }
   }
 
-  return { grid, stars, seed };
+  return { board: { grid, stars }, seed: actualSeed };
 }
 
 // Utilities
