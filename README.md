@@ -40,6 +40,9 @@ _See `specs/02-initial-architecture.md` for full details_
 - `/docs`
   - `/specs` - all specification documents. Each specification builds upon the previous one.
     - `numbered docs` - spec-based development
+- `src`
+  - `sieve`
+    - `generator` - creates reandom grid with regions
 
 ## Nomenclature
 
