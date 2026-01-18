@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { trivialStarMarks, trivialRowComplete, trivialColComplete } from "./rules";
+import { trivialStarMarks, trivialRowComplete, trivialColComplete, trivialRegionComplete } from "./rules";
 import { Board, CellState } from "./types";
 
 describe("Trivial Marks", () => {
@@ -329,6 +329,138 @@ describe("Trivial Col Complete", () => {
       ["star", "unknown", "marked"],
       ["marked", "unknown", "marked"],
       ["marked", "unknown", "star"],
+    ]);
+  });
+});
+
+describe("Trivial Region Complete", () => {
+  it("Marks remaining cells when region has enough stars (1-star)", () => {
+    // Region 0 = left column, Region 1 = right two columns
+    const board: Board = {
+      grid: [
+        [0, 1, 1],
+        [0, 1, 1],
+        [0, 1, 1],
+      ],
+      stars: 1,
+    };
+
+    // Region 0 has 1 star, should mark rest of region 0
+    const cells: CellState[][] = [
+      ["star", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown"],
+    ];
+
+    const result = trivialRegionComplete(board, cells);
+
+    expect(result).toEqual([
+      ["star", "unknown", "unknown"],
+      ["marked", "unknown", "unknown"],
+      ["marked", "unknown", "unknown"],
+    ]);
+  });
+
+  it("Marks remaining cells when region has enough stars (2-star)", () => {
+    // Region 0 = top two rows, Region 1 = bottom two rows
+    const board: Board = {
+      grid: [
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+      ],
+      stars: 2,
+    };
+
+    // Region 0 has 2 stars, should mark rest of region 0
+    const cells: CellState[][] = [
+      ["star", "unknown", "star", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+    ];
+
+    const result = trivialRegionComplete(board, cells);
+
+    expect(result).toEqual([
+      ["star", "marked", "star", "marked"],
+      ["marked", "marked", "marked", "marked"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+    ]);
+  });
+
+  it("Returns null when no region is complete", () => {
+    // Region 0 = left column, Region 1 = right two columns
+    const board: Board = {
+      grid: [
+        [0, 1, 1],
+        [0, 1, 1],
+        [0, 1, 1],
+      ],
+      stars: 2,
+    };
+
+    // Neither region has 2 stars yet
+    const cells: CellState[][] = [
+      ["star", "unknown", "unknown"],
+      ["unknown", "star", "unknown"],
+      ["unknown", "unknown", "unknown"],
+    ];
+
+    const result = trivialRegionComplete(board, cells);
+
+    expect(result).toBeNull();
+  });
+
+  it("Returns null when complete region has no unknowns left", () => {
+    // Region 0 = left column, Region 1 = right two columns
+    const board: Board = {
+      grid: [
+        [0, 1, 1],
+        [0, 1, 1],
+        [0, 1, 1],
+      ],
+      stars: 1,
+    };
+
+    // Region 0 has 1 star but all other cells already marked
+    const cells: CellState[][] = [
+      ["star", "unknown", "unknown"],
+      ["marked", "unknown", "unknown"],
+      ["marked", "unknown", "unknown"],
+    ];
+
+    const result = trivialRegionComplete(board, cells);
+
+    expect(result).toBeNull();
+  });
+
+  it("Marks multiple regions when both are complete", () => {
+    // 3 regions: 0 = top-left 2x2, 1 = top-right 2x2, 2 = bottom row
+    const board: Board = {
+      grid: [
+        [0, 0, 1, 1],
+        [0, 0, 1, 1],
+        [2, 2, 2, 2],
+      ],
+      stars: 1,
+    };
+
+    // Region 0 and region 2 both have 1 star
+    const cells: CellState[][] = [
+      ["star", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "star", "unknown", "unknown"],
+    ];
+
+    const result = trivialRegionComplete(board, cells);
+
+    expect(result).toEqual([
+      ["star", "marked", "unknown", "unknown"],
+      ["marked", "marked", "unknown", "unknown"],
+      ["marked", "star", "marked", "marked"],
     ]);
   });
 });

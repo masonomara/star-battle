@@ -107,3 +107,51 @@ export function trivialColComplete(
 
   return changed ? result : null;
 }
+
+/**
+ * Rule 1.1: Mark remaining cells in regions that have enough stars
+ * Returns new cells array if changes made, null if no changes
+ */
+export function trivialRegionComplete(
+  board: Board,
+  cells: CellState[][],
+): CellState[][] | null {
+  const size = board.grid.length;
+  let changed = false;
+
+  const result: CellState[][] = cells.map((row) => [...row]);
+
+  // Find all unique region IDs
+  const regionIds = new Set<number>();
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < board.grid[row].length; col++) {
+      regionIds.add(board.grid[row][col]);
+    }
+  }
+
+  for (const regionId of regionIds) {
+    // Count stars in this region
+    let starCount = 0;
+    for (let row = 0; row < size; row++) {
+      for (let col = 0; col < board.grid[row].length; col++) {
+        if (board.grid[row][col] === regionId && cells[row][col] === "star") {
+          starCount++;
+        }
+      }
+    }
+
+    // If region has enough stars, mark all unknowns in that region
+    if (starCount === board.stars) {
+      for (let row = 0; row < size; row++) {
+        for (let col = 0; col < board.grid[row].length; col++) {
+          if (board.grid[row][col] === regionId && result[row][col] === "unknown") {
+            result[row][col] = "marked";
+            changed = true;
+          }
+        }
+      }
+    }
+  }
+
+  return changed ? result : null;
+}
