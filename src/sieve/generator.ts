@@ -1,9 +1,4 @@
-// Types
-
-export type Board = {
-  grid: number[][]; // grid[row][col] = regionId
-  seed: number;
-};
+import { Board } from "./types";
 
 // Seeded RNG (same seed = same board)
 
@@ -17,7 +12,7 @@ function createRng(seed: number): () => number {
 
 // Layout Generation
 
-export function layout(size: number, seed: number): Board {
+export function layout(size: number, stars: number, seed: number): Board {
   const rng = createRng(seed);
   const grid: number[][] = Array.from({ length: size }, () =>
     Array.from({ length: size }, () => -1),
@@ -59,7 +54,7 @@ export function layout(size: number, seed: number): Board {
     }
   }
 
-  return { grid, seed };
+  return { grid, stars, seed };
 }
 
 // Utilities
