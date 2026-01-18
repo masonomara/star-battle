@@ -39,3 +39,71 @@ export function trivialStarMarks(
 
   return changed ? result : null;
 }
+
+/**
+ * Rule 1.1: Mark remaining cells in rows that have enough stars
+ * Returns new cells array if changes made, null if no changes
+ */
+export function trivialRowComplete(
+  board: Board,
+  cells: CellState[][],
+): CellState[][] | null {
+  const size = board.grid.length;
+  let changed = false;
+
+  const result: CellState[][] = cells.map((row) => [...row]);
+
+  for (let row = 0; row < size; row++) {
+    // Count stars in this row
+    let starCount = 0;
+    for (let col = 0; col < size; col++) {
+      if (cells[row][col] === "star") starCount++;
+    }
+
+    // If row has enough stars, mark all unknowns
+    if (starCount === board.stars) {
+      for (let col = 0; col < size; col++) {
+        if (result[row][col] === "unknown") {
+          result[row][col] = "marked";
+          changed = true;
+        }
+      }
+    }
+  }
+
+  return changed ? result : null;
+}
+
+/**
+ * Rule 1.1: Mark remaining cells in columns that have enough stars
+ * Returns new cells array if changes made, null if no changes
+ */
+export function trivialColComplete(
+  board: Board,
+  cells: CellState[][],
+): CellState[][] | null {
+  const size = board.grid.length;
+  let changed = false;
+
+  const result: CellState[][] = cells.map((row) => [...row]);
+
+  for (let col = 0; col < size; col++) {
+    // Count stars in this column
+    let starCount = 0;
+    for (let row = 0; row < size; row++) {
+      if (cells[row][col] === "star") starCount++;
+    }
+
+    // If column has enough stars, mark all unknowns
+    if (starCount === board.stars) {
+      for (let row = 0; row < size; row++) {
+        if (result[row][col] === "unknown") {
+          result[row][col] = "marked";
+          changed = true;
+        }
+      }
+    }
+  }
+
+  return changed ? result : null;
+}
