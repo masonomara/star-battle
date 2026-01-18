@@ -8,6 +8,7 @@ We also need a file that handles functions for saving, loading, and listing puzz
 
 ```
   src/sieve/
+    types.ts
     rules.ts
     solver.ts
     generator.ts
@@ -55,7 +56,7 @@ The solver applies rules in cycles, ordered by complexity. Difficulty is measure
 - Cell State - either "unknown", "star", or "marked"
 - Region - a shape on the board, has ID and a list of positions
 - Board - collection of cells and regions with set size and stars. determinsitclaly generatd by seed
-- Puzzle - a bard that has a solution, the output of the puzzle sieve. Holds the board's seed #,
+- Puzzle - a board that has been validated as solvable. The output of the puzzle sieve. Holds the board's seed and difficulty score.
 
 ## Requirements
 
@@ -65,9 +66,9 @@ The generator would use 'layout()' to produce a 25x25 board with regions
 
 the solver woudl apply production
 
-the output would be 100 puzzles of 26x26 boards that are solvable with 6 stars following the production rules, each baord has a seed and difficulty
+the output would be 100 puzzles of 25x25 boards that are solvable with 6 stars following the production rules, each board has a seed and difficulty
 
 - number of stars - "1 star" means 1 star per row, region, and column, "6 stars" means 6 stars per row, region, or column
-- grid size - "26x26"
+- grid size - "25x25"
 - count - how many puzles to generate
 - seed - for reproducability
