@@ -6,6 +6,7 @@
 - New York Times (Wordle publishers) added "Two Not Touch" - the same game, different name. Both just for internal use.
 - "Star Battle" is a recognized name of the game. There's a fragmented market. Most popular star battle puzzle app (Hoshi) has 59,000 downloads.
 
+
 _"Star Battle can be classified as an object placement puzzle. Some people refer to it as a cross between Sudoku and Minesweeper."_
 
 ## Moat

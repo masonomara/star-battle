@@ -1,8 +1,8 @@
 // Cell state in the puzzle grid
 export enum CellState {
-  UNKNOWN = 0,   // Not yet determined
-  EMPTY = 1,     // Confirmed empty (X)
-  STAR = 2,      // Confirmed star
+  UNKNOWN = 0, // Not yet determined
+  EMPTY = 1, // Confirmed empty (X)
+  STAR = 2, // Confirmed star
 }
 
 // A cell position
@@ -19,11 +19,11 @@ export interface Region {
 
 // The puzzle grid
 export interface Grid {
-  size: number;                    // N for NxN grid
-  starsPerRegion: number;          // Usually 1 for 5x5, 2 for 10x10
-  cells: CellState[][];            // Cell states
-  regions: number[][];             // Region ID for each cell
-  regionList: Region[];            // All regions
+  size: number; // N for NxN grid
+  starsPerRegion: number; // Usually 1 for 5x5, 2 for 10x10
+  cells: CellState[][]; // Cell states
+  regions: number[][]; // Region ID for each cell
+  regionList: Region[]; // All regions
 }
 
 // Solution with star positions
@@ -36,9 +36,9 @@ export interface SolveResult {
   solved: boolean;
   grid: Grid;
   solution?: Solution;
-  rulesApplied: string[];          // Log of rules used
-  cycles: number;                  // Deduction cycles needed
-  maxRuleTier: number;             // Highest tier rule used (difficulty)
+  rulesApplied: string[]; // Log of rules used
+  cycles: number; // Deduction cycles needed
+  maxRuleTier: number; // Highest tier rule used (difficulty)
 }
 
 // Result from layout generator
@@ -51,8 +51,8 @@ export interface LayoutResult {
 export interface PuzzleDefinition {
   size: number;
   starsPerRegion: number;
-  regions: number[][];             // Region IDs
-  solution: Cell[];                // Star positions
+  regions: number[][]; // Region IDs
+  solution: Cell[]; // Star positions
   difficulty: {
     cycles: number;
     maxRuleTier: number;
@@ -62,6 +62,6 @@ export interface PuzzleDefinition {
 // Custom puzzle input format
 export interface CustomPuzzleInput {
   size: number;
-  starsPerRegion?: number;         // Defaults to 1 for 5x5, 2 for 10x10
-  regions: string[] | number[][];  // String rows like "AABBC" or numeric grid
+  starsPerRegion?: number; // Defaults to 1 for 5x5, 2 for 10x10
+  regions: string[] | number[][]; // String rows like "AABBC" or numeric grid
 }

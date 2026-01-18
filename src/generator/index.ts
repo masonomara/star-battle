@@ -1,11 +1,17 @@
-import { Grid, CellState, PuzzleDefinition, CustomPuzzleInput, Region } from './types';
-import { layout, layoutVerbose, validateLayout, formatRegions } from './layout';
-import { solve, solveVerbose, formatGrid } from './solver';
+import {
+  Grid,
+  CellState,
+  PuzzleDefinition,
+  CustomPuzzleInput,
+  Region,
+} from "./types";
+import { layout, layoutVerbose, validateLayout, formatRegions } from "./layout";
+import { solve, solveVerbose, formatGrid } from "./solver";
 
-export * from './types';
-export * from './rules';
-export * from './solver';
-export * from './layout';
+export * from "./types";
+export * from "./rules";
+export * from "./solver";
+export * from "./layout";
 
 export interface GenerateOptions {
   size: number;
@@ -24,13 +30,21 @@ export interface GenerateResult {
 
 // Generate a valid puzzle using the sieve approach
 export function generate(options: GenerateOptions): GenerateResult {
-  const { size, starsPerRegion = size <= 6 ? 1 : 2, maxAttempts = 1000, verbose = false, seed } = options;
+  const {
+    size,
+    starsPerRegion = size <= 6 ? 1 : 2,
+    maxAttempts = 1000,
+    verbose = false,
+    seed,
+  } = options;
 
   const log = (msg: string) => {
     if (verbose) console.log(msg);
   };
 
-  log(`Starting puzzle generation: ${size}x${size}, ${starsPerRegion} stars per region`);
+  log(
+    `Starting puzzle generation: ${size}x${size}, ${starsPerRegion} stars per region`,
+  );
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     // Generate candidate layout
@@ -43,7 +57,9 @@ export function generate(options: GenerateOptions): GenerateResult {
     // Validate layout
     const validation = validateLayout(layoutResult.grid);
     if (!validation.valid) {
-      log(`Attempt ${attempt}: Invalid layout - ${validation.errors.join(', ')}`);
+      log(
+        `Attempt ${attempt}: Invalid layout - ${validation.errors.join(", ")}`,
+      );
       continue;
     }
 
@@ -89,11 +105,11 @@ export function parseCustomPuzzle(input: CustomPuzzleInput): Grid {
 
   let regionGrid: number[][];
 
-  if (typeof regions[0] === 'string') {
+  if (typeof regions[0] === "string") {
     // Parse string format like ["AABBC", "AABCC", ...]
     const stringRows = regions as string[];
-    regionGrid = stringRows.map(row => {
-      return [...row].map(char => {
+    regionGrid = stringRows.map((row) => {
+      return [...row].map((char) => {
         const code = char.toUpperCase().charCodeAt(0);
         return code - 65; // A=0, B=1, etc.
       });
@@ -122,7 +138,7 @@ export function parseCustomPuzzle(input: CustomPuzzleInput): Grid {
 
   // Initialize cell states
   const cells: CellState[][] = Array.from({ length: size }, () =>
-    Array(size).fill(CellState.UNKNOWN)
+    Array(size).fill(CellState.UNKNOWN),
   );
 
   return {
@@ -138,13 +154,13 @@ export function parseCustomPuzzle(input: CustomPuzzleInput): Grid {
 export function solveCustom(input: CustomPuzzleInput, verbose = false) {
   const grid = parseCustomPuzzle(input);
 
-  console.log('Input puzzle:');
+  console.log("Input puzzle:");
   console.log(formatRegions(grid));
   console.log();
 
   const result = solve(grid, { verbose });
 
-  console.log('Result:');
+  console.log("Result:");
   console.log(formatGrid(result.grid));
   console.log();
   console.log(`Solved: ${result.solved}`);
@@ -153,7 +169,9 @@ export function solveCustom(input: CustomPuzzleInput, verbose = false) {
   console.log(`Rules applied: ${result.rulesApplied.length}`);
 
   if (result.solution) {
-    console.log(`Stars: ${result.solution.stars.map(s => `(${s.row},${s.col})`).join(', ')}`);
+    console.log(
+      `Stars: ${result.solution.stars.map((s) => `(${s.row},${s.col})`).join(", ")}`,
+    );
   }
 
   return result;

@@ -1,4 +1,4 @@
-import { Grid, Cell, CellState } from './types';
+import { Grid, Cell, CellState } from "./types";
 
 // Rule result
 export interface RuleResult {
@@ -51,7 +51,10 @@ function getUnmarkedInRegion(grid: Grid, regionId: number): Cell[] {
   const cells: Cell[] = [];
   for (let r = 0; r < grid.size; r++) {
     for (let c = 0; c < grid.size; c++) {
-      if (grid.regions[r][c] === regionId && grid.cells[r][c] === CellState.UNKNOWN) {
+      if (
+        grid.regions[r][c] === regionId &&
+        grid.cells[r][c] === CellState.UNKNOWN
+      ) {
         cells.push({ row: r, col: c });
       }
     }
@@ -80,7 +83,11 @@ function starsInRegion(grid: Grid, regionId: number): number {
   let count = 0;
   for (let r = 0; r < grid.size; r++) {
     for (let c = 0; c < grid.size; c++) {
-      if (grid.regions[r][c] === regionId && grid.cells[r][c] === CellState.STAR) count++;
+      if (
+        grid.regions[r][c] === regionId &&
+        grid.cells[r][c] === CellState.STAR
+      )
+        count++;
     }
   }
   return count;
@@ -109,7 +116,7 @@ export function r1_1_eliminateNeighbors(grid: Grid): RuleResult {
 
   return {
     applied: eliminations.length > 0,
-    name: 'R1.1 Eliminate Neighbors',
+    name: "R1.1 Eliminate Neighbors",
     tier: 1,
     eliminations,
     placements: [],
@@ -129,7 +136,7 @@ export function r2_1_rowComplete(grid: Grid): RuleResult {
 
   return {
     applied: eliminations.length > 0,
-    name: 'R2.1 Row Complete',
+    name: "R2.1 Row Complete",
     tier: 1,
     eliminations,
     placements: [],
@@ -149,7 +156,7 @@ export function r2_2_colComplete(grid: Grid): RuleResult {
 
   return {
     applied: eliminations.length > 0,
-    name: 'R2.2 Column Complete',
+    name: "R2.2 Column Complete",
     tier: 1,
     eliminations,
     placements: [],
@@ -169,7 +176,7 @@ export function r2_3_regionComplete(grid: Grid): RuleResult {
 
   return {
     applied: eliminations.length > 0,
-    name: 'R2.3 Region Complete',
+    name: "R2.3 Region Complete",
     tier: 1,
     eliminations,
     placements: [],
@@ -195,7 +202,7 @@ export function r3_1_rowForced(grid: Grid): RuleResult {
 
   return {
     applied: placements.length > 0,
-    name: 'R3.1 Row Forced',
+    name: "R3.1 Row Forced",
     tier: 2,
     eliminations: [],
     placements,
@@ -217,7 +224,7 @@ export function r3_2_colForced(grid: Grid): RuleResult {
 
   return {
     applied: placements.length > 0,
-    name: 'R3.2 Column Forced',
+    name: "R3.2 Column Forced",
     tier: 2,
     eliminations: [],
     placements,
@@ -239,7 +246,7 @@ export function r3_3_regionForced(grid: Grid): RuleResult {
 
   return {
     applied: placements.length > 0,
-    name: 'R3.3 Region Forced',
+    name: "R3.3 Region Forced",
     tier: 2,
     eliminations: [],
     placements,
@@ -260,10 +267,13 @@ export function r4_constraintFillsShape(grid: Grid): RuleResult {
 
     // Check if all unmarked are in same region
     const regionId = grid.regions[unmarked[0].row][unmarked[0].col];
-    const allSameRegion = unmarked.every(c => grid.regions[c.row][c.col] === regionId);
+    const allSameRegion = unmarked.every(
+      (c) => grid.regions[c.row][c.col] === regionId,
+    );
 
     if (allSameRegion) {
-      const regionStarsNeeded = grid.starsPerRegion - starsInRegion(grid, regionId);
+      const regionStarsNeeded =
+        grid.starsPerRegion - starsInRegion(grid, regionId);
       if (starsNeeded === regionStarsNeeded) {
         // Eliminate cells in region not in this row
         const regionCells = getUnmarkedInRegion(grid, regionId);
@@ -285,10 +295,13 @@ export function r4_constraintFillsShape(grid: Grid): RuleResult {
     if (starsNeeded <= 0) continue;
 
     const regionId = grid.regions[unmarked[0].row][unmarked[0].col];
-    const allSameRegion = unmarked.every(cell => grid.regions[cell.row][cell.col] === regionId);
+    const allSameRegion = unmarked.every(
+      (cell) => grid.regions[cell.row][cell.col] === regionId,
+    );
 
     if (allSameRegion) {
-      const regionStarsNeeded = grid.starsPerRegion - starsInRegion(grid, regionId);
+      const regionStarsNeeded =
+        grid.starsPerRegion - starsInRegion(grid, regionId);
       if (starsNeeded === regionStarsNeeded) {
         const regionCells = getUnmarkedInRegion(grid, regionId);
         for (const cell of regionCells) {
@@ -302,7 +315,7 @@ export function r4_constraintFillsShape(grid: Grid): RuleResult {
 
   return {
     applied: eliminations.length > 0,
-    name: 'R4 Constraint Fills Shape',
+    name: "R4 Constraint Fills Shape",
     tier: 2,
     eliminations,
     placements: [],
@@ -317,11 +330,12 @@ export function r5_shapeConfinedToConstraint(grid: Grid): RuleResult {
     const unmarked = getUnmarkedInRegion(grid, regionId);
     if (unmarked.length === 0) continue;
 
-    const regionStarsNeeded = grid.starsPerRegion - starsInRegion(grid, regionId);
+    const regionStarsNeeded =
+      grid.starsPerRegion - starsInRegion(grid, regionId);
     if (regionStarsNeeded <= 0) continue;
 
     // Check if all in same row
-    const allSameRow = unmarked.every(c => c.row === unmarked[0].row);
+    const allSameRow = unmarked.every((c) => c.row === unmarked[0].row);
     if (allSameRow) {
       const row = unmarked[0].row;
       const rowStarsNeeded = grid.starsPerRegion - starsInRow(grid, row);
@@ -337,7 +351,7 @@ export function r5_shapeConfinedToConstraint(grid: Grid): RuleResult {
     }
 
     // Check if all in same column
-    const allSameCol = unmarked.every(c => c.col === unmarked[0].col);
+    const allSameCol = unmarked.every((c) => c.col === unmarked[0].col);
     if (allSameCol) {
       const col = unmarked[0].col;
       const colStarsNeeded = grid.starsPerRegion - starsInCol(grid, col);
@@ -354,7 +368,7 @@ export function r5_shapeConfinedToConstraint(grid: Grid): RuleResult {
 
   return {
     applied: eliminations.length > 0,
-    name: 'R5 Shape Confined to Constraint',
+    name: "R5 Shape Confined to Constraint",
     tier: 2,
     eliminations,
     placements: [],
@@ -392,7 +406,11 @@ function getShapesInCols(grid: Grid, cols: number[]): Set<number> {
 }
 
 // Helper: check if all unmarked cells of shapes are within rows
-function shapesContainedInRows(grid: Grid, shapes: Set<number>, rows: number[]): boolean {
+function shapesContainedInRows(
+  grid: Grid,
+  shapes: Set<number>,
+  rows: number[],
+): boolean {
   const rowSet = new Set(rows);
   for (const regionId of shapes) {
     const unmarked = getUnmarkedInRegion(grid, regionId);
@@ -404,7 +422,11 @@ function shapesContainedInRows(grid: Grid, shapes: Set<number>, rows: number[]):
 }
 
 // Helper: check if all unmarked cells of shapes are within columns
-function shapesContainedInCols(grid: Grid, shapes: Set<number>, cols: number[]): boolean {
+function shapesContainedInCols(
+  grid: Grid,
+  shapes: Set<number>,
+  cols: number[],
+): boolean {
   const colSet = new Set(cols);
   for (const regionId of shapes) {
     const unmarked = getUnmarkedInRegion(grid, regionId);
@@ -421,7 +443,10 @@ export function r6_1_undercountingRows(grid: Grid): RuleResult {
 
   // Try combinations of shapes
   for (let q = 2; q <= grid.size - 1; q++) {
-    const regionIds = Array.from({ length: grid.regionList.length }, (_, i) => i);
+    const regionIds = Array.from(
+      { length: grid.regionList.length },
+      (_, i) => i,
+    );
     const shapeCombos = combinations(regionIds, q);
 
     for (const shapeSet of shapeCombos) {
@@ -453,7 +478,7 @@ export function r6_1_undercountingRows(grid: Grid): RuleResult {
 
   return {
     applied: eliminations.length > 0,
-    name: 'R6.1 Undercounting Rows',
+    name: "R6.1 Undercounting Rows",
     tier: 3,
     eliminations,
     placements: [],
@@ -465,7 +490,10 @@ export function r6_2_undercountingCols(grid: Grid): RuleResult {
   const eliminations: Cell[] = [];
 
   for (let q = 2; q <= grid.size - 1; q++) {
-    const regionIds = Array.from({ length: grid.regionList.length }, (_, i) => i);
+    const regionIds = Array.from(
+      { length: grid.regionList.length },
+      (_, i) => i,
+    );
     const shapeCombos = combinations(regionIds, q);
 
     for (const shapeSet of shapeCombos) {
@@ -494,7 +522,7 @@ export function r6_2_undercountingCols(grid: Grid): RuleResult {
 
   return {
     applied: eliminations.length > 0,
-    name: 'R6.2 Undercounting Columns',
+    name: "R6.2 Undercounting Columns",
     tier: 3,
     eliminations,
     placements: [],
@@ -545,7 +573,7 @@ export function r7_1_overcountingRows(grid: Grid): RuleResult {
 
   return {
     applied: eliminations.length > 0,
-    name: 'R7.1 Overcounting Rows',
+    name: "R7.1 Overcounting Rows",
     tier: 3,
     eliminations,
     placements: [],
@@ -594,7 +622,7 @@ export function r7_2_overcountingCols(grid: Grid): RuleResult {
 
   return {
     applied: eliminations.length > 0,
-    name: 'R7.2 Overcounting Columns',
+    name: "R7.2 Overcounting Columns",
     tier: 3,
     eliminations,
     placements: [],
@@ -609,7 +637,7 @@ export function r7_2_overcountingCols(grid: Grid): RuleResult {
 export function minTiles(cells: Cell[]): number {
   if (cells.length === 0) return 0;
 
-  const uncovered = new Set(cells.map(c => `${c.row},${c.col}`));
+  const uncovered = new Set(cells.map((c) => `${c.row},${c.col}`));
   let tileCount = 0;
 
   while (uncovered.size > 0) {
@@ -618,16 +646,16 @@ export function minTiles(cells: Cell[]): number {
     let best2x2Count = 0;
 
     for (const cellKey of uncovered) {
-      const [r, c] = cellKey.split(',').map(Number);
+      const [r, c] = cellKey.split(",").map(Number);
       const positions = [
-        [`${r},${c}`, `${r},${c+1}`, `${r+1},${c}`, `${r+1},${c+1}`],
-        [`${r},${c}`, `${r},${c-1}`, `${r+1},${c}`, `${r+1},${c-1}`],
-        [`${r},${c}`, `${r},${c+1}`, `${r-1},${c}`, `${r-1},${c+1}`],
-        [`${r},${c}`, `${r},${c-1}`, `${r-1},${c}`, `${r-1},${c-1}`],
+        [`${r},${c}`, `${r},${c + 1}`, `${r + 1},${c}`, `${r + 1},${c + 1}`],
+        [`${r},${c}`, `${r},${c - 1}`, `${r + 1},${c}`, `${r + 1},${c - 1}`],
+        [`${r},${c}`, `${r},${c + 1}`, `${r - 1},${c}`, `${r - 1},${c + 1}`],
+        [`${r},${c}`, `${r},${c - 1}`, `${r - 1},${c}`, `${r - 1},${c - 1}`],
       ];
 
       for (const pos of positions) {
-        const covered = pos.filter(p => uncovered.has(p));
+        const covered = pos.filter((p) => uncovered.has(p));
         if (covered.length >= 2 && covered.length > best2x2Count) {
           best2x2 = covered;
           best2x2Count = covered.length;
@@ -646,16 +674,16 @@ export function minTiles(cells: Cell[]): number {
     let best1x3Count = 0;
 
     for (const cellKey of uncovered) {
-      const [r, c] = cellKey.split(',').map(Number);
+      const [r, c] = cellKey.split(",").map(Number);
       const positions = [
-        [`${r},${c}`, `${r},${c+1}`, `${r},${c+2}`],
-        [`${r},${c}`, `${r},${c-1}`, `${r},${c-2}`],
-        [`${r},${c}`, `${r+1},${c}`, `${r+2},${c}`],
-        [`${r},${c}`, `${r-1},${c}`, `${r-2},${c}`],
+        [`${r},${c}`, `${r},${c + 1}`, `${r},${c + 2}`],
+        [`${r},${c}`, `${r},${c - 1}`, `${r},${c - 2}`],
+        [`${r},${c}`, `${r + 1},${c}`, `${r + 2},${c}`],
+        [`${r},${c}`, `${r - 1},${c}`, `${r - 2},${c}`],
       ];
 
       for (const pos of positions) {
-        const covered = pos.filter(p => uncovered.has(p));
+        const covered = pos.filter((p) => uncovered.has(p));
         if (covered.length >= 2 && covered.length > best1x3Count) {
           best1x3 = covered;
           best1x3Count = covered.length;
@@ -673,14 +701,14 @@ export function minTiles(cells: Cell[]): number {
     let best1x2: string[] | null = null;
 
     for (const cellKey of uncovered) {
-      const [r, c] = cellKey.split(',').map(Number);
+      const [r, c] = cellKey.split(",").map(Number);
       const positions = [
-        [`${r},${c}`, `${r},${c+1}`],
-        [`${r},${c}`, `${r+1},${c}`],
+        [`${r},${c}`, `${r},${c + 1}`],
+        [`${r},${c}`, `${r + 1},${c}`],
       ];
 
       for (const pos of positions) {
-        if (pos.every(p => uncovered.has(p))) {
+        if (pos.every((p) => uncovered.has(p))) {
           best1x2 = pos;
           break;
         }
@@ -723,11 +751,11 @@ export function r8_1_greedyTiling(grid: Grid): RuleResult {
 
   return {
     applied: false, // This rule just marks shapes, doesn't eliminate
-    name: 'R8.1 Greedy Tiling',
+    name: "R8.1 Greedy Tiling",
     tier: 4,
     eliminations: [],
     placements: [],
-    message: `Targeted shapes: ${Array.from(targetedShapes).join(', ')}`,
+    message: `Targeted shapes: ${Array.from(targetedShapes).join(", ")}`,
   };
 }
 
@@ -741,7 +769,7 @@ export function r9_1_internalExclusion(grid: Grid): RuleResult {
 
     for (const cell of unmarked) {
       // Simulate placing a star
-      const remaining = unmarked.filter(c => {
+      const remaining = unmarked.filter((c) => {
         // Remove this cell and its neighbors
         if (c.row === cell.row && c.col === cell.col) return false;
         const dr = Math.abs(c.row - cell.row);
@@ -759,7 +787,7 @@ export function r9_1_internalExclusion(grid: Grid): RuleResult {
 
   return {
     applied: eliminations.length > 0,
-    name: 'R9.1 Internal Exclusion',
+    name: "R9.1 Internal Exclusion",
     tier: 4,
     eliminations,
     placements: [],
@@ -779,18 +807,20 @@ export function r9_2_externalExclusion(grid: Grid): RuleResult {
     for (const cell of unmarked) {
       const neighbors = getNeighbors(grid, cell);
       for (const n of neighbors) {
-        if (grid.regions[n.row][n.col] !== regionId &&
-            grid.cells[n.row][n.col] === CellState.UNKNOWN) {
+        if (
+          grid.regions[n.row][n.col] !== regionId &&
+          grid.cells[n.row][n.col] === CellState.UNKNOWN
+        ) {
           adjacentCells.add(`${n.row},${n.col}`);
         }
       }
     }
 
     for (const adjKey of adjacentCells) {
-      const [ar, ac] = adjKey.split(',').map(Number);
+      const [ar, ac] = adjKey.split(",").map(Number);
 
       // Simulate placing star at adjacent cell
-      const remaining = unmarked.filter(c => {
+      const remaining = unmarked.filter((c) => {
         const dr = Math.abs(c.row - ar);
         const dc = Math.abs(c.col - ac);
         return !(dr <= 1 && dc <= 1);
@@ -805,7 +835,7 @@ export function r9_2_externalExclusion(grid: Grid): RuleResult {
 
   return {
     applied: eliminations.length > 0,
-    name: 'R9.2 External Exclusion',
+    name: "R9.2 External Exclusion",
     tier: 4,
     eliminations,
     placements: [],
@@ -834,7 +864,11 @@ function exhaustiveMinTiles(cells: Cell[]): number {
   // Find maximum independent set via backtracking
   let maxSize = 0;
 
-  function backtrack(index: number, currentSize: number, excluded: boolean[]): void {
+  function backtrack(
+    index: number,
+    currentSize: number,
+    excluded: boolean[],
+  ): void {
     // Pruning: can't beat current max
     if (currentSize + (cells.length - index) <= maxSize) return;
 
@@ -885,7 +919,7 @@ export function r10_1_exhaustiveTiling(grid: Grid): RuleResult {
       targetedShapes.add(regionId);
       return {
         applied: true,
-        name: 'R10.1 Exhaustive Tiling',
+        name: "R10.1 Exhaustive Tiling",
         tier: 4,
         eliminations: [],
         placements: [],
@@ -895,7 +929,7 @@ export function r10_1_exhaustiveTiling(grid: Grid): RuleResult {
       // Puzzle is unsolvable - this shape can't hold enough stars
       return {
         applied: false,
-        name: 'R10.1 Exhaustive Tiling',
+        name: "R10.1 Exhaustive Tiling",
         tier: 4,
         eliminations: [],
         placements: [],
@@ -907,7 +941,7 @@ export function r10_1_exhaustiveTiling(grid: Grid): RuleResult {
 
   return {
     applied: false,
-    name: 'R10.1 Exhaustive Tiling',
+    name: "R10.1 Exhaustive Tiling",
     tier: 4,
     eliminations: [],
     placements: [],
@@ -920,7 +954,7 @@ function combinations<T>(arr: T[], k: number): T[][] {
   if (arr.length === 0) return [];
 
   const [first, ...rest] = arr;
-  const withFirst = combinations(rest, k - 1).map(c => [first, ...c]);
+  const withFirst = combinations(rest, k - 1).map((c) => [first, ...c]);
   const withoutFirst = combinations(rest, k);
 
   return [...withFirst, ...withoutFirst];

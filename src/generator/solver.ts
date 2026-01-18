@@ -1,4 +1,4 @@
-import { Grid, Cell, CellState, SolveResult, Solution } from './types';
+import { Grid, Cell, CellState, SolveResult, Solution } from "./types";
 import {
   allRules,
   tier1Rules,
@@ -6,7 +6,7 @@ import {
   tier3Rules,
   tier4Rules,
   RuleResult,
-} from './rules';
+} from "./rules";
 
 export interface SolverOptions {
   verbose?: boolean;
@@ -18,11 +18,11 @@ export interface SolverOptions {
 function cloneGrid(grid: Grid): Grid {
   return {
     ...grid,
-    cells: grid.cells.map(row => [...row]),
-    regions: grid.regions.map(row => [...row]),
-    regionList: grid.regionList.map(r => ({
+    cells: grid.cells.map((row) => [...row]),
+    regions: grid.regions.map((row) => [...row]),
+    regionList: grid.regionList.map((r) => ({
       ...r,
-      cells: r.cells.map(c => ({ ...c })),
+      cells: r.cells.map((c) => ({ ...c })),
     })),
   };
 }
@@ -129,7 +129,8 @@ function isInvalid(grid: Grid): boolean {
     if (starsPerCol[i] + unknownPerCol[i] < grid.starsPerRegion) return true;
   }
   for (let i = 0; i < grid.regionList.length; i++) {
-    if (starsPerRegion[i] + unknownPerRegion[i] < grid.starsPerRegion) return true;
+    if (starsPerRegion[i] + unknownPerRegion[i] < grid.starsPerRegion)
+      return true;
   }
 
   return false;
@@ -158,7 +159,10 @@ function extractSolution(grid: Grid): Solution {
 }
 
 // Main solver function
-export function solve(inputGrid: Grid, options: SolverOptions = {}): SolveResult {
+export function solve(
+  inputGrid: Grid,
+  options: SolverOptions = {},
+): SolveResult {
   const { verbose = false, maxTier = 4, maxCycles = 1000 } = options;
 
   const grid = cloneGrid(inputGrid);
@@ -172,25 +176,27 @@ export function solve(inputGrid: Grid, options: SolverOptions = {}): SolveResult
     if (verbose) console.log(msg);
   };
 
-  log(`\n${'='.repeat(60)}`);
+  log(`\n${"=".repeat(60)}`);
   log(`SOLVER START`);
-  log(`Grid: ${grid.size}x${grid.size}, ${grid.starsPerRegion} stars per constraint`);
+  log(
+    `Grid: ${grid.size}x${grid.size}, ${grid.starsPerRegion} stars per constraint`,
+  );
   log(`Rules loaded: ${rules.length} (max tier: ${maxTier})`);
-  log(`${'='.repeat(60)}\n`);
+  log(`${"=".repeat(60)}\n`);
 
   if (verbose) {
-    log('Initial grid:');
+    log("Initial grid:");
     log(formatGrid(grid));
-    log('');
+    log("");
   }
 
   while (cycles < maxCycles) {
     cycles++;
     let progress = false;
 
-    log(`${'─'.repeat(40)}`);
+    log(`${"─".repeat(40)}`);
     log(`CYCLE ${cycles}`);
-    log(`${'─'.repeat(40)}`);
+    log(`${"─".repeat(40)}`);
 
     // Check validity
     if (isInvalid(grid)) {
@@ -224,7 +230,7 @@ export function solve(inputGrid: Grid, options: SolverOptions = {}): SolveResult
       const stars = countStars(grid);
       const unknown = countUnknown(grid);
       log(`State: ${stars} stars placed, ${unknown} cells unknown`);
-      log('');
+      log("");
     }
 
     // Try each rule
@@ -240,10 +246,14 @@ export function solve(inputGrid: Grid, options: SolverOptions = {}): SolveResult
 
         log(`    → APPLIED`);
         if (result.eliminations.length > 0) {
-          log(`    → Eliminated ${result.eliminations.length} cell(s): ${result.eliminations.map(c => `(${c.row},${c.col})`).join(', ')}`);
+          log(
+            `    → Eliminated ${result.eliminations.length} cell(s): ${result.eliminations.map((c) => `(${c.row},${c.col})`).join(", ")}`,
+          );
         }
         if (result.placements.length > 0) {
-          log(`    → Placed ${result.placements.length} star(s): ${result.placements.map(c => `(${c.row},${c.col})`).join(', ')}`);
+          log(
+            `    → Placed ${result.placements.length} star(s): ${result.placements.map((c) => `(${c.row},${c.col})`).join(", ")}`,
+          );
         }
         if (result.message) {
           log(`    → ${result.message}`);
@@ -251,10 +261,10 @@ export function solve(inputGrid: Grid, options: SolverOptions = {}): SolveResult
 
         applyResult(grid, result);
 
-        log('');
-        log('Grid after rule:');
+        log("");
+        log("Grid after rule:");
         log(formatGrid(grid));
-        log('');
+        log("");
 
         break; // Restart rule loop
       } else {
@@ -316,22 +326,22 @@ export function formatGrid(grid: Grid): string {
   const lines: string[] = [];
 
   for (let r = 0; r < grid.size; r++) {
-    let line = '';
+    let line = "";
     for (let c = 0; c < grid.size; c++) {
       const state = grid.cells[r][c];
       const region = grid.regions[r][c];
       const regionChar = String.fromCharCode(65 + region); // A, B, C...
 
       if (state === CellState.STAR) {
-        line += '★ ';
+        line += "★ ";
       } else if (state === CellState.EMPTY) {
-        line += '· ';
+        line += "· ";
       } else {
-        line += regionChar + ' ';
+        line += regionChar + " ";
       }
     }
     lines.push(line);
   }
 
-  return lines.join('\n');
+  return lines.join("\n");
 }

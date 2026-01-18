@@ -1,4 +1,4 @@
-import { Grid, Cell, CellState, Region, LayoutResult } from './types';
+import { Grid, Cell, CellState, Region, LayoutResult } from "./types";
 
 export interface LayoutOptions {
   size: number;
@@ -41,7 +41,12 @@ function isValid(r: number, c: number, size: number): boolean {
 
 // Get 4-directional neighbors
 function getNeighbors4(r: number, c: number, size: number): Cell[] {
-  const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+  const dirs = [
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
+  ];
   const neighbors: Cell[] = [];
   for (const [dr, dc] of dirs) {
     const nr = r + dr;
@@ -54,7 +59,11 @@ function getNeighbors4(r: number, c: number, size: number): Cell[] {
 }
 
 // Flood fill to check connectivity
-function isConnected(regions: number[][], regionId: number, size: number): boolean {
+function isConnected(
+  regions: number[][],
+  regionId: number,
+  size: number,
+): boolean {
   const cells: Cell[] = [];
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
@@ -88,7 +97,12 @@ function isConnected(regions: number[][], regionId: number, size: number): boole
 
 // Generate a random layout using region growing
 export function layout(options: LayoutOptions): LayoutResult {
-  const { size, starsPerRegion = size <= 6 ? 1 : 2, verbose = false, seed } = options;
+  const {
+    size,
+    starsPerRegion = size <= 6 ? 1 : 2,
+    verbose = false,
+    seed,
+  } = options;
   const random = new Random(seed);
 
   const log = (msg: string) => {
@@ -99,7 +113,7 @@ export function layout(options: LayoutOptions): LayoutResult {
 
   // Initialize grid with -1 (unassigned)
   const regions: number[][] = Array.from({ length: size }, () =>
-    Array(size).fill(-1)
+    Array(size).fill(-1),
   );
 
   // Target cells per region
@@ -163,7 +177,7 @@ export function layout(options: LayoutOptions): LayoutResult {
   log(`Placed ${seeds.length} seed cells`);
 
   // Grow regions
-  const frontiers: Cell[][] = seeds.map(s => [s]);
+  const frontiers: Cell[][] = seeds.map((s) => [s]);
   const currentSizes = new Array(size).fill(1);
 
   let unassigned = totalCells - size;
@@ -176,7 +190,10 @@ export function layout(options: LayoutOptions): LayoutResult {
     // Pick a region that needs more cells
     const needsGrowth = [];
     for (let regionId = 0; regionId < size; regionId++) {
-      if (currentSizes[regionId] < regionSizes[regionId] && frontiers[regionId].length > 0) {
+      if (
+        currentSizes[regionId] < regionSizes[regionId] &&
+        frontiers[regionId].length > 0
+      ) {
         needsGrowth.push(regionId);
       }
     }
@@ -211,9 +228,9 @@ export function layout(options: LayoutOptions): LayoutResult {
     frontiers[regionId].push(candidate);
 
     // Remove cells from frontier that have no unassigned neighbors
-    frontiers[regionId] = frontiers[regionId].filter(cell => {
+    frontiers[regionId] = frontiers[regionId].filter((cell) => {
       const neighbors = getNeighbors4(cell.row, cell.col, size);
-      return neighbors.some(n => regions[n.row][n.col] === -1);
+      return neighbors.some((n) => regions[n.row][n.col] === -1);
     });
   }
 
@@ -249,7 +266,7 @@ export function layout(options: LayoutOptions): LayoutResult {
 
   // Initialize cell states
   const cells: CellState[][] = Array.from({ length: size }, () =>
-    Array(size).fill(CellState.UNKNOWN)
+    Array(size).fill(CellState.UNKNOWN),
   );
 
   const grid: Grid = {
@@ -260,7 +277,9 @@ export function layout(options: LayoutOptions): LayoutResult {
     regionList,
   };
 
-  log(`Layout complete: ${regionList.map(r => r.cells.length).join(', ')} cells per region`);
+  log(
+    `Layout complete: ${regionList.map((r) => r.cells.length).join(", ")} cells per region`,
+  );
 
   return {
     grid,
@@ -278,26 +297,31 @@ export function formatRegions(grid: Grid): string {
   const lines: string[] = [];
 
   for (let r = 0; r < grid.size; r++) {
-    let line = '';
+    let line = "";
     for (let c = 0; c < grid.size; c++) {
       const region = grid.regions[r][c];
-      line += String.fromCharCode(65 + region) + ' ';
+      line += String.fromCharCode(65 + region) + " ";
     }
     lines.push(line);
   }
 
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
 // Validate layout
-export function validateLayout(grid: Grid): { valid: boolean; errors: string[] } {
+export function validateLayout(grid: Grid): {
+  valid: boolean;
+  errors: string[];
+} {
   const errors: string[] = [];
 
   // Check all cells assigned
   for (let r = 0; r < grid.size; r++) {
     for (let c = 0; c < grid.size; c++) {
       if (grid.regions[r][c] < 0 || grid.regions[r][c] >= grid.size) {
-        errors.push(`Cell (${r},${c}) has invalid region ${grid.regions[r][c]}`);
+        errors.push(
+          `Cell (${r},${c}) has invalid region ${grid.regions[r][c]}`,
+        );
       }
     }
   }

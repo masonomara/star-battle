@@ -1,8 +1,6 @@
 # Production Rules
 
-**LONG DOCUMENT**
-
-Production rules are logic-based rules a human might use to solve puzzles. They are determined from manually solving the puzzles and recording patterns. They are for a `solve()` algorithm that is basically a repeated loop of these rules.
+Production rules are logic-based rules a human might use to solve puzzles. They are determined from manually solving the puzzles and recording patterns. They are for a `solve()` algorithm that is essentially a repeated loop of these rules.
 
 For each rule, the pattern will be checked if they match. CELLS will be eliminated or starred as dictated by each rule and the loop is started over. If after following a rule, the puzzle is fully solved, algorithm is done. If the puzzle is still unsolved and all the rules are examined with no hits, the puzzle is unsolvable or has multiple solutions. The algorithm should only find a solution when the puzzle has a single unique solution.
 
@@ -13,7 +11,6 @@ All rules are Condition → action pairs so it is easier to turn into "functions
 ## Definitions
 
 - STAR COUNT - number of stars that need to be in each row, column and shape for this particular puzzle
-
 
 ## Rules
 
