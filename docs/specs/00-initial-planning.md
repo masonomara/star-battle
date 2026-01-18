@@ -6,7 +6,6 @@
 - New York Times (Wordle publishers) added "Two Not Touch" - the same game, different name. Both just for internal use.
 - "Star Battle" is a recognized name of the game. There's a fragmented market. Most popular star battle puzzle app (Hoshi) has 59,000 downloads.
 
-
 _"Star Battle can be classified as an object placement puzzle. Some people refer to it as a cross between Sudoku and Minesweeper."_
 
 ## Moat
@@ -66,3 +65,13 @@ Puzzles sorted by implicit difficulty ('**1-star** 5x5 grid' → '**3-star** 14x
 - No tutorials
 - Puzzle needs to load immediately
 - Puzzles available offline
+
+## Why PRODUCTION RULES?
+
+Three ways to build solvers: BRUTE FORCE, BACKTRACKING, and PRODUCTION RULES.
+
+BRUTE FORCE — Slowly and sloppily guarantees finding all solutions. Does not guarantee a human can discover a solution without guessing.
+
+BACKTRACKING — Brute computational search. Can solve guess-required puzzles (doesn't guarantee human solvable). Faster than pure brute force. Can solve puzzles requiring guessing. Just finds the answer, doesn't estimate difficulty. "I tried stuff until it worked"
+
+PRODUCTION RULES — Mimics human logic, applies a set of human-made rules for solving a puzzle over and over again in a cycle. You can determine difficulty by choosing to see if the puzzle is solvable only using certain rules. If it solves the puzzle, guaranteed solvable by a human without guessing, pure logic.

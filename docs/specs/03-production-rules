@@ -1,17 +1,17 @@
-# Solving Star Battle Documentation
+# Production Rules
 
 **Based off of Kris Pengy's Article:** https://kris.pengy.ca/starbattle
 
-### Rules
+## Rules
 
 Each puzzle consists of a subdivided grid and specifies a number of stars (e.g., 2★). The objective is to place stars such that:
 
 - Each row, column, and shape contains exactly the specified number of stars.
-- No two stars touch horizontally, vertically, or diagonally.
+- No two stars can touch horizontally, vertically, or diagonally.
 
-Below is an example 10×10 2★ puzzle and its solution:
+Below is an example of a 10x10 2★ puzzle and its solution:
 
-### Overview
+![Sample Puzzle](/docs/specs/images/sample_puzzle.png) ![Sample Solution](/docs/specs/images/sample_solution.png)
 
 The most popular variant is 10×10 2★, so most examples on this page focus on 2★ puzzles. That said, many techniques generalize to arbitrary star counts.
 
@@ -213,4 +213,18 @@ This region has four stars and is minimally tiled with seven 2×2s. It must ther
 
 Acknowledging that the remaining rooks lie in the central composite shape, a sea of squeezes reveals that all of these 2×2s contain a star:
 
-Observing that we've identified both stars in the middle-right shape gets us some marks. The rest is an exercise for the reader—try it here!
+Observing that we've identified both stars in the middle-right shape gets us some marks.
+
+### 4.6 Entanglement
+
+Entanglement refers to non-trivial marks obtained in the presence of specific star configurations. Such cases are dependent on puzzle-size, and are found by brute forcing every valid star configuration. Basically, you can tell by the way it is.
+
+There are plenty of entanglement-related marks given three stars on a 10×10 2★ puzzle, but for practical memorization and ease-of-spotting, we'll only worry about the following two-star case:
+
+If a 10×10 2★ puzzle has two stars that are exactly the above distance apart, the red cells can't contain a star if the red cell lies in the ring of cells that's one cell from the edge of the puzzle. For example
+
+One of the above red cells lies in the aforementioned ring of cells (yellow) and gives a mark. In contrast, because it does not lie in the ring, the blue cell does not give a mark despite being in an entanglement location. Here are a few more examples:
+
+Of note, this page's example puzzle—which was used to demonstrate Star Battle's rules—is a hand-set puzzle of mine that was designed to be much easier if aware of entanglement (try it here!):
+
+While out of this page's scope—to showcase the entanglement rabbit-hole—below is a glimpse of what entanglement looks like on a 9×9 2★ puzzle...
