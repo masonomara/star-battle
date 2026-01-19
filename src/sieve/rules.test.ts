@@ -10,7 +10,7 @@ import {
 import { Board, CellState } from "./types";
 
 describe("1. Star Neighbors", () => {
-  it("1.1. marks all 8 neighbors", () => {
+  it("1.1 marks all 8 neighbors", () => {
     // 3x3 board, star in center
     const board: Board = {
       grid: [
@@ -37,7 +37,7 @@ describe("1. Star Neighbors", () => {
     ]);
   });
 
-  it("1.2. handles corner ★ (3 neighbors)", () => {
+  it("1.2 handles corner ★ (3 neighbors)", () => {
     const board: Board = {
       grid: [
         [0, 0, 0],
@@ -62,7 +62,7 @@ describe("1. Star Neighbors", () => {
     ]);
   });
 
-  it("1.3. handles edge ★ (5 neighbors)", () => {
+  it("1.3 handles edge ★ (5 neighbors)", () => {
     const board: Board = {
       grid: [
         [0, 0, 0],
@@ -87,7 +87,7 @@ describe("1. Star Neighbors", () => {
     ]);
   });
 
-  it("1.4. returns null if no changes", () => {
+  it("1.4 returns null if no changes", () => {
     const board: Board = {
       grid: [
         [0, 0, 0],
@@ -109,7 +109,7 @@ describe("1. Star Neighbors", () => {
     expect(result).toBeNull();
   });
 
-  it("1.5. marks neighbors of multiple ★s (2★)", () => {
+  it("1.5 marks neighbors of multiple ★s (2★)", () => {
     const board: Board = {
       grid: [
         [0, 0, 0, 0, 0],
@@ -143,7 +143,7 @@ describe("1. Star Neighbors", () => {
 });
 
 describe("2. Row Complete", () => {
-  it("2.1. marks remaining cells when row complete (1★)", () => {
+  it("2.1 marks remaining cells when row complete (1★)", () => {
     const board: Board = {
       grid: [
         [0, 0, 0],
@@ -169,7 +169,7 @@ describe("2. Row Complete", () => {
     ]);
   });
 
-  it("2.2. marks remaining cells when row complete (2★)", () => {
+  it("2.2 marks remaining cells when row complete (2★)", () => {
     const board: Board = {
       grid: [
         [0, 0, 0, 0],
@@ -198,7 +198,7 @@ describe("2. Row Complete", () => {
     ]);
   });
 
-  it("2.3. returns null when no row complete", () => {
+  it("2.3 returns null when no row complete", () => {
     const board: Board = {
       grid: [
         [0, 0, 0],
@@ -220,7 +220,7 @@ describe("2. Row Complete", () => {
     expect(result).toBeNull();
   });
 
-  it("2.4. returns null when no unknowns left", () => {
+  it("2.4 returns null when no unknowns left", () => {
     const board: Board = {
       grid: [
         [0, 0, 0],
@@ -242,7 +242,7 @@ describe("2. Row Complete", () => {
     expect(result).toBeNull();
   });
 
-  it("2.5. marks multiple rows simultaneously", () => {
+  it("2.5 marks multiple rows simultaneously", () => {
     const board: Board = {
       grid: [
         [0, 0, 0],
@@ -270,7 +270,7 @@ describe("2. Row Complete", () => {
 });
 
 describe("3. Column Complete", () => {
-  it("3.1. marks remaining cells when column complete (1★)", () => {
+  it("3.1 marks remaining cells when column complete (1★)", () => {
     const board: Board = {
       grid: [
         [0, 0, 0],
@@ -296,7 +296,7 @@ describe("3. Column Complete", () => {
     ]);
   });
 
-  it("3.2. marks remaining cells when column complete (2★)", () => {
+  it("3.2 marks remaining cells when column complete (2★)", () => {
     const board: Board = {
       grid: [
         [0, 0, 0, 0],
@@ -325,7 +325,7 @@ describe("3. Column Complete", () => {
     ]);
   });
 
-  it("3.3. returns null when no column complete", () => {
+  it("3.3 returns null when no column complete", () => {
     const board: Board = {
       grid: [
         [0, 0, 0],
@@ -347,7 +347,7 @@ describe("3. Column Complete", () => {
     expect(result).toBeNull();
   });
 
-  it("3.4. returns null when no unknowns left", () => {
+  it("3.4 returns null when no unknowns left", () => {
     const board: Board = {
       grid: [
         [0, 0, 0],
@@ -369,7 +369,7 @@ describe("3. Column Complete", () => {
     expect(result).toBeNull();
   });
 
-  it("3.5. marks multiple columns simultaneously", () => {
+  it("3.5 marks multiple columns simultaneously", () => {
     const board: Board = {
       grid: [
         [0, 0, 0],
@@ -397,7 +397,7 @@ describe("3. Column Complete", () => {
 });
 
 describe("4. Region Complete", () => {
-  it("4.1. marks remaining cells when region complete (1★)", () => {
+  it("4.1 marks remaining cells when region complete (1★)", () => {
     // Region 0 = left column, Region 1 = right two columns
     const board: Board = {
       grid: [
@@ -424,7 +424,7 @@ describe("4. Region Complete", () => {
     ]);
   });
 
-  it("4.2. marks remaining cells when region complete (2★)", () => {
+  it("4.2 marks remaining cells when region complete (2★)", () => {
     // Region 0 = top two rows, Region 1 = bottom two rows
     const board: Board = {
       grid: [
@@ -454,7 +454,7 @@ describe("4. Region Complete", () => {
     ]);
   });
 
-  it("4.3. returns null when no region complete", () => {
+  it("4.3 returns null when no region complete", () => {
     // Region 0 = left column, Region 1 = right two columns
     const board: Board = {
       grid: [
@@ -477,7 +477,7 @@ describe("4. Region Complete", () => {
     expect(result).toBeNull();
   });
 
-  it("4.4. returns null when no unknowns left", () => {
+  it("4.4 returns null when no unknowns left", () => {
     // Region 0 = left column, Region 1 = right two columns
     const board: Board = {
       grid: [
@@ -500,7 +500,7 @@ describe("4. Region Complete", () => {
     expect(result).toBeNull();
   });
 
-  it("4.5. marks multiple regions simultaneously", () => {
+  it("4.5 marks multiple regions simultaneously", () => {
     // 3 irregular regions:
     // Region 0: L-shape top-left (3 cells)
     // Region 1: irregular middle-right (6 cells)
@@ -533,7 +533,7 @@ describe("4. Region Complete", () => {
     ]);
   });
 
-  it("4.6. handles L-shaped region", () => {
+  it("4.6 handles L-shaped region", () => {
     // Region 0 = L-shape, Region 1 = fills the rest
     // Grid layout:
     //   0 1 1
@@ -567,8 +567,8 @@ describe("4. Region Complete", () => {
 });
 
 describe("5. Forced Placement", () => {
-  describe("5.1. Row forced placement", () => {
-    it("5.1.1. places ★ when 1 unknown, needs 1★", () => {
+  describe("5.1 Row forced placement", () => {
+    it("5.1.1 places ★ when 1 unknown, needs 1★", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -594,7 +594,7 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.1.2. places ★s when 2 unknowns, needs 2★", () => {
+    it("5.1.2 places ★s when 2 unknowns, needs 2★", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -623,7 +623,7 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.1.3. places remaining ★ (has 1★, 1 unknown)", () => {
+    it("5.1.3 places remaining ★ (has 1★, 1 unknown)", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -653,8 +653,8 @@ describe("5. Forced Placement", () => {
     });
   });
 
-  describe("5.2. Column forced placement", () => {
-    it("5.2.1. places ★ when 1 unknown, needs 1★", () => {
+  describe("5.2 Column forced placement", () => {
+    it("5.2.1 places ★ when 1 unknown, needs 1★", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -680,7 +680,7 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.2.2. places ★s when 2 unknowns, needs 2★", () => {
+    it("5.2.2 places ★s when 2 unknowns, needs 2★", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -709,7 +709,7 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.2.3. places remaining ★ (has 1★, 1 unknown)", () => {
+    it("5.2.3 places remaining ★ (has 1★, 1 unknown)", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -739,8 +739,8 @@ describe("5. Forced Placement", () => {
     });
   });
 
-  describe("5.3. Region forced placement", () => {
-    it("5.3.1. places ★ when 1 unknown, needs 1★", () => {
+  describe("5.3 Region forced placement", () => {
+    it("5.3.1 places ★ when 1 unknown, needs 1★", () => {
       // Region 0 = left column, Region 1 = right two columns
       const board: Board = {
         grid: [
@@ -767,7 +767,7 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.3.2. places ★s when 2 unknowns, needs 2★", () => {
+    it("5.3.2 places ★s when 2 unknowns, needs 2★", () => {
       // Region 0 = top-left 2x2, Region 1 = rest
       // Designed so no row/col accidentally triggers (each has 3+ unknowns)
       const board: Board = {
@@ -798,7 +798,7 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.3.3. places ★ in L-shaped region", () => {
+    it("5.3.3 places ★ in L-shaped region", () => {
       // Region 0 = L-shape, Region 1 = fills the rest
       const board: Board = {
         grid: [
@@ -825,7 +825,7 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.3.4. places remaining ★ (has 1★, 1 unknown)", () => {
+    it("5.3.4 places remaining ★ (has 1★, 1 unknown)", () => {
       // Region 0 = left two cols, Region 1 = right three cols
       // 5x5 grid ensures each row/col has 3+ unknowns
       const board: Board = {
@@ -859,7 +859,7 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.3.5. places ★ in scattered region", () => {
+    it("5.3.5 places ★ in scattered region", () => {
       // Region 0 = 4 corners (non-contiguous), Region 1 = everything else
       // Grid layout (4x4 to avoid row/col triggers):
       //   0 1 1 0
@@ -895,7 +895,7 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.3.6. places ★s in multiple regions", () => {
+    it("5.3.6 places ★s in multiple regions", () => {
       // 4 vertical stripe regions in a 4x4 grid
       // Each row has 3+ unknowns so rows don't trigger
       const board: Board = {
@@ -927,8 +927,8 @@ describe("5. Forced Placement", () => {
     });
   });
 
-  describe("5.4. No forced placement", () => {
-    it("5.4.1. returns null when nothing forced", () => {
+  describe("5.4 No forced placement", () => {
+    it("5.4.1 returns null when nothing forced", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -950,7 +950,7 @@ describe("5. Forced Placement", () => {
       expect(result).toBeNull();
     });
 
-    it("5.4.2. returns null when more unknowns than needed", () => {
+    it("5.4.2 returns null when more unknowns than needed", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -972,7 +972,7 @@ describe("5. Forced Placement", () => {
       expect(result).toBeNull();
     });
 
-    it("5.4.3. returns null when row already has all ★s", () => {
+    it("5.4.3 returns null when row already has all ★s", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -995,8 +995,8 @@ describe("5. Forced Placement", () => {
     });
   });
 
-  describe("5.5. Multiple forced placements", () => {
-    it("5.5.1. places ★s in multiple rows", () => {
+  describe("5.5 Multiple forced placements", () => {
+    it("5.5.1 places ★s in multiple rows", () => {
       // 4x4 grid so columns don't accidentally trigger (each col has 3+ unknowns)
       const board: Board = {
         grid: [
@@ -1026,7 +1026,7 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.5.2. places ★s from row, column, and region together", () => {
+    it("5.5.2 places ★s from row, column, and region together", () => {
       // Region 0 = top-left 2x2, Region 1 = rest
       const board: Board = {
         grid: [
@@ -1056,8 +1056,8 @@ describe("5. Forced Placement", () => {
 });
 
 describe("6. The 2×2", () => {
-  describe("6.1. Single cell in tile forces star", () => {
-    it("6.1.1. places ★ when tile has 1 cell in region", () => {
+  describe("6.1 Single cell in tile forces star", () => {
+    it("6.1.1 places ★ when tile has 1 cell in region", () => {
       // 6×6 2★ puzzle with 5 regions
       // Region 0: 2×2 block with a tail at [2,1]
       //   0 0 1 1 1 1
@@ -1098,7 +1098,7 @@ describe("6. The 2×2", () => {
       expect(result![2][1]).toBe("star");
     });
 
-    it("6.1.2. places ★ when tile has 1 unknown (others marked)", () => {
+    it("6.1.2 places ★ when tile has 1 unknown (others marked)", () => {
       // Region tiles with N tiles, needs N stars
       // One tile has 3 cells marked, 1 unknown → unknown is star
       const board: Board = {
@@ -1128,8 +1128,8 @@ describe("6. The 2×2", () => {
     });
   });
 
-  describe("6.2. No deduction cases", () => {
-    it("6.2.1. returns null when tiles > stars needed", () => {
+  describe("6.2 No deduction cases", () => {
+    it("6.2.1 returns null when tiles > stars needed", () => {
       // Region that needs 3 tiles but only 2★ puzzle
       // Tiles give upper bound of 3, but we need 2, no forced placement
       const board: Board = {
@@ -1158,7 +1158,7 @@ describe("6. The 2×2", () => {
       expect(result).toBeNull();
     });
 
-    it("6.2.2. returns null when multiple cells viable in each tile", () => {
+    it("6.2.2 returns null when multiple cells viable in each tile", () => {
       // 2×2 region in 1★ puzzle - 1 tile, 1 star, but 4 cells viable
       const board: Board = {
         grid: [
@@ -1182,7 +1182,7 @@ describe("6. The 2×2", () => {
       expect(result).toBeNull();
     });
 
-    it("6.2.3. returns null when region already has stars placed", () => {
+    it("6.2.3 returns null when region already has stars placed", () => {
       // Region has its stars, nothing to deduce
       const board: Board = {
         grid: [
@@ -1207,8 +1207,8 @@ describe("6. The 2×2", () => {
     });
   });
 
-  describe("6.3. Complex region shapes", () => {
-    it("6.3.1. places ★s in disconnected region cells", () => {
+  describe("6.3 Complex region shapes", () => {
+    it("6.3.1 places ★s in disconnected region cells", () => {
       // Region 0: two isolated cells [0,0] and [2,2]
       //   0 . .
       //   . . .
@@ -1238,7 +1238,7 @@ describe("6. The 2×2", () => {
       expect(result![2][2]).toBe("star");
     });
 
-    it("6.3.2. places ★s in vertical strip with marks", () => {
+    it("6.3.2 places ★s in vertical strip with marks", () => {
       // Region 0: column 0 (4 cells), needs 2 tiles
       // With [0,0] and [2,0] marked, each tile has 1 unknown
       //   X . . .      (X = marked)
@@ -1270,8 +1270,8 @@ describe("6. The 2×2", () => {
     });
   });
 
-  describe("6.4. Interaction with existing stars", () => {
-    it("6.4.1. returns null when remaining cells have multiple options", () => {
+  describe("6.4 Interaction with existing stars", () => {
+    it("6.4.1 returns null when remaining cells have multiple options", () => {
       // Region 0 has 1 star, needs 1 more
       // Remaining unknowns [0,2] and [1,2] tile with 1 tile
       // But tile has 2 viable cells → no forced placement
