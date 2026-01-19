@@ -10,7 +10,6 @@ function lcg(seed: number): () => number {
 }
 
 // Layout Generation
-
 export function layout(
   size: number,
   stars: number,
@@ -59,14 +58,4 @@ export function layout(
   }
 
   return { board: { grid, stars }, seed: actualSeed };
-}
-
-// Utilities
-
-export function printBoard(board: Board): string {
-  return board.grid
-    .map((row) =>
-      row.map((id) => String.fromCharCode(65 + (id % 26))).join(" "),
-    )
-    .join("\n");
 }
