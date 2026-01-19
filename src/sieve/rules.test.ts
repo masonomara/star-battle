@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { trivialStarMarks, trivialRowComplete, trivialColComplete, trivialRegionComplete } from "./rules";
+import { trivialStarMarks, trivialRowComplete, trivialColComplete, trivialRegionComplete, forcedPlacement } from "./rules";
 import { Board, CellState } from "./types";
 
 describe("Trivial Marks", () => {
@@ -551,5 +551,494 @@ describe("Trivial Region Complete", () => {
       ["marked", "unknown", "unknown"],
       ["marked", "marked", "unknown"],
     ]);
+  });
+});
+
+describe("Forced Placement", () => {
+  describe("Row forced placement", () => {
+    it("Places star when row has exactly 1 unknown and needs 1 star", () => {
+      const board: Board = {
+        grid: [
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 0, 0],
+        ],
+        stars: 1,
+      };
+
+      // Row 0 has 1 unknown, needs 1 star
+      const cells: CellState[][] = [
+        ["marked", "unknown", "marked"],
+        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toEqual([
+        ["marked", "star", "marked"],
+        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+      ]);
+    });
+
+    it("Places stars when row has exactly 2 unknowns and needs 2 stars", () => {
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+        ],
+        stars: 2,
+      };
+
+      // Row 1 has 2 unknowns, needs 2 stars
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["marked", "unknown", "marked", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toEqual([
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["marked", "star", "marked", "star"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ]);
+    });
+
+    it("Places remaining star when row has 1 star and 1 unknown", () => {
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+        ],
+        stars: 2,
+      };
+
+      // Row 0 has 1 star already, 1 unknown, needs 1 more star
+      const cells: CellState[][] = [
+        ["star", "marked", "unknown", "marked"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toEqual([
+        ["star", "marked", "star", "marked"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ]);
+    });
+  });
+
+  describe("Column forced placement", () => {
+    it("Places star when column has exactly 1 unknown and needs 1 star", () => {
+      const board: Board = {
+        grid: [
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 0, 0],
+        ],
+        stars: 1,
+      };
+
+      // Col 0 has 1 unknown, needs 1 star
+      const cells: CellState[][] = [
+        ["marked", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+        ["marked", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toEqual([
+        ["marked", "unknown", "unknown"],
+        ["star", "unknown", "unknown"],
+        ["marked", "unknown", "unknown"],
+      ]);
+    });
+
+    it("Places stars when column has exactly 2 unknowns and needs 2 stars", () => {
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+        ],
+        stars: 2,
+      };
+
+      // Col 2 has 2 unknowns, needs 2 stars
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "marked", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "marked", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toEqual([
+        ["unknown", "unknown", "marked", "unknown"],
+        ["unknown", "unknown", "star", "unknown"],
+        ["unknown", "unknown", "marked", "unknown"],
+        ["unknown", "unknown", "star", "unknown"],
+      ]);
+    });
+
+    it("Places remaining star when column has 1 star and 1 unknown", () => {
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+        ],
+        stars: 2,
+      };
+
+      // Col 0 has 1 star already, 1 unknown, needs 1 more star
+      const cells: CellState[][] = [
+        ["star", "unknown", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toEqual([
+        ["star", "unknown", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "unknown"],
+        ["star", "unknown", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "unknown"],
+      ]);
+    });
+  });
+
+  describe("Region forced placement", () => {
+    it("Places star when region has exactly 1 unknown and needs 1 star", () => {
+      // Region 0 = left column, Region 1 = right two columns
+      const board: Board = {
+        grid: [
+          [0, 1, 1],
+          [0, 1, 1],
+          [0, 1, 1],
+        ],
+        stars: 1,
+      };
+
+      // Region 0 has 1 unknown at [1,0], needs 1 star
+      const cells: CellState[][] = [
+        ["marked", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+        ["marked", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toEqual([
+        ["marked", "unknown", "unknown"],
+        ["star", "unknown", "unknown"],
+        ["marked", "unknown", "unknown"],
+      ]);
+    });
+
+    it("Places stars when region has exactly 2 unknowns and needs 2 stars", () => {
+      // Region 0 = top-left 2x2, Region 1 = rest
+      // Designed so no row/col accidentally triggers (each has 3+ unknowns)
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+
+      // Region 0 (top-left 2x2) has 2 unknowns at [0,0] and [1,1], needs 2 stars
+      const cells: CellState[][] = [
+        ["unknown", "marked", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toEqual([
+        ["star", "marked", "unknown", "unknown"],
+        ["marked", "star", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ]);
+    });
+
+    it("Places remaining star in L-shaped region", () => {
+      // Region 0 = L-shape, Region 1 = fills the rest
+      const board: Board = {
+        grid: [
+          [0, 1, 1],
+          [0, 1, 1],
+          [0, 0, 1],
+        ],
+        stars: 1,
+      };
+
+      // Region 0 (L-shaped) has 1 unknown at [2,1], needs 1 star
+      const cells: CellState[][] = [
+        ["marked", "unknown", "unknown"],
+        ["marked", "unknown", "unknown"],
+        ["marked", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toEqual([
+        ["marked", "unknown", "unknown"],
+        ["marked", "unknown", "unknown"],
+        ["marked", "star", "unknown"],
+      ]);
+    });
+
+    it("Places remaining star when region has 1 star and 1 unknown", () => {
+      // Region 0 = left two cols, Region 1 = right three cols
+      // 5x5 grid ensures each row/col has 3+ unknowns
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1, 1],
+          [0, 0, 1, 1, 1],
+          [0, 0, 1, 1, 1],
+          [0, 0, 1, 1, 1],
+          [0, 0, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+
+      // Region 0 has 1 star already at [0,0], 1 unknown at [4,1], needs 1 more
+      const cells: CellState[][] = [
+        ["star", "marked", "unknown", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toEqual([
+        ["star", "marked", "unknown", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown", "unknown"],
+        ["marked", "star", "unknown", "unknown", "unknown"],
+      ]);
+    });
+
+    it("Places star in scattered (non-contiguous) region", () => {
+      // Region 0 = 4 corners (non-contiguous), Region 1 = everything else
+      // Grid layout (4x4 to avoid row/col triggers):
+      //   0 1 1 0
+      //   1 1 1 1
+      //   1 1 1 1
+      //   0 1 1 0
+      const board: Board = {
+        grid: [
+          [0, 1, 1, 0],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+          [0, 1, 1, 0],
+        ],
+        stars: 1,
+      };
+
+      // Region 0 (4 corners) has 1 unknown at [3,3], needs 1 star
+      // Each row/col has 3+ unknowns so they don't trigger
+      const cells: CellState[][] = [
+        ["marked", "unknown", "unknown", "marked"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toEqual([
+        ["marked", "unknown", "unknown", "marked"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "star"],
+      ]);
+    });
+
+    it("Places stars in multiple regions simultaneously", () => {
+      // 4 vertical stripe regions in a 4x4 grid
+      // Each row has 3+ unknowns so rows don't trigger
+      const board: Board = {
+        grid: [
+          [0, 1, 2, 3],
+          [0, 1, 2, 3],
+          [0, 1, 2, 3],
+          [0, 1, 2, 3],
+        ],
+        stars: 1,
+      };
+
+      // Region 0 and Region 3 both have exactly 1 unknown, regions 1 and 2 have more
+      const cells: CellState[][] = [
+        ["marked", "unknown", "unknown", "marked"],
+        ["unknown", "unknown", "unknown", "marked"],
+        ["marked", "unknown", "unknown", "marked"],
+        ["marked", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toEqual([
+        ["marked", "unknown", "unknown", "marked"],
+        ["star", "unknown", "unknown", "marked"],
+        ["marked", "unknown", "unknown", "marked"],
+        ["marked", "unknown", "unknown", "star"],
+      ]);
+    });
+  });
+
+  describe("No forced placement", () => {
+    it("Returns null when no row/col/region has forced placement", () => {
+      const board: Board = {
+        grid: [
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 0, 0],
+        ],
+        stars: 1,
+      };
+
+      // All rows/cols have more unknowns than needed stars
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toBeNull();
+    });
+
+    it("Returns null when row has more unknowns than needed", () => {
+      const board: Board = {
+        grid: [
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 0, 0],
+        ],
+        stars: 1,
+      };
+
+      // Row 0 has 2 unknowns but only needs 1 star
+      const cells: CellState[][] = [
+        ["marked", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toBeNull();
+    });
+
+    it("Returns null when row already has all stars", () => {
+      const board: Board = {
+        grid: [
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 0, 0],
+        ],
+        stars: 1,
+      };
+
+      // Row 0 already has its star
+      const cells: CellState[][] = [
+        ["star", "marked", "marked"],
+        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("Multiple forced placements", () => {
+    it("Places stars in multiple rows simultaneously", () => {
+      // 4x4 grid so columns don't accidentally trigger (each col has 3+ unknowns)
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+        ],
+        stars: 1,
+      };
+
+      // Row 0 and row 3 both have exactly 1 unknown
+      const cells: CellState[][] = [
+        ["marked", "unknown", "marked", "marked"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["marked", "marked", "marked", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toEqual([
+        ["marked", "star", "marked", "marked"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["marked", "marked", "marked", "star"],
+      ]);
+    });
+
+    it("Places stars from row, column, and region constraints together", () => {
+      // Region 0 = top-left 2x2, Region 1 = rest
+      const board: Board = {
+        grid: [
+          [0, 0, 1],
+          [0, 0, 1],
+          [1, 1, 1],
+        ],
+        stars: 1,
+      };
+
+      // Row 2 col 2 is forced by row, col 0 row 1 forced by region 0
+      const cells: CellState[][] = [
+        ["marked", "marked", "marked"],
+        ["unknown", "marked", "marked"],
+        ["marked", "marked", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toEqual([
+        ["marked", "marked", "marked"],
+        ["star", "marked", "marked"],
+        ["marked", "marked", "star"],
+      ]);
+    });
   });
 });

@@ -155,3 +155,104 @@ export function trivialRegionComplete(
 
   return changed ? result : null;
 }
+
+/**
+ * Rule 1.1: Place stars when unknowns equal needed stars
+ * If a row, column, or region has exactly as many unknowns as stars needed, place stars
+ * Returns new cells array if changes made, null if no changes
+ */
+export function forcedPlacement(
+  board: Board,
+  cells: CellState[][],
+): CellState[][] | null {
+  const size = board.grid.length;
+  let changed = false;
+  let result: CellState[][] | null = null;
+
+  // Helper to ensure result is initialized
+  const ensureResult = () => {
+    if (!result) {
+      result = cells.map((row) => [...row]);
+    }
+    return result;
+  };
+
+  // Check rows
+  for (let row = 0; row < size; row++) {
+    let starCount = 0;
+    let unknownCount = 0;
+
+    for (let col = 0; col < size; col++) {
+      if (cells[row][col] === "star") starCount++;
+      else if (cells[row][col] === "unknown") unknownCount++;
+    }
+
+    const starsNeeded = board.stars - starCount;
+    if (starsNeeded > 0 && unknownCount === starsNeeded) {
+      const r = ensureResult();
+      for (let col = 0; col < size; col++) {
+        if (r[row][col] === "unknown") {
+          r[row][col] = "star";
+          changed = true;
+        }
+      }
+    }
+  }
+
+  // Check columns
+  for (let col = 0; col < size; col++) {
+    let starCount = 0;
+    let unknownCount = 0;
+
+    for (let row = 0; row < size; row++) {
+      if (cells[row][col] === "star") starCount++;
+      else if (cells[row][col] === "unknown") unknownCount++;
+    }
+
+    const starsNeeded = board.stars - starCount;
+    if (starsNeeded > 0 && unknownCount === starsNeeded) {
+      const r = ensureResult();
+      for (let row = 0; row < size; row++) {
+        if (r[row][col] === "unknown") {
+          r[row][col] = "star";
+          changed = true;
+        }
+      }
+    }
+  }
+
+  // Check regions - build region map first for efficiency
+  const regionCells = new Map<number, [number, number][]>();
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      const regionId = board.grid[row][col];
+      if (!regionCells.has(regionId)) {
+        regionCells.set(regionId, []);
+      }
+      regionCells.get(regionId)!.push([row, col]);
+    }
+  }
+
+  for (const [, cellList] of regionCells) {
+    let starCount = 0;
+    let unknownCount = 0;
+
+    for (const [row, col] of cellList) {
+      if (cells[row][col] === "star") starCount++;
+      else if (cells[row][col] === "unknown") unknownCount++;
+    }
+
+    const starsNeeded = board.stars - starCount;
+    if (starsNeeded > 0 && unknownCount === starsNeeded) {
+      const r = ensureResult();
+      for (const [row, col] of cellList) {
+        if (r[row][col] === "unknown") {
+          r[row][col] = "star";
+          changed = true;
+        }
+      }
+    }
+  }
+
+  return changed ? result : null;
+}
