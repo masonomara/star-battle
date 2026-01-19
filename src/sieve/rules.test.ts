@@ -3,7 +3,7 @@ import { trivialStarMarks, trivialRowComplete, trivialColComplete, trivialRegion
 import { Board, CellState } from "./types";
 
 describe("Trivial Marks", () => {
-  it("Marks all 8 neighbors of a star", () => {
+  it("Marks all cells that share an edge or corner with a star", () => {
     // 3x3 board, star in center
     const board: Board = {
       grid: [
@@ -30,7 +30,7 @@ describe("Trivial Marks", () => {
     ]);
   });
 
-  it("Handles star in corner", () => {
+  it("Handles star in corner (3 neighbors)", () => {
     const board: Board = {
       grid: [
         [0, 0, 0],
@@ -51,6 +51,31 @@ describe("Trivial Marks", () => {
     expect(result).toEqual([
       ["star", "marked", "unknown"],
       ["marked", "marked", "unknown"],
+      ["unknown", "unknown", "unknown"],
+    ]);
+  });
+
+  it("Handles star on edge (5 neighbors)", () => {
+    const board: Board = {
+      grid: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+      ],
+      stars: 1,
+    };
+
+    const cells: CellState[][] = [
+      ["unknown", "star", "unknown"],
+      ["unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown"],
+    ];
+
+    const result = trivialStarMarks(board, cells);
+
+    expect(result).toEqual([
+      ["marked", "star", "marked"],
+      ["marked", "marked", "marked"],
       ["unknown", "unknown", "unknown"],
     ]);
   });
@@ -76,10 +101,42 @@ describe("Trivial Marks", () => {
 
     expect(result).toBeNull();
   });
+
+  it("Marks neighbors of multiple stars (2-star puzzle)", () => {
+    const board: Board = {
+      grid: [
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+      ],
+      stars: 2,
+    };
+
+    // Two stars placed far apart - both should have neighbors marked
+    const cells: CellState[][] = [
+      ["star", "unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown", "star"],
+      ["unknown", "unknown", "unknown", "unknown", "unknown"],
+    ];
+
+    const result = trivialStarMarks(board, cells);
+
+    expect(result).toEqual([
+      ["star", "marked", "unknown", "unknown", "unknown"],
+      ["marked", "marked", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "marked", "marked"],
+      ["unknown", "unknown", "unknown", "marked", "star"],
+      ["unknown", "unknown", "unknown", "marked", "marked"],
+    ]);
+  });
 });
 
 describe("Trivial Row Complete", () => {
-  it("Marks remaining cells when row has enough stars (1-star)", () => {
+  it("Marks the remainder of a row once it has that many stars (1-star)", () => {
     const board: Board = {
       grid: [
         [0, 0, 0],
@@ -105,7 +162,7 @@ describe("Trivial Row Complete", () => {
     ]);
   });
 
-  it("Marks remaining cells when row has enough stars (2-star)", () => {
+  it("Marks the remainder of a row once it has that many stars (2-star)", () => {
     const board: Board = {
       grid: [
         [0, 0, 0, 0],
@@ -207,7 +264,7 @@ describe("Trivial Row Complete", () => {
 });
 
 describe("Trivial Col Complete", () => {
-  it("Marks remaining cells when column has enough stars (1-star)", () => {
+  it("Marks the remainder of a column once it has that many stars (1-star)", () => {
     const board: Board = {
       grid: [
         [0, 0, 0],
@@ -233,7 +290,7 @@ describe("Trivial Col Complete", () => {
     ]);
   });
 
-  it("Marks remaining cells when column has enough stars (2-star)", () => {
+  it("Marks the remainder of a column once it has that many stars (2-star)", () => {
     const board: Board = {
       grid: [
         [0, 0, 0, 0],
@@ -334,7 +391,7 @@ describe("Trivial Col Complete", () => {
 });
 
 describe("Trivial Region Complete", () => {
-  it("Marks remaining cells when region has enough stars (1-star)", () => {
+  it("Marks the remainder of a region once it has that many stars (1-star)", () => {
     // Region 0 = left column, Region 1 = right two columns
     const board: Board = {
       grid: [
@@ -361,7 +418,7 @@ describe("Trivial Region Complete", () => {
     ]);
   });
 
-  it("Marks remaining cells when region has enough stars (2-star)", () => {
+  it("Marks the remainder of a region once it has that many stars (2-star)", () => {
     // Region 0 = top two rows, Region 1 = bottom two rows
     const board: Board = {
       grid: [
@@ -461,6 +518,38 @@ describe("Trivial Region Complete", () => {
       ["star", "marked", "unknown", "unknown"],
       ["marked", "marked", "unknown", "unknown"],
       ["marked", "star", "marked", "marked"],
+    ]);
+  });
+
+  it("Handles L-shaped region", () => {
+    // Region 0 = L-shape, Region 1 = fills the rest
+    // Grid layout:
+    //   0 1 1
+    //   0 1 1
+    //   0 0 1
+    const board: Board = {
+      grid: [
+        [0, 1, 1],
+        [0, 1, 1],
+        [0, 0, 1],
+      ],
+      stars: 1,
+    };
+
+    // Region 0 (L-shaped) has 1 star at [0,0]
+    const cells: CellState[][] = [
+      ["star", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown"],
+    ];
+
+    const result = trivialRegionComplete(board, cells);
+
+    // Should mark all other cells in L-shaped region 0: [1,0], [2,0], [2,1]
+    expect(result).toEqual([
+      ["star", "unknown", "unknown"],
+      ["marked", "unknown", "unknown"],
+      ["marked", "marked", "unknown"],
     ]);
   });
 });
