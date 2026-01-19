@@ -5,6 +5,7 @@ import {
   trivialColComplete,
   trivialRegionComplete,
   forcedPlacement,
+  twoByTwoTiling,
 } from "./rules";
 import { Board, CellState } from "./types";
 
@@ -1050,6 +1051,250 @@ describe("5. Forced Placement", () => {
         ["star", "marked", "marked"],
         ["marked", "marked", "star"],
       ]);
+    });
+  });
+});
+
+describe("6. The 2×2", () => {
+  describe("6.1. Single cell in tile forces star", () => {
+    it("6.1.1. places ★ when tile has 1 cell in region", () => {
+      // 6×6 2★ puzzle with 5 regions
+      // Region 0: 2×2 block with a tail at [2,1]
+      //   0 0 1 1 1 1
+      //   0 0 1 1 1 1
+      //   2 0 1 1 3 3
+      //   2 2 2 3 3 3
+      //   2 2 4 4 4 4
+      //   2 4 4 4 4 4
+      // Region 0 cells: [0,0], [0,1], [1,0], [1,1], [2,1] - contiguous
+      // Tile [0,0] covers the 2×2 block (4 cells)
+      // Tile [1,0] covers [2,1] but other cells are outside region 0
+      // 2 tiles, 2★ → tight bound, [2,1] must be star
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1, 1, 1],
+          [0, 0, 1, 1, 1, 1],
+          [2, 0, 1, 1, 3, 3],
+          [2, 2, 2, 3, 3, 3],
+          [2, 2, 4, 4, 4, 4],
+          [2, 4, 4, 4, 4, 4],
+        ],
+        stars: 2,
+      };
+
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = twoByTwoTiling(board, cells);
+
+      // [2,1] is the tail - only region 0 cell in its covering tile
+      expect(result).not.toBeNull();
+      expect(result![2][1]).toBe("star");
+    });
+
+    it("6.1.2. places ★ when tile has 1 unknown (others marked)", () => {
+      // Region tiles with N tiles, needs N stars
+      // One tile has 3 cells marked, 1 unknown → unknown is star
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+        ],
+        stars: 4,
+      };
+
+      // 4×4 single region needs 4 tiles (each 2×2 quadrant)
+      // 4 tiles = 4 stars needed, each tile has exactly 1 star
+      // If one tile has 3 cells marked, the 4th must be a star
+      const cells: CellState[][] = [
+        ["marked", "marked", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = twoByTwoTiling(board, cells);
+
+      expect(result).not.toBeNull();
+      expect(result![1][1]).toBe("star");
+    });
+  });
+
+  describe("6.2. No deduction cases", () => {
+    it("6.2.1. returns null when tiles > stars needed", () => {
+      // Region that needs 3 tiles but only 2★ puzzle
+      // Tiles give upper bound of 3, but we need 2, no forced placement
+      const board: Board = {
+        grid: [
+          [0, 1, 0, 1],
+          [1, 1, 1, 1],
+          [0, 1, 0, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+
+      // Region 0: [0,0], [0,2], [2,0], [2,2] - 4 corners
+      // Each corner needs its own tile (they're isolated)
+      // 4 tiles for 2★ → just upper bound, no deduction
+
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = twoByTwoTiling(board, cells);
+
+      expect(result).toBeNull();
+    });
+
+    it("6.2.2. returns null when multiple cells viable in each tile", () => {
+      // 2×2 region in 1★ puzzle - 1 tile, 1 star, but 4 cells viable
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 1,
+      };
+
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = twoByTwoTiling(board, cells);
+
+      expect(result).toBeNull();
+    });
+
+    it("6.2.3. returns null when region already has stars placed", () => {
+      // Region has its stars, nothing to deduce
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 1,
+      };
+
+      const cells: CellState[][] = [
+        ["star", "marked", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = twoByTwoTiling(board, cells);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("6.3. Complex region shapes", () => {
+    it("6.3.1. places ★s in disconnected region cells", () => {
+      // Region 0: two isolated cells [0,0] and [2,2]
+      //   0 . .
+      //   . . .
+      //   . . 0
+      // Each cell needs its own tile → 2 tiles
+      // 2★ puzzle → each tile has exactly 1 star
+      // Each tile has only 1 region cell → both must be stars
+      const board: Board = {
+        grid: [
+          [0, 1, 1],
+          [1, 1, 1],
+          [1, 1, 0],
+        ],
+        stars: 2,
+      };
+
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+      ];
+
+      const result = twoByTwoTiling(board, cells);
+
+      expect(result).not.toBeNull();
+      expect(result![0][0]).toBe("star");
+      expect(result![2][2]).toBe("star");
+    });
+
+    it("6.3.2. places ★s in vertical strip with marks", () => {
+      // Region 0: column 0 (4 cells), needs 2 tiles
+      // With [0,0] and [2,0] marked, each tile has 1 unknown
+      //   X . . .      (X = marked)
+      //   ? . . .      (? = must be star)
+      //   X . . .
+      //   ? . . .
+      const board: Board = {
+        grid: [
+          [0, 1, 1, 1],
+          [0, 1, 1, 1],
+          [0, 1, 1, 1],
+          [0, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+
+      const cells: CellState[][] = [
+        ["marked", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = twoByTwoTiling(board, cells);
+
+      expect(result).not.toBeNull();
+      expect(result![1][0]).toBe("star");
+      expect(result![3][0]).toBe("star");
+    });
+  });
+
+  describe("6.4. Interaction with existing stars", () => {
+    it("6.4.1. returns null when remaining cells have multiple options", () => {
+      // Region 0 has 1 star, needs 1 more
+      // Remaining unknowns [0,2] and [1,2] tile with 1 tile
+      // But tile has 2 viable cells → no forced placement
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 1],
+          [0, 0, 0, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+
+      const cells: CellState[][] = [
+        ["star", "marked", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = twoByTwoTiling(board, cells);
+
+      expect(result).toBeNull();
     });
   });
 });

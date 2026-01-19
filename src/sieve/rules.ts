@@ -1,7 +1,7 @@
 import { Board, CellState } from "./types";
 
 /**
- * Rule 1.1: Mark all 8 neighbors of placed stars
+ * Rule 1. Star Neighbors: Mark all 8 neighbors of placed stars
  * Returns new cells array if changes made, null if no changes
  */
 export function trivialStarMarks(
@@ -44,7 +44,7 @@ export function trivialStarMarks(
 }
 
 /**
- * Rule 1.1: Mark remaining cells in rows that have enough stars
+ * Rule 2. Row Complete: Mark remaining cells in rows that have enough stars
  * Returns new cells array if changes made, null if no changes
  */
 export function trivialRowComplete(
@@ -82,7 +82,7 @@ export function trivialRowComplete(
 }
 
 /**
- * Rule 1.1: Mark remaining cells in columns that have enough stars
+ * Rule 3. Column Complete: Mark remaining cells in columns that have enough stars
  * Returns new cells array if changes made, null if no changes
  */
 export function trivialColComplete(
@@ -120,7 +120,7 @@ export function trivialColComplete(
 }
 
 /**
- * Rule 1.1: Mark remaining cells in regions that have enough stars
+ * Rule 4. Region Complete: Mark remaining cells in regions that have enough stars
  * Returns new cells array if changes made, null if no changes
  */
 export function trivialRegionComplete(
@@ -170,7 +170,7 @@ export function trivialRegionComplete(
 }
 
 /**
- * Rule 1.1: Place stars when unknowns equal needed stars
+ * Rule 5. Forced Placement: Place stars when unknowns equal needed stars
  * If a row, column, or region has exactly as many unknowns as stars needed, place stars
  * Returns new cells array if changes made, null if no changes
  */
@@ -268,4 +268,153 @@ export function forcedPlacement(
   }
 
   return changed ? result : null;
+}
+
+/**
+ * Rule 6. 2x2 Tiling: The 2×2 tiling rule
+ * A 2×2 can hold at most 1 star. If a region tiles with N 2×2s and needs N stars,
+ * each tile has exactly 1 star. Place stars when a tile has only 1 viable cell.
+ */
+export function twoByTwoTiling(
+  board: Board,
+  cells: CellState[][],
+): CellState[][] | null {
+  const size = board.grid.length;
+  let result: CellState[][] | null = null;
+
+  const ensureResult = () => {
+    if (!result) {
+      result = cells.map((row) => [...row]);
+    }
+    return result;
+  };
+
+  // Build region data: cells and current star count
+  const regionCells = new Map<number, [number, number][]>();
+  const regionStars = new Map<number, number>();
+
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      const regionId = board.grid[row][col];
+      if (!regionCells.has(regionId)) {
+        regionCells.set(regionId, []);
+        regionStars.set(regionId, 0);
+      }
+      regionCells.get(regionId)!.push([row, col]);
+      if (cells[row][col] === "star") {
+        regionStars.set(regionId, regionStars.get(regionId)! + 1);
+      }
+    }
+  }
+
+  // Process each region
+  for (const [regionId, cellList] of regionCells) {
+    const currentStars = regionStars.get(regionId)!;
+    const starsNeeded = board.stars - currentStars;
+
+    if (starsNeeded <= 0) continue; // Region already has enough stars
+
+    // Get unknown cells in this region
+    const unknowns = cellList.filter(
+      ([r, c]) => cells[r][c] === "unknown",
+    );
+
+    if (unknowns.length === 0) continue;
+
+    // Find minimal 2×2 tiling for the unknown cells
+    const regionSet = new Set(unknowns.map(([r, c]) => `${r},${c}`));
+    const { tiles, assignedCells } = minimalTiling(regionSet, size);
+
+    // Only proceed if tiling count equals stars needed (tight bound)
+    if (tiles.length !== starsNeeded) continue;
+
+    // For each tile, check if it has exactly 1 assigned cell (viable for star)
+    for (const [tr, tc] of tiles) {
+      const tileKey = `${tr},${tc}`;
+      const assigned = assignedCells.get(tileKey) || [];
+
+      if (assigned.length === 1) {
+        const [r, c] = assigned[0].split(",").map(Number);
+        if (cells[r][c] === "unknown") {
+          ensureResult()[r][c] = "star";
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Get cells covered by a 2×2 tile with top-left at (row, col)
+ */
+function getTileCells(row: number, col: number, size: number): [number, number][] {
+  const cells: [number, number][] = [];
+  for (let dr = 0; dr < 2; dr++) {
+    for (let dc = 0; dc < 2; dc++) {
+      const r = row + dr;
+      const c = col + dc;
+      if (r < size && c < size) {
+        cells.push([r, c]);
+      }
+    }
+  }
+  return cells;
+}
+
+/**
+ * Find minimal set of 2×2 tiles to cover all cells in regionSet
+ * Returns tiles and the cells assigned to each tile (for determining viable cells)
+ * Uses greedy approach: pick tile covering most uncovered cells
+ */
+function minimalTiling(
+  regionSet: Set<string>,
+  size: number,
+): { tiles: [number, number][]; assignedCells: Map<string, string[]> } {
+  if (regionSet.size === 0) return { tiles: [], assignedCells: new Map() };
+
+  const uncovered = new Set(regionSet);
+  const tiles: [number, number][] = [];
+  const assignedCells = new Map<string, string[]>(); // tile key -> cells assigned to it
+
+  while (uncovered.size > 0) {
+    let bestTile: [number, number] | null = null;
+    let bestCount = 0;
+
+    // Find all possible 2×2 positions
+    for (let r = 0; r < size - 1; r++) {
+      for (let c = 0; c < size - 1; c++) {
+        const tileCells = getTileCells(r, c, size);
+        const coverCount = tileCells.filter(([tr, tc]) =>
+          uncovered.has(`${tr},${tc}`),
+        ).length;
+
+        if (coverCount > bestCount) {
+          bestCount = coverCount;
+          bestTile = [r, c];
+        }
+      }
+    }
+
+    if (!bestTile || bestCount === 0) {
+      break;
+    }
+
+    tiles.push(bestTile);
+    const tileKey = `${bestTile[0]},${bestTile[1]}`;
+    const assigned: string[] = [];
+
+    // Assign uncovered cells to this tile, then mark them covered
+    const tileCells = getTileCells(bestTile[0], bestTile[1], size);
+    for (const [tr, tc] of tileCells) {
+      const cellKey = `${tr},${tc}`;
+      if (uncovered.has(cellKey)) {
+        assigned.push(cellKey);
+        uncovered.delete(cellKey);
+      }
+    }
+    assignedCells.set(tileKey, assigned);
+  }
+
+  return { tiles, assignedCells };
 }
