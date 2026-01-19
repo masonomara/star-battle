@@ -117,19 +117,19 @@ Maps each rule to its function name in `src/sieve/rules.ts`. Rules are applied i
 
 | Rule                    | Function Name           | Level | Description                                     |
 | ----------------------- | ----------------------- | ----- | ----------------------------------------------- |
-| 1.1 Trivial Marks       | `trivialStarMarks`      | 1     | Mark 8 neighbors of placed stars                |
-| 1.1 Trivial Marks       | `trivialRowComplete`    | 1     | Mark remaining cells in completed rows          |
-| 1.1 Trivial Marks       | `trivialColComplete`    | 1     | Mark remaining cells in completed columns       |
-| 1.1 Trivial Marks       | `trivialRegionComplete` | 1     | Mark remaining cells in completed regions       |
-| —                       | `forcedPlacement`       | 1     | Place stars when unknowns = needed stars        |
-| 1.2 The 2×2             | `twoByTwoTiling`        | 2     | Max 1 star per 2×2; tile regions to find bounds |
-| 1.3 The 1×n             | `oneByNConfinement`     | 2     | Region's stars confined to single row/col       |
-| 1.4 Exclusion           | `exclusion`             | 3     | Mark cells that would make region unsolvable    |
-| 1.5 Pressured Exclusion | `pressuredExclusion`    | 3     | Exclusion with 1×n constraints                  |
-| 2.1 Undercounting       | `undercounting`         | 4     | N regions in N rows → stars must be in regions  |
-| 2.2 Overcounting        | `overcounting`          | 4     | N regions contain N rows → stars in those rows  |
-| 2.3 Finned Counts       | `finnedCounts`          | 4     | Cells that would create under/overcounting      |
-| 2.4 Composite Regions   | `compositeRegions`      | 5     | Combine regions with known star counts          |
-| 2.5 The Squeeze         | `squeeze`               | 5     | Tile row/col pairs to find star-containing 2×2s |
+| 1. Star Neighbors       | `trivialStarMarks`      | 1     | Mark 8 neighbors of placed ★s                   |
+| 2. Row Complete         | `trivialRowComplete`    | 1     | Mark remaining cells when row complete          |
+| 3. Column Complete      | `trivialColComplete`    | 1     | Mark remaining cells when column complete       |
+| 4. Region Complete      | `trivialRegionComplete` | 1     | Mark remaining cells when region complete       |
+| 5. Forced Placement     | `forcedPlacement`       | 1     | Place ★s when unknowns = needed ★s              |
+| 6. The 2×2              | `twoByTwoTiling`        | 2     | Max 1★ per 2×2; tile regions to find bounds     |
+| 7. The 1×n              | `oneByNConfinement`     | 2     | Region's ★s confined to single row/col          |
+| 8. Exclusion            | `exclusion`             | 3     | Mark cells that would make region unsolvable    |
+| 9. Pressured Exclusion  | `pressuredExclusion`    | 3     | Exclusion with 1×n constraints                  |
+| 10. Undercounting       | `undercounting`         | 4     | N regions in N rows → ★s must be in regions     |
+| 11. Overcounting        | `overcounting`          | 4     | N regions contain N rows → ★s in those rows     |
+| 12. Finned Counts       | `finnedCounts`          | 4     | Cells that would create under/overcounting      |
+| 13. Composite Regions   | `compositeRegions`      | 5     | Combine regions with known ★ counts             |
+| 14. The Squeeze         | `squeeze`               | 5     | Tile row/col pairs to find ★-containing 2×2s    |
 
 **Level** indicates rule complexity (1 = simplest, 5 = most advanced). The solver tries simpler rules first and only uses advanced rules when stuck. A puzzle's difficulty score is derived from the highest level rule required to solve it.
