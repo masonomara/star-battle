@@ -9,10 +9,14 @@ export function trivialStarMarks(
   cells: CellState[][],
 ): CellState[][] | null {
   const size = board.grid.length;
-  let changed = false;
+  let result: CellState[][] | null = null;
 
-  // Clone cells
-  const result: CellState[][] = cells.map((row) => [...row]);
+  const ensureResult = () => {
+    if (!result) {
+      result = cells.map((row) => [...row]);
+    }
+    return result;
+  };
 
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
@@ -28,16 +32,15 @@ export function trivialStarMarks(
 
           if (nr < 0 || nr >= size || nc < 0 || nc >= size) continue;
 
-          if (result[nr][nc] === "unknown") {
-            result[nr][nc] = "marked";
-            changed = true;
+          if (cells[nr][nc] === "unknown") {
+            ensureResult()[nr][nc] = "marked";
           }
         }
       }
     }
   }
 
-  return changed ? result : null;
+  return result;
 }
 
 /**
@@ -49,9 +52,14 @@ export function trivialRowComplete(
   cells: CellState[][],
 ): CellState[][] | null {
   const size = board.grid.length;
-  let changed = false;
+  let result: CellState[][] | null = null;
 
-  const result: CellState[][] = cells.map((row) => [...row]);
+  const ensureResult = () => {
+    if (!result) {
+      result = cells.map((row) => [...row]);
+    }
+    return result;
+  };
 
   for (let row = 0; row < size; row++) {
     // Count stars in this row
@@ -63,15 +71,14 @@ export function trivialRowComplete(
     // If row has enough stars, mark all unknowns
     if (starCount === board.stars) {
       for (let col = 0; col < size; col++) {
-        if (result[row][col] === "unknown") {
-          result[row][col] = "marked";
-          changed = true;
+        if (cells[row][col] === "unknown") {
+          ensureResult()[row][col] = "marked";
         }
       }
     }
   }
 
-  return changed ? result : null;
+  return result;
 }
 
 /**
@@ -83,9 +90,14 @@ export function trivialColComplete(
   cells: CellState[][],
 ): CellState[][] | null {
   const size = board.grid.length;
-  let changed = false;
+  let result: CellState[][] | null = null;
 
-  const result: CellState[][] = cells.map((row) => [...row]);
+  const ensureResult = () => {
+    if (!result) {
+      result = cells.map((row) => [...row]);
+    }
+    return result;
+  };
 
   for (let col = 0; col < size; col++) {
     // Count stars in this column
@@ -97,15 +109,14 @@ export function trivialColComplete(
     // If column has enough stars, mark all unknowns
     if (starCount === board.stars) {
       for (let row = 0; row < size; row++) {
-        if (result[row][col] === "unknown") {
-          result[row][col] = "marked";
-          changed = true;
+        if (cells[row][col] === "unknown") {
+          ensureResult()[row][col] = "marked";
         }
       }
     }
   }
 
-  return changed ? result : null;
+  return result;
 }
 
 /**
@@ -117,43 +128,45 @@ export function trivialRegionComplete(
   cells: CellState[][],
 ): CellState[][] | null {
   const size = board.grid.length;
-  let changed = false;
+  let result: CellState[][] | null = null;
 
-  const result: CellState[][] = cells.map((row) => [...row]);
+  const ensureResult = () => {
+    if (!result) {
+      result = cells.map((row) => [...row]);
+    }
+    return result;
+  };
 
-  // Find all unique region IDs
-  const regionIds = new Set<number>();
+  // Build region map in single pass
+  const regionCells = new Map<number, [number, number][]>();
   for (let row = 0; row < size; row++) {
-    for (let col = 0; col < board.grid[row].length; col++) {
-      regionIds.add(board.grid[row][col]);
+    for (let col = 0; col < size; col++) {
+      const regionId = board.grid[row][col];
+      if (!regionCells.has(regionId)) {
+        regionCells.set(regionId, []);
+      }
+      regionCells.get(regionId)!.push([row, col]);
     }
   }
 
-  for (const regionId of regionIds) {
+  for (const [, cellList] of regionCells) {
     // Count stars in this region
     let starCount = 0;
-    for (let row = 0; row < size; row++) {
-      for (let col = 0; col < board.grid[row].length; col++) {
-        if (board.grid[row][col] === regionId && cells[row][col] === "star") {
-          starCount++;
-        }
-      }
+    for (const [row, col] of cellList) {
+      if (cells[row][col] === "star") starCount++;
     }
 
     // If region has enough stars, mark all unknowns in that region
     if (starCount === board.stars) {
-      for (let row = 0; row < size; row++) {
-        for (let col = 0; col < board.grid[row].length; col++) {
-          if (board.grid[row][col] === regionId && result[row][col] === "unknown") {
-            result[row][col] = "marked";
-            changed = true;
-          }
+      for (const [row, col] of cellList) {
+        if (cells[row][col] === "unknown") {
+          ensureResult()[row][col] = "marked";
         }
       }
     }
   }
 
-  return changed ? result : null;
+  return result;
 }
 
 /**

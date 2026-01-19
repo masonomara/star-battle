@@ -495,11 +495,15 @@ describe("Trivial Region Complete", () => {
   });
 
   it("Marks multiple regions when both are complete", () => {
-    // 3 regions: 0 = top-left 2x2, 1 = top-right 2x2, 2 = bottom row
+    // 3 irregular regions:
+    // Region 0: L-shape top-left (3 cells)
+    // Region 1: irregular middle-right (6 cells)
+    // Region 2: bottom area (7 cells)
     const board: Board = {
       grid: [
         [0, 0, 1, 1],
-        [0, 0, 1, 1],
+        [0, 1, 1, 1],
+        [2, 2, 2, 1],
         [2, 2, 2, 2],
       ],
       stars: 1,
@@ -510,14 +514,16 @@ describe("Trivial Region Complete", () => {
       ["star", "unknown", "unknown", "unknown"],
       ["unknown", "unknown", "unknown", "unknown"],
       ["unknown", "star", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
     ];
 
     const result = trivialRegionComplete(board, cells);
 
     expect(result).toEqual([
       ["star", "marked", "unknown", "unknown"],
-      ["marked", "marked", "unknown", "unknown"],
-      ["marked", "star", "marked", "marked"],
+      ["marked", "unknown", "unknown", "unknown"],
+      ["marked", "star", "marked", "unknown"],
+      ["marked", "marked", "marked", "marked"],
     ]);
   });
 
