@@ -1,7 +1,65 @@
 import { describe, it, expect } from "vitest";
-import { isSolved, solve } from "./solver";
+import { isSolved, isValidLayout, solve } from "./solver";
 import { layout } from "./generator";
 import { Board, CellState } from "./types";
+
+describe("isValidLayout", () => {
+  it("accepts any region size for 1-star puzzles", () => {
+    const board: Board = {
+      grid: [[0]], // single cell region
+      stars: 1,
+    };
+    expect(isValidLayout(board)).toBe(true);
+  });
+
+  it("rejects region smaller than (stars * 2) - 1 for 2-star", () => {
+    // 2 stars needs min 3 cells per region
+    const board: Board = {
+      grid: [
+        [0, 0, 1, 1, 1],
+        [1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1],
+      ],
+      stars: 2,
+    };
+    // Region 0 has only 2 cells, needs 3
+    expect(isValidLayout(board)).toBe(false);
+  });
+
+  it("accepts regions meeting minimum size for 2-star", () => {
+    const board: Board = {
+      grid: [
+        [0, 0, 0, 1, 1],
+        [0, 0, 1, 1, 1],
+        [2, 2, 2, 3, 3],
+        [2, 2, 3, 3, 3],
+        [4, 4, 4, 4, 4],
+      ],
+      stars: 2,
+    };
+    // All regions have at least 3 cells
+    expect(isValidLayout(board)).toBe(true);
+  });
+
+  it("rejects region smaller than 5 cells for 3-star", () => {
+    // 3 stars needs min 5 cells per region
+    const board: Board = {
+      grid: [
+        [0, 0, 0, 0, 1, 1],
+        [1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1],
+      ],
+      stars: 3,
+    };
+    // Region 0 has only 4 cells, needs 5
+    expect(isValidLayout(board)).toBe(false);
+  });
+});
 
 describe("isSolved", () => {
   describe("1. Solved puzzles", () => {

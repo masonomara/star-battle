@@ -11,6 +11,30 @@ import {
 } from "./rules";
 import { computeAllTilings } from "./tiling";
 
+/**
+ * Check if a board layout is valid before attempting to solve.
+ * For multi-star puzzles (stars > 1), each region must have at least
+ * (stars * 2) - 1 cells to fit the required stars without touching.
+ */
+export function isValidLayout(board: Board): boolean {
+  if (board.stars <= 1) return true;
+
+  const minRegionSize = board.stars * 2 - 1;
+  const regionSizes = new Map<number, number>();
+
+  for (const row of board.grid) {
+    for (const regionId of row) {
+      regionSizes.set(regionId, (regionSizes.get(regionId) ?? 0) + 1);
+    }
+  }
+
+  for (const size of regionSizes.values()) {
+    if (size < minRegionSize) return false;
+  }
+
+  return true;
+}
+
 type Rule = (
   board: Board,
   cells: CellState[][],
@@ -167,6 +191,15 @@ export function solveWithDetails(
   const cells: CellState[][] = Array.from({ length: size }, () =>
     Array.from({ length: size }, () => "unknown" as CellState),
   );
+
+  // Early rejection for invalid layouts
+  if (!isValidLayout(board)) {
+    return {
+      solved: false,
+      stuck: { board, cells, cycles: 0, maxLevel: 0, lastRule: null },
+    };
+  }
+
   let cycles = 0;
   let maxLevel = 0;
   let lastRule: string | null = null;
