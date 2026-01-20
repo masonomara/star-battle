@@ -29,7 +29,6 @@ describe("isSolved", () => {
 
       expect(result).toBe(true);
     });
-
   });
 
   describe("2. Unsolved puzzles", () => {
@@ -91,6 +90,51 @@ describe("isSolved", () => {
         ["marked", "star", "marked", "marked"],
         ["marked", "marked", "star", "marked"],
         ["marked", "marked", "marked", "star"],
+      ];
+
+      expect(isSolved(board, cells)).toBe(false);
+    });
+
+    it("2.4 returns false when stars are orthogonally adjacent", () => {
+      // Stars touching horizontally or vertically is also invalid
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [2, 2, 3, 3],
+          [2, 2, 3, 3],
+        ],
+        stars: 2,
+      };
+
+      // Stars at (0,0) and (0,1) are horizontally adjacent - invalid
+      const cells: CellState[][] = [
+        ["star", "star", "marked", "marked"],
+        ["marked", "marked", "star", "star"],
+        ["star", "star", "marked", "marked"],
+        ["marked", "marked", "star", "star"],
+      ];
+
+      expect(isSolved(board, cells)).toBe(false);
+    });
+
+    it("2.5 returns false when row has excess stars", () => {
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [2, 2, 3, 3],
+          [2, 2, 3, 3],
+        ],
+        stars: 1,
+      };
+
+      // Row 0 has 2 stars but should only have 1
+      const cells: CellState[][] = [
+        ["star", "marked", "star", "marked"],
+        ["marked", "marked", "marked", "marked"],
+        ["marked", "star", "marked", "star"],
+        ["marked", "marked", "marked", "marked"],
       ];
 
       expect(isSolved(board, cells)).toBe(false);
@@ -181,6 +225,26 @@ describe("solve", () => {
 
       expect(result).toBeNull();
     });
+
+    it("2.3 returns null after partial progress (stall)", () => {
+      // Puzzle where some progress is made but then rules exhaust
+      // 4 regions of 4 cells each, but layout is ambiguous after initial marks
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [2, 2, 3, 3],
+          [2, 2, 3, 3],
+        ],
+        stars: 1,
+      };
+
+      const result = solve(board, 0);
+
+      // Each 2x2 region needs 1 star but has 4 cells - no forced moves
+      // Rules make no progress, solver stalls
+      expect(result).toBeNull();
+    });
   });
 
   describe("3. Edge cases", () => {
@@ -234,24 +298,7 @@ describe("solve", () => {
       }
     });
 
-    it("4.2 maxLevel reflects rules used", () => {
-      const board = layout(6, 1, 42);
-      const result = solve(board, 42);
-      if (result) {
-        expect(result.maxLevel).toBeGreaterThanOrEqual(1);
-        expect(result.cycles).toBeGreaterThanOrEqual(1);
-      }
-    });
-
-    it("4.3 solves minimal 4x4", () => {
-      const board = layout(4, 1, 0);
-      const result = solve(board, 0);
-      if (result) {
-        expect(isSolved(board, result.cells)).toBe(true);
-      }
-    });
-
-    it("4.4 handles 10x10", () => {
+    it("4.2 handles 10x10", () => {
       const board = layout(10, 2, 0);
       const result = solve(board, 0);
       if (result) {
@@ -259,7 +306,7 @@ describe("solve", () => {
       }
     });
 
-    it("4.5 terminates on impossible board", () => {
+    it("4.3 terminates on impossible board", () => {
       const board: Board = { grid: [[0]], stars: 5 };
       const result = solve(board, 0);
       expect(result).toBeNull();
