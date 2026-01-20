@@ -1,4 +1,4 @@
-import { Board, CellState, Solution, TilingCache } from "./types";
+import { Board, CellState, Solution, StripCache, TilingCache } from "./types";
 import {
   trivialStarMarks,
   trivialRowComplete,
@@ -8,8 +8,11 @@ import {
   twoByTwoTiling,
   oneByNConfinement,
   exclusion,
+  overcounting,
+  undercounting,
 } from "./rules";
 import { computeAllTilings } from "./tiling";
+import { computeAllStrips } from "./strips";
 
 /**
  * Check if a board layout is valid before attempting to solve.
@@ -38,7 +41,8 @@ export function isValidLayout(board: Board): boolean {
 type Rule = (
   board: Board,
   cells: CellState[][],
-  cache?: TilingCache,
+  tilingCache?: TilingCache,
+  stripCache?: StripCache,
 ) => boolean;
 
 const allRules: { rule: Rule; level: number; name: string }[] = [
@@ -46,14 +50,20 @@ const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: trivialRowComplete, level: 1, name: "rowComplete" },
   { rule: trivialColComplete, level: 1, name: "colComplete" },
   { rule: trivialRegionComplete, level: 1, name: "regionComplete" },
-  { rule: forcedPlacement, level: 1, name: "forcedPlacement" },
+    { rule: forcedPlacement, level: 1, name: "forcedPlacement" },
   { rule: twoByTwoTiling, level: 2, name: "twoByTwoTiling" },
   { rule: oneByNConfinement, level: 2, name: "oneByNConfinement" },
   { rule: exclusion, level: 2, name: "exclusion" },
+  { rule: overcounting, level: 2, name: "overcounting" },
+  { rule: undercounting, level: 2, name: "undercounting" },
 ];
 
 /** Reason why a solve attempt failed */
-export type StuckReason = "invalid_layout" | "invalid_state" | "no_progress" | "max_cycles";
+export type StuckReason =
+  | "invalid_layout"
+  | "invalid_state"
+  | "no_progress"
+  | "max_cycles";
 
 /** Info about a stuck solve attempt */
 export interface StuckState {
@@ -200,7 +210,14 @@ export function solveWithDetails(
   if (!isValidLayout(board)) {
     return {
       solved: false,
-      stuck: { board, cells, cycles: 0, maxLevel: 0, lastRule: null, reason: "invalid_layout" },
+      stuck: {
+        board,
+        cells,
+        cycles: 0,
+        maxLevel: 0,
+        lastRule: null,
+        reason: "invalid_layout",
+      },
     };
   }
 
@@ -215,7 +232,14 @@ export function solveWithDetails(
     if (isInvalid(board, cells)) {
       return {
         solved: false,
-        stuck: { board, cells, cycles, maxLevel, lastRule, reason: "invalid_state" },
+        stuck: {
+          board,
+          cells,
+          cycles,
+          maxLevel,
+          lastRule,
+          reason: "invalid_state",
+        },
       };
     }
 
@@ -228,15 +252,17 @@ export function solveWithDetails(
 
     // Try each rule in order
     let progress = false;
-    let cache: TilingCache | undefined;
+    let tilingCache: TilingCache | undefined;
+    let stripCache: StripCache | undefined;
 
     for (const { rule, level, name } of allRules) {
-      // Compute cache lazily when first level 2+ rule is tried
-      if (level >= 2 && !cache) {
-        cache = computeAllTilings(board, cells);
+      // Compute caches lazily when first level 2+ rule is tried
+      if (level >= 2 && !tilingCache) {
+        tilingCache = computeAllTilings(board, cells);
+        stripCache = computeAllStrips(board, cells);
       }
 
-      if (rule(board, cells, cache)) {
+      if (rule(board, cells, tilingCache, stripCache)) {
         maxLevel = Math.max(maxLevel, level);
         lastRule = name;
         progress = true;
@@ -260,7 +286,14 @@ export function solveWithDetails(
     if (!progress) {
       return {
         solved: false,
-        stuck: { board, cells, cycles, maxLevel, lastRule, reason: "no_progress" },
+        stuck: {
+          board,
+          cells,
+          cycles,
+          maxLevel,
+          lastRule,
+          reason: "no_progress",
+        },
       };
     }
   }

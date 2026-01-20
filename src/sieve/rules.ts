@@ -1,4 +1,4 @@
-import { Board, CellState, Coord, TilingCache } from "./types";
+import { Board, CellState, Coord, StripCache, TilingCache } from "./types";
 import { findAllMinimalTilings } from "./tiling";
 
 /**
@@ -168,7 +168,11 @@ export function forcedPlacement(board: Board, cells: CellState[][]): boolean {
     }
 
     const starsNeeded = board.stars - starCount;
-    if (starsNeeded > 0 && unknowns.length === starsNeeded && !hasAdjacentPair(unknowns)) {
+    if (
+      starsNeeded > 0 &&
+      unknowns.length === starsNeeded &&
+      !hasAdjacentPair(unknowns)
+    ) {
       const [r, c] = unknowns[0];
       cells[r][c] = "star";
       return true;
@@ -186,7 +190,11 @@ export function forcedPlacement(board: Board, cells: CellState[][]): boolean {
     }
 
     const starsNeeded = board.stars - starCount;
-    if (starsNeeded > 0 && unknowns.length === starsNeeded && !hasAdjacentPair(unknowns)) {
+    if (
+      starsNeeded > 0 &&
+      unknowns.length === starsNeeded &&
+      !hasAdjacentPair(unknowns)
+    ) {
       const [r, c] = unknowns[0];
       cells[r][c] = "star";
       return true;
@@ -215,7 +223,11 @@ export function forcedPlacement(board: Board, cells: CellState[][]): boolean {
     }
 
     const starsNeeded = board.stars - starCount;
-    if (starsNeeded > 0 && unknowns.length === starsNeeded && !hasAdjacentPair(unknowns)) {
+    if (
+      starsNeeded > 0 &&
+      unknowns.length === starsNeeded &&
+      !hasAdjacentPair(unknowns)
+    ) {
       const [r, c] = unknowns[0];
       cells[r][c] = "star";
       return true;
@@ -235,7 +247,8 @@ export function forcedPlacement(board: Board, cells: CellState[][]): boolean {
 export function twoByTwoTiling(
   board: Board,
   cells: CellState[][],
-  cache?: TilingCache,
+  tilingCache?: TilingCache,
+  _stripCache?: StripCache,
 ): boolean {
   const size = board.grid.length;
 
@@ -263,7 +276,8 @@ export function twoByTwoTiling(
     if (starsNeeded <= 0) continue; // Region already has enough stars
 
     // Get tiling from cache or compute directly
-    const tiling = cache?.byRegion.get(regionId) ??
+    const tiling =
+      tilingCache?.byRegion.get(regionId) ??
       findAllMinimalTilings(cellList, cells, size);
 
     // If no valid tilings exist, skip (unsolvable or already solved)
@@ -287,18 +301,20 @@ export function twoByTwoTiling(
       const key = cellKey(coord);
 
       // Check if this cell is the only region cell in its tile in EVERY tiling
-      const isSingleInAllTilings = tiling.allMinimalTilings.every((tilingSet) => {
-        // Find the tile that covers this cell
-        const coveringTile = tilingSet.find((tile) =>
-          tile.coveredCells.some((c) => cellKey(c) === key)
-        );
+      const isSingleInAllTilings = tiling.allMinimalTilings.every(
+        (tilingSet) => {
+          // Find the tile that covers this cell
+          const coveringTile = tilingSet.find((tile) =>
+            tile.coveredCells.some((c) => cellKey(c) === key),
+          );
 
-        // If no tile covers it (shouldn't happen), not single
-        if (!coveringTile) return false;
+          // If no tile covers it (shouldn't happen), not single
+          if (!coveringTile) return false;
 
-        // Is this cell the only region cell in this tile?
-        return coveringTile.coveredCells.length === 1;
-      });
+          // Is this cell the only region cell in this tile?
+          return coveringTile.coveredCells.length === 1;
+        },
+      );
 
       if (isSingleInAllTilings) {
         cells[row][col] = "star";
@@ -319,144 +335,194 @@ export function twoByTwoTiling(
  * When multiple 1×n's in the same row together account for all stars in that row,
  * the remainder of the row can be marked.
  *
- * Detection:
- * - Simple: region's unknown cells are all in one row/col
- * - Advanced: partial 2×2 tiling bounds part of region, remainder is a 1×n
+ * Uses StripCache for efficient lookup of horizontal/vertical strips.
  */
 export function oneByNConfinement(
   board: Board,
   cells: CellState[][],
-  cache?: TilingCache,
+  tilingCache?: TilingCache,
+  stripCache?: StripCache,
 ): boolean {
+  if (!stripCache) return false;
+
   const numRows = board.grid.length;
   const numCols = board.grid[0].length;
   let changed = false;
 
-  // Build region info: unknowns and existing stars
-  const regionInfo = new Map<number, { unknowns: Coord[]; stars: number }>();
+  const coordKey = (r: number, c: number) => `${r},${c}`;
 
-  for (let row = 0; row < numRows; row++) {
-    for (let col = 0; col < numCols; col++) {
-      const regionId = board.grid[row][col];
-      if (!regionInfo.has(regionId)) {
-        regionInfo.set(regionId, { unknowns: [], stars: 0 });
-      }
-      const info = regionInfo.get(regionId)!;
-      if (cells[row][col] === "unknown") {
-        info.unknowns.push([row, col]);
-      } else if (cells[row][col] === "star") {
-        info.stars++;
-      }
-    }
-  }
-
-  // Track 1×n contributions per row and n×1 contributions per column
+  // Track contributions per row/col for combined processing
   type Contribution = { starsContributed: number; cells: Set<string> };
   const rowContributions = new Map<number, Contribution[]>();
   const colContributions = new Map<number, Contribution[]>();
 
-  const coordKey = (r: number, c: number) => `${r},${c}`;
+  // Helper: check if a region is completely confined to a single row
+  // A region is row-confined if all its HORIZONTAL strips are in the same row
+  // (vertical strips of length 1 are ignored - they just mean no vertical extent)
+  const isRegionConfinedToRow = (regionId: number, row: number): boolean => {
+    const regionStrips = stripCache.byRegion.get(regionId) ?? [];
+    if (regionStrips.length === 0) return false;
 
-  for (const [regionId, info] of regionInfo) {
-    const starsNeeded = board.stars - info.stars;
-    if (starsNeeded <= 0 || info.unknowns.length === 0) continue;
-
-    const rows = new Set(info.unknowns.map(([r]) => r));
-    const cols = new Set(info.unknowns.map(([, c]) => c));
-
-    // Simple detection: all unknowns are in a single row (1×n)
-    if (rows.size === 1) {
-      const row = [...rows][0];
-      if (!rowContributions.has(row)) {
-        rowContributions.set(row, []);
+    // Check all horizontal strips - they must all be in the target row
+    let hasHorizontalStrip = false;
+    for (const strip of regionStrips) {
+      if (strip.orientation === "horizontal") {
+        hasHorizontalStrip = true;
+        if (strip.anchor[0] !== row) return false;
+      } else {
+        // Vertical strip with length > 1 means region spans multiple rows
+        if (strip.cells.length > 1) return false;
       }
-      const cellSet = new Set(info.unknowns.map(([r, c]) => coordKey(r, c)));
-      rowContributions.get(row)!.push({ starsContributed: starsNeeded, cells: cellSet });
+    }
+    return hasHorizontalStrip;
+  };
+
+  // Helper: check if a region is completely confined to a single column
+  // A region is col-confined if all its VERTICAL strips are in the same column
+  // (horizontal strips of length 1 are ignored - they just mean no horizontal extent)
+  const isRegionConfinedToCol = (regionId: number, col: number): boolean => {
+    const regionStrips = stripCache.byRegion.get(regionId) ?? [];
+    if (regionStrips.length === 0) return false;
+
+    // Check all vertical strips - they must all be in the target column
+    let hasVerticalStrip = false;
+    for (const strip of regionStrips) {
+      if (strip.orientation === "vertical") {
+        hasVerticalStrip = true;
+        if (strip.anchor[1] !== col) return false;
+      } else {
+        // Horizontal strip with length > 1 means region spans multiple columns
+        if (strip.cells.length > 1) return false;
+      }
+    }
+    return hasVerticalStrip;
+  };
+
+  // Phase 1: Simple confinement - collect contributions from regions entirely in one row/col
+  for (const [regionId, regionStrips] of stripCache.byRegion) {
+    if (regionStrips.length === 0) continue;
+
+    const starsNeeded = regionStrips[0].starsNeeded;
+    if (starsNeeded <= 0) continue;
+
+    // Check row confinement
+    const horizontalStrips = regionStrips.filter(
+      (s) => s.orientation === "horizontal",
+    );
+    if (horizontalStrips.length > 0) {
+      const rows = new Set(horizontalStrips.map((s) => s.anchor[0]));
+      if (rows.size === 1) {
+        const row = [...rows][0];
+        if (isRegionConfinedToRow(regionId, row)) {
+          if (!rowContributions.has(row)) rowContributions.set(row, []);
+          const cellSet = new Set<string>();
+          for (const strip of horizontalStrips) {
+            for (const [r, c] of strip.cells) cellSet.add(coordKey(r, c));
+          }
+          rowContributions
+            .get(row)!
+            .push({ starsContributed: starsNeeded, cells: cellSet });
+        }
+      }
     }
 
-    // Simple detection: all unknowns are in a single column (n×1)
-    if (cols.size === 1) {
-      const col = [...cols][0];
-      if (!colContributions.has(col)) {
-        colContributions.set(col, []);
-      }
-      const cellSet = new Set(info.unknowns.map(([r, c]) => coordKey(r, c)));
-      colContributions.get(col)!.push({ starsContributed: starsNeeded, cells: cellSet });
-    }
-
-    // Advanced detection: use tiling to find 1×n remainders
-    // If tiling shows minTiles < starsNeeded, remainder must have (starsNeeded - minTiles) stars
-    if (cache && rows.size > 1 && cols.size > 1) {
-      const tiling = cache.byRegion.get(regionId);
-      if (tiling && tiling.allMinimalTilings.length > 0) {
-        const minTiles = tiling.minTileCount;
-
-        // If minTiles < starsNeeded, we can bound stars in tiled portion
-        // The remainder (cells not covered by any tile in ALL tilings) must have remaining stars
-        if (minTiles < starsNeeded) {
-          const remainderStars = starsNeeded - minTiles;
-
-          // Find cells that are NOT covered by tiles in ANY minimal tiling
-          // These cells form the "remainder" that must contain remainderStars
-          const coveredInAll = new Set<string>();
-          const firstTiling = tiling.allMinimalTilings[0];
-          for (const tile of firstTiling) {
-            for (const c of tile.coveredCells) {
-              coveredInAll.add(coordKey(c[0], c[1]));
-            }
+    // Check column confinement
+    const verticalStrips = regionStrips.filter(
+      (s) => s.orientation === "vertical",
+    );
+    if (verticalStrips.length > 0) {
+      const cols = new Set(verticalStrips.map((s) => s.anchor[1]));
+      if (cols.size === 1) {
+        const col = [...cols][0];
+        if (isRegionConfinedToCol(regionId, col)) {
+          if (!colContributions.has(col)) colContributions.set(col, []);
+          const cellSet = new Set<string>();
+          for (const strip of verticalStrips) {
+            for (const [r, c] of strip.cells) cellSet.add(coordKey(r, c));
           }
-
-          // Intersect with all other tilings
-          for (let i = 1; i < tiling.allMinimalTilings.length; i++) {
-            const thisTilingCovered = new Set<string>();
-            for (const tile of tiling.allMinimalTilings[i]) {
-              for (const c of tile.coveredCells) {
-                thisTilingCovered.add(coordKey(c[0], c[1]));
-              }
-            }
-            // Keep only cells covered in both
-            for (const key of coveredInAll) {
-              if (!thisTilingCovered.has(key)) {
-                coveredInAll.delete(key);
-              }
-            }
-          }
-
-          // Remainder = unknowns not in coveredInAll
-          const remainder: Coord[] = info.unknowns.filter(
-            ([r, c]) => !coveredInAll.has(coordKey(r, c))
-          );
-
-          if (remainder.length > 0) {
-            const remainderRows = new Set(remainder.map(([r]) => r));
-            const remainderCols = new Set(remainder.map(([, c]) => c));
-
-            // If remainder is a 1×n (single row)
-            if (remainderRows.size === 1) {
-              const row = [...remainderRows][0];
-              if (!rowContributions.has(row)) {
-                rowContributions.set(row, []);
-              }
-              const cellSet = new Set(remainder.map(([r, c]) => coordKey(r, c)));
-              rowContributions.get(row)!.push({ starsContributed: remainderStars, cells: cellSet });
-            }
-
-            // If remainder is an n×1 (single column)
-            if (remainderCols.size === 1) {
-              const col = [...remainderCols][0];
-              if (!colContributions.has(col)) {
-                colContributions.set(col, []);
-              }
-              const cellSet = new Set(remainder.map(([r, c]) => coordKey(r, c)));
-              colContributions.get(col)!.push({ starsContributed: remainderStars, cells: cellSet });
-            }
-          }
+          colContributions
+            .get(col)!
+            .push({ starsContributed: starsNeeded, cells: cellSet });
         }
       }
     }
   }
 
-  // Process rows: if total contribution >= row quota, mark cells outside 1×n's
+  // Phase 2: Tiling-based remainder detection
+  // For regions spanning multiple rows/cols, check if tiling leaves a 1×n remainder
+  if (tilingCache) {
+    for (const [regionId, tiling] of tilingCache.byRegion) {
+      if (tiling.allMinimalTilings.length === 0) continue;
+
+      const regionStrips = stripCache.byRegion.get(regionId) ?? [];
+      if (regionStrips.length === 0) continue;
+
+      const starsNeeded = regionStrips[0].starsNeeded;
+      if (starsNeeded <= 0) continue;
+
+      const minTiles = tiling.minTileCount;
+      if (minTiles >= starsNeeded) continue; // No remainder stars
+
+      const remainderStars = starsNeeded - minTiles;
+
+      // Find cells covered in ALL minimal tilings (intersection)
+      const coveredInAll = new Set<string>();
+      const firstTiling = tiling.allMinimalTilings[0];
+      for (const tile of firstTiling) {
+        for (const c of tile.coveredCells) {
+          coveredInAll.add(coordKey(c[0], c[1]));
+        }
+      }
+      for (let i = 1; i < tiling.allMinimalTilings.length; i++) {
+        const thisCovered = new Set<string>();
+        for (const tile of tiling.allMinimalTilings[i]) {
+          for (const c of tile.coveredCells) {
+            thisCovered.add(coordKey(c[0], c[1]));
+          }
+        }
+        for (const key of coveredInAll) {
+          if (!thisCovered.has(key)) coveredInAll.delete(key);
+        }
+      }
+
+      // Remainder = region's unknown cells not covered in all tilings
+      const remainderCells: Coord[] = [];
+      for (const strip of regionStrips) {
+        for (const [r, c] of strip.cells) {
+          if (!coveredInAll.has(coordKey(r, c))) {
+            remainderCells.push([r, c]);
+          }
+        }
+      }
+
+      if (remainderCells.length === 0) continue;
+
+      const remainderRows = new Set(remainderCells.map(([r]) => r));
+      const remainderCols = new Set(remainderCells.map(([, c]) => c));
+
+      // If remainder is a 1×n (single row)
+      if (remainderRows.size === 1) {
+        const row = [...remainderRows][0];
+        if (!rowContributions.has(row)) rowContributions.set(row, []);
+        const cellSet = new Set(remainderCells.map(([r, c]) => coordKey(r, c)));
+        rowContributions
+          .get(row)!
+          .push({ starsContributed: remainderStars, cells: cellSet });
+      }
+
+      // If remainder is an n×1 (single column)
+      if (remainderCols.size === 1) {
+        const col = [...remainderCols][0];
+        if (!colContributions.has(col)) colContributions.set(col, []);
+        const cellSet = new Set(remainderCells.map(([r, c]) => coordKey(r, c)));
+        colContributions
+          .get(col)!
+          .push({ starsContributed: remainderStars, cells: cellSet });
+      }
+    }
+  }
+
+  // Phase 3: Process rows - mark cells outside contributing 1×n's
   for (const [row, contribs] of rowContributions) {
     let existingRowStars = 0;
     for (let col = 0; col < numCols; col++) {
@@ -465,28 +531,29 @@ export function oneByNConfinement(
     const rowQuota = board.stars - existingRowStars;
     if (rowQuota <= 0) continue;
 
-    const totalContribution = contribs.reduce((sum, c) => sum + c.starsContributed, 0);
+    const totalContribution = contribs.reduce(
+      (sum, c) => sum + c.starsContributed,
+      0,
+    );
     if (totalContribution < rowQuota) continue;
 
-    // Collect all 1×n cells in this row
-    const oneByNCells = new Set<string>();
+    // Collect all contributing cells
+    const contributingCells = new Set<string>();
     for (const c of contribs) {
-      for (const cell of c.cells) {
-        oneByNCells.add(cell);
-      }
+      for (const cell of c.cells) contributingCells.add(cell);
     }
 
-    // Mark cells in this row that are NOT in any 1×n
+    // Mark cells outside contributions
     for (let col = 0; col < numCols; col++) {
       const key = coordKey(row, col);
-      if (cells[row][col] === "unknown" && !oneByNCells.has(key)) {
+      if (cells[row][col] === "unknown" && !contributingCells.has(key)) {
         cells[row][col] = "marked";
         changed = true;
       }
     }
   }
 
-  // Process columns: if total contribution >= col quota, mark cells outside n×1's
+  // Phase 4: Process columns - mark cells outside contributing n×1's
   for (const [col, contribs] of colContributions) {
     let existingColStars = 0;
     for (let row = 0; row < numRows; row++) {
@@ -495,21 +562,22 @@ export function oneByNConfinement(
     const colQuota = board.stars - existingColStars;
     if (colQuota <= 0) continue;
 
-    const totalContribution = contribs.reduce((sum, c) => sum + c.starsContributed, 0);
+    const totalContribution = contribs.reduce(
+      (sum, c) => sum + c.starsContributed,
+      0,
+    );
     if (totalContribution < colQuota) continue;
 
-    // Collect all n×1 cells in this column
-    const nByOneCells = new Set<string>();
+    // Collect all contributing cells
+    const contributingCells = new Set<string>();
     for (const c of contribs) {
-      for (const cell of c.cells) {
-        nByOneCells.add(cell);
-      }
+      for (const cell of c.cells) contributingCells.add(cell);
     }
 
-    // Mark cells in this column that are NOT in any n×1
+    // Mark cells outside contributions
     for (let row = 0; row < numRows; row++) {
       const key = coordKey(row, col);
-      if (cells[row][col] === "unknown" && !nByOneCells.has(key)) {
+      if (cells[row][col] === "unknown" && !contributingCells.has(key)) {
         cells[row][col] = "marked";
         changed = true;
       }
@@ -532,7 +600,8 @@ export function oneByNConfinement(
 export function exclusion(
   board: Board,
   cells: CellState[][],
-  cache?: TilingCache,
+  tilingCache?: TilingCache,
+  _stripCache?: StripCache,
 ): boolean {
   const size = board.grid.length;
 
@@ -555,7 +624,10 @@ export function exclusion(
   }
 
   // Find tight regions: minTileCount == starsNeeded
-  const tightRegions = new Map<number, { cells: Coord[]; starsNeeded: number }>();
+  const tightRegions = new Map<
+    number,
+    { cells: Coord[]; starsNeeded: number }
+  >();
 
   for (const [regionId, rCells] of regionCells) {
     const existingStars = regionStars.get(regionId)!;
@@ -564,7 +636,8 @@ export function exclusion(
     if (starsNeeded <= 0) continue; // Region already complete
 
     // Compute tiling for this region
-    const tiling = cache?.byRegion.get(regionId) ??
+    const tiling =
+      tilingCache?.byRegion.get(regionId) ??
       findAllMinimalTilings(rCells, cells, size);
 
     if (tiling.minTileCount === starsNeeded) {
@@ -641,4 +714,280 @@ export function exclusion(
   }
 
   return false;
+}
+
+/**
+ * Rule 10. Undercounting: N regions completely contained within N rows/cols
+ *
+ * When a collection of N regions is completely contained within N rows (or columns),
+ * the stars in those N rows (or columns) must be in those regions.
+ * This allows marking the cells of the N rows (or columns) that lie outside the N regions.
+ */
+export function undercounting(board: Board, cells: CellState[][]): boolean {
+  const size = board.grid.length;
+  let changed = false;
+
+  // Build region info: which rows/cols each region occupies
+  const regionRows = new Map<number, Set<number>>(); // regionId → set of row indices
+  const regionCols = new Map<number, Set<number>>(); // regionId → set of col indices
+  const regionStars = new Map<number, number>(); // regionId → star count
+
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const regionId = board.grid[r][c];
+      if (!regionRows.has(regionId)) {
+        regionRows.set(regionId, new Set());
+        regionCols.set(regionId, new Set());
+        regionStars.set(regionId, 0);
+      }
+      regionRows.get(regionId)!.add(r);
+      regionCols.get(regionId)!.add(c);
+      if (cells[r][c] === "star") {
+        regionStars.set(regionId, regionStars.get(regionId)! + 1);
+      }
+    }
+  }
+
+  // Filter to regions that still need stars
+  const activeRegions = [...regionRows.keys()].filter(
+    (id) => regionStars.get(id)! < board.stars,
+  );
+
+  // Helper: check if region is completely contained within a set of rows
+  const isContainedInRows = (regionId: number, rows: Set<number>): boolean => {
+    for (const r of regionRows.get(regionId)!) {
+      if (!rows.has(r)) return false;
+    }
+    return true;
+  };
+
+  // Helper: check if region is completely contained within a set of cols
+  const isContainedInCols = (regionId: number, cols: Set<number>): boolean => {
+    for (const c of regionCols.get(regionId)!) {
+      if (!cols.has(c)) return false;
+    }
+    return true;
+  };
+
+  // Try row-based undercounting
+  // For each region, get the rows it occupies, then find other regions in exactly those rows
+  for (const regionId of activeRegions) {
+    const rows = regionRows.get(regionId)!;
+
+    // Find all regions completely contained within these rows
+    const containedRegions = activeRegions.filter((id) =>
+      isContainedInRows(id, rows),
+    );
+
+    // Undercounting: N regions in N rows
+    if (containedRegions.length === rows.size) {
+      const containedSet = new Set(containedRegions);
+
+      // Mark cells in these rows that are NOT in the contained regions
+      for (const row of rows) {
+        for (let c = 0; c < size; c++) {
+          const cellRegion = board.grid[row][c];
+          if (!containedSet.has(cellRegion) && cells[row][c] === "unknown") {
+            cells[row][c] = "marked";
+            changed = true;
+          }
+        }
+      }
+    }
+  }
+
+  if (changed) return true;
+
+  // Try column-based undercounting
+  for (const regionId of activeRegions) {
+    const cols = regionCols.get(regionId)!;
+
+    // Find all regions completely contained within these columns
+    const containedRegions = activeRegions.filter((id) =>
+      isContainedInCols(id, cols),
+    );
+
+    // Undercounting: N regions in N cols
+    if (containedRegions.length === cols.size) {
+      const containedSet = new Set(containedRegions);
+
+      // Mark cells in these cols that are NOT in the contained regions
+      for (const col of cols) {
+        for (let r = 0; r < size; r++) {
+          const cellRegion = board.grid[r][col];
+          if (!containedSet.has(cellRegion) && cells[r][col] === "unknown") {
+            cells[r][col] = "marked";
+            changed = true;
+          }
+        }
+      }
+    }
+  }
+
+  return changed;
+}
+
+/**
+ * Rule 11. Overcounting: N regions completely CONTAIN N rows/cols
+ *
+ * When a collection of N regions completely contains N rows (or columns),
+ * the stars in those regions must be in those N rows (or columns).
+ * This allows marking the cells of each region that lie outside the N rows (or columns).
+ */
+export function overcounting(board: Board, cells: CellState[][]): boolean {
+  const size = board.grid.length;
+  let changed = false;
+
+  // Build region info: cells and stars per region
+  const regionCellsList = new Map<number, Coord[]>();
+  const regionStars = new Map<number, number>();
+
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const regionId = board.grid[r][c];
+      if (!regionCellsList.has(regionId)) {
+        regionCellsList.set(regionId, []);
+        regionStars.set(regionId, 0);
+      }
+      regionCellsList.get(regionId)!.push([r, c]);
+      if (cells[r][c] === "star") {
+        regionStars.set(regionId, regionStars.get(regionId)! + 1);
+      }
+    }
+  }
+
+  // Filter to regions that still need stars
+  const activeRegionSet = new Set(
+    [...regionCellsList.keys()].filter(
+      (id) => regionStars.get(id)! < board.stars,
+    ),
+  );
+
+  // Build row → active regions mapping (which active regions appear in each row)
+  const rowActiveRegions = new Map<number, Set<number>>();
+  for (let r = 0; r < size; r++) {
+    rowActiveRegions.set(r, new Set());
+    for (let c = 0; c < size; c++) {
+      const rid = board.grid[r][c];
+      if (activeRegionSet.has(rid)) {
+        rowActiveRegions.get(r)!.add(rid);
+      }
+    }
+  }
+
+  // Build col → active regions mapping
+  const colActiveRegions = new Map<number, Set<number>>();
+  for (let c = 0; c < size; c++) {
+    colActiveRegions.set(c, new Set());
+    for (let r = 0; r < size; r++) {
+      const rid = board.grid[r][c];
+      if (activeRegionSet.has(rid)) {
+        colActiveRegions.get(c)!.add(rid);
+      }
+    }
+  }
+
+  // Try row-based overcounting: find consecutive rows completely covered by N active regions
+  for (let startRow = 0; startRow < size; startRow++) {
+    const rowSet = new Set<number>();
+    const regionSet = new Set<number>();
+
+    for (let endRow = startRow; endRow < size; endRow++) {
+      rowSet.add(endRow);
+
+      // Track if this row adds new regions
+      const prevRegionCount = regionSet.size;
+      for (const rid of rowActiveRegions.get(endRow)!) {
+        regionSet.add(rid);
+      }
+      const addedRegions = regionSet.size > prevRegionCount;
+
+      // Check: N active regions completely contain N rows?
+      if (regionSet.size === rowSet.size) {
+        // Verify every cell in these rows belongs to these active regions
+        let valid = true;
+        for (const row of rowSet) {
+          for (let c = 0; c < size; c++) {
+            if (!regionSet.has(board.grid[row][c])) {
+              valid = false;
+              break;
+            }
+          }
+          if (!valid) break;
+        }
+
+        if (valid) {
+          // Mark cells of these regions that are OUTSIDE these rows
+          for (const rid of regionSet) {
+            for (const [r, c] of regionCellsList.get(rid)!) {
+              if (!rowSet.has(r) && cells[r][c] === "unknown") {
+                cells[r][c] = "marked";
+                changed = true;
+              }
+            }
+          }
+          if (changed) return true;
+        }
+      }
+
+      // Optimization: if we added new regions and now have more regions than rows,
+      // we can't recover by adding more rows (they'll only add more regions)
+      // Only apply after first row - first row always adds regions from empty
+      if (endRow > startRow && addedRegions && regionSet.size > rowSet.size)
+        break;
+    }
+  }
+
+  // Try column-based overcounting
+  for (let startCol = 0; startCol < size; startCol++) {
+    const colSet = new Set<number>();
+    const regionSet = new Set<number>();
+
+    for (let endCol = startCol; endCol < size; endCol++) {
+      colSet.add(endCol);
+
+      // Track if this column adds new regions
+      const prevRegionCount = regionSet.size;
+      for (const rid of colActiveRegions.get(endCol)!) {
+        regionSet.add(rid);
+      }
+      const addedRegions = regionSet.size > prevRegionCount;
+
+      // Check: N active regions completely contain N cols?
+      if (regionSet.size === colSet.size) {
+        // Verify every cell in these cols belongs to these active regions
+        let valid = true;
+        for (const col of colSet) {
+          for (let r = 0; r < size; r++) {
+            if (!regionSet.has(board.grid[r][col])) {
+              valid = false;
+              break;
+            }
+          }
+          if (!valid) break;
+        }
+
+        if (valid) {
+          // Mark cells of these regions that are OUTSIDE these columns
+          for (const rid of regionSet) {
+            for (const [r, c] of regionCellsList.get(rid)!) {
+              if (!colSet.has(c) && cells[r][c] === "unknown") {
+                cells[r][c] = "marked";
+                changed = true;
+              }
+            }
+          }
+          if (changed) return true;
+        }
+      }
+
+      // Optimization: if we added new regions and now have more regions than cols,
+      // we can't recover by adding more cols (they'll only add more regions)
+      // Only apply after first col - first col always adds regions from empty
+      if (endCol > startCol && addedRegions && regionSet.size > colSet.size)
+        break;
+    }
+  }
+
+  return changed;
 }

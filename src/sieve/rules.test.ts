@@ -8,8 +8,11 @@ import {
   twoByTwoTiling,
   oneByNConfinement,
   exclusion,
+  undercounting,
+  overcounting,
 } from "./rules";
 import { Board, CellState } from "./types";
+import { computeAllStrips } from "./strips";
 
 describe("1. Star Neighbors", () => {
   it("1.1 marks all 8 neighbors", () => {
@@ -1241,7 +1244,12 @@ describe("7. The 1×n Confinement", () => {
         ["marked", "marked", "unknown", "unknown"],
       ];
 
-      const result = oneByNConfinement(board, cells);
+      const result = oneByNConfinement(
+        board,
+        cells,
+        undefined,
+        computeAllStrips(board, cells),
+      );
 
       expect(result).toBe(true);
       expect(cells[1][2]).toBe("marked");
@@ -1260,13 +1268,62 @@ describe("7. The 1×n Confinement", () => {
         stars: 2,
       };
       const cells: CellState[][] = [
-        ["marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        [
+          "marked",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
+        [
+          "marked",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
+        [
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
+        [
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
       ];
 
-      const result = oneByNConfinement(board, cells);
+      const result = oneByNConfinement(
+        board,
+        cells,
+        undefined,
+        computeAllStrips(board, cells),
+      );
 
       expect(result).toBe(true);
       // The three 1s in row 2 should be marked
@@ -1287,13 +1344,54 @@ describe("7. The 1×n Confinement", () => {
         stars: 2,
       };
       const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["marked", "marked", "unknown", "unknown", "unknown", "unknown", "marked", "marked"],
-        ["marked", "marked", "unknown", "unknown", "unknown", "unknown", "marked", "marked"],
+        [
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
+        [
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
+        [
+          "marked",
+          "marked",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "marked",
+          "marked",
+        ],
+        [
+          "marked",
+          "marked",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "marked",
+          "marked",
+        ],
       ];
 
-      const result = oneByNConfinement(board, cells);
+      const result = oneByNConfinement(
+        board,
+        cells,
+        undefined,
+        computeAllStrips(board, cells),
+      );
 
       expect(result).toBe(true);
       expect(cells[1][2]).toBe("marked");
@@ -1322,7 +1420,12 @@ describe("7. The 1×n Confinement", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = oneByNConfinement(board, cells);
+      const result = oneByNConfinement(
+        board,
+        cells,
+        undefined,
+        computeAllStrips(board, cells),
+      );
 
       expect(result).toBe(true);
       expect(cells[2][1]).toBe("marked");
@@ -1348,7 +1451,12 @@ describe("7. The 1×n Confinement", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = oneByNConfinement(board, cells);
+      const result = oneByNConfinement(
+        board,
+        cells,
+        undefined,
+        computeAllStrips(board, cells),
+      );
       expect(result).toBe(false);
     });
 
@@ -1369,7 +1477,12 @@ describe("7. The 1×n Confinement", () => {
         ["marked", "marked", "unknown", "unknown"],
       ];
 
-      const result = oneByNConfinement(board, cells);
+      const result = oneByNConfinement(
+        board,
+        cells,
+        undefined,
+        computeAllStrips(board, cells),
+      );
       expect(result).toBe(false);
     });
 
@@ -1391,7 +1504,12 @@ describe("7. The 1×n Confinement", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = oneByNConfinement(board, cells);
+      const result = oneByNConfinement(
+        board,
+        cells,
+        undefined,
+        computeAllStrips(board, cells),
+      );
       expect(result).toBe(false);
     });
   });
@@ -1414,7 +1532,12 @@ describe("7. The 1×n Confinement", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = oneByNConfinement(board, cells);
+      const result = oneByNConfinement(
+        board,
+        cells,
+        undefined,
+        computeAllStrips(board, cells),
+      );
 
       expect(result).toBe(true);
       expect(cells[0][1]).toBe("marked");
@@ -1543,7 +1666,13 @@ describe("8. Exclusion", () => {
       expect(result).toBe(true);
       // At least one neighbor of (0,2) should be marked
       // Neighbors: (0,1), (0,3), (1,1), (1,2), (1,3)
-      const neighbors = [cells[0][1], cells[0][3], cells[1][1], cells[1][2], cells[1][3]];
+      const neighbors = [
+        cells[0][1],
+        cells[0][3],
+        cells[1][1],
+        cells[1][2],
+        cells[1][3],
+      ];
       const markedCount = neighbors.filter((c) => c === "marked").length;
       expect(markedCount).toBeGreaterThanOrEqual(1);
     });
@@ -1592,7 +1721,9 @@ describe("8. Exclusion", () => {
         cells[1][0], // adjacent to [0,0] and [0,1]
         cells[1][1], // adjacent to [0,0] and [0,1]
       ];
-      expect(externalCellsAdjacentToBoth.some((c) => c === "marked")).toBe(true);
+      expect(externalCellsAdjacentToBoth.some((c) => c === "marked")).toBe(
+        true,
+      );
     });
   });
 
@@ -1843,12 +1974,615 @@ describe("8. Exclusion", () => {
       expect(cells[1][1]).not.toBe("marked");
       // At least one of the 8 neighbors should be marked (function marks one per call)
       const neighbors = [
-        cells[0][0], cells[0][1], cells[0][2],
-        cells[1][0],             cells[1][2],
-        cells[2][0], cells[2][1], cells[2][2],
+        cells[0][0],
+        cells[0][1],
+        cells[0][2],
+        cells[1][0],
+        cells[1][2],
+        cells[2][0],
+        cells[2][1],
+        cells[2][2],
       ];
       const markedCount = neighbors.filter((c) => c === "marked").length;
       expect(markedCount).toBeGreaterThanOrEqual(1);
+    });
+  });
+});
+
+describe("10. Undercounting", () => {
+  // Undercounting: N regions completely contained within N rows/cols
+  // → Stars in those rows/cols must be in those regions
+  // → Mark cells in those rows/cols that lie OUTSIDE the N regions
+
+  describe("10.1 Row-based undercounting", () => {
+    it("10.1.1 marks cells outside region when 1 region contained in 1 row", () => {
+      // Region 0 fits entirely in row 0 (cols 0-2)
+      // Row 0 needs 1 star, which must come from region 0
+      // Cells in row 0 outside region 0 (col 3) should be marked
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = undercounting(board, cells);
+
+      expect(result).toBe(true);
+      expect(cells[0][3]).toBe("marked"); // outside region 0, in row 0
+    });
+
+    it("10.1.2 marks cells when 2 regions contained in 2 rows", () => {
+      // Regions 0 and 1 fit entirely within rows 0-1
+      // 2 rows need 2 stars, must come from regions 0 and 1
+      // Cells in rows 0-1 outside regions 0,1 should be marked
+      const board: Board = {
+        grid: [
+          [0, 0, 2, 2],
+          [1, 1, 2, 2],
+          [2, 2, 2, 2],
+          [2, 2, 2, 2],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = undercounting(board, cells);
+
+      expect(result).toBe(true);
+      // Region 2 cells in rows 0-1 should be marked: (0,2), (0,3), (1,2), (1,3)
+      expect(cells[0][2]).toBe("marked");
+      expect(cells[0][3]).toBe("marked");
+      expect(cells[1][2]).toBe("marked");
+      expect(cells[1][3]).toBe("marked");
+    });
+
+    it("10.1.3 marks cells when 3 regions contained in 3 rows (2★ puzzle)", () => {
+      // Regions 0, 1, 2 contained within rows 0-2
+      // 3 rows × 2 stars = 6 stars must come from these 3 regions
+      // Cells in rows 0-2 outside regions 0,1,2 should be marked
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0, 3, 3],
+          [1, 1, 1, 1, 3, 3],
+          [2, 2, 2, 2, 3, 3],
+          [3, 3, 3, 3, 3, 3],
+          [3, 3, 3, 3, 3, 3],
+          [3, 3, 3, 3, 3, 3],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = undercounting(board, cells);
+
+      expect(result).toBe(true);
+      // Region 3 cells in rows 0-2 should be marked
+      expect(cells[0][4]).toBe("marked");
+      expect(cells[0][5]).toBe("marked");
+      expect(cells[1][4]).toBe("marked");
+      expect(cells[1][5]).toBe("marked");
+      expect(cells[2][4]).toBe("marked");
+      expect(cells[2][5]).toBe("marked");
+    });
+  });
+
+  describe("10.2 Column-based undercounting", () => {
+    it("10.2.1 marks cells outside region when 1 region contained in 1 column", () => {
+      // Region 0 fits entirely in column 0 (rows 0-2)
+      // Col 0 needs 1 star, which must come from region 0
+      // Cells in col 0 outside region 0 (row 3) should be marked
+      const board: Board = {
+        grid: [
+          [0, 1, 1, 1],
+          [0, 1, 1, 1],
+          [0, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = undercounting(board, cells);
+
+      expect(result).toBe(true);
+      expect(cells[3][0]).toBe("marked"); // outside region 0, in col 0
+    });
+
+    it("10.2.2 marks cells when 2 regions contained in 2 columns", () => {
+      // Regions 0 and 1 fit entirely within columns 0-1
+      const board: Board = {
+        grid: [
+          [0, 1, 2, 2],
+          [0, 1, 2, 2],
+          [0, 1, 2, 2],
+          [2, 2, 2, 2],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = undercounting(board, cells);
+
+      expect(result).toBe(true);
+      // Region 2 cells in cols 0-1 should be marked: (3,0), (3,1)
+      expect(cells[3][0]).toBe("marked");
+      expect(cells[3][1]).toBe("marked");
+    });
+  });
+
+  describe("10.3 No undercounting", () => {
+    it("10.3.1 returns false when no regions contained within row set", () => {
+      // All regions span multiple row ranges
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = undercounting(board, cells);
+
+      expect(result).toBe(false);
+    });
+
+    it("10.3.2 returns false when regions fill their rows completely", () => {
+      // Region fills entire row - no cells outside region to mark
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = undercounting(board, cells);
+
+      expect(result).toBe(false);
+    });
+
+    it("10.3.3 returns false when cells already marked", () => {
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "marked"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = undercounting(board, cells);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("10.4 Edge cases", () => {
+    it("10.4.1 handles non-contiguous rows containing regions", () => {
+      // Region 0 in row 0, region 1 in row 2 (skipping row 1)
+      // This should NOT trigger undercounting (rows must be contiguous? or not?)
+      // Per spec, we check "groups of consecutive rows" for squeeze,
+      // but undercounting can work with any N rows containing N regions
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 2],
+          [2, 2, 2, 2],
+          [1, 1, 1, 2],
+          [2, 2, 2, 2],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = undercounting(board, cells);
+
+      // Regions 0 and 1 are each contained in a single row
+      // Row 0 + row 2 = 2 rows, contains 2 regions → marks region 2 cells in those rows
+      expect(result).toBe(true);
+      expect(cells[0][3]).toBe("marked"); // region 2 in row 0
+      expect(cells[2][3]).toBe("marked"); // region 2 in row 2
+    });
+
+    it("10.4.2 handles partial board progress", () => {
+      // Some cells already marked/starred
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [2, 2, 2, 2],
+          [2, 2, 2, 2],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["star", "marked", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      // Region 0 already has star, doesn't need counting
+      const result = undercounting(board, cells);
+      expect(typeof result).toBe("boolean");
+    });
+  });
+});
+
+describe("11. Overcounting", () => {
+  // Overcounting: N regions completely CONTAIN N rows/cols
+  // → Stars in those N regions must be in those rows/cols
+  // → Mark cells of each region that lie OUTSIDE the N rows/cols
+
+  describe("11.1 Row-based overcounting", () => {
+    it("11.1.1 marks cells outside rows when 1 region contains 1 row", () => {
+      // Region 0 spans rows 0-2, but completely contains row 0
+      // (i.e., row 0 is entirely within region 0)
+      // Wait - that's the opposite. Let me re-read the spec.
+      // "N regions completely CONTAIN N rows"
+      // So region(s) fully cover the row(s), meaning every cell in those rows belongs to those regions
+      //
+      // Example: Region 0 covers rows 0-1 completely (all cells in rows 0-1 are region 0)
+      // Then region 0's stars must be in rows 0-1
+      // Mark cells of region 0 that are outside rows 0-1
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = overcounting(board, cells);
+
+      expect(result).toBe(true);
+      // Region 0 contains rows 0-1 completely (8 cells)
+      // Region 0 also has cell (2,0)
+      // That cell is outside rows 0-1, so should be marked
+      expect(cells[2][0]).toBe("marked");
+    });
+
+    it("11.1.2 marks cells when 2 regions contain 2 rows", () => {
+      // Rows 0-1 are completely covered by regions 0 and 1
+      // Both regions appear in both rows, so no single row triggers 1-region overcounting
+      // Region 0 in cols 0-1, Region 1 in cols 2-3, both span rows 0-2
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [2, 2, 2, 2],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = overcounting(board, cells);
+
+      expect(result).toBe(true);
+      // Regions 0 and 1 together contain rows 0-1 completely
+      // Region 0 cells outside rows 0-1: (2,0), (2,1)
+      // Region 1 cells outside rows 0-1: (2,2), (2,3)
+      expect(cells[2][0]).toBe("marked");
+      expect(cells[2][1]).toBe("marked");
+      expect(cells[2][2]).toBe("marked");
+      expect(cells[2][3]).toBe("marked");
+    });
+
+    it("11.1.3 marks cells in 2★ puzzle", () => {
+      // Regions 0,1 completely contain rows 0-1
+      // Both regions appear in both rows (vertical stripes), so no single row triggers overcounting
+      // 2 regions × 2 stars = 4 stars must be in rows 0-1
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 1, 1, 1],
+          [0, 0, 0, 1, 1, 1],
+          [0, 0, 2, 2, 1, 1],
+          [2, 2, 2, 2, 2, 2],
+          [2, 2, 2, 2, 2, 2],
+          [2, 2, 2, 2, 2, 2],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = overcounting(board, cells);
+
+      expect(result).toBe(true);
+      // Region 0 cells outside rows 0-1: (2,0), (2,1)
+      // Region 1 cells outside rows 0-1: (2,4), (2,5)
+      expect(cells[2][0]).toBe("marked");
+      expect(cells[2][1]).toBe("marked");
+      expect(cells[2][4]).toBe("marked");
+      expect(cells[2][5]).toBe("marked");
+    });
+  });
+
+  describe("11.2 Column-based overcounting", () => {
+    it("11.2.1 marks cells outside columns when 1 region contains 1 column", () => {
+      // Region 0 completely contains column 0, plus has cell (0,1)
+      // Many regions per row prevent row-based overcounting from triggering first
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 2],
+          [0, 3, 1, 2],
+          [0, 3, 1, 2],
+          [0, 3, 1, 4],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = overcounting(board, cells);
+
+      expect(result).toBe(true);
+      // Region 0 cell outside col 0: (0,1)
+      expect(cells[0][1]).toBe("marked");
+    });
+
+    it("11.2.2 marks cells when 2 regions contain 2 columns", () => {
+      // Regions 0 and 1 completely contain columns 0-1
+      // Region 0 also has cell (0,2) outside cols 0-1
+      // Many unique regions per row prevent row-based from triggering
+      const board: Board = {
+        grid: [
+          [0, 1, 0, 2],
+          [0, 1, 3, 4],
+          [0, 1, 5, 6],
+          [0, 1, 7, 8],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = overcounting(board, cells);
+
+      expect(result).toBe(true);
+      // Region 0 cell outside cols 0-1: (0,2)
+      expect(cells[0][2]).toBe("marked");
+    });
+  });
+
+  describe("11.3 No overcounting", () => {
+    it("11.3.1 returns false when no regions completely contain row sets", () => {
+      // Each row has a different mix of regions - no N regions contain N rows
+      // Row 0: {0,1}, Row 1: {0,2}, Row 2: {1,3}, Row 3: {2,3}
+      // No subset of rows is completely covered by the same set of regions
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1],
+          [0, 0, 2, 2],
+          [1, 1, 3, 3],
+          [2, 2, 3, 3],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = overcounting(board, cells);
+
+      expect(result).toBe(false);
+    });
+
+    it("11.3.2 returns false when regions are exactly the rows (nothing outside to mark)", () => {
+      // Region 0 is exactly row 0, region 1 is exactly row 1, etc.
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],
+          [1, 1, 1, 1],
+          [2, 2, 2, 2],
+          [3, 3, 3, 3],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = overcounting(board, cells);
+
+      // Each region is exactly 1 row, no cells outside to mark
+      expect(result).toBe(false);
+    });
+
+    it("11.3.3 returns false when cells already marked", () => {
+      // Region 0 contains row 0, but its only cell outside row 0 is already marked
+      // Many unique regions per column prevent column-based overcounting
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],
+          [0, 1, 2, 3],
+          [4, 5, 6, 7],
+          [8, 9, 10, 11],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = overcounting(board, cells);
+
+      // Region 0 contains row 0, (1,0) is outside row 0 but already marked
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("11.4 Edge cases", () => {
+    it("11.4.1 marks non-contiguous cells when region contains a row", () => {
+      // Region 0 contains row 0, but also has cells in row 2 (non-contiguous)
+      // Those non-contiguous cells should be marked
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],
+          [1, 1, 1, 1],
+          [0, 0, 0, 0],
+          [1, 1, 1, 1],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = overcounting(board, cells);
+
+      // Region 0 contains row 0 completely
+      // Region 0 has cells (2,0-3) outside row 0 - should be marked
+      expect(result).toBe(true);
+      expect(cells[2][0]).toBe("marked");
+      expect(cells[2][1]).toBe("marked");
+      expect(cells[2][2]).toBe("marked");
+      expect(cells[2][3]).toBe("marked");
+    });
+
+    it("11.4.2 handles partial board progress", () => {
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["star", "marked", "marked", "marked"],
+        ["marked", "marked", "marked", "marked"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      // Region 0 already has star
+      const result = overcounting(board, cells);
+      expect(typeof result).toBe("boolean");
+    });
+
+    it("11.4.3 processes smallest valid case: 1 region containing 1 row", () => {
+      // Minimal case
+      const board: Board = {
+        grid: [
+          [0, 0, 0],
+          [0, 1, 1],
+          [1, 1, 1],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+      ];
+
+      const result = overcounting(board, cells);
+
+      expect(result).toBe(true);
+      // Region 0 contains row 0 completely
+      // Region 0 cell outside row 0: (1,0)
+      expect(cells[1][0]).toBe("marked");
     });
   });
 });

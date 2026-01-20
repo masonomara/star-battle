@@ -46,3 +46,19 @@ export type TilingCache = {
   byRowPair: Map<number, RegionTiling>; // key = first row index
   byColPair: Map<number, RegionTiling>; // key = first col index
 };
+
+// A 1×n (horizontal) or n×1 (vertical) strip of unknown cells within a single region
+export type Strip = {
+  regionId: number;
+  orientation: "horizontal" | "vertical";
+  anchor: Coord; // starting cell (top-left)
+  cells: Coord[]; // all cells in the strip
+  starsNeeded: number; // stars this region still needs
+};
+
+// Cache of all strips for the current board state
+export type StripCache = {
+  byRow: Map<number, Strip[]>; // row index → horizontal strips in that row
+  byCol: Map<number, Strip[]>; // col index → vertical strips in that column
+  byRegion: Map<number, Strip[]>; // regionId → all strips from that region
+};
