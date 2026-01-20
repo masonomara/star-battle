@@ -717,6 +717,136 @@ export function exclusion(
 }
 
 /**
+ * Rule 9. Pressured Exclusion: Exclusion with 1×n constraints
+ *
+ * For each 1×n strip (which guarantees at least 1 star):
+ *   - Try placing a "faux star" at each cell in the strip
+ *   - Mark the faux star's 8 neighbors
+ *   - If ANY tight region can no longer fit its remaining stars, mark that cell
+ *
+ * This finds cells within strips where placing a star would break any region's solvability.
+ */
+export function pressuredExclusion(
+  board: Board,
+  cells: CellState[][],
+  tilingCache?: TilingCache,
+  stripCache?: StripCache,
+): boolean {
+  if (!stripCache) return false;
+
+  const size = board.grid.length;
+
+  // Build region info
+  const regionCells = new Map<number, Coord[]>();
+  const regionStars = new Map<number, number>();
+
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const regionId = board.grid[r][c];
+      if (!regionCells.has(regionId)) {
+        regionCells.set(regionId, []);
+        regionStars.set(regionId, 0);
+      }
+      regionCells.get(regionId)!.push([r, c]);
+      if (cells[r][c] === "star") {
+        regionStars.set(regionId, regionStars.get(regionId)! + 1);
+      }
+    }
+  }
+
+  // Find all tight regions: minTileCount == starsNeeded
+  const tightRegions = new Map<
+    number,
+    { cells: Coord[]; starsNeeded: number }
+  >();
+
+  for (const [regionId, rCells] of regionCells) {
+    const existingStars = regionStars.get(regionId) ?? 0;
+    const starsNeeded = board.stars - existingStars;
+    if (starsNeeded <= 0) continue;
+
+    const tiling =
+      tilingCache?.byRegion.get(regionId) ??
+      findAllMinimalTilings(rCells, cells, size);
+
+    if (tiling.minTileCount === starsNeeded) {
+      tightRegions.set(regionId, { cells: rCells, starsNeeded });
+    }
+  }
+
+  if (tightRegions.size === 0) return false;
+
+  // Collect all faux star candidates from strips
+  const fauxCandidates: Coord[] = [];
+  for (const [regionId, strips] of stripCache.byRegion) {
+    const starsNeeded = board.stars - (regionStars.get(regionId) ?? 0);
+    if (starsNeeded <= 0) continue;
+
+    for (const strip of strips) {
+      if (strip.starsNeeded <= 0) continue;
+
+      for (const [r, c] of strip.cells) {
+        if (cells[r][c] === "unknown") {
+          fauxCandidates.push([r, c]);
+        }
+      }
+    }
+  }
+
+  // Dedupe candidates
+  const seen = new Set<string>();
+  const uniqueCandidates: Coord[] = [];
+  for (const [r, c] of fauxCandidates) {
+    const key = `${r},${c}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueCandidates.push([r, c]);
+    }
+  }
+
+  // Try placing a faux star at each candidate
+  for (const [fauxRow, fauxCol] of uniqueCandidates) {
+    // Create temp cells with faux star placement
+    const tempCells = cells.map((row) => [...row]);
+    tempCells[fauxRow][fauxCol] = "star";
+
+    // Mark the faux star's 8 neighbors
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        if (dr === 0 && dc === 0) continue;
+        const nr = fauxRow + dr;
+        const nc = fauxCol + dc;
+        if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
+          if (tempCells[nr][nc] === "unknown") {
+            tempCells[nr][nc] = "marked";
+          }
+        }
+      }
+    }
+
+    // Check if ANY tight region becomes unsolvable
+    for (const [regionId, { cells: rCells, starsNeeded }] of tightRegions) {
+      // Adjust stars needed if faux star is in this region
+      const fauxInRegion = board.grid[fauxRow][fauxCol] === regionId;
+      const remainingStarsNeeded = fauxInRegion ? starsNeeded - 1 : starsNeeded;
+
+      if (remainingStarsNeeded <= 0) continue; // Faux star completes this region
+
+      // Recompute tiling for the region with the faux star in place
+      const newTiling = findAllMinimalTilings(rCells, tempCells, size);
+
+      // If region can't fit remaining stars, this faux position is invalid
+      if (newTiling.minTileCount < remainingStarsNeeded) {
+        cells[fauxRow][fauxCol] = "marked";
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
  * Rule 10. Undercounting: N regions completely contained within N rows/cols
  *
  * When a collection of N regions is completely contained within N rows (or columns),
