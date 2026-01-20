@@ -1,4 +1,4 @@
-import { Board, CellState, SolveResult } from "./types";
+import { Board, CellState, Solution } from "./types";
 import {
   trivialStarMarks,
   trivialRowComplete,
@@ -169,9 +169,9 @@ function initializeCells(size: number): CellState[][] {
 
 /**
  * Attempt to solve a Star Battle puzzle using production rules.
- * Returns solve result with solution (if found), cycles, and max rule level used.
+ * Returns Solution if solved, null if unsolvable or stuck.
  */
-export function solve(board: Board): SolveResult {
+export function solve(board: Board, seed: number): Solution | null {
   const size = board.grid.length;
   let cells = initializeCells(size);
   let cycles = 0;
@@ -182,12 +182,12 @@ export function solve(board: Board): SolveResult {
 
     // Check if we hit an invalid state
     if (isUnsolvable(board, cells)) {
-      return { solved: false, cells, cycles, maxLevel };
+      return null;
     }
 
     // Check if solved
     if (isSolved(board, cells)) {
-      return { solved: true, cells, cycles, maxLevel };
+      return { board, seed, cells, cycles, maxLevel };
     }
 
     // Try each rule in order
@@ -204,10 +204,10 @@ export function solve(board: Board): SolveResult {
 
     // No rule made progress - puzzle is stuck
     if (!progress) {
-      return { solved: false, cells, cycles, maxLevel };
+      return null;
     }
   }
 
   // Exceeded max cycles
-  return { solved: false, cells, cycles, maxLevel };
+  return null;
 }

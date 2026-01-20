@@ -9,14 +9,9 @@ function lcg(seed: number): () => number {
   };
 }
 
-// Layout Generation
-export function layout(
-  size: number,
-  stars: number,
-  seed?: number,
-): { board: Board; seed: number } {
-  const actualSeed = seed ?? Math.floor(Math.random() * 0x7fffffff);
-  const rng = lcg(actualSeed);
+// Generate board layout from seed
+export function layout(size: number, stars: number, seed: number): Board {
+  const rng = lcg(seed);
   const grid: number[][] = Array.from({ length: size }, () =>
     Array.from({ length: size }, () => -1),
   );
@@ -57,5 +52,5 @@ export function layout(
     }
   }
 
-  return { board: { grid, stars }, seed: actualSeed };
+  return { grid, stars };
 }

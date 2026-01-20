@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { isUnsolvable, isSolved, solve } from "./solver";
-import { Board, CellState, SolveResult } from "./types";
+import { Board, CellState } from "./types";
 
 describe("isUnsolvable", () => {
   describe("1. Adjacent stars", () => {
@@ -544,14 +544,14 @@ describe("solve", () => {
         stars: 1,
       };
 
-      const result = solve(board);
+      const result = solve(board, 0);
 
-      expect(result.solved).toBe(true);
+      expect(result).not.toBeNull();
       // Verify stars placed at forced positions
-      expect(result.cells[0][1]).toBe("star");
-      expect(result.cells[1][3]).toBe("star");
-      expect(result.cells[2][0]).toBe("star");
-      expect(result.cells[3][2]).toBe("star");
+      expect(result!.cells[0][1]).toBe("star");
+      expect(result!.cells[1][3]).toBe("star");
+      expect(result!.cells[2][0]).toBe("star");
+      expect(result!.cells[3][2]).toBe("star");
     });
 
     it("1.2 solves puzzle via cascading forced placement", () => {
@@ -568,11 +568,11 @@ describe("solve", () => {
         stars: 1,
       };
 
-      const result = solve(board);
+      const result = solve(board, 0);
 
-      expect(result.solved).toBe(true);
-      expect(isUnsolvable(board, result.cells)).toBeNull();
-      expect(isSolved(board, result.cells)).toBe(true);
+      expect(result).not.toBeNull();
+      expect(isUnsolvable(board, result!.cells)).toBeNull();
+      expect(isSolved(board, result!.cells)).toBe(true);
     });
 
     it("1.3 solves puzzle requiring multiple cycles", () => {
@@ -589,15 +589,15 @@ describe("solve", () => {
         stars: 1,
       };
 
-      const result = solve(board);
+      const result = solve(board, 0);
 
-      expect(result.solved).toBe(true);
-      expect(result.cycles).toBeGreaterThan(1);
+      expect(result).not.toBeNull();
+      expect(result!.cycles).toBeGreaterThan(1);
     });
   });
 
   describe("2. Detects unsolvable puzzles", () => {
-    it("2.1 returns solved:false when no rules apply", () => {
+    it("2.1 returns null when no rules apply", () => {
       // A board where rules can't make progress
       // Single region covering everything - ambiguous
       const board: Board = {
@@ -610,14 +610,14 @@ describe("solve", () => {
         stars: 1,
       };
 
-      const result = solve(board);
+      const result = solve(board, 0);
 
       // Single region needs 1 star but has 16 cells - no forced moves
       // Rules will exhaust without solving
-      expect(result.solved).toBe(false);
+      expect(result).toBeNull();
     });
 
-    it("2.2 returns solved:false for impossible region layout", () => {
+    it("2.2 returns null for impossible region layout", () => {
       // Region 0 has only 1 cell but needs 2 stars
       const board: Board = {
         grid: [
@@ -629,28 +629,30 @@ describe("solve", () => {
         stars: 2,
       };
 
-      const result = solve(board);
+      const result = solve(board, 0);
 
-      expect(result.solved).toBe(false);
+      expect(result).toBeNull();
     });
   });
 
   describe("3. Tracks difficulty metrics", () => {
     it("3.1 counts cycles correctly", () => {
-      // Simple puzzle - should take few cycles
+      // Simple puzzle with forced placements
       const board: Board = {
         grid: [
-          [0, 0, 0],
-          [1, 1, 1],
-          [2, 2, 2],
+          [4, 0, 4, 4],
+          [4, 4, 4, 1],
+          [2, 4, 4, 4],
+          [4, 4, 3, 4],
         ],
         stars: 1,
       };
 
-      const result = solve(board);
+      const result = solve(board, 0);
 
-      expect(result.cycles).toBeGreaterThanOrEqual(1);
-      expect(result.cycles).toBeLessThan(100); // sanity check
+      expect(result).not.toBeNull();
+      expect(result!.cycles).toBeGreaterThanOrEqual(1);
+      expect(result!.cycles).toBeLessThan(100); // sanity check
     });
 
     it("3.2 maxLevel is 1 for trivial-rules-only puzzle", () => {
@@ -665,10 +667,10 @@ describe("solve", () => {
         stars: 1,
       };
 
-      const result = solve(board);
+      const result = solve(board, 0);
 
-      expect(result.solved).toBe(true);
-      expect(result.maxLevel).toBe(1);
+      expect(result).not.toBeNull();
+      expect(result!.maxLevel).toBe(1);
     });
 
     it("3.3 maxLevel reflects hardest rule needed", () => {
@@ -686,12 +688,12 @@ describe("solve", () => {
         stars: 2,
       };
 
-      const result = solve(board);
+      const result = solve(board, 0);
 
-      if (result.solved) {
+      if (result !== null) {
         expect(result.maxLevel).toBeGreaterThanOrEqual(2);
       }
-      // If not solved, that's also valid - we may not have level 2+ rules yet
+      // If null, that's also valid - we may not have level 2+ rules yet
     });
   });
 
@@ -710,46 +712,51 @@ describe("solve", () => {
         stars: 1,
       };
 
-      const result = solve(board);
+      const result = solve(board, 0);
 
-      expect(result.solved).toBe(true);
-      const stars = result.cells.flat().filter((c) => c === "star");
+      expect(result).not.toBeNull();
+      const stars = result!.cells.flat().filter((c) => c === "star");
       expect(stars.length).toBe(4);
     });
 
-    it("4.2 starts with all cells unknown", () => {
+    it("4.2 returns valid puzzle structure when solved", () => {
+      // 4x4 with forced placements
       const board: Board = {
         grid: [
-          [0, 0, 0],
-          [1, 1, 1],
-          [2, 2, 2],
+          [4, 0, 4, 4],
+          [4, 4, 4, 1],
+          [2, 4, 4, 4],
+          [4, 4, 3, 4],
         ],
         stars: 1,
       };
 
-      // Just verify it doesn't crash and returns valid structure
-      const result = solve(board);
+      const result = solve(board, 42);
 
-      expect(result).toHaveProperty("solved");
+      expect(result).not.toBeNull();
+      expect(result).toHaveProperty("board");
+      expect(result).toHaveProperty("seed");
       expect(result).toHaveProperty("cells");
       expect(result).toHaveProperty("cycles");
       expect(result).toHaveProperty("maxLevel");
-      expect(result.cells.length).toBe(3);
-      expect(result.cells[0].length).toBe(3);
+      expect(result!.seed).toBe(42);
+      expect(result!.cells.length).toBe(4);
+      expect(result!.cells[0].length).toBe(4);
     });
 
     it("4.3 does not mutate input board", () => {
       const board: Board = {
         grid: [
-          [0, 0, 0],
-          [1, 1, 1],
-          [2, 2, 2],
+          [4, 0, 4, 4],
+          [4, 4, 4, 1],
+          [2, 4, 4, 4],
+          [4, 4, 3, 4],
         ],
         stars: 1,
       };
 
       const originalGrid = JSON.stringify(board.grid);
-      solve(board);
+      solve(board, 0);
 
       expect(JSON.stringify(board.grid)).toBe(originalGrid);
     });

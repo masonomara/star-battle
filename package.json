@@ -1,8 +1,11 @@
 {
   "scripts": {
-    "test": "vitest"
+    "test": "vitest",
+    "sieve": "npx tsx src/sieve/cli.ts"
   },
   "devDependencies": {
+    "@types/node": "^25.0.9",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.17",
     "wrangler": "^4.59.2"
