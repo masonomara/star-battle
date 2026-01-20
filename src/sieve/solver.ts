@@ -39,6 +39,18 @@ export function isSolved(board: Board, cells: CellState[][]): boolean {
 
         const regionId = board.grid[row][col];
         starsByRegion.set(regionId, (starsByRegion.get(regionId) ?? 0) + 1);
+
+        // Check for adjacent stars (orthogonal and diagonal)
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            const nr = row + dr;
+            const nc = col + dc;
+            if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
+              if (cells[nr][nc] === "star") return false;
+            }
+          }
+        }
       }
     }
   }
