@@ -52,6 +52,9 @@ const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: exclusion, level: 2, name: "exclusion" },
 ];
 
+/** Reason why a solve attempt failed */
+export type StuckReason = "invalid_layout" | "invalid_state" | "no_progress" | "max_cycles";
+
 /** Info about a stuck solve attempt */
 export interface StuckState {
   board: Board;
@@ -59,6 +62,7 @@ export interface StuckState {
   cycles: number;
   maxLevel: number;
   lastRule: string | null;
+  reason: StuckReason;
 }
 
 const MAX_CYCLES = 1000;
@@ -196,7 +200,7 @@ export function solveWithDetails(
   if (!isValidLayout(board)) {
     return {
       solved: false,
-      stuck: { board, cells, cycles: 0, maxLevel: 0, lastRule: null },
+      stuck: { board, cells, cycles: 0, maxLevel: 0, lastRule: null, reason: "invalid_layout" },
     };
   }
 
@@ -211,7 +215,7 @@ export function solveWithDetails(
     if (isInvalid(board, cells)) {
       return {
         solved: false,
-        stuck: { board, cells, cycles, maxLevel, lastRule },
+        stuck: { board, cells, cycles, maxLevel, lastRule, reason: "invalid_state" },
       };
     }
 
@@ -256,7 +260,7 @@ export function solveWithDetails(
     if (!progress) {
       return {
         solved: false,
-        stuck: { board, cells, cycles, maxLevel, lastRule },
+        stuck: { board, cells, cycles, maxLevel, lastRule, reason: "no_progress" },
       };
     }
   }
@@ -264,7 +268,7 @@ export function solveWithDetails(
   // Exceeded max cycles
   return {
     solved: false,
-    stuck: { board, cells, cycles, maxLevel, lastRule },
+    stuck: { board, cells, cycles, maxLevel, lastRule, reason: "max_cycles" },
   };
 }
 

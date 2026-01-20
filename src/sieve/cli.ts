@@ -1,6 +1,6 @@
 import { sieve } from "./sieve";
 import { layout } from "./generator";
-import { solveWithDetails, StuckState, StepInfo, isInvalid } from "./solver";
+import { solveWithDetails, StuckState, StepInfo } from "./solver";
 import { CellState } from "./types";
 
 function parseArgs(): Record<string, string> {
@@ -79,10 +79,14 @@ function main() {
 
     if (result.solved) {
       console.log(`=== SOLVED in ${result.solution.cycles} cycles ===`);
-    } else if (isInvalid(board, result.stuck.cells)) {
-      console.log(`=== INVALID after ${result.stuck.cycles} cycles (dead row/col/region) ===`);
     } else {
-      console.log(`=== STUCK after ${result.stuck.cycles} cycles ===`);
+      const messages: Record<string, string> = {
+        invalid_layout: "INVALID LAYOUT (region too small)",
+        invalid_state: "INVALID STATE (dead row/col/region)",
+        no_progress: "STUCK (no rules apply)",
+        max_cycles: "STUCK (max cycles exceeded)",
+      };
+      console.log(`=== ${messages[result.stuck.reason]} after ${result.stuck.cycles} cycles ===`);
     }
     return;
   }
