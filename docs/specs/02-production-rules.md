@@ -52,9 +52,15 @@ The significance lies in the information you can get from tiling a larger region
 
 For example, the following region can be tiled with a minimum of two 2×2s, meaning it fits at most two stars:
 
+![Example tiling 1a](/docs/specs/images/example_tiling_1a.png)
+
 If this were in a 2★ puzzle, we would further know that each 2×2 contains a star. Because one of the 2×2s has only one cell within the region, that cell must contain a star:
 
+![Example tiling 1b](/docs/specs/images/example_tiling_1b.png)
+
 As another example, the following region can fit at most three stars:
+
+![Example tiling 2](/docs/specs/images/example_tiling_2.png)
 
 Note that there can be many ways to tile a region with 2×2s. The above remains true regardless, and considering several different tilings can yield additional information.
 
