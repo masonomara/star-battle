@@ -1,4 +1,4 @@
-import { Board, CellState, Coord } from "./types";
+import { Board, CellState, Coord, TilingCache } from "./types";
 import { findAllMinimalTilings } from "./tiling";
 
 /**
@@ -232,11 +232,14 @@ export function forcedPlacement(board: Board, cells: CellState[][]): boolean {
  * - If minTileCount == stars needed, each tile has exactly 1 star
  * - If a tile covers only 1 region cell in ALL tilings, that cell must be a star
  */
-export function twoByTwoTiling(board: Board, cells: CellState[][]): boolean {
+export function twoByTwoTiling(
+  board: Board,
+  cells: CellState[][],
+  cache?: TilingCache,
+): boolean {
   const size = board.grid.length;
-  let changed = false;
 
-  // Group cells by region
+  // Group cells by region (needed for star counting even with cache)
   const regionCells = new Map<number, Coord[]>();
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
@@ -249,7 +252,7 @@ export function twoByTwoTiling(board: Board, cells: CellState[][]): boolean {
   }
 
   // Process each region
-  for (const [, cellList] of regionCells) {
+  for (const [regionId, cellList] of regionCells) {
     // Count existing stars in region
     let existingStars = 0;
     for (const [row, col] of cellList) {
@@ -259,8 +262,9 @@ export function twoByTwoTiling(board: Board, cells: CellState[][]): boolean {
     const starsNeeded = board.stars - existingStars;
     if (starsNeeded <= 0) continue; // Region already has enough stars
 
-    // Get all minimal tilings for this region
-    const tiling = findAllMinimalTilings(cellList, cells, size);
+    // Get tiling from cache or compute directly
+    const tiling = cache?.byRegion.get(regionId) ??
+      findAllMinimalTilings(cellList, cells, size);
 
     // If no valid tilings exist, skip (unsolvable or already solved)
     if (tiling.allMinimalTilings.length === 0) continue;
@@ -304,4 +308,213 @@ export function twoByTwoTiling(board: Board, cells: CellState[][]): boolean {
   }
 
   return false;
+}
+
+/**
+ * Rule 7. The 1×n Confinement: Mark row/col remainder when 1×n regions account for all stars
+ *
+ * A 1×n is a region (or portion of a region) whose stars must be in a single row.
+ * An n×1 is the column equivalent.
+ *
+ * When multiple 1×n's in the same row together account for all stars in that row,
+ * the remainder of the row can be marked.
+ *
+ * Detection:
+ * - Simple: region's unknown cells are all in one row/col
+ * - Advanced: partial 2×2 tiling bounds part of region, remainder is a 1×n
+ */
+export function oneByNConfinement(
+  board: Board,
+  cells: CellState[][],
+  cache?: TilingCache,
+): boolean {
+  const numRows = board.grid.length;
+  const numCols = board.grid[0].length;
+  let changed = false;
+
+  // Build region info: unknowns and existing stars
+  const regionInfo = new Map<number, { unknowns: Coord[]; stars: number }>();
+
+  for (let row = 0; row < numRows; row++) {
+    for (let col = 0; col < numCols; col++) {
+      const regionId = board.grid[row][col];
+      if (!regionInfo.has(regionId)) {
+        regionInfo.set(regionId, { unknowns: [], stars: 0 });
+      }
+      const info = regionInfo.get(regionId)!;
+      if (cells[row][col] === "unknown") {
+        info.unknowns.push([row, col]);
+      } else if (cells[row][col] === "star") {
+        info.stars++;
+      }
+    }
+  }
+
+  // Track 1×n contributions per row and n×1 contributions per column
+  type Contribution = { starsContributed: number; cells: Set<string> };
+  const rowContributions = new Map<number, Contribution[]>();
+  const colContributions = new Map<number, Contribution[]>();
+
+  const coordKey = (r: number, c: number) => `${r},${c}`;
+
+  for (const [regionId, info] of regionInfo) {
+    const starsNeeded = board.stars - info.stars;
+    if (starsNeeded <= 0 || info.unknowns.length === 0) continue;
+
+    const rows = new Set(info.unknowns.map(([r]) => r));
+    const cols = new Set(info.unknowns.map(([, c]) => c));
+
+    // Simple detection: all unknowns are in a single row (1×n)
+    if (rows.size === 1) {
+      const row = [...rows][0];
+      if (!rowContributions.has(row)) {
+        rowContributions.set(row, []);
+      }
+      const cellSet = new Set(info.unknowns.map(([r, c]) => coordKey(r, c)));
+      rowContributions.get(row)!.push({ starsContributed: starsNeeded, cells: cellSet });
+    }
+
+    // Simple detection: all unknowns are in a single column (n×1)
+    if (cols.size === 1) {
+      const col = [...cols][0];
+      if (!colContributions.has(col)) {
+        colContributions.set(col, []);
+      }
+      const cellSet = new Set(info.unknowns.map(([r, c]) => coordKey(r, c)));
+      colContributions.get(col)!.push({ starsContributed: starsNeeded, cells: cellSet });
+    }
+
+    // Advanced detection: use tiling to find 1×n remainders
+    // If tiling shows minTiles < starsNeeded, remainder must have (starsNeeded - minTiles) stars
+    if (cache && rows.size > 1 && cols.size > 1) {
+      const tiling = cache.byRegion.get(regionId);
+      if (tiling && tiling.allMinimalTilings.length > 0) {
+        const minTiles = tiling.minTileCount;
+
+        // If minTiles < starsNeeded, we can bound stars in tiled portion
+        // The remainder (cells not covered by any tile in ALL tilings) must have remaining stars
+        if (minTiles < starsNeeded) {
+          const remainderStars = starsNeeded - minTiles;
+
+          // Find cells that are NOT covered by tiles in ANY minimal tiling
+          // These cells form the "remainder" that must contain remainderStars
+          const coveredInAll = new Set<string>();
+          const firstTiling = tiling.allMinimalTilings[0];
+          for (const tile of firstTiling) {
+            for (const c of tile.coveredCells) {
+              coveredInAll.add(coordKey(c[0], c[1]));
+            }
+          }
+
+          // Intersect with all other tilings
+          for (let i = 1; i < tiling.allMinimalTilings.length; i++) {
+            const thisTilingCovered = new Set<string>();
+            for (const tile of tiling.allMinimalTilings[i]) {
+              for (const c of tile.coveredCells) {
+                thisTilingCovered.add(coordKey(c[0], c[1]));
+              }
+            }
+            // Keep only cells covered in both
+            for (const key of coveredInAll) {
+              if (!thisTilingCovered.has(key)) {
+                coveredInAll.delete(key);
+              }
+            }
+          }
+
+          // Remainder = unknowns not in coveredInAll
+          const remainder: Coord[] = info.unknowns.filter(
+            ([r, c]) => !coveredInAll.has(coordKey(r, c))
+          );
+
+          if (remainder.length > 0) {
+            const remainderRows = new Set(remainder.map(([r]) => r));
+            const remainderCols = new Set(remainder.map(([, c]) => c));
+
+            // If remainder is a 1×n (single row)
+            if (remainderRows.size === 1) {
+              const row = [...remainderRows][0];
+              if (!rowContributions.has(row)) {
+                rowContributions.set(row, []);
+              }
+              const cellSet = new Set(remainder.map(([r, c]) => coordKey(r, c)));
+              rowContributions.get(row)!.push({ starsContributed: remainderStars, cells: cellSet });
+            }
+
+            // If remainder is an n×1 (single column)
+            if (remainderCols.size === 1) {
+              const col = [...remainderCols][0];
+              if (!colContributions.has(col)) {
+                colContributions.set(col, []);
+              }
+              const cellSet = new Set(remainder.map(([r, c]) => coordKey(r, c)));
+              colContributions.get(col)!.push({ starsContributed: remainderStars, cells: cellSet });
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Process rows: if total contribution >= row quota, mark cells outside 1×n's
+  for (const [row, contribs] of rowContributions) {
+    let existingRowStars = 0;
+    for (let col = 0; col < numCols; col++) {
+      if (cells[row][col] === "star") existingRowStars++;
+    }
+    const rowQuota = board.stars - existingRowStars;
+    if (rowQuota <= 0) continue;
+
+    const totalContribution = contribs.reduce((sum, c) => sum + c.starsContributed, 0);
+    if (totalContribution < rowQuota) continue;
+
+    // Collect all 1×n cells in this row
+    const oneByNCells = new Set<string>();
+    for (const c of contribs) {
+      for (const cell of c.cells) {
+        oneByNCells.add(cell);
+      }
+    }
+
+    // Mark cells in this row that are NOT in any 1×n
+    for (let col = 0; col < numCols; col++) {
+      const key = coordKey(row, col);
+      if (cells[row][col] === "unknown" && !oneByNCells.has(key)) {
+        cells[row][col] = "marked";
+        changed = true;
+      }
+    }
+  }
+
+  // Process columns: if total contribution >= col quota, mark cells outside n×1's
+  for (const [col, contribs] of colContributions) {
+    let existingColStars = 0;
+    for (let row = 0; row < numRows; row++) {
+      if (cells[row][col] === "star") existingColStars++;
+    }
+    const colQuota = board.stars - existingColStars;
+    if (colQuota <= 0) continue;
+
+    const totalContribution = contribs.reduce((sum, c) => sum + c.starsContributed, 0);
+    if (totalContribution < colQuota) continue;
+
+    // Collect all n×1 cells in this column
+    const nByOneCells = new Set<string>();
+    for (const c of contribs) {
+      for (const cell of c.cells) {
+        nByOneCells.add(cell);
+      }
+    }
+
+    // Mark cells in this column that are NOT in any n×1
+    for (let row = 0; row < numRows; row++) {
+      const key = coordKey(row, col);
+      if (cells[row][col] === "unknown" && !nByOneCells.has(key)) {
+        cells[row][col] = "marked";
+        changed = true;
+      }
+    }
+  }
+
+  return changed;
 }

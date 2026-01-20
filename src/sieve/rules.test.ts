@@ -6,6 +6,7 @@ import {
   trivialRegionComplete,
   forcedPlacement,
   twoByTwoTiling,
+  oneByNConfinement,
 } from "./rules";
 import { Board, CellState } from "./types";
 
@@ -1215,6 +1216,209 @@ describe("6. The 2×2 Tiling", () => {
       // Rule shouldn't crash, just return false (no progress)
       const result = twoByTwoTiling(board, cells);
       expect(typeof result).toBe("boolean");
+    });
+  });
+});
+
+describe("7. The 1×n Confinement", () => {
+  describe("7.1 Row confinement", () => {
+    it("7.1.1 marks row remainder when region confined to single row (1 star)", () => {
+      // Region 1 unknowns all in row 1 → mark rest of row 1
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],
+          [1, 1, 0, 0],
+          [1, 1, 0, 0],
+          [1, 1, 0, 0],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown"],
+      ];
+
+      const result = oneByNConfinement(board, cells);
+
+      expect(result).toBe(true);
+      expect(cells[1][2]).toBe("marked");
+      expect(cells[1][3]).toBe("marked");
+    });
+
+    it("7.1.2 marks row remainder when region confined to single row (2 stars)", () => {
+      // Region 0 (L-shaped) unknowns all in row 2 → mark rest of row 2
+      const board: Board = {
+        grid: [
+          [0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+          [0, 1, 1, 1, 1, 1, 1, 1, 2, 1],
+          [0, 0, 0, 1, 1, 1, 2, 2, 2, 2],
+          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = oneByNConfinement(board, cells);
+
+      expect(result).toBe(true);
+      // The three 1s in row 2 should be marked
+      expect(cells[2][3]).toBe("marked");
+      expect(cells[2][4]).toBe("marked");
+      expect(cells[2][5]).toBe("marked");
+    });
+
+    it("7.1.3 marks when two 1×n regions together fill row quota", () => {
+      // Regions 1 and 2 each confined to row 1, together account for all stars
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0, 0, 0, 0, 0],
+          [1, 1, 0, 0, 0, 0, 2, 2],
+          [1, 1, 0, 0, 0, 0, 2, 2],
+          [1, 1, 0, 0, 0, 0, 2, 2],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown", "unknown", "unknown", "marked", "marked"],
+        ["marked", "marked", "unknown", "unknown", "unknown", "unknown", "marked", "marked"],
+      ];
+
+      const result = oneByNConfinement(board, cells);
+
+      expect(result).toBe(true);
+      expect(cells[1][2]).toBe("marked");
+      expect(cells[1][3]).toBe("marked");
+      expect(cells[1][4]).toBe("marked");
+      expect(cells[1][5]).toBe("marked");
+    });
+  });
+
+  describe("7.2 Column confinement", () => {
+    it("7.2.1 marks column remainder when region confined to single column", () => {
+      // Region 1 unknowns all in col 1 → mark rest of col 1
+      const board: Board = {
+        grid: [
+          [0, 1, 1, 0],
+          [0, 1, 1, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "marked", "unknown"],
+        ["unknown", "unknown", "marked", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = oneByNConfinement(board, cells);
+
+      expect(result).toBe(true);
+      expect(cells[2][1]).toBe("marked");
+      expect(cells[3][1]).toBe("marked");
+    });
+  });
+
+  describe("7.3 No confinement", () => {
+    it("7.3.1 returns false when regions span multiple rows and columns", () => {
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [2, 2, 3, 3],
+          [2, 2, 3, 3],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = oneByNConfinement(board, cells);
+      expect(result).toBe(false);
+    });
+
+    it("7.3.2 returns false when region already has all stars", () => {
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["star", "marked", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown"],
+      ];
+
+      const result = oneByNConfinement(board, cells);
+      expect(result).toBe(false);
+    });
+
+    it("7.3.3 returns false when 1×n spans entire row (nothing to mark)", () => {
+      // Region 1 fills row 1 completely - nowhere else to mark
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],
+          [1, 1, 1, 1],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = oneByNConfinement(board, cells);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("7.4 Edge cases", () => {
+    it("7.4.1 handles single-cell region (trivially confined)", () => {
+      const board: Board = {
+        grid: [
+          [0, 1, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = oneByNConfinement(board, cells);
+
+      expect(result).toBe(true);
+      expect(cells[0][1]).toBe("marked");
+      expect(cells[0][2]).toBe("marked");
+      expect(cells[0][3]).toBe("marked");
     });
   });
 });

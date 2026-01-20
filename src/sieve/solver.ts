@@ -1,4 +1,4 @@
-import { Board, CellState, Solution } from "./types";
+import { Board, CellState, Solution, TilingCache } from "./types";
 import {
   trivialStarMarks,
   trivialRowComplete,
@@ -6,9 +6,15 @@ import {
   trivialRegionComplete,
   forcedPlacement,
   twoByTwoTiling,
+  oneByNConfinement,
 } from "./rules";
+import { computeAllTilings } from "./tiling";
 
-type Rule = (board: Board, cells: CellState[][]) => boolean;
+type Rule = (
+  board: Board,
+  cells: CellState[][],
+  cache?: TilingCache,
+) => boolean;
 
 const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: trivialStarMarks, level: 1, name: "starNeighbors" },
@@ -17,6 +23,7 @@ const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: trivialRegionComplete, level: 1, name: "regionComplete" },
   { rule: forcedPlacement, level: 1, name: "forcedPlacement" },
   { rule: twoByTwoTiling, level: 2, name: "twoByTwoTiling" },
+  { rule: oneByNConfinement, level: 2, name: "oneByNConfinement" },
 ];
 
 /** Info about a stuck solve attempt */
@@ -182,8 +189,15 @@ export function solveWithDetails(
 
     // Try each rule in order
     let progress = false;
+    let cache: TilingCache | undefined;
+
     for (const { rule, level, name } of allRules) {
-      if (rule(board, cells)) {
+      // Compute cache lazily when first level 2+ rule is tried
+      if (level >= 2 && !cache) {
+        cache = computeAllTilings(board, cells);
+      }
+
+      if (rule(board, cells, cache)) {
         maxLevel = Math.max(maxLevel, level);
         lastRule = name;
         progress = true;
@@ -191,7 +205,12 @@ export function solveWithDetails(
         // Call trace callback if provided
         if (options.onStep) {
           const cellsCopy = cells.map((row) => [...row]);
-          options.onStep({ cycle: cycles, rule: name, level, cells: cellsCopy });
+          options.onStep({
+            cycle: cycles,
+            rule: name,
+            level,
+            cells: cellsCopy,
+          });
         }
 
         break;
