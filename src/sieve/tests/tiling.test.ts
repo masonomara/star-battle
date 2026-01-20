@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { generateTileCandidates, findAllMinimalTilings } from "./tiling";
-import { CellState, Coord, Tile } from "./types";
+import { generateTileCandidates, findAllMinimalTilings } from "../tiling";
+import { CellState, Coord, Tile } from "../types";
 
 /**
  * Tiling Algorithm Tests

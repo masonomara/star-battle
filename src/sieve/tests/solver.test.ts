@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { isSolved, isValidLayout, solve } from "./solver";
-import { layout } from "./generator";
-import { Board, CellState } from "./types";
+import { isSolved, isValidLayout, solve } from "../solver";
+import { layout } from "../generator";
+import { Board, CellState } from "../types";
 
 describe("isValidLayout", () => {
   it("accepts regions meeting minimum size", () => {

@@ -11,9 +11,9 @@ import {
   pressuredExclusion,
   undercounting,
   overcounting,
-} from "./rules";
-import { Board, CellState } from "./types";
-import { computeAllStrips } from "./strips";
+} from "../rules";
+import { Board, CellState } from "../types";
+import { computeAllStrips } from "../strips";
 
 describe("1. Star Neighbors", () => {
   it("1.1 marks all 8 neighbors", () => {
