@@ -752,11 +752,10 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.3.2 places ONE star when 2 unknowns, needs 2 stars", () => {
-      // Region 0 has 2 unknowns and needs 2 stars.
-      // forcedPlacement places ONE star at a time so trivialStarMarks can mark neighbors.
-      // Note: (0,0) and (1,1) are diagonally adjacent, so this is actually unsolvable,
-      // but forcedPlacement doesn't check adjacency - it just places the first star.
+    it("5.3.2 returns false when 2 unknowns are diagonally adjacent", () => {
+      // Region 0 has 2 unknowns at (0,0) and (1,1) - diagonally adjacent.
+      // forcedPlacement correctly refuses to place stars since both would need
+      // to be stars but they can't be adjacent. This is an unsolvable config.
       const board: Board = {
         grid: [
           [0, 0, 1, 1],
@@ -776,10 +775,11 @@ describe("5. Forced Placement", () => {
 
       const result = forcedPlacement(board, cells);
 
-      expect(result).toBe(true);
-      // Only first star placed - (0,0) from region scan
+      // Returns false because unknowns are adjacent - can't both be stars
+      expect(result).toBe(false);
+      // No change to cells
       expect(cells).toEqual([
-        ["star", "marked", "unknown", "unknown"],
+        ["unknown", "marked", "unknown", "unknown"],
         ["marked", "unknown", "unknown", "unknown"],
         ["unknown", "unknown", "unknown", "unknown"],
         ["unknown", "unknown", "unknown", "unknown"],
