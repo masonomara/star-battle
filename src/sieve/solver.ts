@@ -159,33 +159,20 @@ export function isSolved(board: Board, cells: CellState[][]): boolean {
 }
 
 /**
- * Initialize cells grid with all unknowns
- */
-function initializeCells(size: number): CellState[][] {
-  return Array.from({ length: size }, () =>
-    Array.from({ length: size }, () => "unknown" as CellState),
-  );
-}
-
-/**
  * Attempt to solve a Star Battle puzzle using production rules.
  * Returns Solution if solved, null if unsolvable or stuck.
  */
 export function solve(board: Board, seed: number): Solution | null {
   const size = board.grid.length;
-  let cells = initializeCells(size);
+  let cells: CellState[][] = Array.from({ length: size }, () =>
+    Array.from({ length: size }, () => "unknown" as CellState),
+  );
   let cycles = 0;
   let maxLevel = 0;
 
   while (cycles < MAX_CYCLES) {
     cycles++;
 
-    // Check if we hit an invalid state
-    if (isUnsolvable(board, cells)) {
-      return null;
-    }
-
-    // Check if solved
     if (isSolved(board, cells)) {
       return { board, seed, cells, cycles, maxLevel };
     }
@@ -198,7 +185,7 @@ export function solve(board: Board, seed: number): Solution | null {
         cells = result;
         maxLevel = Math.max(maxLevel, level);
         progress = true;
-        break; // Restart from first rule
+        break;
       }
     }
 
