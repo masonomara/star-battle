@@ -518,3 +518,127 @@ export function oneByNConfinement(
 
   return changed;
 }
+
+/**
+ * Rule 8. Exclusion: Mark cells where placing a star would make a tight region unsolvable.
+ *
+ * Only applies to "tight" regions where minTileCount == starsNeeded.
+ * For each unknown cell in or adjacent to a tight region:
+ *   - Simulate placing a star there
+ *   - Mark its 8 neighbors
+ *   - Recompute tiling for the affected tight region
+ *   - If new minTileCount < (starsNeeded - 1), exclude the cell
+ */
+export function exclusion(
+  board: Board,
+  cells: CellState[][],
+  cache?: TilingCache,
+): boolean {
+  const size = board.grid.length;
+
+  // Build region info: cells, stars, and unknowns per region
+  const regionCells = new Map<number, Coord[]>();
+  const regionStars = new Map<number, number>();
+
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const regionId = board.grid[r][c];
+      if (!regionCells.has(regionId)) {
+        regionCells.set(regionId, []);
+        regionStars.set(regionId, 0);
+      }
+      regionCells.get(regionId)!.push([r, c]);
+      if (cells[r][c] === "star") {
+        regionStars.set(regionId, regionStars.get(regionId)! + 1);
+      }
+    }
+  }
+
+  // Find tight regions: minTileCount == starsNeeded
+  const tightRegions = new Map<number, { cells: Coord[]; starsNeeded: number }>();
+
+  for (const [regionId, rCells] of regionCells) {
+    const existingStars = regionStars.get(regionId)!;
+    const starsNeeded = board.stars - existingStars;
+
+    if (starsNeeded <= 0) continue; // Region already complete
+
+    // Compute tiling for this region
+    const tiling = cache?.byRegion.get(regionId) ??
+      findAllMinimalTilings(rCells, cells, size);
+
+    if (tiling.minTileCount === starsNeeded) {
+      tightRegions.set(regionId, { cells: rCells, starsNeeded });
+    }
+  }
+
+  if (tightRegions.size === 0) return false;
+
+  // Build set of cells to check: cells in tight regions + their neighbors
+  const cellsToCheck = new Set<string>();
+  const coordKey = (r: number, c: number) => `${r},${c}`;
+
+  for (const [, { cells: rCells }] of tightRegions) {
+    for (const [r, c] of rCells) {
+      // Add region cell
+      cellsToCheck.add(coordKey(r, c));
+
+      // Add all neighbors
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          const nr = r + dr;
+          const nc = c + dc;
+          if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
+            cellsToCheck.add(coordKey(nr, nc));
+          }
+        }
+      }
+    }
+  }
+
+  // Check each candidate cell
+  for (const key of cellsToCheck) {
+    const [row, col] = key.split(",").map(Number);
+
+    if (cells[row][col] !== "unknown") continue;
+
+    // Create temp cells with hypothetical star placement
+    const tempCells = cells.map((r) => [...r]);
+    tempCells[row][col] = "star";
+
+    // Mark all 8 neighbors
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        if (dr === 0 && dc === 0) continue;
+        const nr = row + dr;
+        const nc = col + dc;
+        if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
+          if (tempCells[nr][nc] === "unknown") {
+            tempCells[nr][nc] = "marked";
+          }
+        }
+      }
+    }
+
+    // Check if any tight region is now unsolvable
+    for (const [regionId, { cells: rCells, starsNeeded }] of tightRegions) {
+      // Determine remaining stars needed for this region
+      const cellInRegion = board.grid[row][col] === regionId;
+      const remainingStarsNeeded = cellInRegion ? starsNeeded - 1 : starsNeeded;
+
+      if (remainingStarsNeeded <= 0) continue; // Placement completes this region
+
+      // Recompute tiling with temp cells
+      const newTiling = findAllMinimalTilings(rCells, tempCells, size);
+
+      if (newTiling.minTileCount < remainingStarsNeeded) {
+        // Can't fit remaining stars - exclude this cell
+        cells[row][col] = "marked";
+        return true;
+      }
+    }
+  }
+
+  return false;
+}

@@ -7,6 +7,7 @@ import {
   forcedPlacement,
   twoByTwoTiling,
   oneByNConfinement,
+  exclusion,
 } from "./rules";
 import { computeAllTilings } from "./tiling";
 
@@ -24,6 +25,7 @@ const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: forcedPlacement, level: 1, name: "forcedPlacement" },
   { rule: twoByTwoTiling, level: 2, name: "twoByTwoTiling" },
   { rule: oneByNConfinement, level: 2, name: "oneByNConfinement" },
+  { rule: exclusion, level: 2, name: "exclusion" },
 ];
 
 /** Info about a stuck solve attempt */
