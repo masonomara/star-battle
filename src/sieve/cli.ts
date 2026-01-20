@@ -1,6 +1,6 @@
 import { sieve } from "./sieve";
 import { layout } from "./generator";
-import { solveWithDetails, StuckState } from "./solver";
+import { solveWithDetails, StuckState, StepInfo, isInvalid } from "./solver";
 import { CellState } from "./types";
 
 function parseArgs(): Record<string, string> {
@@ -34,6 +34,7 @@ Options:
   --seed <n>     Random seed for reproducibility
   --verbose      Show timing and solver metrics
   --debug        Show stuck state when puzzle can't be solved (use with --seed)
+  --trace        Show step-by-step solve process (use with --seed)
   --help         Show this help`);
 }
 
@@ -51,10 +52,40 @@ function main() {
   const seed = args.seed ? parseInt(args.seed, 10) : undefined;
   const verbose = args.verbose === "true";
   const debug = args.debug === "true";
+  const trace = args.trace === "true";
 
   const seedDisplay = seed !== undefined ? `, seed ${seed}` : "";
   console.log(`${size}×${size}, ${stars} stars${seedDisplay}`);
   console.log("");
+
+  // Trace mode: show step-by-step solve process
+  if (trace && seed !== undefined) {
+    const board = layout(size, stars, seed);
+
+    console.log("Region grid:");
+    printBoard(board.grid);
+    console.log("");
+
+    let prevCells: CellState[][] | null = null;
+
+    const result = solveWithDetails(board, seed, {
+      onStep: (step: StepInfo) => {
+        console.log(`--- Cycle ${step.cycle}: ${step.rule} (level ${step.level}) ---`);
+        printCellStateWithDiff(step.cells, prevCells);
+        console.log("");
+        prevCells = step.cells.map((row) => [...row]);
+      },
+    });
+
+    if (result.solved) {
+      console.log(`=== SOLVED in ${result.solution.cycles} cycles ===`);
+    } else if (isInvalid(board, result.stuck.cells)) {
+      console.log(`=== INVALID after ${result.stuck.cycles} cycles (dead row/col/region) ===`);
+    } else {
+      console.log(`=== STUCK after ${result.stuck.cycles} cycles ===`);
+    }
+    return;
+  }
 
   // Debug mode: try to solve a specific seed and show stuck state
   if (debug && seed !== undefined) {
@@ -132,6 +163,34 @@ function printCellState(cells: CellState[][]) {
 
   for (const row of cells) {
     console.log(row.map((c) => symbols[c]).join(" "));
+  }
+}
+
+function printCellStateWithDiff(cells: CellState[][], prev: CellState[][] | null) {
+  const symbols: Record<CellState, string> = {
+    unknown: ".",
+    marked: "X",
+    star: "★",
+  };
+
+  // ANSI codes for highlighting
+  const YELLOW_BG = "\x1b[43m\x1b[30m"; // Yellow background, black text
+  const RESET = "\x1b[0m";
+
+  for (let row = 0; row < cells.length; row++) {
+    const parts: string[] = [];
+    for (let col = 0; col < cells[row].length; col++) {
+      const cell = cells[row][col];
+      const symbol = symbols[cell];
+      const changed = prev !== null && prev[row][col] !== cell;
+
+      if (changed) {
+        parts.push(`${YELLOW_BG}${symbol}${RESET}`);
+      } else {
+        parts.push(symbol);
+      }
+    }
+    console.log(parts.join(" "));
   }
 }
 

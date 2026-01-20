@@ -31,6 +31,56 @@ export interface StuckState {
 const MAX_CYCLES = 1000;
 
 /**
+ * Check if the puzzle has reached an invalid state.
+ * Returns true if any row, column, or region has all cells marked
+ * without having placed enough stars.
+ */
+export function isInvalid(board: Board, cells: CellState[][]): boolean {
+  const size = board.grid.length;
+
+  // Check rows
+  for (let row = 0; row < size; row++) {
+    let stars = 0;
+    let unknown = 0;
+    for (let col = 0; col < size; col++) {
+      if (cells[row][col] === "star") stars++;
+      else if (cells[row][col] === "unknown") unknown++;
+    }
+    if (unknown === 0 && stars < board.stars) return true;
+  }
+
+  // Check columns
+  for (let col = 0; col < size; col++) {
+    let stars = 0;
+    let unknown = 0;
+    for (let row = 0; row < size; row++) {
+      if (cells[row][col] === "star") stars++;
+      else if (cells[row][col] === "unknown") unknown++;
+    }
+    if (unknown === 0 && stars < board.stars) return true;
+  }
+
+  // Check regions
+  const regionStats = new Map<number, { stars: number; unknown: number }>();
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      const regionId = board.grid[row][col];
+      if (!regionStats.has(regionId)) {
+        regionStats.set(regionId, { stars: 0, unknown: 0 });
+      }
+      const stats = regionStats.get(regionId)!;
+      if (cells[row][col] === "star") stats.stars++;
+      else if (cells[row][col] === "unknown") stats.unknown++;
+    }
+  }
+  for (const stats of regionStats.values()) {
+    if (stats.unknown === 0 && stats.stars < board.stars) return true;
+  }
+
+  return false;
+}
+
+/**
  * Check if the puzzle is completely solved.
  */
 export function isSolved(board: Board, cells: CellState[][]): boolean {
@@ -83,11 +133,27 @@ export type SolveResult =
   | { solved: true; solution: Solution }
   | { solved: false; stuck: StuckState };
 
+/** Step info passed to trace callback */
+export interface StepInfo {
+  cycle: number;
+  rule: string;
+  level: number;
+  cells: CellState[][];
+}
+
+export interface SolveOptions {
+  onStep?: (step: StepInfo) => void;
+}
+
 /**
  * Attempt to solve a Star Battle puzzle using production rules.
  * Returns detailed result including stuck state if unsolved.
  */
-export function solveWithDetails(board: Board, seed: number): SolveResult {
+export function solveWithDetails(
+  board: Board,
+  seed: number,
+  options: SolveOptions = {},
+): SolveResult {
   const size = board.grid.length;
   const cells: CellState[][] = Array.from({ length: size }, () =>
     Array.from({ length: size }, () => "unknown" as CellState),
@@ -98,6 +164,14 @@ export function solveWithDetails(board: Board, seed: number): SolveResult {
 
   while (cycles < MAX_CYCLES) {
     cycles++;
+
+    // Check for invalid state (dead row/col/region)
+    if (isInvalid(board, cells)) {
+      return {
+        solved: false,
+        stuck: { board, cells, cycles, maxLevel, lastRule },
+      };
+    }
 
     if (isSolved(board, cells)) {
       return {
@@ -113,6 +187,13 @@ export function solveWithDetails(board: Board, seed: number): SolveResult {
         maxLevel = Math.max(maxLevel, level);
         lastRule = name;
         progress = true;
+
+        // Call trace callback if provided
+        if (options.onStep) {
+          const cellsCopy = cells.map((row) => [...row]);
+          options.onStep({ cycle: cycles, rule: name, level, cells: cellsCopy });
+        }
+
         break;
       }
     }
