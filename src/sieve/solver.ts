@@ -8,7 +8,7 @@ import {
   twoByTwoTiling,
 } from "./rules";
 
-type Rule = (board: Board, cells: CellState[][]) => CellState[][] | null;
+type Rule = (board: Board, cells: CellState[][]) => boolean;
 
 const allRules: { rule: Rule; level: number }[] = [
   { rule: trivialStarMarks, level: 1 },
@@ -91,9 +91,7 @@ export function solve(board: Board, seed: number): Solution | null {
     // Try each rule in order
     let progress = false;
     for (const { rule, level } of allRules) {
-      const result = rule(board, cells);
-      if (result) {
-        cells = result;
+      if (rule(board, cells)) {
         maxLevel = Math.max(maxLevel, level);
         progress = true;
         break;
