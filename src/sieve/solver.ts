@@ -5,7 +5,6 @@ import {
   trivialColComplete,
   trivialRegionComplete,
   forcedPlacement,
-  twoByTwoTiling,
 } from "./rules";
 
 type Rule = (board: Board, cells: CellState[][]) => boolean;
@@ -16,7 +15,6 @@ const allRules: { rule: Rule; level: number }[] = [
   { rule: trivialColComplete, level: 1 },
   { rule: trivialRegionComplete, level: 1 },
   { rule: forcedPlacement, level: 1 },
-  { rule: twoByTwoTiling, level: 2 },
 ];
 
 const MAX_CYCLES = 1000;
