@@ -5,17 +5,28 @@ import {
   trivialColComplete,
   trivialRegionComplete,
   forcedPlacement,
+  twoByTwoTiling,
 } from "./rules";
 
 type Rule = (board: Board, cells: CellState[][]) => boolean;
 
-const allRules: { rule: Rule; level: number }[] = [
-  { rule: trivialStarMarks, level: 1 },
-  { rule: trivialRowComplete, level: 1 },
-  { rule: trivialColComplete, level: 1 },
-  { rule: trivialRegionComplete, level: 1 },
-  { rule: forcedPlacement, level: 1 },
+const allRules: { rule: Rule; level: number; name: string }[] = [
+  { rule: trivialStarMarks, level: 1, name: "starNeighbors" },
+  { rule: trivialRowComplete, level: 1, name: "rowComplete" },
+  { rule: trivialColComplete, level: 1, name: "colComplete" },
+  { rule: trivialRegionComplete, level: 1, name: "regionComplete" },
+  { rule: forcedPlacement, level: 1, name: "forcedPlacement" },
+  { rule: twoByTwoTiling, level: 2, name: "twoByTwoTiling" },
 ];
+
+/** Info about a stuck solve attempt */
+export interface StuckState {
+  board: Board;
+  cells: CellState[][];
+  cycles: number;
+  maxLevel: number;
+  lastRule: string | null;
+}
 
 const MAX_CYCLES = 1000;
 
@@ -67,30 +78,40 @@ export function isSolved(board: Board, cells: CellState[][]): boolean {
   return true;
 }
 
+/** Result of a solve attempt */
+export type SolveResult =
+  | { solved: true; solution: Solution }
+  | { solved: false; stuck: StuckState };
+
 /**
  * Attempt to solve a Star Battle puzzle using production rules.
- * Returns Solution if solved, null if unsolvable or stuck.
+ * Returns detailed result including stuck state if unsolved.
  */
-export function solve(board: Board, seed: number): Solution | null {
+export function solveWithDetails(board: Board, seed: number): SolveResult {
   const size = board.grid.length;
-  let cells: CellState[][] = Array.from({ length: size }, () =>
+  const cells: CellState[][] = Array.from({ length: size }, () =>
     Array.from({ length: size }, () => "unknown" as CellState),
   );
   let cycles = 0;
   let maxLevel = 0;
+  let lastRule: string | null = null;
 
   while (cycles < MAX_CYCLES) {
     cycles++;
 
     if (isSolved(board, cells)) {
-      return { board, seed, cells, cycles, maxLevel };
+      return {
+        solved: true,
+        solution: { board, seed, cells, cycles, maxLevel },
+      };
     }
 
     // Try each rule in order
     let progress = false;
-    for (const { rule, level } of allRules) {
+    for (const { rule, level, name } of allRules) {
       if (rule(board, cells)) {
         maxLevel = Math.max(maxLevel, level);
+        lastRule = name;
         progress = true;
         break;
       }
@@ -98,10 +119,25 @@ export function solve(board: Board, seed: number): Solution | null {
 
     // No rule made progress - puzzle is stuck
     if (!progress) {
-      return null;
+      return {
+        solved: false,
+        stuck: { board, cells, cycles, maxLevel, lastRule },
+      };
     }
   }
 
   // Exceeded max cycles
-  return null;
+  return {
+    solved: false,
+    stuck: { board, cells, cycles, maxLevel, lastRule },
+  };
+}
+
+/**
+ * Attempt to solve a Star Battle puzzle using production rules.
+ * Returns Solution if solved, null if unsolvable or stuck.
+ */
+export function solve(board: Board, seed: number): Solution | null {
+  const result = solveWithDetails(board, seed);
+  return result.solved ? result.solution : null;
 }

@@ -1,4 +1,7 @@
 import { sieve } from "./sieve";
+import { layout } from "./generator";
+import { solveWithDetails, StuckState } from "./solver";
+import { CellState } from "./types";
 
 function parseArgs(): Record<string, string> {
   const args: Record<string, string> = {};
@@ -30,6 +33,7 @@ Options:
   --count <n>    Number of puzzles to generate (default: 1)
   --seed <n>     Random seed for reproducibility
   --verbose      Show timing and solver metrics
+  --debug        Show stuck state when puzzle can't be solved (use with --seed)
   --help         Show this help`);
 }
 
@@ -46,10 +50,30 @@ function main() {
   const count = args.count ? parseInt(args.count, 10) : 1;
   const seed = args.seed ? parseInt(args.seed, 10) : undefined;
   const verbose = args.verbose === "true";
+  const debug = args.debug === "true";
 
   const seedDisplay = seed !== undefined ? `, seed ${seed}` : "";
   console.log(`${size}×${size}, ${stars} stars${seedDisplay}`);
   console.log("");
+
+  // Debug mode: try to solve a specific seed and show stuck state
+  if (debug && seed !== undefined) {
+    const board = layout(size, stars, seed);
+    const result = solveWithDetails(board, seed);
+
+    if (result.solved) {
+      console.log("Puzzle solved successfully!");
+      console.log(`Cycles: ${result.solution.cycles}, Max Level: ${result.solution.maxLevel}`);
+      console.log("");
+      printBoard(board.grid);
+      console.log("");
+      printCellState(result.solution.cells);
+    } else {
+      console.log("Puzzle STUCK");
+      printStuckState(result.stuck);
+    }
+    return;
+  }
 
   const startTime = Date.now();
 
@@ -97,6 +121,50 @@ function printBoard(grid: number[][]) {
     const line = grid[row].map((n) => n.toString().padStart(width)).join(" ");
     console.log(line);
   }
+}
+
+function printCellState(cells: CellState[][]) {
+  const symbols: Record<CellState, string> = {
+    unknown: ".",
+    marked: "X",
+    star: "★",
+  };
+
+  for (const row of cells) {
+    console.log(row.map((c) => symbols[c]).join(" "));
+  }
+}
+
+function printStuckState(stuck: StuckState) {
+  const cells = stuck.cells;
+  const size = cells.length;
+
+  // Count stats
+  let stars = 0;
+  let marks = 0;
+  let unknown = 0;
+  for (const row of cells) {
+    for (const cell of row) {
+      if (cell === "star") stars++;
+      else if (cell === "marked") marks++;
+      else unknown++;
+    }
+  }
+
+  const totalStars = stuck.board.stars * size;
+
+  console.log(`Cycles: ${stuck.cycles}`);
+  console.log(`Max Level: ${stuck.maxLevel}`);
+  console.log(`Last Rule: ${stuck.lastRule ?? "none"}`);
+  console.log(`Stars: ${stars}/${totalStars}  Marks: ${marks}  Unknown: ${unknown}`);
+  console.log("");
+
+  console.log("Region grid:");
+  printBoard(stuck.board.grid);
+  console.log("");
+
+  console.log("Cell state (★=star, X=marked, .=unknown):");
+  printCellState(cells);
 }
 
 main();

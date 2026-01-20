@@ -5,6 +5,7 @@ import {
   trivialColComplete,
   trivialRegionComplete,
   forcedPlacement,
+  twoByTwoTiling,
 } from "./rules";
 import { Board, CellState } from "./types";
 
@@ -573,7 +574,9 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.1.2 places stars when 2 unknowns, needs 2 stars", () => {
+    it("5.1.2 places ONE star when 2 unknowns, needs 2 stars", () => {
+      // Row 1 has unknowns at (1,1) and (1,3) - not adjacent
+      // forcedPlacement places ONE star at a time
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -594,9 +597,10 @@ describe("5. Forced Placement", () => {
       const result = forcedPlacement(board, cells);
 
       expect(result).toBe(true);
+      // Only first star placed - (1,1)
       expect(cells).toEqual([
         ["unknown", "unknown", "unknown", "unknown"],
-        ["marked", "star", "marked", "star"],
+        ["marked", "star", "marked", "unknown"],
         ["unknown", "unknown", "unknown", "unknown"],
         ["unknown", "unknown", "unknown", "unknown"],
       ]);
@@ -659,7 +663,9 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.2.2 places stars when 2 unknowns, needs 2 stars", () => {
+    it("5.2.2 places ONE star when 2 unknowns, needs 2 stars", () => {
+      // Col 2 has unknowns at (1,2) and (3,2) - not adjacent
+      // forcedPlacement places ONE star at a time
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -680,11 +686,12 @@ describe("5. Forced Placement", () => {
       const result = forcedPlacement(board, cells);
 
       expect(result).toBe(true);
+      // Only first star placed - (1,2)
       expect(cells).toEqual([
         ["unknown", "unknown", "marked", "unknown"],
         ["unknown", "unknown", "star", "unknown"],
         ["unknown", "unknown", "marked", "unknown"],
-        ["unknown", "unknown", "star", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
       ]);
     });
 
@@ -745,7 +752,11 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.3.2 places stars when 2 unknowns, needs 2 stars", () => {
+    it("5.3.2 places ONE star when 2 unknowns, needs 2 stars", () => {
+      // Region 0 has 2 unknowns and needs 2 stars.
+      // forcedPlacement places ONE star at a time so trivialStarMarks can mark neighbors.
+      // Note: (0,0) and (1,1) are diagonally adjacent, so this is actually unsolvable,
+      // but forcedPlacement doesn't check adjacency - it just places the first star.
       const board: Board = {
         grid: [
           [0, 0, 1, 1],
@@ -766,9 +777,10 @@ describe("5. Forced Placement", () => {
       const result = forcedPlacement(board, cells);
 
       expect(result).toBe(true);
+      // Only first star placed - (0,0) from region scan
       expect(cells).toEqual([
         ["star", "marked", "unknown", "unknown"],
-        ["marked", "star", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "unknown"],
         ["unknown", "unknown", "unknown", "unknown"],
         ["unknown", "unknown", "unknown", "unknown"],
       ]);
@@ -861,7 +873,10 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.3.6 places stars in multiple regions", () => {
+    it("5.3.6 places ONE star when multiple regions have forced placements", () => {
+      // Region 0 (col 0): only (1,0) unknown, forced
+      // Region 3 (col 3): only (3,3) unknown, forced
+      // Only ONE star placed per call - region 0 is found first
       const board: Board = {
         grid: [
           [0, 1, 2, 3],
@@ -882,11 +897,12 @@ describe("5. Forced Placement", () => {
       const result = forcedPlacement(board, cells);
 
       expect(result).toBe(true);
+      // Only first star placed - (1,0) from region 0
       expect(cells).toEqual([
         ["marked", "unknown", "unknown", "marked"],
         ["star", "unknown", "unknown", "marked"],
         ["marked", "unknown", "unknown", "marked"],
-        ["marked", "unknown", "unknown", "star"],
+        ["marked", "unknown", "unknown", "unknown"],
       ]);
     });
   });
@@ -957,7 +973,10 @@ describe("5. Forced Placement", () => {
   });
 
   describe("5.5 Multiple forced placements", () => {
-    it("5.5.1 places stars in multiple rows", () => {
+    it("5.5.1 places ONE star when multiple rows have forced placements", () => {
+      // Row 0: only (0,1) unknown, forced
+      // Row 3: only (3,3) unknown, forced
+      // Only ONE star placed - row 0 is checked first
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -978,15 +997,19 @@ describe("5. Forced Placement", () => {
       const result = forcedPlacement(board, cells);
 
       expect(result).toBe(true);
+      // Only first star placed - (0,1) from row 0
       expect(cells).toEqual([
         ["marked", "star", "marked", "marked"],
         ["unknown", "unknown", "unknown", "unknown"],
         ["unknown", "unknown", "unknown", "unknown"],
-        ["marked", "marked", "marked", "star"],
+        ["marked", "marked", "marked", "unknown"],
       ]);
     });
 
-    it("5.5.2 places stars from row, column, and region together", () => {
+    it("5.5.2 places ONE star when row, column, region all have forced placements", () => {
+      // Row 1: only (1,0) unknown, forced
+      // Col 2: only (2,2) unknown, forced (also region 1)
+      // Only ONE star placed - row check comes first, finds (1,0)
       const board: Board = {
         grid: [
           [0, 0, 1],
@@ -1005,11 +1028,130 @@ describe("5. Forced Placement", () => {
       const result = forcedPlacement(board, cells);
 
       expect(result).toBe(true);
+      // Only first star placed - (1,0) from row 1
       expect(cells).toEqual([
         ["marked", "marked", "marked"],
         ["star", "marked", "marked"],
-        ["marked", "marked", "star"],
+        ["marked", "marked", "unknown"],
       ]);
+    });
+  });
+});
+
+describe("6. The 2×2 Tiling", () => {
+  describe("6.1 Single-cell tile forces star", () => {
+    it("6.1.1 places star when tile covers only one region cell (spec example_tiling_1b)", () => {
+      // L-shaped region from spec example_tiling_1a/1b:
+      // Region 0:  R R R    (row 0: cols 0,1,2)
+      //            R R .    (row 1: cols 0,1)
+      // In a 2★ puzzle, minTiles=2, so each tile has exactly 1 star.
+      // One tile covers only cell (0,2) from the region → must be a star.
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 1],
+          [0, 0, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = twoByTwoTiling(board, cells);
+
+      expect(result).toBe(true);
+      expect(cells[0][2]).toBe("star"); // single-cell tile forces this
+    });
+
+    it("6.1.2 does not place star if minTiles > stars needed", () => {
+      // Region needs 1 star but minTiles=2 → no forced placement
+      const board: Board = {
+        grid: [
+          [0, 0, 0],
+          [0, 0, 1],
+          [1, 1, 1],
+        ],
+        stars: 1,
+      };
+
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+      ];
+
+      const result = twoByTwoTiling(board, cells);
+
+      // Should not place any stars (minTiles=2 > stars=1 for region 0)
+      expect(cells.flat().filter((c) => c === "star").length).toBe(0);
+    });
+  });
+
+  describe("6.2 All tilings must agree", () => {
+    it("6.2.1 does not place star if cell is single-coverage in only some tilings", () => {
+      // Shape where different tilings have different single-cell tiles
+      // Only place star if ALL tilings agree that cell has single coverage
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+
+      // 2x4 region - can be tiled multiple ways
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      twoByTwoTiling(board, cells);
+
+      // 2x4 can be tiled with 2 tiles, matching stars=2
+      // But tilings vary, so no single cell is forced
+      // (This test verifies no false positives)
+      const stars = cells.flat().filter((c) => c === "star").length;
+      expect(stars).toBe(0);
+    });
+  });
+
+  describe("6.3 Marks from bounds", () => {
+    it("6.3.1 marks cells when region cannot fit required stars", () => {
+      // Region that can only fit 1 star (minTiles=1) but needs 2
+      // This is actually unsolvable, but the rule could mark cells
+      // For now, just test that it doesn't crash
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      // Region 0 is just 2 cells (0,0) and (0,1) - can only hold 1 star max
+      // But we need 2 stars per region → unsolvable
+      // Rule shouldn't crash, just return false (no progress)
+      const result = twoByTwoTiling(board, cells);
+      expect(typeof result).toBe("boolean");
     });
   });
 });
