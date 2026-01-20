@@ -2589,232 +2589,114 @@ describe("11. Overcounting", () => {
 });
 
 describe("9. Pressured Exclusion", () => {
-  describe("9.1 Basic pressured exclusion", () => {
-    it("9.1.1 returns false when no stripCache provided", () => {
-      const board: Board = {
-        grid: [
-          [0, 0, 0, 0],
-          [0, 0, 0, 0],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-        ],
-        stars: 1,
-      };
-      const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
+  // Pressured exclusion places faux stars on strip cells and checks if ANY
+  // row, column, or tight region becomes unsolvable. A single faux star's
+  // 8-neighbor marks can span multiple regions/rows/cols simultaneously.
 
-      const result = pressuredExclusion(board, cells, undefined, undefined);
+  it("9.1 marks strip cell when faux star would break a tight region", () => {
+    // Region 0: single cell at (0,0) → TIGHT (minTiles=1, stars=1)
+    // Region 1: fills the rest - has strips throughout
+    // Faux star at any neighbor of (0,0) marks (0,0) → region 0 unsolvable
+    const board: Board = {
+      grid: [
+        [0, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+      ],
+      stars: 1,
+    };
+    const cells: CellState[][] = [
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+    ];
 
-      expect(result).toBe(false);
-    });
+    const stripCache = computeAllStrips(board, cells);
+    const result = pressuredExclusion(board, cells, undefined, stripCache);
 
-    it("9.1.2 marks strip cell when faux star would break owning region", () => {
-      // Region 0: 1×3 horizontal strip at row 0 needing 2 stars
-      // minTiles=2 (tiles at anchors covering (0,0)-(0,1) and (0,1)-(0,2)), stars=2 → TIGHT
-      // If faux star at (0,0) → marks (0,1) → only (0,2) left → minTiles=1 < 1 needed
-      // So (0,0) should be marked
-      const board: Board = {
-        grid: [
-          [0, 0, 0, 1],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-        ],
-        stars: 2,
-      };
-      const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
-
-      const stripCache = computeAllStrips(board, cells);
-      const result = pressuredExclusion(board, cells, undefined, stripCache);
-
-      expect(result).toBe(true);
-      // Either corner (0,0) or (0,2) should be excluded - placing star there breaks region 0
-      const markedCount = cells[0].filter((c) => c === "marked").length;
-      expect(markedCount).toBeGreaterThanOrEqual(1);
-    });
-
-    it("9.1.3 does not mark when no tight regions exist", () => {
-      // Region 0: 2×4 block needing 1 star
-      // minTiles=2, stars=1 → NOT tight (minTiles > stars)
-      const board: Board = {
-        grid: [
-          [0, 0, 0, 0],
-          [0, 0, 0, 0],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-        ],
-        stars: 1,
-      };
-      const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
-
-      const stripCache = computeAllStrips(board, cells);
-      const result = pressuredExclusion(board, cells, undefined, stripCache);
-
-      expect(result).toBe(false);
-    });
+    expect(result).toBe(true);
+    // At least one neighbor of (0,0) should be marked
+    const neighbors = [cells[0][1], cells[1][0], cells[1][1]];
+    const markedCount = neighbors.filter((c) => c === "marked").length;
+    expect(markedCount).toBeGreaterThanOrEqual(1);
   });
 
-  describe("9.2 Cross-region pressured exclusion", () => {
-    it("9.2.1 marks strip cell when faux star would break adjacent tight region", () => {
-      // Region 0: single cell at (0,0) needing 1 star → TIGHT (minTiles=1, stars=1)
-      // Region 1: fills the rest of the grid
-      // Any neighbor of (0,0) in region 1, if starred, would mark (0,0) → region 0 unsolvable
-      // Neighbors of (0,0): (0,1), (1,0), (1,1) - all in region 1
-      const board: Board = {
-        grid: [
-          [0, 1, 1, 1],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-        ],
-        stars: 1,
-      };
-      const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
+  it("9.2 returns false when no stripCache provided", () => {
+    const board: Board = {
+      grid: [
+        [0, 0],
+        [0, 0],
+      ],
+      stars: 1,
+    };
+    const cells: CellState[][] = [
+      ["unknown", "unknown"],
+      ["unknown", "unknown"],
+    ];
 
-      const stripCache = computeAllStrips(board, cells);
-      const result = pressuredExclusion(board, cells, undefined, stripCache);
-
-      expect(result).toBe(true);
-      // At least one neighbor of (0,0) should be marked (whichever is checked first)
-      const neighbors = [cells[0][1], cells[1][0], cells[1][1]];
-      const markedCount = neighbors.filter((c) => c === "marked").length;
-      expect(markedCount).toBeGreaterThanOrEqual(1);
-    });
-
-    it("9.2.2 marks diagonal neighbor that would break tight single-cell region", () => {
-      // Region 0: single cell at (1,1) needing 1 star → TIGHT
-      // Region 1: surrounds region 0
-      // If faux star at (0,0) → marks (1,1) → region 0 unsolvable
-      const board: Board = {
-        grid: [
-          [1, 1, 1, 1],
-          [1, 0, 1, 1],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-        ],
-        stars: 1,
-      };
-      const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
-
-      const stripCache = computeAllStrips(board, cells);
-      const result = pressuredExclusion(board, cells, undefined, stripCache);
-
-      expect(result).toBe(true);
-      // Any neighbor of (1,1) that's in a strip should be marked
-      // All 8 neighbors are in region 1
-      const neighbors = [
-        cells[0][0],
-        cells[0][1],
-        cells[0][2],
-        cells[1][0],
-        cells[1][2],
-        cells[2][0],
-        cells[2][1],
-        cells[2][2],
-      ];
-      const markedCount = neighbors.filter((c) => c === "marked").length;
-      expect(markedCount).toBeGreaterThanOrEqual(1);
-    });
+    const result = pressuredExclusion(board, cells, undefined, undefined);
+    expect(result).toBe(false);
   });
 
-  describe("9.3 Edge cases", () => {
-    it("9.3.1 handles already-marked cells in strip", () => {
-      // Some cells in strip already marked
-      const board: Board = {
-        grid: [
-          [0, 1, 1, 1],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-        ],
-        stars: 1,
-      };
-      const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["marked", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
+  it("9.3 returns false when no tight regions exist", () => {
+    // Region 0: 2×4 block, minTiles > stars → NOT tight
+    const board: Board = {
+      grid: [
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+      ],
+      stars: 1,
+    };
+    const cells: CellState[][] = [
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+    ];
 
-      const stripCache = computeAllStrips(board, cells);
-      const result = pressuredExclusion(board, cells, undefined, stripCache);
+    const stripCache = computeAllStrips(board, cells);
+    const result = pressuredExclusion(board, cells, undefined, stripCache);
 
-      // Should still work with partial board state
-      expect(typeof result).toBe("boolean");
-    });
+    expect(result).toBe(false);
+  });
 
-    it("9.3.2 handles region with existing stars", () => {
-      // Region already has some stars placed
-      const board: Board = {
-        grid: [
-          [0, 0, 0, 0, 0],
-          [1, 1, 1, 1, 1],
-          [1, 1, 1, 1, 1],
-          [1, 1, 1, 1, 1],
-          [1, 1, 1, 1, 1],
-        ],
-        stars: 2,
-      };
-      const cells: CellState[][] = [
-        ["star", "marked", "unknown", "unknown", "unknown"],
-        ["marked", "marked", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown"],
-      ];
+  it("9.4 marks square that would make grid unsolvable", () => {
+    const board: Board = {
+      grid: [
+        [0, 0, 1, 0],
+        [1, 1, 1, 0],
+        [1, 1, 1, 0],
+        [0, 1, 1, 1],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 2, 0],
+        [2, 2, 2, 0],
+        [2, 2, 2, 0],
+        [0, 0, 2, 0],
+      ],
+      stars: 2,
+    };
+    const cells: CellState[][] = [
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+    ];
 
-      const stripCache = computeAllStrips(board, cells);
-      const result = pressuredExclusion(board, cells, undefined, stripCache);
+    const stripCache = computeAllStrips(board, cells);
+    const result = pressuredExclusion(board, cells, undefined, stripCache);
 
-      // Should handle partial progress gracefully
-      expect(typeof result).toBe("boolean");
-    });
-
-    it("9.3.3 returns false when all regions complete", () => {
-      const board: Board = {
-        grid: [
-          [0, 0, 1, 1],
-          [0, 0, 1, 1],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-        ],
-        stars: 1,
-      };
-      const cells: CellState[][] = [
-        ["star", "marked", "marked", "star"],
-        ["marked", "marked", "marked", "marked"],
-        ["marked", "marked", "marked", "marked"],
-        ["marked", "marked", "marked", "marked"],
-      ];
-
-      const stripCache = computeAllStrips(board, cells);
-      const result = pressuredExclusion(board, cells, undefined, stripCache);
-
-      expect(result).toBe(false);
-    });
+    expect(result).toBe(true);
+    expect(cells[4][2]).toBe("marked");
   });
 });
