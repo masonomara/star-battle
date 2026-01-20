@@ -8,24 +8,15 @@ import {
   twoByTwoTiling,
 } from "./rules";
 
-// Rule type: takes board + cells, returns new cells or null
 type Rule = (board: Board, cells: CellState[][]) => CellState[][] | null;
 
-// Rules organized by level (difficulty tier)
-const level1Rules: Rule[] = [
-  trivialStarMarks,
-  trivialRowComplete,
-  trivialColComplete,
-  trivialRegionComplete,
-  forcedPlacement,
-];
-
-const level2Rules: Rule[] = [twoByTwoTiling];
-
-// All rules with their levels for tracking
 const allRules: { rule: Rule; level: number }[] = [
-  ...level1Rules.map((rule) => ({ rule, level: 1 })),
-  ...level2Rules.map((rule) => ({ rule, level: 2 })),
+  { rule: trivialStarMarks, level: 1 },
+  { rule: trivialRowComplete, level: 1 },
+  { rule: trivialColComplete, level: 1 },
+  { rule: trivialRegionComplete, level: 1 },
+  { rule: forcedPlacement, level: 1 },
+  { rule: twoByTwoTiling, level: 2 },
 ];
 
 const MAX_CYCLES = 1000;
