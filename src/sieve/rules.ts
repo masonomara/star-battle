@@ -315,9 +315,7 @@ export function twoByTwoTiling(
     if (starsNeeded <= 0) continue; // Region already has enough stars
 
     // Get unknown cells in this region
-    const unknowns = cellList.filter(
-      ([r, c]) => cells[r][c] === "unknown",
-    );
+    const unknowns = cellList.filter(([r, c]) => cells[r][c] === "unknown");
 
     if (unknowns.length === 0) continue;
 
@@ -348,7 +346,11 @@ export function twoByTwoTiling(
 /**
  * Get cells covered by a 2×2 tile with top-left at (row, col)
  */
-function getTileCells(row: number, col: number, size: number): [number, number][] {
+function getTileCells(
+  row: number,
+  col: number,
+  size: number,
+): [number, number][] {
   const cells: [number, number][] = [];
   for (let dr = 0; dr < 2; dr++) {
     for (let dc = 0; dc < 2; dc++) {

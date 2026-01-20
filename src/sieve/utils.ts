@@ -14,8 +14,6 @@ function regionLabel(id: number): string {
 export function printBoard(board: Board): string {
   const maxWidth = regionLabel(board.grid.length - 1).length;
   return board.grid
-    .map((row) =>
-      row.map((id) => regionLabel(id).padStart(maxWidth)).join(" "),
-    )
+    .map((row) => row.map((id) => regionLabel(id).padStart(maxWidth)).join(" "))
     .join("\n");
 }
