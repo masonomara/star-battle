@@ -50,7 +50,7 @@ const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: trivialRowComplete, level: 1, name: "rowComplete" },
   { rule: trivialColComplete, level: 1, name: "colComplete" },
   { rule: trivialRegionComplete, level: 1, name: "regionComplete" },
-    { rule: forcedPlacement, level: 1, name: "forcedPlacement" },
+  { rule: forcedPlacement, level: 1, name: "forcedPlacement" },
   { rule: twoByTwoTiling, level: 2, name: "twoByTwoTiling" },
   { rule: oneByNConfinement, level: 2, name: "oneByNConfinement" },
   { rule: exclusion, level: 2, name: "exclusion" },
@@ -58,74 +58,7 @@ const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: undercounting, level: 2, name: "undercounting" },
 ];
 
-/** Reason why a solve attempt failed */
-export type StuckReason =
-  | "invalid_layout"
-  | "invalid_state"
-  | "no_progress"
-  | "max_cycles";
-
-/** Info about a stuck solve attempt */
-export interface StuckState {
-  board: Board;
-  cells: CellState[][];
-  cycles: number;
-  maxLevel: number;
-  lastRule: string | null;
-  reason: StuckReason;
-}
-
 const MAX_CYCLES = 1000;
-
-/**
- * Check if the puzzle has reached an invalid state.
- * Returns true if any row, column, or region has all cells marked
- * without having placed enough stars.
- */
-export function isInvalid(board: Board, cells: CellState[][]): boolean {
-  const size = board.grid.length;
-
-  // Check rows
-  for (let row = 0; row < size; row++) {
-    let stars = 0;
-    let unknown = 0;
-    for (let col = 0; col < size; col++) {
-      if (cells[row][col] === "star") stars++;
-      else if (cells[row][col] === "unknown") unknown++;
-    }
-    if (unknown === 0 && stars < board.stars) return true;
-  }
-
-  // Check columns
-  for (let col = 0; col < size; col++) {
-    let stars = 0;
-    let unknown = 0;
-    for (let row = 0; row < size; row++) {
-      if (cells[row][col] === "star") stars++;
-      else if (cells[row][col] === "unknown") unknown++;
-    }
-    if (unknown === 0 && stars < board.stars) return true;
-  }
-
-  // Check regions
-  const regionStats = new Map<number, { stars: number; unknown: number }>();
-  for (let row = 0; row < size; row++) {
-    for (let col = 0; col < size; col++) {
-      const regionId = board.grid[row][col];
-      if (!regionStats.has(regionId)) {
-        regionStats.set(regionId, { stars: 0, unknown: 0 });
-      }
-      const stats = regionStats.get(regionId)!;
-      if (cells[row][col] === "star") stats.stars++;
-      else if (cells[row][col] === "unknown") stats.unknown++;
-    }
-  }
-  for (const stats of regionStats.values()) {
-    if (stats.unknown === 0 && stats.stars < board.stars) return true;
-  }
-
-  return false;
-}
 
 /**
  * Check if the puzzle is completely solved.
@@ -175,11 +108,6 @@ export function isSolved(board: Board, cells: CellState[][]): boolean {
   return true;
 }
 
-/** Result of a solve attempt */
-export type SolveResult =
-  | { solved: true; solution: Solution }
-  | { solved: false; stuck: StuckState };
-
 /** Step info passed to trace callback */
 export interface StepInfo {
   cycle: number;
@@ -194,13 +122,13 @@ export interface SolveOptions {
 
 /**
  * Attempt to solve a Star Battle puzzle using production rules.
- * Returns detailed result including stuck state if unsolved.
+ * Accepts optional onStep callback for tracing.
  */
-export function solveWithDetails(
+export function solve(
   board: Board,
   seed: number,
   options: SolveOptions = {},
-): SolveResult {
+): Solution | null {
   const size = board.grid.length;
   const cells: CellState[][] = Array.from({ length: size }, () =>
     Array.from({ length: size }, () => "unknown" as CellState),
@@ -208,46 +136,17 @@ export function solveWithDetails(
 
   // Early rejection for invalid layouts
   if (!isValidLayout(board)) {
-    return {
-      solved: false,
-      stuck: {
-        board,
-        cells,
-        cycles: 0,
-        maxLevel: 0,
-        lastRule: null,
-        reason: "invalid_layout",
-      },
-    };
+    return null;
   }
 
   let cycles = 0;
   let maxLevel = 0;
-  let lastRule: string | null = null;
 
   while (cycles < MAX_CYCLES) {
     cycles++;
 
-    // Check for invalid state (dead row/col/region)
-    if (isInvalid(board, cells)) {
-      return {
-        solved: false,
-        stuck: {
-          board,
-          cells,
-          cycles,
-          maxLevel,
-          lastRule,
-          reason: "invalid_state",
-        },
-      };
-    }
-
     if (isSolved(board, cells)) {
-      return {
-        solved: true,
-        solution: { board, seed, cells, cycles, maxLevel },
-      };
+      return { board, seed, cells, cycles, maxLevel };
     }
 
     // Try each rule in order
@@ -264,7 +163,6 @@ export function solveWithDetails(
 
       if (rule(board, cells, tilingCache, stripCache)) {
         maxLevel = Math.max(maxLevel, level);
-        lastRule = name;
         progress = true;
 
         // Call trace callback if provided
@@ -282,34 +180,12 @@ export function solveWithDetails(
       }
     }
 
-    // No rule made progress - puzzle is stuck
+    // No rule made progress - stuck
     if (!progress) {
-      return {
-        solved: false,
-        stuck: {
-          board,
-          cells,
-          cycles,
-          maxLevel,
-          lastRule,
-          reason: "no_progress",
-        },
-      };
+      return null;
     }
   }
 
   // Exceeded max cycles
-  return {
-    solved: false,
-    stuck: { board, cells, cycles, maxLevel, lastRule, reason: "max_cycles" },
-  };
-}
-
-/**
- * Attempt to solve a Star Battle puzzle using production rules.
- * Returns Solution if solved, null if unsolvable or stuck.
- */
-export function solve(board: Board, seed: number): Solution | null {
-  const result = solveWithDetails(board, seed);
-  return result.solved ? result.solution : null;
+  return null;
 }

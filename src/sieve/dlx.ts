@@ -19,8 +19,6 @@ interface DLXNode {
 /** Column header extends node with metadata */
 interface ColumnHeader extends DLXNode {
   size: number;
-  name: string;
-  isPrimary: boolean;
 }
 
 /** Root header for the entire matrix */
@@ -41,7 +39,7 @@ function buildMatrix(
   numPrimaryColumns: number,
   numSecondaryColumns: number,
   rows: number[][],
-): { root: RootHeader; columns: ColumnHeader[] } {
+): RootHeader {
   const totalColumns = numPrimaryColumns + numSecondaryColumns;
 
   // Create root
@@ -58,8 +56,6 @@ function buildMatrix(
       column: null!,
       rowIndex: -1,
       size: 0,
-      name: `C${i}`,
-      isPrimary: i < numPrimaryColumns,
     };
     col.up = col;
     col.down = col;
@@ -125,7 +121,7 @@ function buildMatrix(
     }
   }
 
-  return { root, columns };
+  return root;
 }
 
 /**
@@ -246,7 +242,7 @@ export function dlxSolve(
     return [[]]; // No columns to cover = trivial solution
   }
 
-  const { root } = buildMatrix(numPrimaryColumns, numSecondaryColumns, rows);
+  const root = buildMatrix(numPrimaryColumns, numSecondaryColumns, rows);
   const solutions: number[][] = [];
 
   search(root, [], solutions);

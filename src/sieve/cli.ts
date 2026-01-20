@@ -1,6 +1,6 @@
 import { sieve } from "./sieve";
 import { layout } from "./generator";
-import { solveWithDetails, StuckState, StepInfo } from "./solver";
+import { solve, StepInfo } from "./solver";
 import { CellState } from "./types";
 
 function parseArgs(): Record<string, string> {
@@ -32,8 +32,6 @@ Options:
   --stars <n>    Stars per row/column/region (default: 2)
   --count <n>    Number of puzzles to generate (default: 1)
   --seed <n>     Random seed for reproducibility
-  --verbose      Show timing and solver metrics
-  --debug        Show stuck state when puzzle can't be solved (use with --seed)
   --trace        Show step-by-step solve process (use with --seed)
   --help         Show this help`);
 }
@@ -50,8 +48,6 @@ function main() {
   const stars = args.stars ? parseInt(args.stars, 10) : 2;
   const count = args.count ? parseInt(args.count, 10) : 1;
   const seed = args.seed ? parseInt(args.seed, 10) : undefined;
-  const verbose = args.verbose === "true";
-  const debug = args.debug === "true";
   const trace = args.trace === "true";
 
   const seedDisplay = seed !== undefined ? `, seed ${seed}` : "";
@@ -68,45 +64,18 @@ function main() {
 
     let prevCells: CellState[][] | null = null;
 
-    const result = solveWithDetails(board, seed, {
+    const solution = solve(board, seed, {
       onStep: (step: StepInfo) => {
-        console.log(`--- Cycle ${step.cycle}: ${step.rule} (level ${step.level}) ---`);
+        console.log(
+          `--- Cycle ${step.cycle}: ${step.rule} (level ${step.level}) ---`,
+        );
         printCellStateWithDiff(step.cells, prevCells);
         console.log("");
         prevCells = step.cells.map((row) => [...row]);
       },
     });
 
-    if (result.solved) {
-      console.log(`=== SOLVED in ${result.solution.cycles} cycles ===`);
-    } else {
-      const messages: Record<string, string> = {
-        invalid_layout: "INVALID LAYOUT (region too small)",
-        invalid_state: "INVALID STATE (dead row/col/region)",
-        no_progress: "STUCK (no rules apply)",
-        max_cycles: "STUCK (max cycles exceeded)",
-      };
-      console.log(`=== ${messages[result.stuck.reason]} after ${result.stuck.cycles} cycles ===`);
-    }
-    return;
-  }
-
-  // Debug mode: try to solve a specific seed and show stuck state
-  if (debug && seed !== undefined) {
-    const board = layout(size, stars, seed);
-    const result = solveWithDetails(board, seed);
-
-    if (result.solved) {
-      console.log("Puzzle solved successfully!");
-      console.log(`Cycles: ${result.solution.cycles}, Max Level: ${result.solution.maxLevel}`);
-      console.log("");
-      printBoard(board.grid);
-      console.log("");
-      printCellState(result.solution.cells);
-    } else {
-      console.log("Puzzle STUCK");
-      printStuckState(result.stuck);
-    }
+    console.log(solution ? `=== SOLVED ===` : `=== STUCK ===`);
     return;
   }
 
@@ -124,12 +93,7 @@ function main() {
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
 
-  if (verbose) {
-    console.log(` | ${elapsed}s`);
-  } else {
-    console.log("");
-  }
-  console.log("");
+  console.log(` | ${elapsed}s\n`);
 
   if (puzzles.length === 0) {
     console.log("No solvable puzzles found (max attempts reached)");
@@ -137,11 +101,9 @@ function main() {
   } else {
     for (const puzzle of puzzles) {
       console.log(`Seed: ${puzzle.seed}`);
-      if (verbose) {
-        console.log(`Difficulty: ${puzzle.difficulty} (cycles: ${puzzle.cycles}, maxLevel: ${puzzle.maxLevel})`);
-      } else {
-        console.log(`Difficulty: ${puzzle.difficulty}`);
-      }
+      console.log(
+        `Difficulty: ${puzzle.difficulty} (cycles: ${puzzle.cycles}, maxLevel: ${puzzle.maxLevel})`,
+      );
       printBoard(puzzle.board.grid);
       console.log("");
     }
@@ -158,19 +120,10 @@ function printBoard(grid: number[][]) {
   }
 }
 
-function printCellState(cells: CellState[][]) {
-  const symbols: Record<CellState, string> = {
-    unknown: ".",
-    marked: "X",
-    star: "★",
-  };
-
-  for (const row of cells) {
-    console.log(row.map((c) => symbols[c]).join(" "));
-  }
-}
-
-function printCellStateWithDiff(cells: CellState[][], prev: CellState[][] | null) {
+function printCellStateWithDiff(
+  cells: CellState[][],
+  prev: CellState[][] | null,
+) {
   const symbols: Record<CellState, string> = {
     unknown: ".",
     marked: "X",
@@ -196,38 +149,6 @@ function printCellStateWithDiff(cells: CellState[][], prev: CellState[][] | null
     }
     console.log(parts.join(" "));
   }
-}
-
-function printStuckState(stuck: StuckState) {
-  const cells = stuck.cells;
-  const size = cells.length;
-
-  // Count stats
-  let stars = 0;
-  let marks = 0;
-  let unknown = 0;
-  for (const row of cells) {
-    for (const cell of row) {
-      if (cell === "star") stars++;
-      else if (cell === "marked") marks++;
-      else unknown++;
-    }
-  }
-
-  const totalStars = stuck.board.stars * size;
-
-  console.log(`Cycles: ${stuck.cycles}`);
-  console.log(`Max Level: ${stuck.maxLevel}`);
-  console.log(`Last Rule: ${stuck.lastRule ?? "none"}`);
-  console.log(`Stars: ${stars}/${totalStars}  Marks: ${marks}  Unknown: ${unknown}`);
-  console.log("");
-
-  console.log("Region grid:");
-  printBoard(stuck.board.grid);
-  console.log("");
-
-  console.log("Cell state (★=star, X=marked, .=unknown):");
-  printCellState(cells);
 }
 
 main();
