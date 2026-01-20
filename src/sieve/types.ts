@@ -7,7 +7,15 @@ export type Board = {
   stars: number; // stars per row/col/region
 };
 
-// Validated puzzle - output of solver
+// Result from solve attempt
+export type SolveResult = {
+  solved: boolean;
+  cells: CellState[][]; // final state
+  cycles: number; // deduction rounds
+  maxLevel: number; // highest rule level used (1-5)
+};
+
+// Validated puzzle - output of generator pipeline
 export type Puzzle = {
   board: Board;
   seed: number;

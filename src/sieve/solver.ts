@@ -1,4 +1,34 @@
-import { Board, CellState, Puzzle } from "./types";
+import { Board, CellState, SolveResult } from "./types";
+import {
+  trivialStarMarks,
+  trivialRowComplete,
+  trivialColComplete,
+  trivialRegionComplete,
+  forcedPlacement,
+  twoByTwoTiling,
+} from "./rules";
+
+// Rule type: takes board + cells, returns new cells or null
+type Rule = (board: Board, cells: CellState[][]) => CellState[][] | null;
+
+// Rules organized by level (difficulty tier)
+const level1Rules: Rule[] = [
+  trivialStarMarks,
+  trivialRowComplete,
+  trivialColComplete,
+  trivialRegionComplete,
+  forcedPlacement,
+];
+
+const level2Rules: Rule[] = [twoByTwoTiling];
+
+// All rules with their levels for tracking
+const allRules: { rule: Rule; level: number }[] = [
+  ...level1Rules.map((rule) => ({ rule, level: 1 })),
+  ...level2Rules.map((rule) => ({ rule, level: 2 })),
+];
+
+const MAX_CYCLES = 1000;
 
 /**
  * Check if the puzzle is in an unsolvable state.
@@ -128,7 +158,56 @@ export function isSolved(board: Board, cells: CellState[][]): boolean {
   return true;
 }
 
-export function solve(board: Board, seed: number): Puzzle | null {
-  // TODO: implement solver
-  return null;
+/**
+ * Initialize cells grid with all unknowns
+ */
+function initializeCells(size: number): CellState[][] {
+  return Array.from({ length: size }, () =>
+    Array.from({ length: size }, () => "unknown" as CellState),
+  );
+}
+
+/**
+ * Attempt to solve a Star Battle puzzle using production rules.
+ * Returns solve result with solution (if found), cycles, and max rule level used.
+ */
+export function solve(board: Board): SolveResult {
+  const size = board.grid.length;
+  let cells = initializeCells(size);
+  let cycles = 0;
+  let maxLevel = 0;
+
+  while (cycles < MAX_CYCLES) {
+    cycles++;
+
+    // Check if we hit an invalid state
+    if (isUnsolvable(board, cells)) {
+      return { solved: false, cells, cycles, maxLevel };
+    }
+
+    // Check if solved
+    if (isSolved(board, cells)) {
+      return { solved: true, cells, cycles, maxLevel };
+    }
+
+    // Try each rule in order
+    let progress = false;
+    for (const { rule, level } of allRules) {
+      const result = rule(board, cells);
+      if (result) {
+        cells = result;
+        maxLevel = Math.max(maxLevel, level);
+        progress = true;
+        break; // Restart from first rule
+      }
+    }
+
+    // No rule made progress - puzzle is stuck
+    if (!progress) {
+      return { solved: false, cells, cycles, maxLevel };
+    }
+  }
+
+  // Exceeded max cycles
+  return { solved: false, cells, cycles, maxLevel };
 }
