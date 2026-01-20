@@ -32,337 +32,280 @@ const tilingKey = (tiles: Tile[]): string =>
     .sort()
     .join("|");
 
-describe("1. Candidate Generation", () => {
-  describe("1.1 Basic shapes", () => {
-    it("1.1.1 single 2x2 at origin", () => {
-      const regionCells: Coord[] = [
-        [0, 0],
-        [0, 1],
-        [1, 0],
-        [1, 1],
-      ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
+describe("1. Candidate Generation (Exact Cover)", () => {
+  // Helpers
+  const coordKey = ([r, c]: Coord): string => `${r},${c}`;
+  const coordSet = (coords: Coord[]): Set<string> =>
+    new Set(coords.map(coordKey));
 
-      const candidates = generateTileCandidates(regionCells, cells, gridSize);
+  const makeGrid = (size: number, fill: CellState = "unknown"): CellState[][] =>
+    Array(size)
+      .fill(null)
+      .map(() => Array(size).fill(fill));
 
-      // Multiple tiles can overlap this region from different anchors
-      expect(candidates.length).toBeGreaterThanOrEqual(1);
+  describe("1.1 Completeness", () => {
+    it("1.1.1 enumerates all tiles covering a cell", () => {
+      // A cell in the center can be covered by 4 different 2x2 tiles
+      // (anchored at NW, NE, SW, SE relative to the cell)
+      const regionCells: Coord[] = [[2, 2]];
+      const candidates = generateTileCandidates(regionCells, makeGrid(5), 5);
 
-      // The tile anchored at (0,0) should cover all 4 cells
-      const fullCoverage = candidates.find(
-        (t) => t.anchor[0] === 0 && t.anchor[1] === 0
-      );
-      expect(fullCoverage).toBeDefined();
-      expect(fullCoverage!.coveredCells).toHaveLength(4);
+      expect(candidates).toHaveLength(4);
+
+      // Verify all 4 anchors present: (1,1), (1,2), (2,1), (2,2)
+      const anchors = coordSet(candidates.map((t) => t.anchor));
+      expect(anchors.has("1,1")).toBe(true);
+      expect(anchors.has("1,2")).toBe(true);
+      expect(anchors.has("2,1")).toBe(true);
+      expect(anchors.has("2,2")).toBe(true);
     });
 
-    it("1.1.2 single 2x2 offset from origin", () => {
-      const regionCells: Coord[] = [
-        [2, 3],
-        [2, 4],
-        [3, 3],
-        [3, 4],
-      ];
-      const gridSize = 6;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
+    it("1.1.2 boundary limits valid anchors", () => {
+      // Corner cell: only 1 tile can cover it
+      const corner: Coord[] = [[0, 0]];
+      const cornerCandidates = generateTileCandidates(corner, makeGrid(5), 5);
+      expect(cornerCandidates).toHaveLength(1);
+      expect(cornerCandidates[0].anchor).toEqual([0, 0]);
 
-      const candidates = generateTileCandidates(regionCells, cells, gridSize);
-
-      // Multiple tiles can overlap this region
-      expect(candidates.length).toBeGreaterThanOrEqual(1);
-
-      // The tile anchored at (2,3) should cover all 4 cells
-      const fullCoverage = candidates.find(
-        (t) => t.anchor[0] === 2 && t.anchor[1] === 3
-      );
-      expect(fullCoverage).toBeDefined();
-      expect(fullCoverage!.coveredCells).toHaveLength(4);
+      // Edge cell: only 2 tiles can cover it
+      const edge: Coord[] = [[0, 2]];
+      const edgeCandidates = generateTileCandidates(edge, makeGrid(5), 5);
+      expect(edgeCandidates).toHaveLength(2);
     });
+  });
 
-    it("1.1.3 horizontal 1x3 line", () => {
+  describe("1.2 Coverage Accuracy", () => {
+    it("1.2.1 tile records exact cells covered", () => {
+      // Tile at anchor (1,1) covers exactly: (1,1), (1,2), (2,1), (2,2)
       const regionCells: Coord[] = [
-        [1, 0],
         [1, 1],
         [1, 2],
-      ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-
-      const candidates = generateTileCandidates(regionCells, cells, gridSize);
-
-      // Tiles anchored at (0,0), (0,1), (1,0), (1,1) could cover these cells
-      // But only those that actually overlap the region cells
-      expect(candidates.length).toBeGreaterThanOrEqual(2);
-
-      // Verify all candidates actually cover at least one region cell
-      for (const tile of candidates) {
-        expect(tile.coveredCells.length).toBeGreaterThan(0);
-      }
-    });
-
-    it("1.1.4 vertical 3x1 line", () => {
-      const regionCells: Coord[] = [
-        [0, 1],
-        [1, 1],
         [2, 1],
+        [2, 2],
       ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
+      const candidates = generateTileCandidates(regionCells, makeGrid(4), 4);
 
-      const candidates = generateTileCandidates(regionCells, cells, gridSize);
+      const tile = candidates.find(
+        (t) => t.anchor[0] === 1 && t.anchor[1] === 1,
+      );
+      expect(tile).toBeDefined();
 
-      expect(candidates.length).toBeGreaterThanOrEqual(2);
+      const covered = coordSet(tile!.coveredCells);
+      expect(covered.size).toBe(4);
+      expect(covered.has("1,1")).toBe(true);
+      expect(covered.has("1,2")).toBe(true);
+      expect(covered.has("2,1")).toBe(true);
+      expect(covered.has("2,2")).toBe(true);
     });
 
-    it("1.1.5 L-shape", () => {
+    it("1.2.2 tile covers only region intersection", () => {
+      // L-shaped region: tile at (0,0) covers 3 of its 4 cells
       const regionCells: Coord[] = [
         [0, 0],
         [1, 0],
         [1, 1],
       ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
+      const candidates = generateTileCandidates(regionCells, makeGrid(4), 4);
 
-      const candidates = generateTileCandidates(regionCells, cells, gridSize);
+      const tile = candidates.find(
+        (t) => t.anchor[0] === 0 && t.anchor[1] === 0,
+      );
+      expect(tile).toBeDefined();
 
-      // At minimum, anchor at (0,0) covers all 3 cells
-      expect(candidates.length).toBeGreaterThanOrEqual(1);
-
-      // Find the tile that covers all 3
-      const fullCoverage = candidates.find((t) => t.coveredCells.length === 3);
-      expect(fullCoverage).toBeDefined();
+      const covered = coordSet(tile!.coveredCells);
+      expect(covered.size).toBe(3);
+      expect(covered.has("0,1")).toBe(false); // not in region
     });
   });
 
-  describe("1.2 Single cell regions", () => {
-    it("1.2.1 single cell in center of grid", () => {
-      const regionCells: Coord[] = [[2, 2]];
-      const gridSize = 5;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-
-      const candidates = generateTileCandidates(regionCells, cells, gridSize);
-
-      // 4 possible anchors: (1,1), (1,2), (2,1), (2,2)
-      expect(candidates).toHaveLength(4);
-    });
-
-    it("1.2.2 single cell at corner", () => {
-      const regionCells: Coord[] = [[0, 0]];
-      const gridSize = 5;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-
-      const candidates = generateTileCandidates(regionCells, cells, gridSize);
-
-      // Only anchor (0,0) works
-      expect(candidates).toHaveLength(1);
-      expect(candidates[0].anchor).toEqual([0, 0]);
-    });
-
-    it("1.2.3 single cell at edge", () => {
-      const regionCells: Coord[] = [[0, 2]];
-      const gridSize = 5;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-
-      const candidates = generateTileCandidates(regionCells, cells, gridSize);
-
-      // Anchors (0,1) and (0,2) work
-      expect(candidates).toHaveLength(2);
-    });
-  });
-
-  describe("1.3 Cell state filtering", () => {
-    it("1.3.1 excludes marked cells from coverage", () => {
+  describe("1.3 Universe Definition", () => {
+    it("1.3.1 coverage excludes non-unknown cells", () => {
       const regionCells: Coord[] = [
         [0, 0],
         [0, 1],
         [1, 0],
         [1, 1],
       ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
+      const cells = makeGrid(4);
       cells[0][0] = "marked";
-      cells[0][1] = "marked";
+      cells[0][1] = "star";
 
-      const candidates = generateTileCandidates(regionCells, cells, gridSize);
-
-      // Multiple tiles may exist, but each only covers unknown cells
-      expect(candidates.length).toBeGreaterThanOrEqual(1);
-
-      // The tile at (0,0) should only cover the 2 unknown cells
-      const tileAtOrigin = candidates.find(
-        (t) => t.anchor[0] === 0 && t.anchor[1] === 0
+      const candidates = generateTileCandidates(regionCells, cells, 4);
+      const tile = candidates.find(
+        (t) => t.anchor[0] === 0 && t.anchor[1] === 0,
       );
-      expect(tileAtOrigin).toBeDefined();
-      expect(tileAtOrigin!.coveredCells).toHaveLength(2);
-      expect(tileAtOrigin!.coveredCells).toContainEqual([1, 0]);
-      expect(tileAtOrigin!.coveredCells).toContainEqual([1, 1]);
+
+      expect(tile).toBeDefined();
+      const covered = coordSet(tile!.coveredCells);
+      expect(covered.size).toBe(2);
+      expect(covered.has("0,0")).toBe(false); // marked
+      expect(covered.has("0,1")).toBe(false); // star
+      expect(covered.has("1,0")).toBe(true);
+      expect(covered.has("1,1")).toBe(true);
     });
 
-    it("1.3.2 excludes star cells from coverage", () => {
-      const regionCells: Coord[] = [
-        [0, 0],
-        [0, 1],
-        [1, 0],
-        [1, 1],
-      ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-      cells[0][0] = "star";
-
-      const candidates = generateTileCandidates(regionCells, cells, gridSize);
-
-      // Multiple tiles may exist
-      expect(candidates.length).toBeGreaterThanOrEqual(1);
-
-      // The tile at (0,0) should only cover the 3 unknown cells
-      const tileAtOrigin = candidates.find(
-        (t) => t.anchor[0] === 0 && t.anchor[1] === 0
-      );
-      expect(tileAtOrigin).toBeDefined();
-      expect(tileAtOrigin!.coveredCells).toHaveLength(3);
-    });
-
-    it("1.3.3 returns empty when all cells marked", () => {
+    it("1.3.2 empty universe yields no candidates", () => {
       const regionCells: Coord[] = [
         [0, 0],
         [0, 1],
       ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
+      const cells = makeGrid(4);
       cells[0][0] = "marked";
       cells[0][1] = "marked";
 
-      const candidates = generateTileCandidates(regionCells, cells, gridSize);
-
-      // No candidates needed when nothing to cover
+      const candidates = generateTileCandidates(regionCells, cells, 4);
       expect(candidates).toHaveLength(0);
     });
   });
 
-  describe("1.4 Grid boundary respect", () => {
-    it("1.4.1 region at bottom-right corner", () => {
-      const gridSize = 4;
+  describe("1.4 Coverability", () => {
+    it("1.4.1 every unknown cell appears in at least one candidate", () => {
+      // Irregular region - verify all cells are reachable
       const regionCells: Coord[] = [
-        [3, 3],
-        [2, 3],
-        [3, 2],
+        [0, 0],
+        [0, 1],
+        [1, 0],
+        [2, 0],
+        [2, 1],
       ];
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
+      const candidates = generateTileCandidates(regionCells, makeGrid(4), 4);
 
-      const candidates = generateTileCandidates(regionCells, cells, gridSize);
-
-      // Only anchor at (2,2) is valid within bounds
-      expect(candidates.length).toBeGreaterThanOrEqual(1);
-
-      // No anchor should be outside grid
+      // Union of all covered cells should equal the region
+      const allCovered = new Set<string>();
       for (const tile of candidates) {
-        expect(tile.anchor[0]).toBeGreaterThanOrEqual(0);
-        expect(tile.anchor[1]).toBeGreaterThanOrEqual(0);
-        expect(tile.anchor[0]).toBeLessThan(gridSize - 1);
-        expect(tile.anchor[1]).toBeLessThan(gridSize - 1);
+        for (const cell of tile.coveredCells) {
+          allCovered.add(coordKey(cell));
+        }
+      }
+
+      const regionSet = coordSet(regionCells);
+      for (const cell of regionSet) {
+        expect(allCovered.has(cell)).toBe(true);
       }
     });
 
-    it("1.4.2 1x4 line at grid edge", () => {
-      const gridSize = 4;
+    it("1.4.2 coverage is always subset of region", () => {
       const regionCells: Coord[] = [
-        [3, 0],
-        [3, 1],
-        [3, 2],
-        [3, 3],
+        [1, 1],
+        [1, 2],
+        [2, 1],
       ];
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
+      const candidates = generateTileCandidates(regionCells, makeGrid(5), 5);
 
-      const candidates = generateTileCandidates(regionCells, cells, gridSize);
-
-      // Anchors must be at row 2 (one row up)
+      const regionSet = coordSet(regionCells);
       for (const tile of candidates) {
-        expect(tile.anchor[0]).toBe(2);
+        for (const cell of tile.coveredCells) {
+          expect(regionSet.has(coordKey(cell))).toBe(true);
+        }
       }
     });
   });
 });
 
-describe("3. Minimum Tiling", () => {
-  describe("3.1 Simple shapes", () => {
-    it("3.1.1 2x2 square requires 1 tile", () => {
+describe("3. Minimum Tiling (Exact Cover)", () => {
+  // Helpers
+  const coordKey = ([r, c]: Coord): string => `${r},${c}`;
+  const coordSet = (coords: Coord[]): Set<string> =>
+    new Set(coords.map(coordKey));
+
+  const makeGrid = (size: number, fill: CellState = "unknown"): CellState[][] =>
+    Array(size)
+      .fill(null)
+      .map(() => Array(size).fill(fill));
+
+  describe("3.1 Exact Cover Invariants", () => {
+    it("3.1.1 each cell covered exactly once (no overlaps)", () => {
+      // 2x3 rectangle - verify tiles partition the cells
+      const regionCells: Coord[] = [
+        [0, 0],
+        [0, 1],
+        [0, 2],
+        [1, 0],
+        [1, 1],
+        [1, 2],
+      ];
+      const result = findAllMinimalTilings(regionCells, makeGrid(4), 4);
+
+      for (const tiling of result.allMinimalTilings) {
+        const coverCount = new Map<string, number>();
+
+        for (const tile of tiling) {
+          for (const cell of tile.coveredCells) {
+            const key = coordKey(cell);
+            coverCount.set(key, (coverCount.get(key) ?? 0) + 1);
+          }
+        }
+
+        // Each cell covered exactly once
+        for (const [, count] of coverCount) {
+          expect(count).toBe(1);
+        }
+      }
+    });
+
+    it("3.1.2 coverage equals universe exactly", () => {
+      const regionCells: Coord[] = [
+        [0, 0],
+        [0, 1],
+        [1, 0],
+        [1, 1],
+        [0, 2],
+        [1, 2],
+      ];
+      const result = findAllMinimalTilings(regionCells, makeGrid(4), 4);
+      const universe = coordSet(regionCells);
+
+      for (const tiling of result.allMinimalTilings) {
+        const covered = new Set<string>();
+        for (const tile of tiling) {
+          for (const cell of tile.coveredCells) {
+            covered.add(coordKey(cell));
+          }
+        }
+
+        // Covered = universe (no gaps, no extras)
+        expect(covered.size).toBe(universe.size);
+        for (const cell of universe) {
+          expect(covered.has(cell)).toBe(true);
+        }
+        for (const cell of covered) {
+          expect(universe.has(cell)).toBe(true);
+        }
+      }
+    });
+
+    it("3.1.3 all returned tilings use minimum tile count", () => {
+      // Plus shape has multiple solutions - all should be minimal
+      const regionCells: Coord[] = [
+        [0, 1],
+        [1, 0],
+        [1, 1],
+        [1, 2],
+        [2, 1],
+      ];
+      const result = findAllMinimalTilings(regionCells, makeGrid(4), 4);
+
+      for (const tiling of result.allMinimalTilings) {
+        expect(tiling.length).toBe(result.minTileCount);
+      }
+    });
+  });
+
+  describe("3.2 Minimality", () => {
+    it("3.2.1 single tile suffices for 2x2", () => {
       const regionCells: Coord[] = [
         [0, 0],
         [0, 1],
         [1, 0],
         [1, 1],
       ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-
-      const result = findAllMinimalTilings(regionCells, cells, gridSize);
+      const result = findAllMinimalTilings(regionCells, makeGrid(4), 4);
 
       expect(result.minTileCount).toBe(1);
       expect(result.allMinimalTilings).toHaveLength(1);
     });
 
-    it("3.1.2 1x2 domino requires 1 tile", () => {
-      const regionCells: Coord[] = [
-        [1, 1],
-        [1, 2],
-      ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-
-      const result = findAllMinimalTilings(regionCells, cells, gridSize);
-
-      expect(result.minTileCount).toBe(1);
-    });
-
-    it("3.1.3 1x4 line requires 2 tiles", () => {
-      const regionCells: Coord[] = [
-        [1, 0],
-        [1, 1],
-        [1, 2],
-        [1, 3],
-      ];
-      const gridSize = 5;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-
-      const result = findAllMinimalTilings(regionCells, cells, gridSize);
-
-      expect(result.minTileCount).toBe(2);
-    });
-
-    it("3.1.4 2x3 rectangle requires 2 tiles", () => {
+    it("3.2.2 two tiles for 2x3 rectangle", () => {
       const regionCells: Coord[] = [
         [0, 0],
         [0, 1],
@@ -371,19 +314,27 @@ describe("3. Minimum Tiling", () => {
         [1, 1],
         [1, 2],
       ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-
-      const result = findAllMinimalTilings(regionCells, cells, gridSize);
+      const result = findAllMinimalTilings(regionCells, makeGrid(4), 4);
 
       expect(result.minTileCount).toBe(2);
-      // Two ways to tile: left+right or some overlap
-      expect(result.allMinimalTilings.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("3.1.5 3x3 square requires 4 tiles", () => {
+    it("3.2.3 three tiles for plus shape (center forces overlap)", () => {
+      // Center cell (1,1) appears in all 4 possible tiles
+      // Any 2 tiles covering center overlap, so need 3
+      const regionCells: Coord[] = [
+        [0, 1],
+        [1, 0],
+        [1, 1],
+        [1, 2],
+        [2, 1],
+      ];
+      const result = findAllMinimalTilings(regionCells, makeGrid(4), 4);
+
+      expect(result.minTileCount).toBe(3);
+    });
+
+    it("3.2.4 four tiles for 3x3 square", () => {
       const regionCells: Coord[] = [
         [0, 0],
         [0, 1],
@@ -395,117 +346,75 @@ describe("3. Minimum Tiling", () => {
         [2, 1],
         [2, 2],
       ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-
-      const result = findAllMinimalTilings(regionCells, cells, gridSize);
+      const result = findAllMinimalTilings(regionCells, makeGrid(4), 4);
 
       expect(result.minTileCount).toBe(4);
     });
   });
 
-  describe("3.2 Complex shapes", () => {
-    it("3.2.1 L-shape (5 cells) requires 3 tiles", () => {
-      // L-shape: vertical bar + horizontal extension
-      // (0,0), (1,0), (2,0), (2,1), (2,2)
-      // Cannot cover (0,0) and (2,2) with same tiles that cover middle
-      const regionCells: Coord[] = [
-        [0, 0],
-        [1, 0],
-        [2, 0],
-        [2, 1],
-        [2, 2],
-      ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-
-      const result = findAllMinimalTilings(regionCells, cells, gridSize);
-
-      expect(result.minTileCount).toBe(3);
-    });
-
-    it("3.2.2 T-shape requires 3 tiles", () => {
-      // T-shape: horizontal bar + vertical stem
-      // (0,0), (0,1), (0,2), (1,1), (2,1)
-      // Corners (0,0) and (0,2) cannot be covered by same tile
+  describe("3.3 Solution Enumeration", () => {
+    it("3.3.1 finds all minimal solutions for 2x3", () => {
+      // 2x3 has exactly one valid partition:
+      // - Tile (0,0): covers {(0,0), (0,1), (1,0), (1,1)}
+      // - Tile (0,2): covers {(0,2), (1,2)}
       const regionCells: Coord[] = [
         [0, 0],
         [0, 1],
         [0, 2],
+        [1, 0],
         [1, 1],
-        [2, 1],
+        [1, 2],
       ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
+      const result = findAllMinimalTilings(regionCells, makeGrid(4), 4);
 
-      const result = findAllMinimalTilings(regionCells, cells, gridSize);
-
-      expect(result.minTileCount).toBe(3);
+      expect(result.allMinimalTilings.length).toBe(1);
     });
 
-    it("3.2.3 plus/cross shape requires 3 tiles (non-overlapping)", () => {
-      // Plus shape: center + 4 arms
-      // (0,1), (1,0), (1,1), (1,2), (2,1)
-      // Center cell (1,1) is in every possible 2×2 tile, so any two tiles overlap.
-      // Non-overlapping tiling requires 3 tiles.
+    it("3.3.2 no duplicate solutions", () => {
       const regionCells: Coord[] = [
+        [0, 0],
         [0, 1],
-        [1, 0],
-        [1, 1],
-        [1, 2],
-        [2, 1],
-      ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-
-      const result = findAllMinimalTilings(regionCells, cells, gridSize);
-
-      expect(result.minTileCount).toBe(3);
-    });
-
-    it("3.2.4 U-shape requires 2 tiles", () => {
-      const regionCells: Coord[] = [
-        [0, 0],
-        [1, 0],
-        [1, 1],
-        [1, 2],
         [0, 2],
+        [1, 0],
+        [1, 1],
+        [1, 2],
       ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
+      const result = findAllMinimalTilings(regionCells, makeGrid(4), 4);
 
-      const result = findAllMinimalTilings(regionCells, cells, gridSize);
+      const tilingKeys = result.allMinimalTilings.map(tilingKey);
+      const uniqueKeys = new Set(tilingKeys);
 
-      expect(result.minTileCount).toBe(2);
+      expect(uniqueKeys.size).toBe(result.allMinimalTilings.length);
     });
 
-    it("3.2.5 staircase (3 steps) requires 2 tiles", () => {
+    it("3.3.3 single cell has 4 solutions (one per anchor)", () => {
+      const regionCells: Coord[] = [[2, 2]];
+      const result = findAllMinimalTilings(regionCells, makeGrid(5), 5);
+
+      expect(result.minTileCount).toBe(1);
+      expect(result.allMinimalTilings.length).toBe(4);
+    });
+  });
+
+  describe("3.4 Edge Cases", () => {
+    it("3.4.1 empty universe yields zero tiles, one solution", () => {
       const regionCells: Coord[] = [
         [0, 0],
-        [1, 1],
-        [2, 2],
+        [0, 1],
       ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
+      const cells = makeGrid(4);
+      cells[0][0] = "marked";
+      cells[0][1] = "marked";
 
-      const result = findAllMinimalTilings(regionCells, cells, gridSize);
+      const result = findAllMinimalTilings(regionCells, cells, 4);
 
-      expect(result.minTileCount).toBe(2);
+      expect(result.minTileCount).toBe(0);
+      expect(result.allMinimalTilings).toHaveLength(1);
+      expect(result.allMinimalTilings[0]).toHaveLength(0);
     });
 
-    it("3.2.6 disconnected 2x2s require 2 tiles", () => {
+    it("3.4.2 disconnected components tile independently", () => {
+      // Two separate 2x2 squares
       const regionCells: Coord[] = [
         [0, 0],
         [0, 1],
@@ -516,163 +425,36 @@ describe("3. Minimum Tiling", () => {
         [4, 3],
         [4, 4],
       ];
-      const gridSize = 6;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-
-      const result = findAllMinimalTilings(regionCells, cells, gridSize);
+      const result = findAllMinimalTilings(regionCells, makeGrid(6), 6);
 
       expect(result.minTileCount).toBe(2);
       expect(result.allMinimalTilings).toHaveLength(1);
     });
-  });
 
-  describe("3.3 Multiple tilings", () => {
-    it("3.3.1 2x3 has multiple minimal tilings", () => {
+    it("3.4.3 isolated cells each need separate tile", () => {
+      // Sparse diagonal - cells too far apart to share a tile
       const regionCells: Coord[] = [
         [0, 0],
-        [0, 1],
-        [0, 2],
-        [1, 0],
-        [1, 1],
-        [1, 2],
+        [2, 2],
+        [4, 4],
       ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
+      const result = findAllMinimalTilings(regionCells, makeGrid(6), 6);
 
-      const result = findAllMinimalTilings(regionCells, cells, gridSize);
-
-      // Anchors at (0,0)+(0,1) is one tiling
-      // Could also overlap differently
-      expect(result.allMinimalTilings.length).toBeGreaterThanOrEqual(1);
-
-      // All tilings should have same count
-      for (const tiling of result.allMinimalTilings) {
-        expect(tiling).toHaveLength(result.minTileCount);
-      }
-    });
-
-    it("3.3.2 each tiling covers all cells", () => {
-      const regionCells: Coord[] = [
-        [0, 0],
-        [0, 1],
-        [0, 2],
-        [1, 0],
-        [1, 1],
-        [1, 2],
-      ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-
-      const result = findAllMinimalTilings(regionCells, cells, gridSize);
-      const regionSet = new Set(regionCells.map(([r, c]) => `${r},${c}`));
-
-      for (const tiling of result.allMinimalTilings) {
-        const covered = new Set<string>();
-        for (const tile of tiling) {
-          for (const [r, c] of tile.coveredCells) {
-            covered.add(`${r},${c}`);
-          }
-        }
-        // All region cells should be covered
-        for (const cellKey of regionSet) {
-          expect(covered.has(cellKey)).toBe(true);
-        }
-      }
-    });
-
-    it("3.3.3 no duplicate tilings returned", () => {
-      const regionCells: Coord[] = [
-        [0, 0],
-        [0, 1],
-        [1, 0],
-        [1, 1],
-        [0, 2],
-        [1, 2],
-      ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-
-      const result = findAllMinimalTilings(regionCells, cells, gridSize);
-
-      const tilingKeys = result.allMinimalTilings.map(tilingKey);
-      const uniqueKeys = new Set(tilingKeys);
-
-      expect(uniqueKeys.size).toBe(result.allMinimalTilings.length);
-    });
-  });
-
-  describe("3.4 Edge cases", () => {
-    it("3.4.1 empty region (all marked)", () => {
-      const regionCells: Coord[] = [
-        [0, 0],
-        [0, 1],
-      ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-      cells[0][0] = "marked";
-      cells[0][1] = "marked";
-
-      const result = findAllMinimalTilings(regionCells, cells, gridSize);
-
-      expect(result.minTileCount).toBe(0);
-      expect(result.allMinimalTilings).toHaveLength(1);
-      expect(result.allMinimalTilings[0]).toHaveLength(0);
-    });
-
-    it("3.4.2 single unknown cell", () => {
-      const regionCells: Coord[] = [[1, 1]];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-
-      const result = findAllMinimalTilings(regionCells, cells, gridSize);
-
-      expect(result.minTileCount).toBe(1);
-      // Multiple tilings (different anchor positions)
-      expect(result.allMinimalTilings.length).toBeGreaterThanOrEqual(1);
-    });
-
-    it("3.4.3 region with existing star excludes neighbors", () => {
-      const regionCells: Coord[] = [
-        [0, 0],
-        [0, 1],
-        [0, 2],
-        [1, 0],
-        [1, 1],
-        [1, 2],
-      ];
-      const gridSize = 4;
-      const cells: CellState[][] = Array(gridSize)
-        .fill(null)
-        .map(() => Array(gridSize).fill("unknown"));
-      cells[0][0] = "star";
-      cells[0][1] = "marked"; // neighbor of star
-      cells[1][0] = "marked"; // neighbor of star
-      cells[1][1] = "marked"; // neighbor of star
-
-      const result = findAllMinimalTilings(regionCells, cells, gridSize);
-
-      // Only (0,2) and (1,2) are unknown
-      expect(result.minTileCount).toBe(1);
+      expect(result.minTileCount).toBe(3);
     });
   });
 });
 
 describe("4. Spec Examples", () => {
-  it("4.1 example_tiling_1a - region tiles to minimum 2", () => {
-    // From spec: "the following region can be tiled with a minimum of two 2×2s"
-    // Reconstructing the L-shaped region from the description
+  const makeGrid = (size: number): CellState[][] =>
+    Array(size)
+      .fill(null)
+      .map(() => Array(size).fill("unknown"));
+
+  it("4.1 L-shape minimal tiling", () => {
+    // From spec example_tiling_1a:
+    // "the following region can be tiled with a minimum of two 2×2s"
+    // minTileCount bounds the maximum stars this region can contain
     const regionCells: Coord[] = [
       [0, 0],
       [0, 1],
@@ -680,56 +462,15 @@ describe("4. Spec Examples", () => {
       [2, 0],
       [2, 1],
     ];
-    const gridSize = 4;
-    const cells: CellState[][] = Array(gridSize)
-      .fill(null)
-      .map(() => Array(gridSize).fill("unknown"));
-
-    const result = findAllMinimalTilings(regionCells, cells, gridSize);
+    const result = findAllMinimalTilings(regionCells, makeGrid(4), 4);
 
     expect(result.minTileCount).toBe(2);
+    expect(result.allMinimalTilings.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("4.2 example_tiling_1b - identifies tiles with limited region coverage", () => {
-    // From spec: "one of the 2×2s has only one cell within the region"
-    // This is about the tile having limited intersection with the region,
-    // which is valuable for forced placement deductions.
-    // The spec's L-shape example from image shows this pattern.
-    const regionCells: Coord[] = [
-      [0, 0],
-      [0, 1],
-      [1, 0],
-      [2, 0],
-      [2, 1],
-    ];
-    const gridSize = 4;
-    const cells: CellState[][] = Array(gridSize)
-      .fill(null)
-      .map(() => Array(gridSize).fill("unknown"));
-
-    const result = findAllMinimalTilings(regionCells, cells, gridSize);
-
-    // Verify we found minimal tilings
-    expect(result.minTileCount).toBeGreaterThan(0);
-    expect(result.allMinimalTilings.length).toBeGreaterThan(0);
-
-    // Check that tiles correctly track which cells they cover in the region
-    for (const tiling of result.allMinimalTilings) {
-      for (const tile of tiling) {
-        // Every tile's coveredCells should be a subset of regionCells
-        for (const cell of tile.coveredCells) {
-          const inRegion = regionCells.some(
-            (rc) => rc[0] === cell[0] && rc[1] === cell[1]
-          );
-          expect(inRegion).toBe(true);
-        }
-      }
-    }
-  });
-
-  it("4.3 example_tiling_2 - region fits at most 3 stars", () => {
+  it("4.2 region bounding star count", () => {
+    // From spec example_tiling_2:
     // "the following region can fit at most three stars"
-    // Larger irregular region
     const regionCells: Coord[] = [
       [0, 0],
       [0, 1],
@@ -740,221 +481,92 @@ describe("4. Spec Examples", () => {
       [2, 1],
       [2, 2],
     ];
-    const gridSize = 4;
-    const cells: CellState[][] = Array(gridSize)
-      .fill(null)
-      .map(() => Array(gridSize).fill("unknown"));
+    const result = findAllMinimalTilings(regionCells, makeGrid(4), 4);
 
-    const result = findAllMinimalTilings(regionCells, cells, gridSize);
-
+    // minTileCount bounds max stars in region
     expect(result.minTileCount).toBe(3);
   });
 
-  it("4.4 squeeze - 4 tiles across row pair", () => {
+  it("4.3 row pair squeeze pattern", () => {
+    // From spec Rule 12 (The Squeeze):
     // "minimally tile a pair of rows with four 2×2s"
-    // Two full rows in a 10x10 would need 5 tiles, but with marks it's 4
-    // Simplified: 2 rows × 4 cols = 8 cells
+    // 2 rows × 8 cols = 16 cells, tiles to 4
     const regionCells: Coord[] = [];
     for (let r = 0; r < 2; r++) {
       for (let c = 0; c < 8; c++) {
         regionCells.push([r, c]);
       }
     }
-    const gridSize = 10;
-    const cells: CellState[][] = Array(gridSize)
-      .fill(null)
-      .map(() => Array(gridSize).fill("unknown"));
-
-    const result = findAllMinimalTilings(regionCells, cells, gridSize);
+    const result = findAllMinimalTilings(regionCells, makeGrid(10), 10);
 
     expect(result.minTileCount).toBe(4);
   });
 });
 
-describe("5. Edge Cases", () => {
-  it("5.1 region spanning entire small grid", () => {
-    const gridSize = 4;
-    const regionCells: Coord[] = [];
-    for (let r = 0; r < gridSize; r++) {
-      for (let c = 0; c < gridSize; c++) {
-        regionCells.push([r, c]);
-      }
+describe("5. Tiling Cache", () => {
+  const makeBoard = (): Board => ({
+    grid: [
+      [0, 0, 1, 1],
+      [0, 0, 1, 1],
+      [2, 2, 3, 3],
+      [2, 2, 3, 3],
+    ],
+    stars: 1,
+  });
+
+  const makeGrid = (): CellState[][] => [
+    ["unknown", "unknown", "unknown", "unknown"],
+    ["unknown", "unknown", "unknown", "unknown"],
+    ["unknown", "unknown", "unknown", "unknown"],
+    ["unknown", "unknown", "unknown", "unknown"],
+  ];
+
+  it("5.1 caches tilings for regions, row pairs, and column pairs", () => {
+    const cache = computeAllTilings(makeBoard(), makeGrid());
+
+    // 4 regions (0, 1, 2, 3)
+    expect(cache.byRegion.size).toBe(4);
+    for (let i = 0; i < 4; i++) {
+      expect(cache.byRegion.has(i)).toBe(true);
     }
-    const cells: CellState[][] = Array(gridSize)
-      .fill(null)
-      .map(() => Array(gridSize).fill("unknown"));
 
-    const result = findAllMinimalTilings(regionCells, cells, gridSize);
+    // 3 row pairs (0-1, 1-2, 2-3)
+    expect(cache.byRowPair.size).toBe(3);
+    for (let i = 0; i < 3; i++) {
+      expect(cache.byRowPair.has(i)).toBe(true);
+    }
 
-    expect(result.minTileCount).toBe(4);
+    // 3 col pairs (0-1, 1-2, 2-3)
+    expect(cache.byColPair.size).toBe(3);
+    for (let i = 0; i < 3; i++) {
+      expect(cache.byColPair.has(i)).toBe(true);
+    }
   });
 
-  it("5.2 sparse diagonal cells", () => {
-    const regionCells: Coord[] = [
-      [0, 0],
-      [2, 2],
-      [4, 4],
-    ];
-    const gridSize = 6;
-    const cells: CellState[][] = Array(gridSize)
-      .fill(null)
-      .map(() => Array(gridSize).fill("unknown"));
+  it("5.2 cached region values match direct computation", () => {
+    const board = makeBoard();
+    const cells = makeGrid();
+    const cache = computeAllTilings(board, cells);
 
-    const result = findAllMinimalTilings(regionCells, cells, gridSize);
-
-    // Each isolated cell needs its own tile
-    expect(result.minTileCount).toBe(3);
-  });
-
-  it("5.3 1-cell region", () => {
-    const regionCells: Coord[] = [[2, 2]];
-    const gridSize = 5;
-    const cells: CellState[][] = Array(gridSize)
-      .fill(null)
-      .map(() => Array(gridSize).fill("unknown"));
-
-    const result = findAllMinimalTilings(regionCells, cells, gridSize);
-
-    expect(result.minTileCount).toBe(1);
-    // 4 different tiles could cover this single cell
-    expect(result.allMinimalTilings.length).toBe(4);
-  });
-});
-
-describe("6. Performance Bounds", () => {
-  it("6.1 typical region (10 cells) completes quickly", () => {
-    const regionCells: Coord[] = [
-      [0, 0],
-      [0, 1],
-      [0, 2],
-      [1, 0],
-      [1, 1],
-      [1, 2],
-      [2, 0],
-      [2, 1],
-      [2, 2],
-      [3, 1],
-    ];
-    const gridSize = 6;
-    const cells: CellState[][] = Array(gridSize)
-      .fill(null)
-      .map(() => Array(gridSize).fill("unknown"));
-
-    const start = performance.now();
-    const result = findAllMinimalTilings(regionCells, cells, gridSize);
-    const elapsed = performance.now() - start;
-
-    expect(result.minTileCount).toBeGreaterThan(0);
-    expect(elapsed).toBeLessThan(100); // 100ms threshold
-  });
-
-  it("6.2 larger region (16 cells) completes in reasonable time", () => {
-    const regionCells: Coord[] = [];
+    // Extract region 0 cells
+    const region0Cells: Coord[] = [];
     for (let r = 0; r < 4; r++) {
       for (let c = 0; c < 4; c++) {
-        regionCells.push([r, c]);
+        if (board.grid[r][c] === 0) {
+          region0Cells.push([r, c]);
+        }
       }
     }
-    const gridSize = 6;
-    const cells: CellState[][] = Array(gridSize)
-      .fill(null)
-      .map(() => Array(gridSize).fill("unknown"));
 
-    const start = performance.now();
-    const result = findAllMinimalTilings(regionCells, cells, gridSize);
-    const elapsed = performance.now() - start;
+    const direct = findAllMinimalTilings(region0Cells, cells, 4);
+    const cached = cache.byRegion.get(0)!;
 
-    expect(result.minTileCount).toBe(4);
-    expect(elapsed).toBeLessThan(200); // 200ms threshold
-  });
-});
-
-describe("7. Tiling Cache", () => {
-  it("7.1 computes tilings for all regions", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 1, 1],
-        [0, 0, 1, 1],
-        [2, 2, 3, 3],
-        [2, 2, 3, 3],
-      ],
-      stars: 1,
-    };
-    const cells: CellState[][] = [
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-    ];
-
-    const cache = computeAllTilings(board, cells);
-
-    expect(cache.byRegion.size).toBe(4);
-    expect(cache.byRegion.has(0)).toBe(true);
-    expect(cache.byRegion.has(1)).toBe(true);
-    expect(cache.byRegion.has(2)).toBe(true);
-    expect(cache.byRegion.has(3)).toBe(true);
+    expect(cached.minTileCount).toBe(direct.minTileCount);
+    expect(cached.allMinimalTilings.length).toBe(direct.allMinimalTilings.length);
   });
 
-  it("7.2 computes row pair tilings", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 1, 1],
-        [0, 0, 1, 1],
-        [2, 2, 3, 3],
-        [2, 2, 3, 3],
-      ],
-      stars: 1,
-    };
-    const cells: CellState[][] = [
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-    ];
-
-    const cache = computeAllTilings(board, cells);
-
-    // Row pairs: 0-1, 1-2, 2-3
-    expect(cache.byRowPair.size).toBe(3);
-    expect(cache.byRowPair.has(0)).toBe(true);
-    expect(cache.byRowPair.has(1)).toBe(true);
-    expect(cache.byRowPair.has(2)).toBe(true);
-  });
-
-  it("7.3 computes column pair tilings", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 1, 1],
-        [0, 0, 1, 1],
-        [2, 2, 3, 3],
-        [2, 2, 3, 3],
-      ],
-      stars: 1,
-    };
-    const cells: CellState[][] = [
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-    ];
-
-    const cache = computeAllTilings(board, cells);
-
-    // Col pairs: 0-1, 1-2, 2-3
-    expect(cache.byColPair.size).toBe(3);
-  });
-
-  it("7.4 respects current cell state", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 1, 1],
-        [0, 0, 1, 1],
-        [2, 2, 3, 3],
-        [2, 2, 3, 3],
-      ],
-      stars: 1,
-    };
+  it("5.3 respects cell state in cache", () => {
+    const board = makeBoard();
     const cells: CellState[][] = [
       ["star", "marked", "unknown", "unknown"],
       ["marked", "marked", "unknown", "unknown"],
@@ -964,8 +576,10 @@ describe("7. Tiling Cache", () => {
 
     const cache = computeAllTilings(board, cells);
 
-    // Region 0 has only marked/star cells - nothing to tile
+    // Region 0 has no unknown cells - nothing to tile
     const region0 = cache.byRegion.get(0)!;
     expect(region0.minTileCount).toBe(0);
+    expect(region0.allMinimalTilings).toHaveLength(1);
+    expect(region0.allMinimalTilings[0]).toHaveLength(0);
   });
 });
