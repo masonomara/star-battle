@@ -58,7 +58,5 @@ export type Strip = {
 
 // Cache of all strips for the current board state
 export type StripCache = {
-  byRow: Map<number, Strip[]>; // row index → horizontal strips in that row
-  byCol: Map<number, Strip[]>; // col index → vertical strips in that column
   byRegion: Map<number, Strip[]>; // regionId → all strips from that region
 };

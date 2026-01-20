@@ -14,6 +14,30 @@ import {
 import { computeAllTilings } from "./tiling";
 import { computeAllStrips } from "./strips";
 
+/**
+ * Check if a board layout is valid before attempting to solve.
+ * For multi-star puzzles (stars > 1), each region must have at least
+ * (stars * 2) - 1 cells to fit the required stars without touching.
+ */
+export function isValidLayout(board: Board): boolean {
+  if (board.stars <= 1) return true;
+
+  const minRegionSize = board.stars * 2 - 1;
+  const regionSizes = new Map<number, number>();
+
+  for (const row of board.grid) {
+    for (const regionId of row) {
+      regionSizes.set(regionId, (regionSizes.get(regionId) ?? 0) + 1);
+    }
+  }
+
+  for (const size of regionSizes.values()) {
+    if (size < minRegionSize) return false;
+  }
+
+  return true;
+}
+
 type Rule = (
   board: Board,
   cells: CellState[][],
@@ -21,7 +45,7 @@ type Rule = (
   stripCache?: StripCache,
 ) => boolean;
 
-const rules: { rule: Rule; level: number; name: string }[] = [
+const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: trivialStarMarks, level: 1, name: "starNeighbors" },
   { rule: trivialRowComplete, level: 1, name: "rowComplete" },
   { rule: trivialColComplete, level: 1, name: "colComplete" },
@@ -35,6 +59,10 @@ const rules: { rule: Rule; level: number; name: string }[] = [
 ];
 
 const MAX_CYCLES = 1000;
+
+/**
+ * Check if the puzzle is completely solved.
+ */
 export function isSolved(board: Board, cells: CellState[][]): boolean {
   const size = board.grid.length;
 
@@ -50,6 +78,7 @@ export function isSolved(board: Board, cells: CellState[][]): boolean {
 
         const regionId = board.grid[row][col];
         starsByRegion.set(regionId, (starsByRegion.get(regionId) ?? 0) + 1);
+
         // Check for adjacent stars (orthogonal and diagonal)
         for (let dr = -1; dr <= 1; dr++) {
           for (let dc = -1; dc <= 1; dc++) {
@@ -86,6 +115,7 @@ export interface StepInfo {
   level: number;
   cells: CellState[][];
 }
+
 export interface SolveOptions {
   onStep?: (step: StepInfo) => void;
 }
@@ -101,29 +131,40 @@ export function solve(
 ): Solution | null {
   const size = board.grid.length;
   const cells: CellState[][] = Array.from({ length: size }, () =>
-    Array(size).fill("unknown"),
+    Array.from({ length: size }, () => "unknown" as CellState),
   );
+
+  // Early rejection for invalid layouts
+  if (!isValidLayout(board)) {
+    return null;
+  }
 
   let cycles = 0;
   let maxLevel = 0;
 
   while (cycles < MAX_CYCLES) {
     cycles++;
-    if (isSolved(board, cells)) return { board, seed, cells, cycles, maxLevel };
+
+    if (isSolved(board, cells)) {
+      return { board, seed, cells, cycles, maxLevel };
+    }
 
     // Try each rule in order
     let progress = false;
     let tilingCache: TilingCache | undefined;
     let stripCache: StripCache | undefined;
-    for (const { rule, level, name } of rules) {
+
+    for (const { rule, level, name } of allRules) {
       // Compute caches lazily when first level 2+ rule is tried
       if (level >= 2 && !tilingCache) {
         tilingCache = computeAllTilings(board, cells);
         stripCache = computeAllStrips(board, cells);
       }
+
       if (rule(board, cells, tilingCache, stripCache)) {
         maxLevel = Math.max(maxLevel, level);
         progress = true;
+
         // Call trace callback if provided
         if (options.onStep) {
           const cellsCopy = cells.map((row) => [...row]);
@@ -134,12 +175,15 @@ export function solve(
             cells: cellsCopy,
           });
         }
+
         break;
       }
     }
 
     // No rule made progress - stuck
-    if (!progress) return null;
+    if (!progress) {
+      return null;
+    }
   }
 
   // Exceeded max cycles

@@ -119,16 +119,11 @@ export function computeAllStrips(board: Board, cells: CellState[][]): StripCache
     }
   }
 
-  const byRow = new Map<number, Strip[]>();
-  const byCol = new Map<number, Strip[]>();
   const byRegion = new Map<number, Strip[]>();
 
   // Find horizontal strips for each row
   for (let row = 0; row < numRows; row++) {
     const strips = findHorizontalStrips(board, cells, row, regionStars);
-    byRow.set(row, strips);
-
-    // Also index by region
     for (const strip of strips) {
       if (!byRegion.has(strip.regionId)) {
         byRegion.set(strip.regionId, []);
@@ -140,9 +135,6 @@ export function computeAllStrips(board: Board, cells: CellState[][]): StripCache
   // Find vertical strips for each column
   for (let col = 0; col < numCols; col++) {
     const strips = findVerticalStrips(board, cells, col, regionStars);
-    byCol.set(col, strips);
-
-    // Also index by region
     for (const strip of strips) {
       if (!byRegion.has(strip.regionId)) {
         byRegion.set(strip.regionId, []);
@@ -151,5 +143,5 @@ export function computeAllStrips(board: Board, cells: CellState[][]): StripCache
     }
   }
 
-  return { byRow, byCol, byRegion };
+  return { byRegion };
 }
