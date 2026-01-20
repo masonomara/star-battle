@@ -544,6 +544,35 @@ describe("4. Region Complete", () => {
       ["marked", "marked", "unknown"],
     ]);
   });
+
+  it("4.7 handles scattered (non-contiguous) region", () => {
+    const board: Board = {
+      grid: [
+        [0, 1, 1, 0],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [0, 1, 1, 0],
+      ],
+      stars: 1,
+    };
+
+    const cells: CellState[][] = [
+      ["star", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+    ];
+
+    const result = trivialRegionComplete(board, cells);
+
+    expect(result).toBe(true);
+    expect(cells).toEqual([
+      ["star", "unknown", "unknown", "marked"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["marked", "unknown", "unknown", "marked"],
+    ]);
+  });
 });
 
 describe("5. Forced Placement", () => {
@@ -786,7 +815,41 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.3.3 places star in L-shaped region", () => {
+    it("5.3.3 returns false when 2 unknowns are orthogonally adjacent", () => {
+      // Region 0 has 2 unknowns at (0,0) and (0,1) - horizontally adjacent.
+      // forcedPlacement correctly refuses to place stars since both would need
+      // to be stars but they can't be adjacent. This is an unsolvable config.
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      // Returns false because unknowns are adjacent - can't both be stars
+      expect(result).toBe(false);
+      // No change to cells
+      expect(cells).toEqual([
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ]);
+    });
+
+    it("5.3.4 places star in L-shaped region", () => {
       const board: Board = {
         grid: [
           [0, 1, 1],
@@ -812,7 +875,7 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.3.4 places remaining star (has 1 star, 1 unknown)", () => {
+    it("5.3.5 places remaining star (has 1 star, 1 unknown)", () => {
       const board: Board = {
         grid: [
           [0, 0, 1, 1, 1],
@@ -844,7 +907,7 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.3.5 places star in scattered region", () => {
+    it("5.3.6 places star in scattered region", () => {
       const board: Board = {
         grid: [
           [0, 1, 1, 0],
@@ -873,7 +936,7 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.3.6 places ONE star when multiple regions have forced placements", () => {
+    it("5.3.7 places ONE star when multiple regions have forced placements", () => {
       // Region 0 (col 0): only (1,0) unknown, forced
       // Region 3 (col 3): only (3,3) unknown, forced
       // Only ONE star placed per call - region 0 is found first
