@@ -5,7 +5,6 @@ import {
   trivialColComplete,
   trivialRegionComplete,
   forcedPlacement,
-  twoByTwoTiling,
 } from "./rules";
 import { Board, CellState } from "./types";
 
