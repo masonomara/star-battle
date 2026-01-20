@@ -21,41 +21,68 @@ function parseArgs(): Record<string, string> {
   return args;
 }
 
+function printHelp() {
+  console.log(`Usage: sieve [options]
+
+Options:
+  --size <n>     Grid size (default: 10)
+  --stars <n>    Stars per row/column/region (default: 2)
+  --count <n>    Number of puzzles to generate (default: 1)
+  --seed <n>     Random seed for reproducibility
+  --verbose      Show timing and solver metrics
+  --help         Show this help`);
+}
+
 function main() {
   const args = parseArgs();
 
-  console.log("Options:", {
-    size: args.size ? parseInt(args.size, 10) : 10,
-    stars: args.stars ? parseInt(args.stars, 10) : 2,
-    count: args.count ? parseInt(args.count, 10) : 1,
-    seed: args.seed ? parseInt(args.seed, 10) : undefined,
-  });
-  console.log("---");
+  if (args.help === "true") {
+    printHelp();
+    return;
+  }
 
-  let generated = 0;
+  const size = args.size ? parseInt(args.size, 10) : 10;
+  const stars = args.stars ? parseInt(args.stars, 10) : 2;
+  const count = args.count ? parseInt(args.count, 10) : 1;
+  const seed = args.seed ? parseInt(args.seed, 10) : undefined;
+  const verbose = args.verbose === "true";
+
+  const seedDisplay = seed !== undefined ? `, seed ${seed}` : "";
+  console.log(`${size}×${size}, ${stars} stars${seedDisplay}`);
+  console.log("");
+
+  const startTime = Date.now();
+
   const puzzles = sieve({
-    size: args.size ? parseInt(args.size, 10) : undefined,
-    stars: args.stars ? parseInt(args.stars, 10) : undefined,
-    count: args.count ? parseInt(args.count, 10) : undefined,
-    seed: args.seed ? parseInt(args.seed, 10) : undefined,
+    size,
+    stars,
+    count,
+    seed,
     onProgress: (solved, attempts) => {
-      generated = attempts;
       process.stdout.write(`\rGenerated: ${attempts} | Solved: ${solved}`);
     },
   });
 
-  console.log(`\nGenerated: ${generated} | Solved: ${puzzles.length}`);
+  const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
 
-  if (puzzles.length === 0) {
-    console.log("\nNo solvable puzzles found (max attempts reached)");
-    console.log("Try smaller grid or fewer stars, or add more solver rules");
+  if (verbose) {
+    console.log(` | ${elapsed}s`);
   } else {
     console.log("");
+  }
+  console.log("");
+
+  if (puzzles.length === 0) {
+    console.log("No solvable puzzles found (max attempts reached)");
+    console.log("Try smaller grid or fewer stars, or add more solver rules");
+  } else {
     for (const puzzle of puzzles) {
       console.log(`Seed: ${puzzle.seed}`);
-      console.log(
-        `Difficulty: ${puzzle.difficulty} (cycles: ${puzzle.cycles}, maxLevel: ${puzzle.maxLevel})`,
-      );
+      if (verbose) {
+        console.log(`Difficulty: ${puzzle.difficulty} (cycles: ${puzzle.cycles}, maxLevel: ${puzzle.maxLevel})`);
+      } else {
+        console.log(`Difficulty: ${puzzle.difficulty}`);
+      }
       printBoard(puzzle.board.grid);
       console.log("");
     }
