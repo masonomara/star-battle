@@ -11,14 +11,7 @@
  * Used by multiple rules: 2×2, Exclusion, Pressured Exclusion, Squeeze, Composite Regions.
  */
 
-import {
-  Board,
-  CellState,
-  Coord,
-  Tile,
-  RegionTiling,
-  TilingCache,
-} from "./types";
+import { CellState, Coord, Tile, RegionTiling } from "./types";
 import { dlxSolve } from "./dlx";
 
 /**
@@ -251,96 +244,3 @@ export function findAllMinimalTilings(
   };
 }
 
-/**
- * Get all cells in a region from the board.
- */
-function getRegionCells(board: Board, regionId: number): Coord[] {
-  const cells: Coord[] = [];
-  const size = board.grid.length;
-
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      if (board.grid[r][c] === regionId) {
-        cells.push([r, c]);
-      }
-    }
-  }
-
-  return cells;
-}
-
-/**
- * Get all cells in a pair of consecutive rows.
- */
-function getRowPairCells(gridSize: number, firstRow: number): Coord[] {
-  const cells: Coord[] = [];
-
-  for (let c = 0; c < gridSize; c++) {
-    cells.push([firstRow, c]);
-    cells.push([firstRow + 1, c]);
-  }
-
-  return cells;
-}
-
-/**
- * Get all cells in a pair of consecutive columns.
- */
-function getColPairCells(gridSize: number, firstCol: number): Coord[] {
-  const cells: Coord[] = [];
-
-  for (let r = 0; r < gridSize; r++) {
-    cells.push([r, firstCol]);
-    cells.push([r, firstCol + 1]);
-  }
-
-  return cells;
-}
-
-/**
- * Compute tilings for all regions and row/column pairs.
- * Called once when solver moves past level 1 rules.
- */
-export function computeAllTilings(
-  board: Board,
-  cells: CellState[][],
-): TilingCache {
-  const size = board.grid.length;
-  const byRegion = new Map<number, RegionTiling>();
-  const byRowPair = new Map<number, RegionTiling>();
-  const byColPair = new Map<number, RegionTiling>();
-
-  // Find all unique region IDs
-  const regionIds = new Set<number>();
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      regionIds.add(board.grid[r][c]);
-    }
-  }
-
-  // Compute tilings for each region
-  for (const regionId of regionIds) {
-    const regionCells = getRegionCells(board, regionId);
-    const tiling = findAllMinimalTilings(regionCells, cells, size);
-    tiling.regionId = regionId;
-    byRegion.set(regionId, tiling);
-  }
-
-  // Compute tilings for row pairs (for squeeze rule)
-  for (let r = 0; r < size - 1; r++) {
-    const rowPairCells = getRowPairCells(size, r);
-    const tiling = findAllMinimalTilings(rowPairCells, cells, size);
-    tiling.regionId = -1; // Not a region
-    byRowPair.set(r, tiling);
-  }
-
-  // Compute tilings for column pairs (for squeeze rule)
-  for (let c = 0; c < size - 1; c++) {
-    const colPairCells = getColPairCells(size, c);
-    const tiling = findAllMinimalTilings(colPairCells, cells, size);
-    tiling.regionId = -1; // Not a region
-    byColPair.set(c, tiling);
-  }
-
-  return { byRegion, byRowPair, byColPair };
-}

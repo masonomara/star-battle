@@ -1,4 +1,12 @@
-import { Board, CellState, Solution, StripCache, TilingCache } from "./types";
+import {
+  Board,
+  CellState,
+  Coord,
+  RegionTiling,
+  Solution,
+  StripCache,
+  TilingCache,
+} from "./types";
 import {
   trivialStarMarks,
   trivialRowComplete,
@@ -11,7 +19,7 @@ import {
   overcounting,
   undercounting,
 } from "./rules";
-import { computeAllTilings } from "./tiling";
+import { findAllMinimalTilings } from "./tiling";
 import { computeAllStrips } from "./strips";
 
 /**
@@ -121,6 +129,35 @@ export interface SolveOptions {
 }
 
 /**
+ * Build tiling cache for all regions.
+ */
+function computeTilingCache(board: Board, cells: CellState[][]): TilingCache {
+  const size = board.grid.length;
+  const byRegion = new Map<number, RegionTiling>();
+
+  // Collect cells by region
+  const regionCells = new Map<number, Coord[]>();
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const regionId = board.grid[r][c];
+      if (!regionCells.has(regionId)) {
+        regionCells.set(regionId, []);
+      }
+      regionCells.get(regionId)!.push([r, c]);
+    }
+  }
+
+  // Compute tilings for each region
+  for (const [regionId, coords] of regionCells) {
+    const tiling = findAllMinimalTilings(coords, cells, size);
+    tiling.regionId = regionId;
+    byRegion.set(regionId, tiling);
+  }
+
+  return { byRegion };
+}
+
+/**
  * Attempt to solve a Star Battle puzzle using production rules.
  * Accepts optional onStep callback for tracing.
  */
@@ -157,7 +194,7 @@ export function solve(
     for (const { rule, level, name } of allRules) {
       // Compute caches lazily when first level 2+ rule is tried
       if (level >= 2 && !tilingCache) {
-        tilingCache = computeAllTilings(board, cells);
+        tilingCache = computeTilingCache(board, cells);
         stripCache = computeAllStrips(board, cells);
       }
 

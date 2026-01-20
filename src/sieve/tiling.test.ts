@@ -1,10 +1,6 @@
 import { describe, it, expect } from "vitest";
-import {
-  generateTileCandidates,
-  findAllMinimalTilings,
-  computeAllTilings,
-} from "./tiling";
-import { Board, CellState, Coord, Tile, TilingCache } from "./types";
+import { generateTileCandidates, findAllMinimalTilings } from "./tiling";
+import { CellState, Coord, Tile } from "./types";
 
 /**
  * Tiling Algorithm Tests
@@ -503,83 +499,3 @@ describe("4. Spec Examples", () => {
   });
 });
 
-describe("5. Tiling Cache", () => {
-  const makeBoard = (): Board => ({
-    grid: [
-      [0, 0, 1, 1],
-      [0, 0, 1, 1],
-      [2, 2, 3, 3],
-      [2, 2, 3, 3],
-    ],
-    stars: 1,
-  });
-
-  const makeGrid = (): CellState[][] => [
-    ["unknown", "unknown", "unknown", "unknown"],
-    ["unknown", "unknown", "unknown", "unknown"],
-    ["unknown", "unknown", "unknown", "unknown"],
-    ["unknown", "unknown", "unknown", "unknown"],
-  ];
-
-  it("5.1 caches tilings for regions, row pairs, and column pairs", () => {
-    const cache = computeAllTilings(makeBoard(), makeGrid());
-
-    // 4 regions (0, 1, 2, 3)
-    expect(cache.byRegion.size).toBe(4);
-    for (let i = 0; i < 4; i++) {
-      expect(cache.byRegion.has(i)).toBe(true);
-    }
-
-    // 3 row pairs (0-1, 1-2, 2-3)
-    expect(cache.byRowPair.size).toBe(3);
-    for (let i = 0; i < 3; i++) {
-      expect(cache.byRowPair.has(i)).toBe(true);
-    }
-
-    // 3 col pairs (0-1, 1-2, 2-3)
-    expect(cache.byColPair.size).toBe(3);
-    for (let i = 0; i < 3; i++) {
-      expect(cache.byColPair.has(i)).toBe(true);
-    }
-  });
-
-  it("5.2 cached region values match direct computation", () => {
-    const board = makeBoard();
-    const cells = makeGrid();
-    const cache = computeAllTilings(board, cells);
-
-    // Extract region 0 cells
-    const region0Cells: Coord[] = [];
-    for (let r = 0; r < 4; r++) {
-      for (let c = 0; c < 4; c++) {
-        if (board.grid[r][c] === 0) {
-          region0Cells.push([r, c]);
-        }
-      }
-    }
-
-    const direct = findAllMinimalTilings(region0Cells, cells, 4);
-    const cached = cache.byRegion.get(0)!;
-
-    expect(cached.minTileCount).toBe(direct.minTileCount);
-    expect(cached.allMinimalTilings.length).toBe(direct.allMinimalTilings.length);
-  });
-
-  it("5.3 respects cell state in cache", () => {
-    const board = makeBoard();
-    const cells: CellState[][] = [
-      ["star", "marked", "unknown", "unknown"],
-      ["marked", "marked", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-    ];
-
-    const cache = computeAllTilings(board, cells);
-
-    // Region 0 has no unknown cells - nothing to tile
-    const region0 = cache.byRegion.get(0)!;
-    expect(region0.minTileCount).toBe(0);
-    expect(region0.allMinimalTilings).toHaveLength(1);
-    expect(region0.allMinimalTilings[0]).toHaveLength(0);
-  });
-});

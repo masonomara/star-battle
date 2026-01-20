@@ -43,8 +43,6 @@ export type RegionTiling = {
 // Cache of all region tilings for the current board state
 export type TilingCache = {
   byRegion: Map<number, RegionTiling>;
-  byRowPair: Map<number, RegionTiling>; // key = first row index
-  byColPair: Map<number, RegionTiling>; // key = first col index
 };
 
 // A 1×n (horizontal) or n×1 (vertical) strip of unknown cells within a single region
