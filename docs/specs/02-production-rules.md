@@ -93,13 +93,23 @@ Undercounting occurs when a collection of n regions is completely contained with
 
 Overcounting is equivalent to undercounting from the opposite direction, but may be easier to spot in some situations. Overcounting occurs when a collection of n regions completely contains n rows (or columns). In such cases, the stars in those regions must be in those n rows (or columns). This allows marking the cells of each region that lie outside the n rows (or columns). For example:
 
-### 12. Finned Counts
+### 12. The Squeeze
+
+A squeeze refers to minimally tiling 2×2s across pairs of consecutive rows (or columns) where every star can be accounted for. While squeezes can be thought of as a special case of forming composite regions, they deserve separate acknowledgment given how impactful and easy-to-spot they can be. In 2★, we're specifically looking to minimally tile a pair of rows (or columns)—typically ones with existing blocks of marks—with four 2×2s. In the following 2★ example, we can squeeze four 2×2s across the middle pair of columns and get some marks from excluding one of the star-containing-2×2s:
+
+In a more extreme—but not uncommon—2★ example, a squeeze (and subsequent chain of exclusions) can identify all four stars in the pair of columns below:
+
+Even if a squeeze doesn't readily produce stars or marks, identifying several star-containing-2×2s is valuable information. For example, the results from the following (2★) column-wise squeezes account for all four stars in the bottom two rows. This lets us mark the remainder of those rows (highlighted in grey):
+
+In a similar vein, the information from the following (2★) squeeze accounts for both stars in the middle region. This lets us mark the remainder of that region (highlighted in grey):
+
+### 13. Finned Counts
 
 When trying to spot undercounting, regions will inevitably just barely exceed the necessary conditions. If placing a star in a cell would create an undercounting scenario across rows (or columns) containing that cell, it would force too many stars into the undercounted rows (or columns), and thus can be marked. In the following example, if the marked cells contained stars, it would create an undercounting situation that would have marked those same cells:
 
 Looking from the other direction, we can similarly spot finned overcounting. If placing a star in a cell would create an overcounting scenario across rows (or columns) that do not contain that cell but include that cell's region, it would force too few stars into the overcounted rows (or columns), and thus can be marked. For example, if the following marked cells contained a star, it would create an overcounting scenario that would have marked those same cells:
 
-### 13. Composite Regions
+### 14. Composite Regions
 
 The previous examples relied on conveniently-located regions. In all other cases, we count the regions we can and treat what's left as "composite regions" with a known star count. In the following 2★ example, three large regions are contained within five rows. This accounts for six out of ten stars, meaning the remaining area—regardless of specified regions—can be treated as a composite region containing four stars (highlighted in green):
 
@@ -112,16 +122,6 @@ From minimally tiling 2×2s, the area in red has at most two stars. The area in 
 Beyond composite regions deduced from counting, we can simply combine any regions of known star count into a composite region containing the sum of those star counts. For example, for 2★, the following two regions can be better viewed as a composite region containing four stars:
 
 This perspective shines here because the composite four-star region can be minimally tiled with four 2×2s! This gives us much more than what each region yields in isolation:
-
-### 14. The Squeeze
-
-A squeeze refers to minimally tiling 2×2s across pairs of consecutive rows (or columns) where every star can be accounted for. While squeezes can be thought of as a special case of forming composite regions, they deserve separate acknowledgment given how impactful and easy-to-spot they can be. In 2★, we're specifically looking to minimally tile a pair of rows (or columns)—typically ones with existing blocks of marks—with four 2×2s. In the following 2★ example, we can squeeze four 2×2s across the middle pair of columns and get some marks from excluding one of the star-containing-2×2s:
-
-In a more extreme—but not uncommon—2★ example, a squeeze (and subsequent chain of exclusions) can identify all four stars in the pair of columns below:
-
-Even if a squeeze doesn't readily produce stars or marks, identifying several star-containing-2×2s is valuable information. For example, the results from the following (2★) column-wise squeezes account for all four stars in the bottom two rows. This lets us mark the remainder of those rows (highlighted in grey):
-
-In a similar vein, the information from the following (2★) squeeze accounts for both stars in the middle region. This lets us mark the remainder of that region (highlighted in grey):
 
 ### Implementation Mapping
 
@@ -137,11 +137,11 @@ Maps each rule to its function name in `src/sieve/rules.ts`. Rules are applied i
 | 6. The 2×2             | `twoByTwoTiling`        | 2     | Max 1★ per 2×2; tile regions to find bounds  |
 | 7. The 1×n             | `oneByNConfinement`     | 2     | Region's ★s confined to single row/col       |
 | 8. Exclusion           | `exclusion`             | 3     | Mark cells that would make region unsolvable |
-| 9. Pressured Exclusion | `pressuredExclusion`    | 3     | Exclusion with 1×n constraints               |
+| 9. Pressured Exclusion | `pressuredExclusion`    | 4     | Exclusion with 1×n constraints               |
 | 10. Undercounting      | `undercounting`         | 4     | N regions in N rows → ★s must be in regions  |
 | 11. Overcounting       | `overcounting`          | 4     | N regions contain N rows → ★s in those rows  |
-| 12. Finned Counts      | `finnedCounts`          | 4     | Cells that would create under/overcounting   |
-| 13. Composite Regions  | `compositeRegions`      | 5     | Combine regions with known ★ counts          |
-| 14. The Squeeze        | `squeeze`               | 5     | Tile row/col pairs to find ★-containing 2×2s |
+| 12. The Squeeze        | `squeeze`               | 4     | Tile row/col pairs to find ★-containing 2×2s |
+| 13. Finned Counts      | `finnedCounts`          | 5     | Cells that would create under/overcounting   |
+| 14. Composite Regions  | `compositeRegions`      | 5     | Combine regions with known ★ counts          |
 
 **Level** indicates rule complexity (1 = simplest, 5 = most advanced). The solver tries simpler rules first and only uses advanced rules when stuck. A puzzle's difficulty score is derived from the highest level rule required to solve it.
