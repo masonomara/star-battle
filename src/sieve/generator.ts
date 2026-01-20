@@ -1,17 +1,13 @@
 import { Board } from "./types";
 
-// Linear Congruential Generator - deterministic RNG from seed
-function lcg(seed: number): () => number {
+// Generate board layout from seed
+export function layout(size: number, stars: number, seed: number): Board {
+  // LCG for deterministic randomness
   let s = seed;
-  return () => {
+  const rng = () => {
     s = (s * 1103515245 + 12345) & 0x7fffffff;
     return s / 0x7fffffff;
   };
-}
-
-// Generate board layout from seed
-export function layout(size: number, stars: number, seed: number): Board {
-  const rng = lcg(seed);
   const grid: number[][] = Array.from({ length: size }, () =>
     Array.from({ length: size }, () => -1),
   );
@@ -33,7 +29,7 @@ export function layout(size: number, stars: number, seed: number): Board {
       for (let col = 0; col < size; col++) {
         if (grid[row][col] !== -1) continue;
 
-        const neighbors: number[] = [];
+        const neighbors = [];
         if (row > 0 && grid[row - 1][col] !== -1)
           neighbors.push(grid[row - 1][col]);
         if (row < size - 1 && grid[row + 1][col] !== -1)

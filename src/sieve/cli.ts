@@ -23,29 +23,45 @@ function parseArgs(): Record<string, string> {
 
 function main() {
   const args = parseArgs();
+  const count = args.count ? parseInt(args.count, 10) : 1;
 
-  const options = {
+  console.log("Options:", {
+    size: args.size ? parseInt(args.size, 10) : 10,
+    stars: args.stars ? parseInt(args.stars, 10) : 2,
+    count,
+    seed: args.seed ? parseInt(args.seed, 10) : undefined,
+    mode: args.mode ?? "puzzle",
+  });
+  console.log("---");
+
+  const result = sieve({
     size: args.size ? parseInt(args.size, 10) : undefined,
     stars: args.stars ? parseInt(args.stars, 10) : undefined,
     count: args.count ? parseInt(args.count, 10) : undefined,
     seed: args.seed ? parseInt(args.seed, 10) : undefined,
     mode: args.mode as "puzzle" | "board" | undefined,
-  };
-
-  const result = sieve(options);
-
-  console.log("Options:", options);
-  console.log("---");
+    onProgress: (solved, generated) => {
+      process.stdout.write(`\rGenerated: ${generated} | Solved: ${solved}`);
+    },
+  });
 
   if ("puzzles" in result) {
-    console.log(`Generated ${result.puzzles.length} puzzle(s) in ${result.attempts} attempts\n`);
-    for (const puzzle of result.puzzles) {
-      console.log(`Seed: ${puzzle.seed}`);
-      console.log(
-        `Difficulty: ${puzzle.difficulty} (cycles: ${puzzle.cycles}, maxLevel: ${puzzle.maxLevel})`,
-      );
-      printBoard(puzzle.board.grid);
+    console.log(
+      `\nGenerated: ${result.attempts} | Solved: ${result.puzzles.length}`,
+    );
+    if (result.puzzles.length === 0) {
+      console.log("\nNo solvable puzzles found (max attempts reached)");
+      console.log("Try smaller grid or fewer stars, or add more solver rules");
+    } else {
       console.log("");
+      for (const puzzle of result.puzzles) {
+        console.log(`Seed: ${puzzle.seed}`);
+        console.log(
+          `Difficulty: ${puzzle.difficulty} (cycles: ${puzzle.cycles}, maxLevel: ${puzzle.maxLevel})`,
+        );
+        printBoard(puzzle.board.grid);
+        console.log("");
+      }
     }
   } else if ("boards" in result) {
     console.log(`Generated ${result.boards.length} board(s):\n`);

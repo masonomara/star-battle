@@ -28,6 +28,7 @@ type SieveOptions = {
   count?: number;
   seed?: number;
   mode?: "puzzle" | "board";
+  onProgress?: (solved: number, generated: number) => void;
 };
 
 type BoardResult = { board: Board; seed: number };
@@ -64,16 +65,18 @@ export function sieve(options: SieveOptions = {}): SieveResult {
   }
 
   // Puzzle mode: generate and solve until we have enough valid puzzles
+  const maxAttempts = 100000;
   const puzzles: Puzzle[] = [];
-  let attempts = 0;
-  while (puzzles.length < count) {
-    attempts++;
+  let generated = 0;
+  while (puzzles.length < count && generated < maxAttempts) {
+    generated++;
     const seed = randomSeed();
     const board = layout(size, stars, seed);
     const solution = solve(board, seed);
     if (solution) {
       puzzles.push(assignDifficulty(solution));
     }
+    options.onProgress?.(puzzles.length, generated);
   }
-  return { puzzles, attempts };
+  return { puzzles, attempts: generated };
 }
