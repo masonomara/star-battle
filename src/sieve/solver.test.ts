@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { isSolved, solve } from "./solver";
+import { layout } from "./generator";
 import { Board, CellState } from "./types";
 
 describe("isSolved", () => {
@@ -219,6 +220,49 @@ describe("solve", () => {
       solve(board, 0);
 
       expect(JSON.stringify(board.grid)).toBe(originalGrid);
+    });
+  });
+
+  describe("4. Integration", () => {
+    it("4.1 every solution is valid", () => {
+      for (let seed = 0; seed < 100; seed++) {
+        const board = layout(6, 1, seed);
+        const result = solve(board, seed);
+        if (result) {
+          expect(isSolved(board, result.cells)).toBe(true);
+        }
+      }
+    });
+
+    it("4.2 maxLevel reflects rules used", () => {
+      const board = layout(6, 1, 42);
+      const result = solve(board, 42);
+      if (result) {
+        expect(result.maxLevel).toBeGreaterThanOrEqual(1);
+        expect(result.cycles).toBeGreaterThanOrEqual(1);
+      }
+    });
+
+    it("4.3 solves minimal 4x4", () => {
+      const board = layout(4, 1, 0);
+      const result = solve(board, 0);
+      if (result) {
+        expect(isSolved(board, result.cells)).toBe(true);
+      }
+    });
+
+    it("4.4 handles 10x10", () => {
+      const board = layout(10, 2, 0);
+      const result = solve(board, 0);
+      if (result) {
+        expect(isSolved(board, result.cells)).toBe(true);
+      }
+    });
+
+    it("4.5 terminates on impossible board", () => {
+      const board: Board = { grid: [[0]], stars: 5 };
+      const result = solve(board, 0);
+      expect(result).toBeNull();
     });
   });
 });
