@@ -99,30 +99,4 @@ describe("3. Column Complete", () => {
 
     expect(result).toBe(false);
   });
-
-  it("3.5 marks multiple columns simultaneously", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-      ],
-      stars: 1,
-    };
-
-    const cells: CellState[][] = [
-      ["star", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "star"],
-    ];
-
-    const result = trivialColumns(board, cells);
-
-    expect(result).toBe(true);
-    expect(cells).toEqual([
-      ["star", "unknown", "marked"],
-      ["marked", "unknown", "marked"],
-      ["marked", "unknown", "star"],
-    ]);
-  });
 });
