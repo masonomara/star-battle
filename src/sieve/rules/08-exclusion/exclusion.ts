@@ -51,7 +51,7 @@ export default function exclusion(
 
     const temp = cells.map((r) => [...r]);
     temp[row][col] = "star";
-    markNeighbors(temp, row, col);
+    markNeighbors(temp, row, col, size);
 
     for (const [regionId, { coords, needed }] of tight) {
       const inRegion = board.grid[row][col] === regionId;

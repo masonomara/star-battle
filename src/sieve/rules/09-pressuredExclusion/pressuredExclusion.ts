@@ -46,7 +46,7 @@ export default function pressuredExclusion(
   for (const [fr, fc] of candidates) {
     const temp = cells.map((row) => [...row]);
     temp[fr][fc] = "star";
-    markNeighbors(temp, fr, fc);
+    markNeighbors(temp, fr, fc, size);
 
     for (const [regionId, coords] of regions) {
       const existing = regionStars.get(regionId) ?? 0;
