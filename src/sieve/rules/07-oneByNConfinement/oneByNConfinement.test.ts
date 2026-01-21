@@ -425,10 +425,9 @@ describe("7. The 1×n Confinement", () => {
       expect(cells.flat().every((c) => c === "unknown")).toBe(true);
     });
 
-    it("7.6.2 returns false when contributions < row quota", () => {
+    it("7.6.2 marks remainder when confined region meets row quota", () => {
       // Region 1 confined to row 1, contributes 1 star
-      // Row 1 needs 2 stars, but only 1 confined region contributing 1
-      // total (1) < quota (2) → no marks
+      // Row 1 needs 1 star, region 1 provides it → mark remainder of row 1
       const board: Board = {
         grid: [
           [0, 0, 0, 0, 0, 0],
@@ -452,14 +451,7 @@ describe("7. The 1×n Confinement", () => {
         computeAllStrips(board, cells),
       );
 
-      // Region 1 confined to row 1, contributes 1 star
-      // Region 2 spans multiple rows (not confined)
-      // Row 1 needs 1 star, region 1 contributes 1 → should mark remainder
-      // Wait, this WILL mark since 1 >= 1. Let me adjust to show no-mark case.
-      // Actually with stars=1, row needs 1, region contributes 1, so it marks.
-      // For true partial: need row quota > contributions
-      // This is hard because confined regions by definition have all their stars in one row
-      expect(result).toBe(true); // Region 1 fills the quota
+      expect(result).toBe(true);
     });
 
     it("7.6.3 marks remainder when confined region fills row quota", () => {

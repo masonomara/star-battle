@@ -132,21 +132,9 @@ describe("8. Exclusion", () => {
     });
 
     it("8.2.2 marks external cell adjacent to tight 1×2 region", () => {
-      // Region 0: 2 adjacent cells needing 2 stars (but adjacent cells can't both have stars)
-      // This is actually unsolvable, but the exclusion rule should find the problem
-      // Using a 1×2 horizontal strip: cells at (0,1) and (0,2)
-      // minTiles=1, stars=2 → NOT tight (minTiles < stars) → won't be processed
-      // Let's use a contiguous 2×2 region instead to make it tight
-      //
-      // Actually, let's test a simpler case: a 2-cell horizontal strip where stars=1
-      // Region 0: cells (0,1), (0,2) in a row
-      // minTiles=1, stars=1 → TIGHT
-      // External cell (1,1) or (1,2) if starred would mark one region cell
-      // But that still leaves capacity for 0 more stars (we placed 1 hypothetically)
-      // So this won't trigger exclusion either.
-      //
-      // The most reliable test is single-cell regions (tested in 8.2.1)
-      // For this test, verify basic functionality with a different tight setup
+      // Region 0: 1×2 horizontal strip at [0,0],[0,1], minTiles=1, stars=1 → TIGHT
+      // External cells [1,0] and [1,1] are adjacent to BOTH region cells
+      // Placing a star there marks both region cells, leaving 0 capacity for 1 star
       const board: Board = {
         grid: [
           [0, 0, 1, 1],
@@ -165,16 +153,8 @@ describe("8. Exclusion", () => {
 
       const result = exclusion(board, cells);
 
-      // 2×1 region at [0,0],[0,1]: minTiles=1, stars=1 → TIGHT
-      // External cell [1,0] is adjacent to BOTH region cells
-      // Placing a star at [1,0] marks both [0,0] and [0,1], leaving region with 0 capacity but needing 1 star
-      // So [1,0] (and [1,1]) should be excluded
       expect(result).toBe(true);
-      // Check that one of the external cells adjacent to both region cells is marked
-      const externalCellsAdjacentToBoth = [
-        cells[1][0], // adjacent to [0,0] and [0,1]
-        cells[1][1], // adjacent to [0,0] and [0,1]
-      ];
+      const externalCellsAdjacentToBoth = [cells[1][0], cells[1][1]];
       expect(externalCellsAdjacentToBoth.some((c) => c === "marked")).toBe(
         true,
       );
