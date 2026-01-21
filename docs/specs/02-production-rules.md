@@ -103,11 +103,19 @@ Overcounting is equivalent to undercounting from the opposite direction, but may
 
 A squeeze refers to minimally tiling 2×2s across pairs of consecutive rows (or columns) where every star can be accounted for. While squeezes can be thought of as a special case of forming composite regions, they deserve separate acknowledgment given how impactful and easy-to-spot they can be. In 2★, we're specifically looking to minimally tile a pair of rows (or columns)—typically ones with existing blocks of marks—with four 2×2s. In the following 2★ example, we can squeeze four 2×2s across the middle pair of columns and get some marks from excluding one of the star-containing-2×2s:
 
+![Squeeze 1](/docs/specs/images/squeeze_1.png)
+
 In a more extreme—but not uncommon—2★ example, a squeeze (and subsequent chain of exclusions) can identify all four stars in the pair of columns below:
+
+![Squeeze 2](/docs/specs/images/squeeze_2.png)
 
 Even if a squeeze doesn't readily produce stars or marks, identifying several star-containing-2×2s is valuable information. For example, the results from the following (2★) column-wise squeezes account for all four stars in the bottom two rows. This lets us mark the remainder of those rows (highlighted in grey):
 
+![Squeeze 3](/docs/specs/images/squeeze_3.png)
+
 In a similar vein, the information from the following (2★) squeeze accounts for both stars in the middle region. This lets us mark the remainder of that region (highlighted in grey):
+
+![Squeeze 4](/docs/specs/images/squeeze_4.png)
 
 ### 13. Finned Counts
 
