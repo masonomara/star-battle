@@ -1,4 +1,4 @@
-import buildRegions from "../../helpers/regions";
+import { getRegionCoords } from "../../helpers/regions";
 import { Board, CellState, Coord } from "../../helpers/types";
 
 function hasAdjacentPair(coords: Coord[]): boolean {
@@ -14,54 +14,28 @@ function hasAdjacentPair(coords: Coord[]): boolean {
   return false;
 }
 
+function* allConstraints(board: Board): Generator<Coord[]> {
+  const size = board.grid.length;
+
+  for (let row = 0; row < size; row++) {
+    yield Array.from({ length: size }, (_, c) => [row, c] as Coord);
+  }
+
+  for (let col = 0; col < size; col++) {
+    yield Array.from({ length: size }, (_, r) => [r, col] as Coord);
+  }
+
+  yield* getRegionCoords(board.grid);
+}
+
 export default function forcedPlacement(
   board: Board,
   cells: CellState[][],
 ): boolean {
-  const size = board.grid.length;
-
-  for (let row = 0; row < size; row++) {
+  for (const constraint of allConstraints(board)) {
     let stars = 0;
     const unknowns: Coord[] = [];
-    for (let c = 0; c < size; c++) {
-      if (cells[row][c] === "star") stars++;
-      else if (cells[row][c] === "unknown") unknowns.push([row, c]);
-    }
-    const needed = board.stars - stars;
-    if (
-      needed > 0 &&
-      unknowns.length === needed &&
-      !hasAdjacentPair(unknowns)
-    ) {
-      const [r, c] = unknowns[0];
-      cells[r][c] = "star";
-      return true;
-    }
-  }
-
-  for (let col = 0; col < size; col++) {
-    let stars = 0;
-    const unknowns: Coord[] = [];
-    for (let r = 0; r < size; r++) {
-      if (cells[r][col] === "star") stars++;
-      else if (cells[r][col] === "unknown") unknowns.push([r, col]);
-    }
-    const needed = board.stars - stars;
-    if (
-      needed > 0 &&
-      unknowns.length === needed &&
-      !hasAdjacentPair(unknowns)
-    ) {
-      const [r, c] = unknowns[0];
-      cells[r][c] = "star";
-      return true;
-    }
-  }
-
-  for (const [, coords] of buildRegions(board.grid)) {
-    let stars = 0;
-    const unknowns: Coord[] = [];
-    for (const [r, c] of coords) {
+    for (const [r, c] of constraint) {
       if (cells[r][c] === "star") stars++;
       else if (cells[r][c] === "unknown") unknowns.push([r, c]);
     }
