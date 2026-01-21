@@ -1,7 +1,6 @@
-import { expect } from "vitest";
+import { describe, it, expect } from "vitest";
 import trivialRows from "./trivialRows";
 import { Board, CellState } from "../../helpers/types";
-import { describe, it } from "node:test";
 
 describe("2. Row Complete", () => {
   it("2.1 marks remaining cells when row complete (1 star)", () => {

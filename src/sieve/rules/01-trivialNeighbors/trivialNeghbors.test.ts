@@ -1,7 +1,6 @@
-import { describe, it } from "node:test";
+import { describe, it, expect } from "vitest";
 import { trivialNeighbors } from "./trivialNeighbors";
 import { Board, CellState } from "../../helpers/types";
-import { expect } from "vitest";
 
 describe("1. Star Neighbors", () => {
   it("1.1 marks all 8 neighbors", () => {

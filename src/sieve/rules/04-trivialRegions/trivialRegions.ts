@@ -1,7 +1,7 @@
 import buildRegions from "../../helpers/regions";
 import { Board, CellState } from "../../helpers/types";
 
-export function trivialRegions(board: Board, cells: CellState[][]): boolean {
+export default function trivialRegions(board: Board, cells: CellState[][]): boolean {
   let changed = false;
   for (const [, coords] of buildRegions(board.grid)) {
     let stars = 0;

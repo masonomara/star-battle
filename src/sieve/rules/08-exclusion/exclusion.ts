@@ -7,7 +7,7 @@ import {
   StripCache,
   TilingCache,
 } from "../../helpers/types";
-import markNeighbors from "../01-trivialNeighbors/trivialNeighbors";
+import { markNeighbors } from "../01-trivialNeighbors/trivialNeighbors";
 
 const key = (r: number, c: number) => `${r},${c}`;
 

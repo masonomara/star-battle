@@ -1,6 +1,6 @@
 import { Board, CellState } from "../../helpers/types";
 
-export default function markNeighbors(
+export function markNeighbors(
   cells: CellState[][],
   row: number,
   col: number,
@@ -24,7 +24,10 @@ export default function markNeighbors(
   return changed;
 }
 
-export function trivialNeighbors(board: Board, cells: CellState[][]): boolean {
+export default function trivialNeighbors(
+  board: Board,
+  cells: CellState[][],
+): boolean {
   const size = board.grid.length;
   let changed = false;
   for (let r = 0; r < size; r++) {

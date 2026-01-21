@@ -7,21 +7,19 @@ import {
   StripCache,
   TilingCache,
 } from "./helpers/types";
-import {
-  forcedPlacement,
-  twoByTwoTiling,
-  oneByNConfinement,
-  pressuredExclusion,
-  overcounting,
-  undercounting,
-} from "./rules/rules";
 import { findAllMinimalTilings } from "./helpers/tiling";
 import { computeAllStrips } from "./helpers/strips";
-import exclusion from "./rules/exclusion/exclusion";
-import { trivialNeighbors } from "./rules/01-trivialNeighbors/trivialNeighbors";
+import trivialNeighbors from "./rules/01-trivialNeighbors/trivialNeighbors";
 import trivialRows from "./rules/02-trivialRows/trivialRows";
 import trivialColumns from "./rules/03-trivialColumns/trivialColumns";
-import { trivialRegions } from "./rules/04-trivialRegions/trivialRegions";
+import trivialRegions from "./rules/04-trivialRegions/trivialRegions";
+import forcedPlacement from "./rules/05-forcedPlacement/forcedPlacement";
+import twoByTwoTiling from "./rules/06-twoByTwoTiling/tiling";
+import oneByNConfinement from "./rules/07-oneByNConfinement/oneByNConfinement";
+import exclusion from "./rules/08-exclusion/exclusion";
+import { pressuredExclusion } from "./rules/09-pressuredExclusion/pressuredExclusion";
+import { overcounting } from "./rules/11-overcounting/overcounting";
+import { undercounting } from "./rules/10-undercounting/undercounting";
 
 /**
  * Check if a board layout is valid before attempting to solve.
