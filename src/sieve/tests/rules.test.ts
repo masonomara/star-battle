@@ -3189,7 +3189,10 @@ describe("8. Exclusion", () => {
         [0, 1],
         [0, 2],
       ];
-      byRegion.set(0, findAllMinimalTilings(region0Coords, cellsWithCache, size));
+      byRegion.set(
+        0,
+        findAllMinimalTilings(region0Coords, cellsWithCache, size),
+      );
 
       // Region 1: rest
       const region1Coords: Coord[] = [];
@@ -3198,7 +3201,10 @@ describe("8. Exclusion", () => {
           if (board.grid[r][c] === 1) region1Coords.push([r, c]);
         }
       }
-      byRegion.set(1, findAllMinimalTilings(region1Coords, cellsWithCache, size));
+      byRegion.set(
+        1,
+        findAllMinimalTilings(region1Coords, cellsWithCache, size),
+      );
 
       const tilingCache = { byRegion };
       const resultWithCache = exclusion(board, cellsWithCache, tilingCache);
@@ -3425,7 +3431,8 @@ describe("9. Pressured Exclusion", () => {
 
     expect(result).toBe(true);
     // (1,0) or (1,1) should be marked - they neighbor region 0's only cells
-    const neighborsMarked = cells[1][0] === "marked" || cells[1][1] === "marked";
+    const neighborsMarked =
+      cells[1][0] === "marked" || cells[1][1] === "marked";
     expect(neighborsMarked).toBe(true);
   });
 
@@ -3501,7 +3508,9 @@ describe("9. Pressured Exclusion", () => {
     // A faux star at (2,2) would mark (2,3), leaving region 2 with 0 unknowns
     // Or similar cascade logic should apply
     if (result) {
-      expect(cells.flat().filter((c) => c === "marked").length).toBeGreaterThan(2);
+      expect(cells.flat().filter((c) => c === "marked").length).toBeGreaterThan(
+        2,
+      );
     }
   });
 
@@ -4398,10 +4407,46 @@ describe("12. The Squeeze", () => {
       };
       // Create marks that force squeeze pattern
       const cells: CellState[][] = [
-        ["unknown", "unknown", "marked", "marked", "marked", "marked", "unknown", "unknown"],
-        ["unknown", "unknown", "marked", "marked", "marked", "marked", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        [
+          "unknown",
+          "unknown",
+          "marked",
+          "marked",
+          "marked",
+          "marked",
+          "unknown",
+          "unknown",
+        ],
+        [
+          "unknown",
+          "unknown",
+          "marked",
+          "marked",
+          "marked",
+          "marked",
+          "unknown",
+          "unknown",
+        ],
+        [
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
+        [
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
       ];
 
       const result = squeeze(board, cells);
@@ -4424,10 +4469,46 @@ describe("12. The Squeeze", () => {
         stars: 2,
       };
       const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        [
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
+        [
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
+        [
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
+        [
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
       ];
 
       const result = squeeze(board, cells);
@@ -4516,6 +4597,44 @@ describe("12. The Squeeze", () => {
 
       // Should mark cells outside the star-containing 2×2s
       expect(typeof result).toBe("boolean");
+    });
+    it("12.2.2 marks from excluding a start-containing 2x2", () => {
+      // Per spec: "squeezes account for all four stars in the bottom two rows"
+      // "This lets us mark the remainder of those rows"
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = squeeze(board, cells);
+
+      // Should mark cells outside the star-containing 2×2s
+      expect(typeof result).toBe("boolean");
+      expect(cells[7][3]).toBe("marked");
+      expect(cells[8][3]).toBe("marked");
     });
   });
 
@@ -5047,12 +5166,72 @@ describe("14. Composite Regions", () => {
         stars: 3,
       };
       const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        [
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
+        [
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
+        [
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
+        [
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
+        [
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
+        [
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+          "unknown",
+        ],
       ];
 
       const result = compositeRegions(board, cells);
