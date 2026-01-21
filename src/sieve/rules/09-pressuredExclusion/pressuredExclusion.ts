@@ -11,7 +11,7 @@ import { markNeighbors } from "../01-trivialNeighbors/trivialNeighbors";
 
 const key = (r: number, c: number) => `${r},${c}`;
 
-export function pressuredExclusion(
+export default function pressuredExclusion(
   board: Board,
   cells: CellState[][],
   tilingCache?: TilingCache,

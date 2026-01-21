@@ -12,8 +12,6 @@
 
 | Line | Issue | Reviewer | Severity |
 |------|-------|----------|----------|
-| 37 | **Seed reuse bug**: When `options.seed` is provided, same seed used every iteration — generates identical boards repeatedly | Christian | HIGH |
-| 44 | **Empty catch block**: Silently swallows all errors including TypeError, ReferenceError — masks bugs | Christian, Marcus | HIGH |
 | 11-14 | `assignDifficulty` formula (`levelBase + cycleBonus`) is magic — the "why" is unclear | Wei | LOW |
 | — | `sieve()` returns `Puzzle[]` but when `seed` is provided, always returns 0 or 1 puzzle — confusing API | Carlos | MEDIUM |
 
@@ -38,8 +36,6 @@
 
 | Line | Issue | Reviewer | Severity |
 |------|-------|----------|----------|
-| 12-13 | **Argument parsing fragility**: Comma operator is obscure; `--size` without value consumes next flag | Christian | MEDIUM |
-| 28-31 | **No input validation**: `parseInt` without bounds checking — large values cause memory exhaustion | Christian | MEDIUM |
 | 90 | ANSI escape codes assume terminal support — could garble output in non-ANSI terminals | Christian | LOW |
 | 85-94 | `printCellStateWithDiff` mixes concerns: display + diff + ANSI formatting | Wei | LOW |
 | — | No validation that `size >= stars` (required for valid puzzles) | Marcus | MEDIUM |
@@ -130,9 +126,7 @@
 ## Priority Summary
 
 ### Must Fix
-1. `sieve.ts:37` — Seed reuse bug
-2. `sieve.ts:44` — Empty catch swallows errors
-3. `cli.ts:28-31` — Input validation for bounds
+1. `cli.ts:28-31` — Input validation for bounds
 
 ### Should Fix
 4. `generator.ts:18` — Guard `size <= 0`

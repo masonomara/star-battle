@@ -1,7 +1,7 @@
 import { Board, CellState, Coord } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
-import twoByTwoTiling from "./tiling";
 import { findAllMinimalTilings } from "../../helpers/tiling";
+import twoByTwoTiling from "./twoByTwoTiling";
 
 describe("6. The 2×2 Tiling", () => {
   describe("6.1 Single-cell tile forces star", () => {

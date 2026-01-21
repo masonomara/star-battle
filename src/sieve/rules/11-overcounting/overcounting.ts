@@ -1,7 +1,7 @@
 import buildRegions from "../../helpers/regions";
 import { Board, CellState } from "../../helpers/types";
 
-export function overcounting(board: Board, cells: CellState[][]): boolean {
+export default function overcounting(board: Board, cells: CellState[][]): boolean {
   const size = board.grid.length;
   let changed = false;
 

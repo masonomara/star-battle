@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Board, CellState } from "../../helpers/types";
-import { overcounting } from "./overcounting";
+import overcounting from "./overcounting";
 
 describe("11. Overcounting", () => {
   // Overcounting: N regions completely CONTAIN N rows/cols

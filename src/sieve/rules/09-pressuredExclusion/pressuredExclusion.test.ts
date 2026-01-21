@@ -1,7 +1,7 @@
 import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
 import { computeAllStrips } from "../../helpers/strips";
-import { pressuredExclusion } from "./pressuredExclusion";
+import pressuredExclusion from "./pressuredExclusion";
 
 describe("9. Pressured Exclusion", () => {
   // Pressured exclusion places faux stars on strip cells and checks if ANY

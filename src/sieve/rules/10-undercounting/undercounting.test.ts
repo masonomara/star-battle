@@ -1,6 +1,6 @@
 import { Board, CellState, Coord } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
-import { undercounting } from "./undercounting";
+import undercounting from "./undercounting";
 
 describe("10. Undercounting", () => {
   // Undercounting: N regions completely contained within N rows/cols

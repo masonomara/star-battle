@@ -1,6 +1,6 @@
 import { Board, CellState } from "../../helpers/types";
 
-export function undercounting(board: Board, cells: CellState[][]): boolean {
+export default function undercounting(board: Board, cells: CellState[][]): boolean {
   const size = board.grid.length;
   let changed = false;
 
