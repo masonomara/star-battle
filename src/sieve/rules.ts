@@ -710,3 +710,64 @@ export function overcounting(board: Board, cells: CellState[][]): boolean {
 
   return changed;
 }
+
+/**
+ * Rule 12: The Squeeze
+ * Tile pairs of consecutive rows (or columns) with 2×2s where every star can be accounted for.
+ * In 2★, look to tile a pair of rows/columns with exactly four 2×2s.
+ * Each 2×2 contains exactly one star, which can chain with exclusion to produce marks.
+ *
+ * NOT YET IMPLEMENTED - stub for TDD
+ */
+export function squeeze(
+  _board: Board,
+  _cells: CellState[][],
+  _tilingCache?: TilingCache,
+): boolean {
+  // TODO: Implement squeeze rule
+  // 1. For each pair of consecutive rows, check if they can be tiled with exactly (stars * 2) 2×2s
+  // 2. If so, each 2×2 contains exactly one star
+  // 3. Use this info to mark cells or chain with exclusion
+  return false;
+}
+
+/**
+ * Rule 13: Finned Counts
+ * Mark cells where placing a star would create an under/overcounting scenario.
+ * "If placing a star in a cell would create an undercounting scenario...it can be marked"
+ * "If placing a star in a cell would create an overcounting scenario...it can be marked"
+ *
+ * NOT YET IMPLEMENTED - stub for TDD
+ */
+export function finnedCounts(
+  _board: Board,
+  _cells: CellState[][],
+): boolean {
+  // TODO: Implement finned counts rule
+  // 1. For each unknown cell, simulate placing a star
+  // 2. Check if this creates an undercounting scenario (N regions in N rows)
+  // 3. Check if this creates an overcounting scenario (N regions contain N rows)
+  // 4. If either, mark the cell
+  return false;
+}
+
+/**
+ * Rule 14: Composite Regions
+ * Combine regions with known star counts into composite regions.
+ * Per spec: "treat what's left as composite regions with a known star count"
+ * "we can simply combine any regions of known star count into a composite region"
+ *
+ * NOT YET IMPLEMENTED - stub for TDD
+ */
+export function compositeRegions(
+  _board: Board,
+  _cells: CellState[][],
+  _tilingCache?: TilingCache,
+): boolean {
+  // TODO: Implement composite regions rule
+  // 1. Identify regions that can be combined (adjacent, or remainder after counting)
+  // 2. Calculate combined star count
+  // 3. Tile the composite region to find marks
+  // 4. Mark cells outside the composite that can't contain stars
+  return false;
+}
