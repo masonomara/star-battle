@@ -33,19 +33,24 @@ export function sieve(options: SieveOptions = {}): Puzzle[] {
   let attempts = 0;
 
   while (puzzles.length < count && attempts < maxAttempts) {
+    const seed = options.seed !== undefined
+      ? options.seed + attempts
+      : randomSeed();
     attempts++;
-    const seed = options.seed ?? randomSeed();
     try {
       const board = layout(size, stars, seed);
       const solution = solve(board, seed);
       if (solution) {
         puzzles.push(assignDifficulty(solution));
       }
-    } catch {
-      // Bad seed (layout stuck or other error), try another
+    } catch (e) {
+      // Re-throw programming errors; swallow only expected generation failures
+      if (e instanceof TypeError || e instanceof ReferenceError) {
+        throw e;
+      }
+      // Bad seed (layout stuck), try another
     }
     options.onProgress?.(puzzles.length, attempts);
-    if (options.seed !== undefined) break;
   }
 
   return puzzles;

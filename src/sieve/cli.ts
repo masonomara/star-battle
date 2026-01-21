@@ -9,8 +9,13 @@ function parseArgs(): Record<string, string> {
   for (let i = 0; i < argv.length; i++) {
     if (argv[i].startsWith("--")) {
       const key = argv[i].slice(2);
-      const value = argv[i + 1];
-      args[key] = value && !value.startsWith("--") ? (i++, value) : "true";
+      const nextArg = argv[i + 1];
+      if (nextArg && !nextArg.startsWith("--")) {
+        args[key] = nextArg;
+        i++;
+      } else {
+        args[key] = "true";
+      }
     }
   }
   return args;
@@ -29,6 +34,19 @@ function main() {
   const stars = args.stars ? parseInt(args.stars, 10) : 2;
   const count = args.count ? parseInt(args.count, 10) : 1;
   const seed = args.seed ? parseInt(args.seed, 10) : undefined;
+
+  if (size < 4 || size > 25 || !Number.isFinite(size)) {
+    console.error("Error: size must be between 4 and 20");
+    process.exit(1);
+  }
+  if (stars < 1 || stars > 6 || !Number.isFinite(stars)) {
+    console.error("Error: stars must be between 1 and 4");
+    process.exit(1);
+  }
+  if (count < 1 || count > 300 || !Number.isFinite(count)) {
+    console.error("Error: count must be between 1 and 1000");
+    process.exit(1);
+  }
 
   console.log(
     `${size}×${size}, ${stars} stars${seed !== undefined ? `, seed ${seed}` : ""}\n`,
@@ -82,7 +100,10 @@ function printBoard(grid: number[][]) {
     console.log(row.map((n) => n.toString().padStart(width)).join(" "));
 }
 
-function printCellStateWithDiff(cells: CellState[][], prev: CellState[][] | null) {
+function printCellStateWithDiff(
+  cells: CellState[][],
+  prev: CellState[][] | null,
+) {
   const sym = { unknown: ".", marked: "X", star: "★" };
   for (let r = 0; r < cells.length; r++) {
     const line = cells[r].map((c, i) => {
