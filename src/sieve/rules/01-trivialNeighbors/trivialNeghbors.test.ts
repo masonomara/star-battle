@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { trivialNeighbors } from "./trivialNeighbors";
+import trivialNeighbors from "./trivialNeighbors";
 import { Board, CellState } from "../../helpers/types";
 
 describe("1. Star Neighbors", () => {
