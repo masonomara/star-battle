@@ -1,9 +1,8 @@
 import buildRegions from "../../helpers/regions";
+import { cellKey } from "../../helpers/cellKey";
 import { findAllMinimalTilings } from "../../helpers/tiling";
 import { Board, CellState, Coord, TilingCache } from "../../helpers/types";
 import { markNeighbors } from "../01-trivialNeighbors/trivialNeighbors";
-
-const key = (r: number, c: number) => `${r},${c}`;
 
 export default function exclusion(
   board: Board,
@@ -33,14 +32,14 @@ export default function exclusion(
   const toCheck = new Set<string>();
   for (const [, { coords }] of tight) {
     for (const [r, c] of coords) {
-      toCheck.add(key(r, c));
+      toCheck.add(cellKey(r, c));
       for (let dr = -1; dr <= 1; dr++) {
         for (let dc = -1; dc <= 1; dc++) {
           if (dr === 0 && dc === 0) continue;
           const nr = r + dr,
             nc = c + dc;
           if (nr >= 0 && nr < size && nc >= 0 && nc < size)
-            toCheck.add(key(nr, nc));
+            toCheck.add(cellKey(nr, nc));
         }
       }
     }

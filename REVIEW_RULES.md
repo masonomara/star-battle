@@ -20,7 +20,6 @@
   - [Rule 10: undercounting](#rule-10-undercounting)
   - [Rule 11: overcounting](#rule-11-overcounting)
   - [Consolidated Action Items](#consolidated-action-items)
-    - [Priority 2: Consistency](#priority-2-consistency)
     - [Priority 3: Maintainability](#priority-3-maintainability)
     - [Priority 4: Performance](#priority-4-performance)
 
@@ -235,13 +234,6 @@
 ---
 
 ## Consolidated Action Items
-
-### Priority 2: Consistency
-
-| Item              | Files            | Action                          |
-| ----------------- | ---------------- | ------------------------------- |
-| Duplicate `key()` | Rules 6, 7, 8, 9 | Extract to `helpers/cellKey.ts` |
-| Unused parameters | Rules 6, 8       | Remove `_stripCache`            |
 
 ### Priority 3: Maintainability
 

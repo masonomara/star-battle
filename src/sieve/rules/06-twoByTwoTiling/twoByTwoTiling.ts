@@ -1,8 +1,7 @@
 import buildRegions from "../../helpers/regions";
+import { cellKey } from "../../helpers/cellKey";
 import { findAllMinimalTilings } from "../../helpers/tiling";
 import { Board, CellState, TilingCache } from "../../helpers/types";
-
-const key = (r: number, c: number) => `${r},${c}`;
 
 export default function twoByTwoTiling(
   board: Board,
@@ -28,11 +27,11 @@ export default function twoByTwoTiling(
 
     for (const [row, col] of coords) {
       if (cells[row][col] !== "unknown") continue;
-      const k = key(row, col);
+      const k = cellKey(row, col);
 
       const isSingle = tiling.allMinimalTilings.every((ts) => {
         const tile = ts.find((t) =>
-          t.coveredCells.some((c) => key(c[0], c[1]) === k),
+          t.coveredCells.some((c) => cellKey(c[0], c[1]) === k),
         );
         return tile && tile.coveredCells.length === 1;
       });

@@ -1,3 +1,4 @@
+import { cellKey } from "../../helpers/cellKey";
 import {
   Board,
   CellState,
@@ -5,8 +6,6 @@ import {
   StripCache,
   TilingCache,
 } from "../../helpers/types";
-
-const key = (r: number, c: number) => `${r},${c}`;
 
 export default function oneByNConfinement(
   board: Board,
@@ -65,7 +64,7 @@ export default function oneByNConfinement(
           if (!rowContribs.has(row)) rowContribs.set(row, []);
           const cs = new Set<string>();
           for (const s of hStrips)
-            for (const [r, c] of s.cells) cs.add(key(r, c));
+            for (const [r, c] of s.cells) cs.add(cellKey(r, c));
           rowContribs.get(row)!.push({ stars: needed, cells: cs });
         }
       }
@@ -80,7 +79,7 @@ export default function oneByNConfinement(
           if (!colContribs.has(col)) colContribs.set(col, []);
           const cs = new Set<string>();
           for (const s of vStrips)
-            for (const [r, c] of s.cells) cs.add(key(r, c));
+            for (const [r, c] of s.cells) cs.add(cellKey(r, c));
           colContribs.get(col)!.push({ stars: needed, cells: cs });
         }
       }
@@ -98,18 +97,18 @@ export default function oneByNConfinement(
       const remStars = needed - tiling.minTileCount;
       const covered = new Set<string>();
       for (const t of tiling.allMinimalTilings[0])
-        for (const c of t.coveredCells) covered.add(key(c[0], c[1]));
+        for (const c of t.coveredCells) covered.add(cellKey(c[0], c[1]));
       for (let i = 1; i < tiling.allMinimalTilings.length; i++) {
         const tc = new Set<string>();
         for (const t of tiling.allMinimalTilings[i])
-          for (const c of t.coveredCells) tc.add(key(c[0], c[1]));
+          for (const c of t.coveredCells) tc.add(cellKey(c[0], c[1]));
         for (const k of covered) if (!tc.has(k)) covered.delete(k);
       }
 
       const rem: Coord[] = [];
       for (const s of strips)
         for (const [r, c] of s.cells)
-          if (!covered.has(key(r, c))) rem.push([r, c]);
+          if (!covered.has(cellKey(r, c))) rem.push([r, c]);
       if (rem.length === 0) continue;
 
       const remRows = new Set(rem.map(([r]) => r));
@@ -120,7 +119,7 @@ export default function oneByNConfinement(
         if (!rowContribs.has(row)) rowContribs.set(row, []);
         rowContribs.get(row)!.push({
           stars: remStars,
-          cells: new Set(rem.map(([r, c]) => key(r, c))),
+          cells: new Set(rem.map(([r, c]) => cellKey(r, c))),
         });
       }
       if (remCols.size === 1) {
@@ -128,7 +127,7 @@ export default function oneByNConfinement(
         if (!colContribs.has(col)) colContribs.set(col, []);
         colContribs.get(col)!.push({
           stars: remStars,
-          cells: new Set(rem.map(([r, c]) => key(r, c))),
+          cells: new Set(rem.map(([r, c]) => cellKey(r, c))),
         });
       }
     }
@@ -145,7 +144,7 @@ export default function oneByNConfinement(
     for (const x of contribs)
       for (const cell of x.cells) contributing.add(cell);
     for (let c = 0; c < numCols; c++) {
-      if (cells[row][c] === "unknown" && !contributing.has(key(row, c))) {
+      if (cells[row][c] === "unknown" && !contributing.has(cellKey(row, c))) {
         cells[row][c] = "marked";
         changed = true;
       }
@@ -163,7 +162,7 @@ export default function oneByNConfinement(
     for (const x of contribs)
       for (const cell of x.cells) contributing.add(cell);
     for (let r = 0; r < numRows; r++) {
-      if (cells[r][col] === "unknown" && !contributing.has(key(r, col))) {
+      if (cells[r][col] === "unknown" && !contributing.has(cellKey(r, col))) {
         cells[r][col] = "marked";
         changed = true;
       }

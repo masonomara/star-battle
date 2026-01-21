@@ -1,4 +1,5 @@
 import buildRegions from "../../helpers/regions";
+import { cellKey } from "../../helpers/cellKey";
 import { findAllMinimalTilings } from "../../helpers/tiling";
 import {
   Board,
@@ -8,8 +9,6 @@ import {
   TilingCache,
 } from "../../helpers/types";
 import { markNeighbors } from "../01-trivialNeighbors/trivialNeighbors";
-
-const key = (r: number, c: number) => `${r},${c}`;
 
 export default function pressuredExclusion(
   board: Board,
@@ -35,7 +34,7 @@ export default function pressuredExclusion(
     for (const strip of strips) {
       if (strip.starsNeeded <= 0) continue;
       for (const [r, c] of strip.cells) {
-        const k = key(r, c);
+        const k = cellKey(r, c);
         if (cells[r][c] === "unknown" && !seen.has(k)) {
           seen.add(k);
           candidates.push([r, c]);
