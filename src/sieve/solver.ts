@@ -23,13 +23,14 @@ import undercounting from "./rules/10-undercounting/undercounting";
 
 /**
  * Check if a board layout is valid before attempting to solve.
- * For multi-star puzzles (stars > 1), each region must have at least
- * (stars * 2) - 1 cells to fit the required stars without touching.
+ * Validates:
+ * - Exactly `size` distinct regions exist
+ * - For multi-star puzzles (stars > 1), each region has at least
+ *   (stars * 2) - 1 cells to fit the required stars without touching.
  */
 export function isValidLayout(board: Board): boolean {
-  if (board.stars <= 1) return true;
-
-  const minRegionSize = board.stars * 2 - 1;
+  const size = board.grid.length;
+  const minRegionSize = board.stars > 1 ? board.stars * 2 - 1 : 1;
   const regionSizes = new Map<number, number>();
 
   for (const row of board.grid) {
@@ -38,8 +39,12 @@ export function isValidLayout(board: Board): boolean {
     }
   }
 
-  for (const size of regionSizes.values()) {
-    if (size < minRegionSize) return false;
+  // Must have exactly `size` regions
+  if (regionSizes.size !== size) return false;
+
+  // Each region must meet minimum size requirement
+  for (const regionSize of regionSizes.values()) {
+    if (regionSize < minRegionSize) return false;
   }
 
   return true;
@@ -179,6 +184,10 @@ export function solve(
   let cycles = 0;
   let maxLevel = 0;
 
+  // Caches are built lazily and invalidated when rules make progress
+  let tilingCache: TilingCache | undefined;
+  let stripCache: StripCache | undefined;
+
   while (cycles < MAX_CYCLES) {
     cycles++;
 
@@ -188,8 +197,6 @@ export function solve(
 
     // Try each rule in order
     let progress = false;
-    let tilingCache: TilingCache | undefined;
-    let stripCache: StripCache | undefined;
 
     for (const { rule, level, name } of allRules) {
       // Compute caches lazily when first level 2+ rule is tried
@@ -201,6 +208,10 @@ export function solve(
       if (rule(board, cells, tilingCache, stripCache)) {
         maxLevel = Math.max(maxLevel, level);
         progress = true;
+
+        // Invalidate caches since cells changed
+        tilingCache = undefined;
+        stripCache = undefined;
 
         // Call trace callback if provided
         if (options.onStep) {

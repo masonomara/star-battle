@@ -13,13 +13,7 @@
 
 import { CellState, Coord, Tile, RegionTiling } from "./types";
 import { dlxSolve } from "./dlx";
-
-/**
- * Convert a coordinate to a string key for Set/Map operations.
- */
-function coordKey(coord: Coord): string {
-  return `${coord[0]},${coord[1]}`;
-}
+import { coordKey, parseKey } from "./cellKey";
 
 /**
  * Check if a coordinate is within grid bounds.
@@ -79,10 +73,7 @@ export function generateTileCandidates(
   const tiles: Tile[] = [];
 
   for (const anchorKey of candidateAnchors) {
-    const [anchorR, anchorC] = anchorKey.split(",").map(Number) as [
-      number,
-      number,
-    ];
+    const [anchorR, anchorC] = parseKey(anchorKey);
 
     // All 4 cells of the 2×2
     const allCells: Coord[] = [

@@ -19,20 +19,20 @@ function buildMatrix(
   numSecondary: number,
   rows: number[][],
 ): RootHeader {
-  const root: RootHeader = { left: null!, right: null! };
+  const root: RootHeader = {} as RootHeader;
+  root.left = root;
+  root.right = root;
   const columns: ColumnHeader[] = [];
 
   for (let i = 0; i < numPrimary + numSecondary; i++) {
-    const col: ColumnHeader = {
-      left: null!,
-      right: null!,
-      up: null!,
-      down: null!,
-      column: null!,
-      rowIndex: -1,
-      size: 0,
-    };
-    col.up = col.down = col.column = col;
+    const col = {} as ColumnHeader;
+    col.up = col;
+    col.down = col;
+    col.left = col;
+    col.right = col;
+    col.column = col;
+    col.rowIndex = -1;
+    col.size = 0;
     columns.push(col);
   }
 
@@ -55,21 +55,19 @@ function buildMatrix(
 
     for (const colIdx of rows[rowIdx]) {
       const col = columns[colIdx];
-      const node: DLXNode = {
-        left: null!,
-        right: null!,
-        up: col.up,
-        down: col,
-        column: col,
-        rowIndex: rowIdx,
-      };
+      const node = {} as DLXNode;
+      node.up = col.up;
+      node.down = col;
+      node.column = col;
+      node.rowIndex = rowIdx;
       col.up.down = node;
       col.up = node;
       col.size++;
 
       if (!first) {
         first = node;
-        node.left = node.right = node;
+        node.left = node;
+        node.right = node;
       } else {
         node.left = prevNode!;
         node.right = first;

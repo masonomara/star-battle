@@ -1,7 +1,11 @@
 import { Board } from "./helpers/types";
+import { parseKey } from "./helpers/cellKey";
 
 // Generate board layout from seed
 export function layout(size: number, stars: number, seed: number): Board {
+  if (size <= 0) {
+    throw new Error("Layout generation failed: size must be positive");
+  }
   // LCG for deterministic randomness (using Math.imul for 32-bit precision)
   let s = seed | 0;
   const rng = () => {
@@ -73,7 +77,7 @@ export function layout(size: number, stars: number, seed: number): Board {
         // Clean frontier
         const frontier = frontiers.get(regionId)!;
         for (const key of [...frontier]) {
-          const [r, c] = key.split(",").map(Number);
+          const [r, c] = parseKey(key);
           if (grid[r][c] !== -1) frontier.delete(key);
         }
         if (frontier.size > 0) needsGrowth.push(regionId);
@@ -89,7 +93,7 @@ export function layout(size: number, stars: number, seed: number): Board {
     const key = keys[Math.floor(rng() * keys.length)];
     frontier.delete(key);
 
-    const [row, col] = key.split(",").map(Number);
+    const [row, col] = parseKey(key);
     if (grid[row][col] !== -1) continue;
 
     grid[row][col] = regionId;
