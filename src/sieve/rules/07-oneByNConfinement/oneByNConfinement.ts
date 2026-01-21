@@ -15,6 +15,7 @@ export default function oneByNConfinement(
   stripCache?: StripCache,
 ): boolean {
   if (!stripCache) return false;
+  if (board.grid.length === 0) return false;
 
   const numRows = board.grid.length;
   const numCols = board.grid[0].length;
@@ -52,7 +53,7 @@ export default function oneByNConfinement(
 
   for (const [regionId, strips] of stripCache.byRegion) {
     if (strips.length === 0) continue;
-    const needed = strips[0].starsNeeded;
+    const needed = strips[0]!.starsNeeded;
     if (needed <= 0) continue;
 
     const hStrips = strips.filter((s) => s.orientation === "horizontal");

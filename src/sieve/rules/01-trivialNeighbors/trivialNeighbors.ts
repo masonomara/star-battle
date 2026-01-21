@@ -5,6 +5,7 @@ export function markNeighbors(
   row: number,
   col: number,
 ): boolean {
+  if (cells.length === 0) return false;
   const numRows = cells.length;
   const numCols = cells[0].length;
   let changed = false;
