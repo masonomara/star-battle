@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { layout } from "../generator";
-import { sieve } from "../sieve";
+import { layout } from "./generator";
+import { sieve } from "./sieve";
 
 describe("layout", () => {
   it("produces identical boards for the same seed", () => {

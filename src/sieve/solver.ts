@@ -8,20 +8,20 @@ import {
   TilingCache,
 } from "./helpers/types";
 import {
-  trivialStarMarks,
-  trivialRowComplete,
-  trivialColComplete,
-  trivialRegionComplete,
   forcedPlacement,
   twoByTwoTiling,
   oneByNConfinement,
-  exclusion,
   pressuredExclusion,
   overcounting,
   undercounting,
-} from "./rules";
+} from "./rules/rules";
 import { findAllMinimalTilings } from "./helpers/tiling";
 import { computeAllStrips } from "./helpers/strips";
+import exclusion from "./rules/exclusion/exclusion";
+import { trivialNeighbors } from "./rules/01-trivialNeighbors/trivialNeighbors";
+import trivialRows from "./rules/02-trivialRows/trivialRows";
+import trivialColumns from "./rules/03-trivialColumns/trivialColumns";
+import { trivialRegions } from "./rules/04-trivialRegions/trivialRegions";
 
 /**
  * Check if a board layout is valid before attempting to solve.
@@ -55,10 +55,10 @@ type Rule = (
 ) => boolean;
 
 const allRules: { rule: Rule; level: number; name: string }[] = [
-  { rule: trivialStarMarks, level: 1, name: "starNeighbors" },
-  { rule: trivialRowComplete, level: 1, name: "rowComplete" },
-  { rule: trivialColComplete, level: 1, name: "colComplete" },
-  { rule: trivialRegionComplete, level: 1, name: "regionComplete" },
+  { rule: trivialNeighbors, level: 1, name: "starNeighbors" },
+  { rule: trivialRows, level: 1, name: "rowComplete" },
+  { rule: trivialColumns, level: 1, name: "colComplete" },
+  { rule: trivialRegions, level: 1, name: "regionComplete" },
   { rule: forcedPlacement, level: 1, name: "forcedPlacement" },
   { rule: twoByTwoTiling, level: 2, name: "twoByTwoTiling" },
   { rule: oneByNConfinement, level: 2, name: "oneByNConfinement" },

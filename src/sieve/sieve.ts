@@ -1,6 +1,6 @@
 import { layout } from "./generator";
 import { solve } from "./solver";
-import { Board, Puzzle, Solution } from "./helpers/types";
+import { Puzzle, Solution } from "./helpers/types";
 
 // Generate random seed
 function randomSeed(): number {

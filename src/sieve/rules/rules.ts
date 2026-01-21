@@ -4,48 +4,12 @@ import {
   Coord,
   StripCache,
   TilingCache,
-} from "./helpers/types";
-import { findAllMinimalTilings } from "./helpers/tiling";
+} from "../helpers/types";
+import { findAllMinimalTilings } from "../helpers/tiling";
+import markNeighbors from "./01-trivialNeighbors/trivialNeighbors";
+import buildRegions from "../helpers/regions";
 
 const key = (r: number, c: number) => `${r},${c}`;
-
-function buildRegions(grid: number[][]) {
-  const map = new Map<number, Coord[]>();
-  const numRows = grid.length;
-  const numCols = grid[0].length;
-  for (let r = 0; r < numRows; r++) {
-    for (let c = 0; c < numCols; c++) {
-      const id = grid[r][c];
-      if (!map.has(id)) map.set(id, []);
-      map.get(id)!.push([r, c]);
-    }
-  }
-  return map;
-}
-
-function markNeighbors(
-  cells: CellState[][],
-  row: number,
-  col: number,
-): boolean {
-  const numRows = cells.length;
-  const numCols = cells[0].length;
-  let changed = false;
-  for (let dr = -1; dr <= 1; dr++) {
-    for (let dc = -1; dc <= 1; dc++) {
-      if (dr === 0 && dc === 0) continue;
-      const nr = row + dr,
-        nc = col + dc;
-      if (nr >= 0 && nr < numRows && nc >= 0 && nc < numCols) {
-        if (cells[nr][nc] === "unknown") {
-          cells[nr][nc] = "marked";
-          changed = true;
-        }
-      }
-    }
-  }
-  return changed;
-}
 
 function hasAdjacentPair(coords: Coord[]): boolean {
   for (let i = 0; i < coords.length; i++) {
@@ -58,80 +22,6 @@ function hasAdjacentPair(coords: Coord[]): boolean {
     }
   }
   return false;
-}
-
-export function trivialStarMarks(board: Board, cells: CellState[][]): boolean {
-  const size = board.grid.length;
-  let changed = false;
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      if (cells[r][c] === "star")
-        changed = markNeighbors(cells, r, c) || changed;
-    }
-  }
-  return changed;
-}
-
-export function trivialRowComplete(
-  board: Board,
-  cells: CellState[][],
-): boolean {
-  const size = board.grid.length;
-  let changed = false;
-  for (let row = 0; row < size; row++) {
-    let stars = 0;
-    for (let c = 0; c < size; c++) if (cells[row][c] === "star") stars++;
-    if (stars === board.stars) {
-      for (let c = 0; c < size; c++) {
-        if (cells[row][c] === "unknown") {
-          cells[row][c] = "marked";
-          changed = true;
-        }
-      }
-    }
-  }
-  return changed;
-}
-
-export function trivialColComplete(
-  board: Board,
-  cells: CellState[][],
-): boolean {
-  const size = board.grid.length;
-  let changed = false;
-  for (let col = 0; col < size; col++) {
-    let stars = 0;
-    for (let r = 0; r < size; r++) if (cells[r][col] === "star") stars++;
-    if (stars === board.stars) {
-      for (let r = 0; r < size; r++) {
-        if (cells[r][col] === "unknown") {
-          cells[r][col] = "marked";
-          changed = true;
-        }
-      }
-    }
-  }
-  return changed;
-}
-
-export function trivialRegionComplete(
-  board: Board,
-  cells: CellState[][],
-): boolean {
-  let changed = false;
-  for (const [, coords] of buildRegions(board.grid)) {
-    let stars = 0;
-    for (const [r, c] of coords) if (cells[r][c] === "star") stars++;
-    if (stars === board.stars) {
-      for (const [r, c] of coords) {
-        if (cells[r][c] === "unknown") {
-          cells[r][c] = "marked";
-          changed = true;
-        }
-      }
-    }
-  }
-  return changed;
 }
 
 export function forcedPlacement(board: Board, cells: CellState[][]): boolean {
@@ -346,22 +236,18 @@ export function oneByNConfinement(
       if (remRows.size === 1) {
         const row = [...remRows][0];
         if (!rowContribs.has(row)) rowContribs.set(row, []);
-        rowContribs
-          .get(row)!
-          .push({
-            stars: remStars,
-            cells: new Set(rem.map(([r, c]) => key(r, c))),
-          });
+        rowContribs.get(row)!.push({
+          stars: remStars,
+          cells: new Set(rem.map(([r, c]) => key(r, c))),
+        });
       }
       if (remCols.size === 1) {
         const col = [...remCols][0];
         if (!colContribs.has(col)) colContribs.set(col, []);
-        colContribs
-          .get(col)!
-          .push({
-            stars: remStars,
-            cells: new Set(rem.map(([r, c]) => key(r, c))),
-          });
+        colContribs.get(col)!.push({
+          stars: remStars,
+          cells: new Set(rem.map(([r, c]) => key(r, c))),
+        });
       }
     }
   }
@@ -374,7 +260,8 @@ export function oneByNConfinement(
     const total = contribs.reduce((s, x) => s + x.stars, 0);
     if (total < quota) continue;
     const contributing = new Set<string>();
-    for (const x of contribs) for (const cell of x.cells) contributing.add(cell);
+    for (const x of contribs)
+      for (const cell of x.cells) contributing.add(cell);
     for (let c = 0; c < numCols; c++) {
       if (cells[row][c] === "unknown" && !contributing.has(key(row, c))) {
         cells[row][c] = "marked";
@@ -391,7 +278,8 @@ export function oneByNConfinement(
     const total = contribs.reduce((s, x) => s + x.stars, 0);
     if (total < quota) continue;
     const contributing = new Set<string>();
-    for (const x of contribs) for (const cell of x.cells) contributing.add(cell);
+    for (const x of contribs)
+      for (const cell of x.cells) contributing.add(cell);
     for (let r = 0; r < numRows; r++) {
       if (cells[r][col] === "unknown" && !contributing.has(key(r, col))) {
         cells[r][col] = "marked";
@@ -401,70 +289,6 @@ export function oneByNConfinement(
   }
 
   return changed;
-}
-
-export function exclusion(
-  board: Board,
-  cells: CellState[][],
-  tilingCache?: TilingCache,
-  _stripCache?: StripCache,
-): boolean {
-  const size = board.grid.length;
-  const regions = buildRegions(board.grid);
-  const regionStars = new Map<number, number>();
-  for (const [id, coords] of regions) {
-    let stars = 0;
-    for (const [r, c] of coords) if (cells[r][c] === "star") stars++;
-    regionStars.set(id, stars);
-  }
-
-  const tight = new Map<number, { coords: Coord[]; needed: number }>();
-  for (const [id, coords] of regions) {
-    const needed = board.stars - regionStars.get(id)!;
-    if (needed <= 0) continue;
-    const tiling =
-      tilingCache?.byRegion.get(id) ??
-      findAllMinimalTilings(coords, cells, size);
-    if (tiling.minTileCount === needed) tight.set(id, { coords, needed });
-  }
-  if (tight.size === 0) return false;
-
-  const toCheck = new Set<string>();
-  for (const [, { coords }] of tight) {
-    for (const [r, c] of coords) {
-      toCheck.add(key(r, c));
-      for (let dr = -1; dr <= 1; dr++) {
-        for (let dc = -1; dc <= 1; dc++) {
-          if (dr === 0 && dc === 0) continue;
-          const nr = r + dr,
-            nc = c + dc;
-          if (nr >= 0 && nr < size && nc >= 0 && nc < size)
-            toCheck.add(key(nr, nc));
-        }
-      }
-    }
-  }
-
-  for (const k of toCheck) {
-    const [row, col] = k.split(",").map(Number);
-    if (cells[row][col] !== "unknown") continue;
-
-    const temp = cells.map((r) => [...r]);
-    temp[row][col] = "star";
-    markNeighbors(temp, row, col);
-
-    for (const [regionId, { coords, needed }] of tight) {
-      const inRegion = board.grid[row][col] === regionId;
-      const rem = inRegion ? needed - 1 : needed;
-      if (rem <= 0) continue;
-      const t = findAllMinimalTilings(coords, temp, size);
-      if (t.minTileCount < rem) {
-        cells[row][col] = "marked";
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 export function pressuredExclusion(
@@ -709,65 +533,4 @@ export function overcounting(board: Board, cells: CellState[][]): boolean {
   }
 
   return changed;
-}
-
-/**
- * Rule 12: The Squeeze
- * Tile pairs of consecutive rows (or columns) with 2×2s where every star can be accounted for.
- * In 2★, look to tile a pair of rows/columns with exactly four 2×2s.
- * Each 2×2 contains exactly one star, which can chain with exclusion to produce marks.
- *
- * NOT YET IMPLEMENTED - stub for TDD
- */
-export function squeeze(
-  _board: Board,
-  _cells: CellState[][],
-  _tilingCache?: TilingCache,
-): boolean {
-  // TODO: Implement squeeze rule
-  // 1. For each pair of consecutive rows, check if they can be tiled with exactly (stars * 2) 2×2s
-  // 2. If so, each 2×2 contains exactly one star
-  // 3. Use this info to mark cells or chain with exclusion
-  return false;
-}
-
-/**
- * Rule 13: Finned Counts
- * Mark cells where placing a star would create an under/overcounting scenario.
- * "If placing a star in a cell would create an undercounting scenario...it can be marked"
- * "If placing a star in a cell would create an overcounting scenario...it can be marked"
- *
- * NOT YET IMPLEMENTED - stub for TDD
- */
-export function finnedCounts(
-  _board: Board,
-  _cells: CellState[][],
-): boolean {
-  // TODO: Implement finned counts rule
-  // 1. For each unknown cell, simulate placing a star
-  // 2. Check if this creates an undercounting scenario (N regions in N rows)
-  // 3. Check if this creates an overcounting scenario (N regions contain N rows)
-  // 4. If either, mark the cell
-  return false;
-}
-
-/**
- * Rule 14: Composite Regions
- * Combine regions with known star counts into composite regions.
- * Per spec: "treat what's left as composite regions with a known star count"
- * "we can simply combine any regions of known star count into a composite region"
- *
- * NOT YET IMPLEMENTED - stub for TDD
- */
-export function compositeRegions(
-  _board: Board,
-  _cells: CellState[][],
-  _tilingCache?: TilingCache,
-): boolean {
-  // TODO: Implement composite regions rule
-  // 1. Identify regions that can be combined (adjacent, or remainder after counting)
-  // 2. Calculate combined star count
-  // 3. Tile the composite region to find marks
-  // 4. Mark cells outside the composite that can't contain stars
-  return false;
 }

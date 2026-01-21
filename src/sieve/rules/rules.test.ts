@@ -1,341 +1,19 @@
 import { describe, it, expect } from "vitest";
 import {
-  trivialStarMarks,
-  trivialRowComplete,
-  trivialColComplete,
-  trivialRegionComplete,
   forcedPlacement,
   twoByTwoTiling,
   oneByNConfinement,
-  exclusion,
   pressuredExclusion,
   undercounting,
   overcounting,
-  squeeze,
-  finnedCounts,
-  compositeRegions,
-} from "../rules";
+} from "./rules";
 import { Board, CellState, Coord } from "../helpers/types";
 import { computeAllStrips } from "../helpers/strips";
 import { findAllMinimalTilings } from "../helpers/tiling";
-
-describe("1. Star Neighbors", () => {
-  it("1.1 marks all 8 neighbors", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-      ],
-      stars: 1,
-    };
-
-    const cells: CellState[][] = [
-      ["unknown", "unknown", "unknown"],
-      ["unknown", "star", "unknown"],
-      ["unknown", "unknown", "unknown"],
-    ];
-
-    const result = trivialStarMarks(board, cells);
-
-    expect(result).toBe(true);
-    expect(cells).toEqual([
-      ["marked", "marked", "marked"],
-      ["marked", "star", "marked"],
-      ["marked", "marked", "marked"],
-    ]);
-  });
-
-  it("1.2 handles corner star (3 neighbors)", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-      ],
-      stars: 1,
-    };
-
-    const cells: CellState[][] = [
-      ["star", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown"],
-    ];
-
-    const result = trivialStarMarks(board, cells);
-
-    expect(result).toBe(true);
-    expect(cells).toEqual([
-      ["star", "marked", "unknown"],
-      ["marked", "marked", "unknown"],
-      ["unknown", "unknown", "unknown"],
-    ]);
-  });
-
-  it("1.3 handles edge star (5 neighbors)", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-      ],
-      stars: 1,
-    };
-
-    const cells: CellState[][] = [
-      ["unknown", "star", "unknown"],
-      ["unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown"],
-    ];
-
-    const result = trivialStarMarks(board, cells);
-
-    expect(result).toBe(true);
-    expect(cells).toEqual([
-      ["marked", "star", "marked"],
-      ["marked", "marked", "marked"],
-      ["unknown", "unknown", "unknown"],
-    ]);
-  });
-
-  it("1.4 returns false if no changes", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-      ],
-      stars: 1,
-    };
-
-    const cells: CellState[][] = [
-      ["marked", "marked", "marked"],
-      ["marked", "star", "marked"],
-      ["marked", "marked", "marked"],
-    ];
-
-    const result = trivialStarMarks(board, cells);
-
-    expect(result).toBe(false);
-  });
-
-  it("1.5 marks neighbors of multiple stars (2 stars)", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0],
-      ],
-      stars: 2,
-    };
-
-    const cells: CellState[][] = [
-      ["star", "unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown", "star"],
-      ["unknown", "unknown", "unknown", "unknown", "unknown"],
-    ];
-
-    const result = trivialStarMarks(board, cells);
-
-    expect(result).toBe(true);
-    expect(cells).toEqual([
-      ["star", "marked", "unknown", "unknown", "unknown"],
-      ["marked", "marked", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "marked", "marked"],
-      ["unknown", "unknown", "unknown", "marked", "star"],
-      ["unknown", "unknown", "unknown", "marked", "marked"],
-    ]);
-  });
-
-  it("1.6 handles overlapping exclusion zones (shared neighbors)", () => {
-    // Two stars at (1,1) and (1,3) share neighbors at (0,2), (1,2), (2,2)
-    // Function should mark the intersection correctly without issues
-    const board: Board = {
-      grid: [
-        [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0],
-      ],
-      stars: 2,
-    };
-
-    const cells: CellState[][] = [
-      ["unknown", "unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "star", "unknown", "star", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown", "unknown"],
-    ];
-
-    const result = trivialStarMarks(board, cells);
-
-    expect(result).toBe(true);
-    expect(cells).toEqual([
-      ["marked", "marked", "marked", "marked", "marked"],
-      ["marked", "star", "marked", "star", "marked"],
-      ["marked", "marked", "marked", "marked", "marked"],
-      ["unknown", "unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown", "unknown"],
-    ]);
-  });
-
-  it("1.7 handles star adjacent to already-marked cells (idempotence)", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-      ],
-      stars: 1,
-    };
-
-    const cells: CellState[][] = [
-      ["marked", "marked", "unknown"],
-      ["marked", "star", "unknown"],
-      ["unknown", "unknown", "unknown"],
-    ];
-
-    const result = trivialStarMarks(board, cells);
-
-    expect(result).toBe(true);
-    expect(cells).toEqual([
-      ["marked", "marked", "marked"],
-      ["marked", "star", "marked"],
-      ["marked", "marked", "marked"],
-    ]);
-  });
-});
-
-describe("2. Row Complete", () => {
-  it("2.1 marks remaining cells when row complete (1 star)", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-      ],
-      stars: 1,
-    };
-
-    const cells: CellState[][] = [
-      ["star", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown"],
-    ];
-
-    const result = trivialRowComplete(board, cells);
-
-    expect(result).toBe(true);
-    expect(cells).toEqual([
-      ["star", "marked", "marked"],
-      ["unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown"],
-    ]);
-  });
-
-  it("2.2 marks remaining cells when row complete (2 stars)", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-      ],
-      stars: 2,
-    };
-
-    const cells: CellState[][] = [
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["star", "unknown", "star", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-    ];
-
-    const result = trivialRowComplete(board, cells);
-
-    expect(result).toBe(true);
-    expect(cells).toEqual([
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["star", "marked", "star", "marked"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-    ]);
-  });
-
-  it("2.3 returns false when no row complete", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-      ],
-      stars: 2,
-    };
-
-    const cells: CellState[][] = [
-      ["star", "unknown", "unknown"],
-      ["unknown", "star", "unknown"],
-      ["unknown", "unknown", "unknown"],
-    ];
-
-    const result = trivialRowComplete(board, cells);
-
-    expect(result).toBe(false);
-  });
-
-  it("2.4 returns false when no unknowns left", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-      ],
-      stars: 1,
-    };
-
-    const cells: CellState[][] = [
-      ["star", "marked", "marked"],
-      ["unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown"],
-    ];
-
-    const result = trivialRowComplete(board, cells);
-
-    expect(result).toBe(false);
-  });
-
-  it("2.5 marks multiple rows simultaneously", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-      ],
-      stars: 1,
-    };
-
-    const cells: CellState[][] = [
-      ["star", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "star"],
-    ];
-
-    const result = trivialRowComplete(board, cells);
-
-    expect(result).toBe(true);
-    expect(cells).toEqual([
-      ["star", "marked", "marked"],
-      ["unknown", "unknown", "unknown"],
-      ["marked", "marked", "star"],
-    ]);
-  });
-});
+import exclusion from "./exclusion/exclusion";
+import trivialRows from "./02-trivialRows/trivialRows";
+import trivialColumns from "./03-trivialColumns/trivialColumns";
+import { trivialRegions } from "./04-trivialRegions/trivialRegions";
 
 describe("3. Column Complete", () => {
   it("3.1 marks remaining cells when column complete (1 star)", () => {
@@ -354,7 +32,7 @@ describe("3. Column Complete", () => {
       ["unknown", "unknown", "unknown"],
     ];
 
-    const result = trivialColComplete(board, cells);
+    const result = trivialColumns(board, cells);
 
     expect(result).toBe(true);
     expect(cells).toEqual([
@@ -382,7 +60,7 @@ describe("3. Column Complete", () => {
       ["unknown", "unknown", "unknown", "unknown"],
     ];
 
-    const result = trivialColComplete(board, cells);
+    const result = trivialColumns(board, cells);
 
     expect(result).toBe(true);
     expect(cells).toEqual([
@@ -409,7 +87,7 @@ describe("3. Column Complete", () => {
       ["unknown", "unknown", "unknown"],
     ];
 
-    const result = trivialColComplete(board, cells);
+    const result = trivialColumns(board, cells);
 
     expect(result).toBe(false);
   });
@@ -430,7 +108,7 @@ describe("3. Column Complete", () => {
       ["marked", "unknown", "unknown"],
     ];
 
-    const result = trivialColComplete(board, cells);
+    const result = trivialColumns(board, cells);
 
     expect(result).toBe(false);
   });
@@ -451,7 +129,7 @@ describe("3. Column Complete", () => {
       ["unknown", "unknown", "star"],
     ];
 
-    const result = trivialColComplete(board, cells);
+    const result = trivialColumns(board, cells);
 
     expect(result).toBe(true);
     expect(cells).toEqual([
@@ -479,7 +157,7 @@ describe("4. Region Complete", () => {
       ["unknown", "unknown", "unknown"],
     ];
 
-    const result = trivialRegionComplete(board, cells);
+    const result = trivialRegions(board, cells);
 
     expect(result).toBe(true);
     expect(cells).toEqual([
@@ -507,7 +185,7 @@ describe("4. Region Complete", () => {
       ["unknown", "unknown", "unknown", "unknown"],
     ];
 
-    const result = trivialRegionComplete(board, cells);
+    const result = trivialRegions(board, cells);
 
     expect(result).toBe(true);
     expect(cells).toEqual([
@@ -534,7 +212,7 @@ describe("4. Region Complete", () => {
       ["unknown", "unknown", "unknown"],
     ];
 
-    const result = trivialRegionComplete(board, cells);
+    const result = trivialRegions(board, cells);
 
     expect(result).toBe(false);
   });
@@ -555,7 +233,7 @@ describe("4. Region Complete", () => {
       ["marked", "unknown", "unknown"],
     ];
 
-    const result = trivialRegionComplete(board, cells);
+    const result = trivialRegions(board, cells);
 
     expect(result).toBe(false);
   });
@@ -578,7 +256,7 @@ describe("4. Region Complete", () => {
       ["unknown", "unknown", "unknown", "unknown"],
     ];
 
-    const result = trivialRegionComplete(board, cells);
+    const result = trivialRegions(board, cells);
 
     expect(result).toBe(true);
     expect(cells).toEqual([
@@ -605,7 +283,7 @@ describe("4. Region Complete", () => {
       ["unknown", "unknown", "unknown"],
     ];
 
-    const result = trivialRegionComplete(board, cells);
+    const result = trivialRegions(board, cells);
 
     expect(result).toBe(true);
     expect(cells).toEqual([
@@ -633,7 +311,7 @@ describe("4. Region Complete", () => {
       ["unknown", "unknown", "unknown", "unknown"],
     ];
 
-    const result = trivialRegionComplete(board, cells);
+    const result = trivialRegions(board, cells);
 
     expect(result).toBe(true);
     expect(cells).toEqual([
@@ -4384,179 +4062,4 @@ describe("11. Overcounting", () => {
       expect(cells[2][0]).toBe("marked");
     });
   });
-});
-
-describe("12. The Squeeze", () => {
-  // Squeeze: Tile pairs of consecutive rows (or columns) with 2×2s
-  // In 2★, a pair of rows needs 4 stars total → tile with exactly 4 2×2s
-  // Each 2×2 contains exactly one star
-  // This identifies star-containing-2×2s which can chain with exclusion
-
-  describe("12.1 Squeeze example", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-      ],
-      stars: 2,
-    };
-    const cells: CellState[][] = [
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "marked", "marked", "unknown"],
-      ["unknown", "marked", "marked", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "marked", "unknown", "unknown"],
-      ["unknown", "marked", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-    ];
-
-    const result = squeeze(board, cells);
-
-    // Should mark cells outside the star-containing 2×2s
-    expect(typeof result).toBe("boolean");
-    expect(cells[6][3]).toBe("marked");
-    expect(cells[7][3]).toBe("marked");
-  });
-  describe("12.2 Squeeze example", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-      ],
-      stars: 2,
-    };
-    const cells: CellState[][] = [
-      ["unknown", "marked", "marked", "unknown"],
-      ["unknown", "marked", "marked", "unknown"],
-      ["unknown", "marked", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "marked", "unknown", "unknown"],
-      ["unknown", "marked", "marked", "unknown"],
-    ];
-
-    const result = squeeze(board, cells);
-
-    // Should mark cells outside the star-containing 2×2s
-    expect(typeof result).toBe("boolean");
-    expect(cells[2][2]).toBe("starred");
-    expect(cells[2][8]).toBe("starred");
-  });
-  describe("12.3 squeeze example", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      ],
-      stars: 2,
-    };
-    const cells: CellState[][] = [
-      ["marked", "marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
-      ["marked", "marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
-      ["unknown", "unknown", "unknown", "marked", "marked", "unknown", "unknown", "unknown", "unknown", "unknown",],
-      ["unknown", "unknown", "unknown", "marked", "marked", "unknown", "unknown", "unknown", "unknown", "unknown",],
-      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
-      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
-      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
-      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "marked", "marked",],
-      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "marked", "marked", "marked", "star",],
-      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "marked", "star", "marked", "marked",],
-    ];
-
-    const result = squeeze(board, cells);
-
-    // Should mark cells outside the star-containing 2×2s
-    expect(typeof result).toBe("boolean");
-    expect(cells[6][3]).toBe("marked");
-    expect(cells[7][3]).toBe("marked");
-  });
-  describe("12.4 squeeze example", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1, 1, 0, 1, 0, 0],
-        [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-        [0, 1, 1, 1, 1, 1, 1, 0, 0, 0],
-        [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      ],
-      stars: 2,
-    };
-    const cells: CellState[][] = [
-      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
-      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
-      ["unknown", "unknown", "unknown", "unknown", "marked", "marked", "unknown", "unknown", "unknown", "unknown",],
-      ["unknown", "unknown", "unknown", "unknown", "marked", "marked", "unknown", "unknown", "unknown", "unknown",],
-      ["marked", "marked", "marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
-      ["marked", "star", "marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
-      ["marked", "marked", "marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
-      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
-      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
-      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
-    ];
-
-    const result = squeeze(board, cells);
-
-    // Should mark cells outside the star-containing 2×2s
-    expect(typeof result).toBe("boolean");
-    expect(cells[3][7]).toBe("marked");
-    expect(cells[4][3]).toBe("marked");
-        expect(cells[4][6]).toBe("marked");
-            expect(cells[4][7]).toBe("marked");
-                expect(cells[5][3]).toBe("marked");
-                    expect(cells[5][6]).toBe("marked");
-
-  });
-});
-
-describe("13. Finned Counts", () => {
-  // Finned counting: cells that would create under/overcounting if starred
-  // "If placing a star in a cell would create an undercounting scenario...it can be marked"
-  // "If placing a star in a cell would create an overcounting scenario...it can be marked"
-
-  describe("13.1 Finned undercounting", () => {});
-});
-
-describe("14. Composite Regions", () => {
-  // Composite regions: combine regions with known star counts
-  // Per spec: "treat what's left as composite regions with a known star count"
-  // "we can simply combine any regions of known star count into a composite region"
-
-  describe("14.1 Counting-based composite regions", () => {});
 });
