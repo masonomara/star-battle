@@ -146,6 +146,66 @@ describe("1. Star Neighbors", () => {
       ["unknown", "unknown", "unknown", "marked", "marked"],
     ]);
   });
+
+  it("1.6 handles overlapping exclusion zones (shared neighbors)", () => {
+    // Two stars at (1,1) and (1,3) share neighbors at (0,2), (1,2), (2,2)
+    // Function should mark the intersection correctly without issues
+    const board: Board = {
+      grid: [
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+      ],
+      stars: 2,
+    };
+
+    const cells: CellState[][] = [
+      ["unknown", "unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "star", "unknown", "star", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown", "unknown"],
+    ];
+
+    const result = trivialStarMarks(board, cells);
+
+    expect(result).toBe(true);
+    expect(cells).toEqual([
+      ["marked", "marked", "marked", "marked", "marked"],
+      ["marked", "star", "marked", "star", "marked"],
+      ["marked", "marked", "marked", "marked", "marked"],
+      ["unknown", "unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown", "unknown"],
+    ]);
+  });
+
+  it("1.7 handles star adjacent to already-marked cells (idempotence)", () => {
+    const board: Board = {
+      grid: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+      ],
+      stars: 1,
+    };
+
+    const cells: CellState[][] = [
+      ["marked", "marked", "unknown"],
+      ["marked", "star", "unknown"],
+      ["unknown", "unknown", "unknown"],
+    ];
+
+    const result = trivialStarMarks(board, cells);
+
+    expect(result).toBe(true);
+    expect(cells).toEqual([
+      ["marked", "marked", "marked"],
+      ["marked", "star", "marked"],
+      ["marked", "marked", "marked"],
+    ]);
+  });
 });
 
 describe("2. Row Complete", () => {
@@ -641,6 +701,76 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
+    it("5.1.2b second call places the remaining forced star", () => {
+      // Continuation of 5.1.2: after first star placed at (1,1),
+      // row 1 now has 1 star and 1 unknown at (1,3)
+      // Second call should place the second star
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0],
+        ],
+        stars: 2,
+      };
+
+      // State after 5.1.2's first call
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["marked", "star", "marked", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toBe(true);
+      // Second star now placed at (1,3)
+      expect(cells).toEqual([
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["marked", "star", "marked", "star"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ]);
+    });
+
+    it("5.1.2c places ONE star when 3 unknowns, needs 3 stars, all non-adjacent", () => {
+      // Row 0 has unknowns at (0,0), (0,2), (0,4) - all non-adjacent
+      // All 3 must be stars, but incremental design places only ONE per call
+      // This proves batch-vs-incremental choice is intentional
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0],
+        ],
+        stars: 3,
+      };
+
+      const cells: CellState[][] = [
+        ["unknown", "marked", "unknown", "marked", "unknown", "marked"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toBe(true);
+      // Only first star placed at (0,0) - incremental, not batch
+      expect(cells[0].filter((c) => c === "star").length).toBe(1);
+      expect(cells[0][0]).toBe("star");
+      // Other forced positions remain unknown for subsequent calls
+      expect(cells[0][2]).toBe("unknown");
+      expect(cells[0][4]).toBe("unknown");
+    });
+
     it("5.1.3 places remaining star (has 1 star, 1 unknown)", () => {
       const board: Board = {
         grid: [
@@ -787,10 +917,11 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.3.2 returns false when 2 unknowns are diagonally adjacent", () => {
+    it("5.3.2 detects contradiction: diagonally adjacent unknowns both need stars", () => {
       // Region 0 has 2 unknowns at (0,0) and (1,1) - diagonally adjacent.
-      // forcedPlacement correctly refuses to place stars since both would need
-      // to be stars but they can't be adjacent. This is an unsolvable config.
+      // Both cells MUST be stars (2 unknowns, needs 2 stars), but stars
+      // cannot be adjacent. This is a CONTRADICTION - an unsolvable state.
+      // The rule correctly detects this and returns false without placing.
       const board: Board = {
         grid: [
           [0, 0, 1, 1],
@@ -810,9 +941,9 @@ describe("5. Forced Placement", () => {
 
       const result = forcedPlacement(board, cells);
 
-      // Returns false because unknowns are adjacent - can't both be stars
+      // Detects contradiction: adjacent cells can't both be stars
       expect(result).toBe(false);
-      // No change to cells
+      // No change - contradiction detected, not "nothing to do"
       expect(cells).toEqual([
         ["unknown", "marked", "unknown", "unknown"],
         ["marked", "unknown", "unknown", "unknown"],
@@ -821,10 +952,11 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.3.3 returns false when 2 unknowns are orthogonally adjacent", () => {
+    it("5.3.3 detects contradiction: orthogonally adjacent unknowns both need stars", () => {
       // Region 0 has 2 unknowns at (0,0) and (0,1) - horizontally adjacent.
-      // forcedPlacement correctly refuses to place stars since both would need
-      // to be stars but they can't be adjacent. This is an unsolvable config.
+      // Both cells MUST be stars (2 unknowns, needs 2 stars), but stars
+      // cannot be adjacent. This is a CONTRADICTION - an unsolvable state.
+      // The rule correctly detects this and returns false without placing.
       const board: Board = {
         grid: [
           [0, 0, 1, 1],
@@ -844,9 +976,9 @@ describe("5. Forced Placement", () => {
 
       const result = forcedPlacement(board, cells);
 
-      // Returns false because unknowns are adjacent - can't both be stars
+      // Detects contradiction: adjacent cells can't both be stars
       expect(result).toBe(false);
-      // No change to cells
+      // No change - contradiction detected, not "nothing to do"
       expect(cells).toEqual([
         ["unknown", "unknown", "unknown", "unknown"],
         ["marked", "marked", "unknown", "unknown"],
@@ -940,6 +1072,40 @@ describe("5. Forced Placement", () => {
         ["unknown", "unknown", "unknown", "unknown"],
         ["marked", "unknown", "unknown", "star"],
       ]);
+    });
+
+    it("5.3.6b forced placement in region with unknowns spanning multiple rows/cols", () => {
+      // Region 0 is an irregular shape spanning rows 0-2 and cols 0-2
+      // Two unknowns at (0,0) and (2,2) - different rows AND columns, non-adjacent
+      // Needs 2 stars, has 2 unknowns → forced (places ONE per call)
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1, 1],
+          [0, 0, 0, 1, 1],
+          [1, 0, 0, 1, 1],
+          [1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+
+      // Region 0 cells: (0,0), (0,1), (1,0), (1,1), (1,2), (2,1), (2,2)
+      // Mark all except (0,0) and (2,2) which are in different rows AND cols
+      const cells: CellState[][] = [
+        ["unknown", "marked", "unknown", "unknown", "unknown"],
+        ["marked", "marked", "marked", "unknown", "unknown"],
+        ["unknown", "marked", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = forcedPlacement(board, cells);
+
+      expect(result).toBe(true);
+      // First star placed at (0,0) - the first unknown found in region
+      expect(cells[0][0]).toBe("star");
+      // (2,2) remains unknown for next call
+      expect(cells[2][2]).toBe("unknown");
     });
 
     it("5.3.7 places ONE star when multiple regions have forced placements", () => {
