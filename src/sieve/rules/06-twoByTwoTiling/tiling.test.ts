@@ -526,7 +526,7 @@ describe("6. The 2×2 Tiling", () => {
       const byRegion = new Map();
 
       // Region 0: L-shape at (0,0), (0,1), (0,2), (1,0), (1,1)
-      const region0Coords: [number, number][] = [
+      const region0Coords: Coord[] = [
         [0, 0],
         [0, 1],
         [0, 2],
@@ -539,7 +539,7 @@ describe("6. The 2×2 Tiling", () => {
       );
 
       // Region 1: rest of the board
-      const region1Coords: [number, number][] = [];
+      const region1Coords: Coord[] = [];
       for (let r = 0; r < size; r++) {
         for (let c = 0; c < size; c++) {
           if (board.grid[r][c] === 1) region1Coords.push([r, c]);

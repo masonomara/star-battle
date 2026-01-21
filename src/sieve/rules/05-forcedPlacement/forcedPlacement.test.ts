@@ -62,7 +62,7 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.1.2b second call places the remaining forced star", () => {
+    it("5.1.3 second call places the remaining forced star", () => {
       // Continuation of 5.1.2: after first star placed at (1,1),
       // row 1 now has 1 star and 1 unknown at (1,3)
       // Second call should place the second star
@@ -96,7 +96,7 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.1.2c places ONE star when 3 unknowns, needs 3 stars, all non-adjacent", () => {
+    it("5.1.4 places ONE star when 3 unknowns, needs 3 stars, all non-adjacent", () => {
       // Row 0 has unknowns at (0,0), (0,2), (0,4) - all non-adjacent
       // All 3 must be stars, but incremental design places only ONE per call
       // This proves batch-vs-incremental choice is intentional
@@ -132,7 +132,7 @@ describe("5. Forced Placement", () => {
       expect(cells[0][4]).toBe("unknown");
     });
 
-    it("5.1.3 places remaining star (has 1 star, 1 unknown)", () => {
+    it("5.1.5 places remaining star (has 1 star, 1 unknown)", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -435,7 +435,7 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.3.6b forced placement in region with unknowns spanning multiple rows/cols", () => {
+    it("5.3.7 forced placement in region with unknowns spanning multiple rows/cols", () => {
       // Region 0 is an irregular shape spanning rows 0-2 and cols 0-2
       // Two unknowns at (0,0) and (2,2) - different rows AND columns, non-adjacent
       // Needs 2 stars, has 2 unknowns → forced (places ONE per call)
@@ -469,7 +469,7 @@ describe("5. Forced Placement", () => {
       expect(cells[2][2]).toBe("unknown");
     });
 
-    it("5.3.7 places ONE star when multiple regions have forced placements", () => {
+    it("5.3.8 places ONE star when multiple regions have forced placements", () => {
       // Region 0 (col 0): only (1,0) unknown, forced
       // Region 3 (col 3): only (3,3) unknown, forced
       // Only ONE star placed per call - region 0 is found first

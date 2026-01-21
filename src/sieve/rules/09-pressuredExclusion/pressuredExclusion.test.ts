@@ -221,16 +221,11 @@ describe("9. Pressured Exclusion", () => {
     const result = pressuredExclusion(board, cells, undefined, stripCache);
 
     // With L-shaped marks, region 0 has only diagonal cells (0,0) and (1,1)
-    // But stars can't touch diagonally! So region 0 can only fit 1 star, not 2
-    // This should trigger some exclusion mark
-    // If the function detects this, great. If not, this test documents the gap.
-    if (result) {
-      const markedCount = cells.flat().filter((c) => c === "marked").length;
-      expect(markedCount).toBeGreaterThan(2); // More than the initial 2 marks
-    } else {
-      // Document that L-shaped diagonal pressure is NOT currently handled
-      expect(result).toBe(false);
-    }
+    // Stars can't touch diagonally, so region 0 can only fit 1 star, not 2
+    // Function detects this and marks (0,0)
+    expect(result).toBe(true);
+    expect(cells[0][0]).toBe("marked");
+    expect(cells.flat().filter((c) => c === "marked").length).toBe(3);
   });
 
   it("9.8 marks strip cell via column-blocking cascade", () => {
@@ -262,13 +257,10 @@ describe("9. Pressured Exclusion", () => {
     const stripCache = computeAllStrips(board, cells);
     const result = pressuredExclusion(board, cells, undefined, stripCache);
 
-    // A faux star at (2,2) would mark (2,3), leaving region 2 with 0 unknowns
-    // Or similar cascade logic should apply
-    if (result) {
-      expect(cells.flat().filter((c) => c === "marked").length).toBeGreaterThan(
-        2,
-      );
-    }
+    // Function detects the column-blocking cascade and marks (1,1)
+    expect(result).toBe(true);
+    expect(cells[1][1]).toBe("marked");
+    expect(cells.flat().filter((c) => c === "marked").length).toBe(3);
   });
 
   it("9.9 handles row-based pressure symmetrically to columns", () => {
