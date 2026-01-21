@@ -1,220 +1,150 @@
-# Comprehensive Code Review: Star Battle Sieve
+# Code Review: Star Battle Sieve (Organized by File)
 
-**Files Reviewed:**
-
-- `solver.ts`, `sieve.ts`, `cli.ts`, `generator.ts`
-- `helpers/types.ts`, `helpers/tiling.ts`, `helpers/strips.ts`, `helpers/regions.ts`, `helpers/dlx.ts`
-
----
-
-## Agent 1: Christian — Senior Software Engineer
-
-_Focus: Technical accuracy, security, correctness, performance_
-
-### Critical Issues
-
-| File           | Line | Issue                                                                                                                                         | Severity |
-| -------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `sieve.ts`     | 37   | **Seed reuse bug**: When `options.seed` is provided, same seed used every iteration in the while loop, generating identical boards repeatedly | HIGH     |
-| `dlx.ts`       | 22   | **Unsafe null assertion**: `root.left = null!` and `root.right = null!` — could cause runtime errors if accessed before initialization        | MEDIUM   |
-| `generator.ts` | 110  | **DoS potential**: `maxIterations = size * size * 100` could be exploited with large `size` values from CLI — no upper bound validation       | MEDIUM   |
-
-### Technical Correctness
-
-| File        | Line   | Issue                                                                                                                                                                                                    |
-| ----------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `solver.ts` | 91-100 | **Double-counting adjacency check**: When checking adjacent stars, the loop will detect (A,B) and later (B,A) — returns false correctly but does redundant work                                          |
-| `tiling.ts` | 160    | **Infinity as tile count**: `minTileCount: Infinity` is valid JS but could cause issues in JSON serialization or downstream arithmetic                                                                   |
-| `cli.ts`    | 12-13  | **Argument parsing fragility**: `args[key] = value && !value.startsWith("--") ? (i++, value) : "true"` — comma operator is clever but obscure; `--size` without value will incorrectly consume next flag |
-
-### Type Safety
-
-| File         | Line | Issue                                                                                                               |
-| ------------ | ---- | ------------------------------------------------------------------------------------------------------------------- |
-| `tiling.ts`  | 82   | **Unsafe cast**: `as [number, number]` after `split(",").map(Number)` — no validation that exactly 2 elements exist |
-| `strips.ts`  | 13   | **Assumes rectangular grid**: `board.grid[0].length` assumes all rows have same length — no validation              |
-| `regions.ts` | 6    | **Same assumption**: `grid[0].length` assumes non-empty grid with uniform rows                                      |
-
-### Performance Concerns
-
-| File           | Line    | Issue                                                                                                                                                                |
-| -------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `solver.ts`    | 197-198 | **Cache rebuilt every cycle**: Tiling and strip caches are recomputed each solver iteration when any level 2+ rule is tried — could cache and invalidate selectively |
-| `generator.ts` | 75-76   | **String parsing in hot loop**: `key.split(",").map(Number)` called repeatedly in Phase 1 — could use numeric tuples instead                                         |
-
-### Security
-
-| File     | Line  | Issue                                                                                                                              |
-| -------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `cli.ts` | 28-31 | **No input validation**: `parseInt` on user input without bounds checking — large values could cause memory exhaustion             |
-| `cli.ts` | 90    | **ANSI escape codes**: `\x1b[43m\x1b[30m` assumes terminal supports escapes — minor, but could garble output in non-ANSI terminals |
+**Reviewers:**
+- **Christian** — Senior Software Engineer (technical accuracy, security)
+- **Wei** — Taoist Project Manager (flow, simplicity, scope)
+- **Marcus** — Lawyerly Supervisor (liability, compliance, edge cases)
+- **Carlos** — Nicaraguan Coworker (developer practicality)
 
 ---
 
-## Agent 2: Wei — Taoist Project Manager
+## `sieve.ts`
 
-_Focus: Flow, simplicity, scope, natural design_
-
-### Observations on Flow
-
-**Harmonious patterns:**
-
-- The solver's rule-based iteration is elegant — try each rule in order, break on progress, repeat
-- Type definitions in `types.ts` are clean and well-documented
-- Lazy cache computation (line 196 of solver.ts) — compute only when needed
-
-**Disrupted flow:**
-| File | Issue |
-|------|-------|
-| `solver.ts` | Import numbering (01-, 02-, etc.) in rule paths suggests rigid ordering that the code already handles via `allRules` array — redundant organizational friction |
-| `cli.ts` | `printCellStateWithDiff` mixes concerns: display logic + diff logic + ANSI formatting in one function |
-| `sieve.ts` | `assignDifficulty` formula (`levelBase + cycleBonus`) is magic — the "why" is unclear |
-
-### Simplicity Violations
-
-| File           | Line    | Observation                                                                                                            |
-| -------------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `dlx.ts`       | 1-15    | Four separate interface definitions where one generic node type with optional properties might suffice                 |
-| `generator.ts` | 50-65   | Frontier management with string keys (`${nr},${nc}`) adds complexity — could use `Set<number>` with `row * size + col` |
-| `tiling.ts`    | 165-177 | Secondary column bookkeeping feels over-engineered for the problem size                                                |
-
-### Scope Concerns
-
-- **Overbuilt infrastructure**: DLX algorithm is powerful but most Star Battle puzzles solve with simpler backtracking. The infrastructure may exceed the problem's needs.
-- **Missing scope**: No puzzle validation that regions are contiguous — generator assumes it, solver doesn't verify it.
-- **Feature creep potential**: `onProgress` callback in sieve, `onStep` in solver — two different callback patterns for similar purposes.
-
-### Natural Naming
-
-| Current                                 | Suggestion                                                                   |
-| --------------------------------------- | ---------------------------------------------------------------------------- |
-| `sieve`                                 | Consider `generatePuzzles` — "sieve" is a metaphor that requires explanation |
-| `trivialNeighbors`, `trivialRows`, etc. | "trivial" is self-deprecating; these are "basic" or "fundamental" rules      |
-| `coveredCells` vs `cells` in Tile type  | Confusing — one is the 2x2, one is the intersection                          |
+| Line | Issue | Reviewer | Severity |
+|------|-------|----------|----------|
+| 37 | **Seed reuse bug**: When `options.seed` is provided, same seed used every iteration — generates identical boards repeatedly | Christian | HIGH |
+| 44 | **Empty catch block**: Silently swallows all errors including TypeError, ReferenceError — masks bugs | Christian, Marcus | HIGH |
+| 11-14 | `assignDifficulty` formula (`levelBase + cycleBonus`) is magic — the "why" is unclear | Wei | LOW |
+| — | `sieve()` returns `Puzzle[]` but when `seed` is provided, always returns 0 or 1 puzzle — confusing API | Carlos | MEDIUM |
 
 ---
 
-## Agent 3: Marcus — Lawyerly Supervisor
+## `solver.ts`
 
-_Focus: Liability, compliance, edge cases, defensive programming_
-
-### Edge Case Failures
-
-| File           | Line  | Scenario                        | Consequence                                              |
-| -------------- | ----- | ------------------------------- | -------------------------------------------------------- |
-| `generator.ts` | 18-22 | `size = 0` passed to layout     | Infinite loop placing 0 regions                          |
-| `generator.ts` | 24    | `stars = 0`                     | `minRegionSize = -1`, meaningless constraint             |
-| `solver.ts`    | 30    | `board.stars <= 1` special case | What if `stars = 0`? Returns true but nonsensical        |
-| `sieve.ts`     | 44    | Empty catch block               | Silently swallows all errors, including programming bugs |
-| `regions.ts`   | 6     | Empty grid (`grid.length = 0`)  | `grid[0].length` throws TypeError                        |
-
-### Defensive Programming Gaps
-
-| File        | Issue                                                                              |
-| ----------- | ---------------------------------------------------------------------------------- |
-| `cli.ts`    | No validation that `size >= stars` (required for valid puzzles)                    |
-| `solver.ts` | `isValidLayout` checks region sizes but not region count (`size` regions expected) |
-| `tiling.ts` | No guard against `gridSize <= 0`                                                   |
-| `dlx.ts`    | No guard against `numPrimary < 0` or `numSecondary < 0`                            |
-
-### Contract Violations
-
-| File        | Line  | Issue                                                                                                    |
-| ----------- | ----- | -------------------------------------------------------------------------------------------------------- |
-| `types.ts`  | 29-32 | `Tile.cells` comment says "all 4 cells" but code doesn't enforce this invariant                          |
-| `types.ts`  | 39    | `allMinimalTilings` could be empty array OR contain empty arrays — ambiguous contract                    |
-| `solver.ts` | 168   | Function signature shows `seed: number` as required, but it's only used for output — misleading contract |
-
-### Error Handling
-
-| File           | Line | Issue                                                                    |
-| -------------- | ---- | ------------------------------------------------------------------------ |
-| `generator.ts` | 110  | Throws generic `Error` — no error code or type for programmatic handling |
-| `sieve.ts`     | 44   | Catches everything including TypeError, ReferenceError — masks bugs      |
-| All files      | —    | No input validation at module boundaries                                 |
-
-### Compliance Considerations
-
-- **No license headers** in any file
-- **No JSDoc** on public exports — API contract is implicit
-- **Deterministic randomness** via LCG is good for reproducibility but LCG constants (1103515245, 12345) should cite source (glibc)
+| Line | Issue | Reviewer | Severity |
+|------|-------|----------|----------|
+| 91-100 | **Double-counting adjacency check**: Loop detects (A,B) and later (B,A) — correct but redundant | Christian | LOW |
+| 197-198 | **Cache rebuilt every cycle**: Tiling/strip caches recomputed each iteration — could invalidate selectively | Christian | MEDIUM |
+| 30 | `board.stars <= 1` special case — what if `stars = 0`? Returns true but nonsensical | Marcus | MEDIUM |
+| 168 | `seed: number` is required param but only used for output — misleading contract | Marcus | LOW |
+| — | `isValidLayout` checks region sizes but not region count (`size` regions expected) | Marcus | MEDIUM |
+| 1-22 | Import numbering (01-, 02-, etc.) in rule paths is redundant — `allRules` array already handles ordering | Wei | LOW |
+| — | `solve()` returns `null` for three reasons (invalid layout, stuck, max cycles) — no way to distinguish | Carlos | MEDIUM |
+| — | 11 rules imported from 11 different folders with numbered prefixes — hard to understand relationships | Carlos | LOW |
 
 ---
 
-## Agent 4: Carlos — Nicaraguan Coworker
+## `cli.ts`
 
-_Focus: Developer practicality, maintainability, onboarding, real-world use_
-
-### What Works Well
-
-- **Clean separation**: generator makes boards, solver solves them, sieve combines them
-- **Types are good**: `types.ts` is the right place to look first
-- **Readable algorithms**: DLX is complex but the cover/uncover functions are textbook
-
-### Pain Points for New Developers
-
-| File        | Issue                                                               | Impact                                                                             |
-| ----------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `solver.ts` | 11 rules imported from 11 different folders with numbered prefixes  | Hard to understand rule relationships without reading each                         |
-| `cli.ts`    | Argument parsing is hand-rolled                                     | Should use a library like `yargs` or `commander` for maintainability               |
-| `tiling.ts` | Algorithm description in comment block doesn't match code structure | Comment says "exact cover" but doesn't explain what primary/secondary columns mean |
-
-### Code Organization Issues
-
-| Issue                                                                                     | Suggestion                                                    |
-| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `helpers/` contains core algorithms (DLX, tiling) alongside true helpers (regions, types) | Split into `algorithms/` and `types/`                         |
-| Rules in `rules/01-*/` but no index file                                                  | Add `rules/index.ts` that exports all rules with metadata     |
-| No constants file                                                                         | Magic numbers (MAX_CYCLES=1000, maxAttempts=100000) scattered |
-
-### Missing Developer Conveniences
-
-| What's Missing                       | Why It Matters                                       |
-| ------------------------------------ | ---------------------------------------------------- |
-| No unit tests visible                | Can't verify changes don't break things              |
-| No example puzzles                   | Hard to understand expected I/O                      |
-| No debugging utilities               | `--trace` is good but only works with seed           |
-| No TypeScript strict mode indicators | `!` assertions suggest `strictNullChecks` may be off |
-
-### API Usability
-
-| File           | Issue                                                                                                           |
-| -------------- | --------------------------------------------------------------------------------------------------------------- |
-| `sieve.ts`     | `sieve()` returns `Puzzle[]` but when `seed` is provided, always returns 0 or 1 puzzle — confusing API          |
-| `solver.ts`    | `solve()` returns `null` for three different reasons: invalid layout, stuck, max cycles — no way to distinguish |
-| `generator.ts` | `layout()` throws on failure vs `solve()` returns null — inconsistent error handling                            |
-
-### Quick Wins
-
-1. Add `/** @throws */` JSDoc to `layout()`
-2. Export `isValidLayout` and `isSolved` — useful for consumers
-3. Add `--verbose` flag to CLI for intermediate output without full trace
-4. Create `src/sieve/constants.ts` for MAX_CYCLES, maxAttempts, LCG constants
+| Line | Issue | Reviewer | Severity |
+|------|-------|----------|----------|
+| 12-13 | **Argument parsing fragility**: Comma operator is obscure; `--size` without value consumes next flag | Christian | MEDIUM |
+| 28-31 | **No input validation**: `parseInt` without bounds checking — large values cause memory exhaustion | Christian | MEDIUM |
+| 90 | ANSI escape codes assume terminal support — could garble output in non-ANSI terminals | Christian | LOW |
+| 85-94 | `printCellStateWithDiff` mixes concerns: display + diff + ANSI formatting | Wei | LOW |
+| — | No validation that `size >= stars` (required for valid puzzles) | Marcus | MEDIUM |
+| — | Argument parsing is hand-rolled — should use `yargs` or `commander` | Carlos | LOW |
 
 ---
 
-## Consolidated Priority List
+## `generator.ts`
 
-### Must Fix (Before Production)
+| Line | Issue | Reviewer | Severity |
+|------|-------|----------|----------|
+| 110 | **DoS potential**: `maxIterations = size * size * 100` with no upper bound on `size` | Christian | MEDIUM |
+| 75-76 | **String parsing in hot loop**: `key.split(",").map(Number)` repeated — use numeric tuples | Christian | LOW |
+| 18-22 | `size = 0` causes infinite loop placing 0 regions | Marcus | MEDIUM |
+| 24 | `stars = 0` yields `minRegionSize = -1` — meaningless constraint | Marcus | LOW |
+| 110 | Throws generic `Error` — no error code for programmatic handling | Marcus | LOW |
+| 50-65 | Frontier with string keys adds complexity — could use `Set<number>` with `row * size + col` | Wei | LOW |
+| — | `layout()` throws on failure vs `solve()` returns null — inconsistent error handling | Carlos | MEDIUM |
 
-1. **sieve.ts:37** — Seed reuse bug causes infinite identical generation
-2. **sieve.ts:44** — Empty catch swallows real errors
-3. **cli.ts:28-31** — Add input validation for size/stars bounds
+---
 
-### Should Fix (Technical Debt)
+## `helpers/types.ts`
 
-4. **generator.ts:18** — Guard against `size <= 0`
-5. **solver.ts:197** — Consider selective cache invalidation
-6. **dlx.ts:22** — Replace `null!` with proper initialization
-7. **regions.ts:6** — Guard against empty grid
+| Line | Issue | Reviewer | Severity |
+|------|-------|----------|----------|
+| 29-32 | `Tile.cells` comment says "all 4 cells" but code doesn't enforce invariant | Marcus | LOW |
+| 39 | `allMinimalTilings` could be empty array OR contain empty arrays — ambiguous contract | Marcus | LOW |
+| — | Types are clean and well-documented — good starting point for new devs | Wei, Carlos | POSITIVE |
 
-### Consider (Quality of Life)
+---
 
+## `helpers/tiling.ts`
+
+| Line | Issue | Reviewer | Severity |
+|------|-------|----------|----------|
+| 82 | **Unsafe cast**: `as [number, number]` after split — no validation of 2 elements | Christian | MEDIUM |
+| 160 | `minTileCount: Infinity` could cause JSON serialization issues | Christian | LOW |
+| 165-177 | Secondary column bookkeeping feels over-engineered for problem size | Wei | LOW |
+| — | No guard against `gridSize <= 0` | Marcus | LOW |
+| — | Comment says "exact cover" but doesn't explain primary/secondary columns | Carlos | LOW |
+
+---
+
+## `helpers/strips.ts`
+
+| Line | Issue | Reviewer | Severity |
+|------|-------|----------|----------|
+| 13 | **Assumes rectangular grid**: `board.grid[0].length` — no validation | Christian | LOW |
+
+---
+
+## `helpers/regions.ts`
+
+| Line | Issue | Reviewer | Severity |
+|------|-------|----------|----------|
+| 6 | **Assumes non-empty grid**: `grid[0].length` throws TypeError on empty grid | Christian, Marcus | MEDIUM |
+
+---
+
+## `helpers/dlx.ts`
+
+| Line | Issue | Reviewer | Severity |
+|------|-------|----------|----------|
+| 22 | **Unsafe null assertion**: `root.left = null!` could cause runtime errors | Christian | MEDIUM |
+| 1-15 | Four interfaces where one generic node type might suffice | Wei | LOW |
+| — | No guard against `numPrimary < 0` or `numSecondary < 0` | Marcus | LOW |
+| — | Cover/uncover functions are textbook readable | Carlos | POSITIVE |
+
+---
+
+## Cross-Cutting Concerns
+
+| Issue | Reviewer |
+|-------|----------|
+| No license headers in any file | Marcus |
+| No JSDoc on public exports | Marcus, Carlos |
+| LCG constants (1103515245, 12345) should cite source (glibc) | Marcus |
+| No unit tests visible | Carlos |
+| No example puzzles for understanding I/O | Carlos |
+| Magic numbers scattered (MAX_CYCLES=1000, maxAttempts=100000) | Carlos |
+| `helpers/` mixes core algorithms with true helpers — split into `algorithms/` and `types/` | Carlos |
+| DLX may be overbuilt — most puzzles solve with simpler backtracking | Wei |
+| No validation that regions are contiguous | Wei |
+| `onProgress` vs `onStep` — two callback patterns for similar purposes | Wei |
+
+---
+
+## Priority Summary
+
+### Must Fix
+1. `sieve.ts:37` — Seed reuse bug
+2. `sieve.ts:44` — Empty catch swallows errors
+3. `cli.ts:28-31` — Input validation for bounds
+
+### Should Fix
+4. `generator.ts:18` — Guard `size <= 0`
+5. `regions.ts:6` — Guard empty grid
+6. `dlx.ts:22` — Proper initialization
+7. `solver.ts:197` — Selective cache invalidation
+
+### Consider
 8. Extract magic numbers to constants
-9. Standardize error handling (throw vs return null)
+9. Standardize error handling patterns
 10. Add JSDoc to public exports
-11. Create rules index for discoverability
 
 ---
 
-_Review completed: 2026-01-21_
+*Review completed: 2026-01-21*
