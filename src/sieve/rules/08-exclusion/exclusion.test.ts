@@ -562,10 +562,8 @@ describe("8. Exclusion", () => {
         [0, 1],
         [0, 2],
       ];
-      byRegion.set(
-        0,
-        findAllMinimalTilings(region0Coords, cellsWithCache, size),
-      );
+      const result0 = findAllMinimalTilings(region0Coords, cellsWithCache, size);
+      byRegion.set(0, { ...result0, regionId: 0, cells: region0Coords });
 
       // Region 1: rest
       const region1Coords: Coord[] = [];
@@ -574,10 +572,8 @@ describe("8. Exclusion", () => {
           if (board.grid[r][c] === 1) region1Coords.push([r, c]);
         }
       }
-      byRegion.set(
-        1,
-        findAllMinimalTilings(region1Coords, cellsWithCache, size),
-      );
+      const result1 = findAllMinimalTilings(region1Coords, cellsWithCache, size);
+      byRegion.set(1, { ...result1, regionId: 1, cells: region1Coords });
 
       const tilingCache = { byRegion };
       const resultWithCache = exclusion(board, cellsWithCache, tilingCache);

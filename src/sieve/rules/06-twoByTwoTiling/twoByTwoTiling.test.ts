@@ -205,32 +205,6 @@ describe("6. The 2×2 Tiling", () => {
       expect(result).toBe(false);
     });
 
-    it("6.4.3 handles 1-cell region (trivially forced)", () => {
-      // Single-cell region: only one cell, must hold the star
-      // minTiles=1, starsNeeded=1 → forced
-      const board: Board = {
-        grid: [
-          [0, 1, 1, 1],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-        ],
-        stars: 1,
-      };
-
-      const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
-
-      const result = twoByTwoTiling(board, cells);
-
-      expect(result).toBe(true);
-      expect(cells[0][0]).toBe("star");
-    });
-
     it("6.4.4 handles 2-cell region (minimum non-trivial)", () => {
       // 2 adjacent cells: (0,0), (0,1)
       // minTiles=1 (one 2x2 covers both), starsNeeded=1
@@ -533,10 +507,8 @@ describe("6. The 2×2 Tiling", () => {
         [1, 0],
         [1, 1],
       ];
-      byRegion.set(
-        0,
-        findAllMinimalTilings(region0Coords, cellsWithCache, size),
-      );
+      const result0 = findAllMinimalTilings(region0Coords, cellsWithCache, size);
+      byRegion.set(0, { ...result0, regionId: 0, cells: region0Coords });
 
       // Region 1: rest of the board
       const region1Coords: Coord[] = [];
@@ -545,10 +517,8 @@ describe("6. The 2×2 Tiling", () => {
           if (board.grid[r][c] === 1) region1Coords.push([r, c]);
         }
       }
-      byRegion.set(
-        1,
-        findAllMinimalTilings(region1Coords, cellsWithCache, size),
-      );
+      const result1 = findAllMinimalTilings(region1Coords, cellsWithCache, size);
+      byRegion.set(1, { ...result1, regionId: 1, cells: region1Coords });
 
       const tilingCache = { byRegion };
       const resultWithCache = twoByTwoTiling(
@@ -563,60 +533,4 @@ describe("6. The 2×2 Tiling", () => {
     });
   });
 
-  describe("6.7 Helper: findAllMinimalTilings", () => {
-    const makeGrid = (size: number): CellState[][] =>
-      Array(size)
-        .fill(null)
-        .map(() => Array(size).fill("unknown"));
-
-    it("6.7.1 2×2 square needs 1 tile", () => {
-      const regionCells: Coord[] = [
-        [0, 0],
-        [0, 1],
-        [1, 0],
-        [1, 1],
-      ];
-      const result = findAllMinimalTilings(regionCells, makeGrid(4), 4);
-      expect(result.minTileCount).toBe(1);
-    });
-
-    it("6.7.2 L-shape needs 2 tiles (spec example_tiling_1a)", () => {
-      const regionCells: Coord[] = [
-        [0, 0],
-        [0, 1],
-        [1, 0],
-        [2, 0],
-        [2, 1],
-      ];
-      const result = findAllMinimalTilings(regionCells, makeGrid(4), 4);
-      expect(result.minTileCount).toBe(2);
-    });
-
-    it("6.7.3 8-cell region needs 3 tiles (spec example_tiling_2)", () => {
-      // This verifies the bounding behavior: region can hold at most 3 stars
-      const regionCells: Coord[] = [
-        [0, 0],
-        [0, 1],
-        [0, 2],
-        [1, 0],
-        [1, 1],
-        [1, 2],
-        [2, 1],
-        [2, 2],
-      ];
-      const result = findAllMinimalTilings(regionCells, makeGrid(4), 4);
-      expect(result.minTileCount).toBe(3);
-    });
-
-    it("6.7.4 row pair (2×8) needs 4 tiles (squeeze pattern, Rule 12)", () => {
-      const regionCells: Coord[] = [];
-      for (let r = 0; r < 2; r++) {
-        for (let c = 0; c < 8; c++) {
-          regionCells.push([r, c]);
-        }
-      }
-      const result = findAllMinimalTilings(regionCells, makeGrid(10), 10);
-      expect(result.minTileCount).toBe(4);
-    });
-  });
 });

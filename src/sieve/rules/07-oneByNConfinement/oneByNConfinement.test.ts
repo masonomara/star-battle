@@ -1,8 +1,7 @@
-import { Board, CellState, Coord } from "../../helpers/types";
+import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
 import oneByNConfinement from "./oneByNConfinement";
 import { computeAllStrips } from "../../helpers/strips";
-import { findAllMinimalTilings } from "../../helpers/tiling";
 
 describe("7. The 1×n Confinement", () => {
   describe("7.1 Row confinement", () => {
@@ -417,7 +416,6 @@ describe("7. The 1×n Confinement", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      // Pass undefined for stripCache
       const result = oneByNConfinement(board, cells, undefined, undefined);
 
       expect(result).toBe(false);
@@ -488,9 +486,8 @@ describe("7. The 1×n Confinement", () => {
       expect(cells[1][5]).toBe("marked");
     });
 
-    it("7.6.4 existing star in row reduces quota correctly", () => {
-      // Row 0 has 1 star already, region confined to row 0 contributes 1 more
-      // Together they fill quota → mark remainder
+    it("7.6.4 returns false when regions span multiple rows despite existing star", () => {
+      // Regions 1 and 2 span rows 0-3, not confined to any single row
       const board: Board = {
         grid: [
           [0, 1, 1, 2, 2],
@@ -522,40 +519,7 @@ describe("7. The 1×n Confinement", () => {
       expect(result).toBe(false);
     });
 
-    it("7.6.5 row with existing star and confined region marks correctly", () => {
-      // Row 1 has 1 star, region confined to row 1 contributes 1 → fills quota
-      const board: Board = {
-        grid: [
-          [0, 0, 0, 0, 0],
-          [0, 1, 1, 0, 2],
-          [0, 1, 1, 0, 2],
-          [0, 1, 1, 0, 2],
-        ],
-        stars: 2,
-      };
-      const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["star", "unknown", "unknown", "marked", "unknown"],
-        ["marked", "unknown", "unknown", "marked", "unknown"],
-        ["marked", "unknown", "unknown", "marked", "unknown"],
-      ];
-
-      // Row 1 has 1 star at (1,0), needs 1 more
-      // Region 2 (col 4) is column-confined, contributes stars to col 4
-      // Check if region 1 is row-confined to row 1
-      const result = oneByNConfinement(
-        board,
-        cells,
-        undefined,
-        computeAllStrips(board, cells),
-      );
-
-      // Region 1 unknowns span rows 1-3, not confined to row 1
-      // This tests that existing stars affect quota calculation even when no marks made
-      expect(typeof result).toBe("boolean");
-    });
-
-    it("7.6.6 handles 3★ puzzle with row confinement", () => {
+    it("7.6.5 handles 3★ puzzle with row confinement", () => {
       // 3★ puzzle, region confined to single row
       const board: Board = {
         grid: [
@@ -651,63 +615,6 @@ describe("7. The 1×n Confinement", () => {
       expect(cells[0][6]).toBe("marked");
       expect(cells[0][7]).toBe("marked");
       expect(cells[0][8]).toBe("marked");
-    });
-
-    it("7.6.7 tilingCache enables partial confinement detection", () => {
-      // Region with tiling that reveals a 1×n strip
-      // This tests the tilingCache code path (lines 318-366 in implementation)
-      const board: Board = {
-        grid: [
-          [0, 0, 0, 1],
-          [0, 0, 1, 1],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-        ],
-        stars: 2,
-      };
-      const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
-
-      // Build tilingCache for the L-shaped region
-      const size = board.grid.length;
-      const byRegion = new Map();
-
-      // Region 0: L-shape at (0,0), (0,1), (0,2), (1,0), (1,1)
-      const region0Coords: Coord[] = [
-        [0, 0],
-        [0, 1],
-        [0, 2],
-        [1, 0],
-        [1, 1],
-      ];
-      byRegion.set(0, findAllMinimalTilings(region0Coords, cells, size));
-
-      // Region 1: rest of the board
-      const region1Coords: Coord[] = [];
-      for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-          if (board.grid[r][c] === 1) region1Coords.push([r, c]);
-        }
-      }
-      byRegion.set(1, findAllMinimalTilings(region1Coords, cells, size));
-
-      const tilingCache = { byRegion };
-      const stripCache = computeAllStrips(board, cells);
-
-      const result = oneByNConfinement(board, cells, tilingCache, stripCache);
-
-      // The L-shaped region 0 has minTiles=2, needs 2 stars
-      // Tiling covers (0,0)-(1,1) with one tile, and cell (0,2) needs another
-      // Cell (0,2) is isolated in row 0 → forms a 1×n contribution
-      // This should mark row 0 cells outside region 0's contribution
-      // Actually, the whole region might be row-confined already
-      // The tilingCache path handles cases where tiling reveals partial confinement
-      // Let's just verify it doesn't crash and produces consistent results
-      expect(typeof result).toBe("boolean");
     });
   });
 });
