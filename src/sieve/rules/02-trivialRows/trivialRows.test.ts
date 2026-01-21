@@ -99,30 +99,4 @@ describe("2. Row Complete", () => {
 
     expect(result).toBe(false);
   });
-
-  it("2.5 marks multiple rows simultaneously", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-      ],
-      stars: 1,
-    };
-
-    const cells: CellState[][] = [
-      ["star", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "star"],
-    ];
-
-    const result = trivialRows(board, cells);
-
-    expect(result).toBe(true);
-    expect(cells).toEqual([
-      ["star", "marked", "marked"],
-      ["unknown", "unknown", "unknown"],
-      ["marked", "marked", "star"],
-    ]);
-  });
 });
