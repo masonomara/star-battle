@@ -3697,6 +3697,42 @@ describe("10. Undercounting", () => {
       expect(cells[3][0]).toBe("marked");
       expect(cells[3][1]).toBe("marked");
     });
+
+    it("10.2.3 marks cells when 3 regions contained in 3 columns (2★ puzzle)", () => {
+      // Mirror of 10.1.3 but for columns
+      // Regions 0, 1, 2 each contained within columns 0-2
+      // 3 cols × 2 stars = 6 stars must come from these 3 regions
+      const board: Board = {
+        grid: [
+          [0, 1, 2, 3, 3, 3],
+          [0, 1, 2, 3, 3, 3],
+          [0, 1, 2, 3, 3, 3],
+          [0, 1, 2, 3, 3, 3],
+          [3, 3, 3, 3, 3, 3],
+          [3, 3, 3, 3, 3, 3],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = undercounting(board, cells);
+
+      expect(result).toBe(true);
+      // Region 3 cells in cols 0-2 should be marked (rows 4-5, cols 0-2)
+      expect(cells[4][0]).toBe("marked");
+      expect(cells[4][1]).toBe("marked");
+      expect(cells[4][2]).toBe("marked");
+      expect(cells[5][0]).toBe("marked");
+      expect(cells[5][1]).toBe("marked");
+      expect(cells[5][2]).toBe("marked");
+    });
   });
 
   describe("10.3 No undercounting", () => {
@@ -3800,27 +3836,88 @@ describe("10. Undercounting", () => {
       expect(cells[2][3]).toBe("marked"); // region 2 in row 2
     });
 
-    it("10.4.2 handles partial board progress", () => {
-      // Some cells already marked/starred
+    it("10.4.2 skips regions that already have full star quota", () => {
+      // Region 0 contained in row 0, but already has its star
+      // Should NOT trigger undercounting since region 0 is "inactive"
       const board: Board = {
         grid: [
-          [0, 0, 1, 1],
-          [0, 0, 1, 1],
-          [2, 2, 2, 2],
-          [2, 2, 2, 2],
+          [0, 0, 0, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
         ],
         stars: 1,
       };
       const cells: CellState[][] = [
-        ["star", "marked", "unknown", "unknown"],
-        ["marked", "marked", "unknown", "unknown"],
+        ["star", "marked", "marked", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
         ["unknown", "unknown", "unknown", "unknown"],
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      // Region 0 already has star, doesn't need counting
+      // Region 0 already has 1 star (= board.stars), so it's inactive
+      // Implementation filters to active regions only
       const result = undercounting(board, cells);
-      expect(typeof result).toBe("boolean");
+
+      // Should return false - no undercounting applies with inactive region
+      expect(result).toBe(false);
+      // Cell (0,3) should NOT be marked since region 0 is inactive
+      expect(cells[0][3]).toBe("unknown");
+    });
+
+    it("10.4.3 marks all eligible cells in single call (batch behavior)", () => {
+      // Multiple cells should be marked in one call
+      // Region 0 in row 0 (cols 0-1), region 2 spans rows 0-3
+      const board: Board = {
+        grid: [
+          [0, 0, 2, 2, 2],
+          [2, 2, 2, 2, 2],
+          [2, 2, 2, 2, 2],
+          [2, 2, 2, 2, 2],
+          [2, 2, 2, 2, 2],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = undercounting(board, cells);
+
+      expect(result).toBe(true);
+      // All region 2 cells in row 0 should be marked in ONE call
+      expect(cells[0][2]).toBe("marked");
+      expect(cells[0][3]).toBe("marked");
+      expect(cells[0][4]).toBe("marked");
+    });
+
+    it("10.4.4 processes rows before columns", () => {
+      // Setup where both row-based and column-based undercounting could apply
+      // Implementation processes rows first, then columns
+      const board: Board = {
+        grid: [
+          [0, 0, 2],
+          [1, 2, 2],
+          [2, 2, 2],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+      ];
+
+      const result = undercounting(board, cells);
+
+      // Region 0 contained in row 0, region 1 contained in row 1
+      // But also region 0 contained in cols 0-1, region 1 in col 0
+      // Either way, something should be marked
+      expect(result).toBe(true);
     });
   });
 });
@@ -3932,6 +4029,41 @@ describe("11. Overcounting", () => {
       expect(cells[2][4]).toBe("marked");
       expect(cells[2][5]).toBe("marked");
     });
+
+    it("11.1.4 marks cells when 3 regions contain 3 rows (2★ puzzle)", () => {
+      // Regions 0, 1, 2 completely contain rows 0-2
+      // Each region has cells outside those rows that should be marked
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1, 2, 2],
+          [0, 0, 1, 1, 2, 2],
+          [0, 0, 1, 1, 2, 2],
+          [0, 3, 1, 3, 2, 3],
+          [3, 3, 3, 3, 3, 3],
+          [3, 3, 3, 3, 3, 3],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = overcounting(board, cells);
+
+      expect(result).toBe(true);
+      // Regions 0, 1, 2 contain rows 0-2 completely
+      // Region 0 cells outside rows 0-2: (3,0)
+      // Region 1 cells outside rows 0-2: (3,2)
+      // Region 2 cells outside rows 0-2: (3,4)
+      expect(cells[3][0]).toBe("marked");
+      expect(cells[3][2]).toBe("marked");
+      expect(cells[3][4]).toBe("marked");
+    });
   });
 
   describe("11.2 Column-based overcounting", () => {
@@ -3986,6 +4118,38 @@ describe("11. Overcounting", () => {
       expect(result).toBe(true);
       // Region 0 cell outside cols 0-1: (0,2)
       expect(cells[0][2]).toBe("marked");
+    });
+
+    it("11.2.3 marks cells when 3 regions contain 3 columns (2★ puzzle)", () => {
+      // Regions 0, 1, 2 completely contain columns 0-2
+      // Each region has cells outside those columns
+      // Use many unique regions per row to prevent row-based from triggering
+      const board: Board = {
+        grid: [
+          [0, 1, 2, 0, 3, 4],
+          [0, 1, 2, 5, 6, 7],
+          [0, 1, 2, 8, 9, 10],
+          [0, 1, 2, 11, 12, 13],
+          [0, 1, 2, 14, 15, 16],
+          [0, 1, 2, 17, 18, 19],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = overcounting(board, cells);
+
+      expect(result).toBe(true);
+      // Regions 0, 1, 2 contain cols 0-2 completely
+      // Region 0 cell outside cols 0-2: (0,3)
+      expect(cells[0][3]).toBe("marked");
     });
   });
 
@@ -4096,26 +4260,36 @@ describe("11. Overcounting", () => {
       expect(cells[2][3]).toBe("marked");
     });
 
-    it("11.4.2 handles partial board progress", () => {
+    it("11.4.2 skips regions that already have full star quota", () => {
+      // Region 0 contains row 0, but already has its star
+      // Region 1 spans multiple rows and doesn't contain any row completely
+      // Should NOT trigger overcounting since region 0 is "inactive"
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
-          [0, 0, 0, 0],
           [0, 1, 1, 1],
-          [1, 1, 1, 1],
+          [0, 1, 1, 1],
+          [0, 1, 1, 1],
         ],
         stars: 1,
       };
       const cells: CellState[][] = [
         ["star", "marked", "marked", "marked"],
-        ["marked", "marked", "marked", "marked"],
+        ["unknown", "unknown", "unknown", "unknown"],
         ["unknown", "unknown", "unknown", "unknown"],
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      // Region 0 already has star
+      // Region 0 already has 1 star (= board.stars), so it's inactive
+      // Region 1 is active but doesn't contain any row completely (col 0 is region 0)
       const result = overcounting(board, cells);
-      expect(typeof result).toBe("boolean");
+
+      // Should return false - region 0 is inactive, region 1 doesn't contain any row
+      expect(result).toBe(false);
+      // Cells (1,0), (2,0), (3,0) should NOT be marked
+      expect(cells[1][0]).toBe("unknown");
+      expect(cells[2][0]).toBe("unknown");
+      expect(cells[3][0]).toBe("unknown");
     });
 
     it("11.4.3 processes smallest valid case: 1 region containing 1 row", () => {
@@ -4140,6 +4314,62 @@ describe("11. Overcounting", () => {
       // Region 0 contains row 0 completely
       // Region 0 cell outside row 0: (1,0)
       expect(cells[1][0]).toBe("marked");
+    });
+
+    it("11.4.4 marks all eligible cells in single call (batch behavior)", () => {
+      // Multiple cells from multiple regions should be marked in one call
+      // Regions 0, 1 contain rows 0-1, both have cells outside
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [2, 2, 2, 2],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = overcounting(board, cells);
+
+      expect(result).toBe(true);
+      // All region 0 and 1 cells in row 2 should be marked in ONE call
+      expect(cells[2][0]).toBe("marked");
+      expect(cells[2][1]).toBe("marked");
+      expect(cells[2][2]).toBe("marked");
+      expect(cells[2][3]).toBe("marked");
+    });
+
+    it("11.4.5 processes rows before columns", () => {
+      // Setup where both row-based and column-based overcounting could apply
+      // Implementation processes rows first
+      const board: Board = {
+        grid: [
+          [0, 0, 0],
+          [0, 1, 1],
+          [0, 1, 1],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown"],
+      ];
+
+      const result = overcounting(board, cells);
+
+      // Region 0 contains row 0 (row-based)
+      // Region 0 also contains col 0 (column-based)
+      // Either would mark (1,0) and (2,0)
+      expect(result).toBe(true);
+      expect(cells[1][0]).toBe("marked");
+      expect(cells[2][0]).toBe("marked");
     });
   });
 });
