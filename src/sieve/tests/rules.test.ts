@@ -4392,46 +4392,156 @@ describe("12. The Squeeze", () => {
   // Each 2×2 contains exactly one star
   // This identifies star-containing-2×2s which can chain with exclusion
 
-  describe("12.1 Row-pair squeeze", () => {
-    it("12.1.1 marks from excluding a start-containing 2x2", () => {
-      // Per spec: "squeezes account for all four stars in the bottom two rows"
-      // "This lets us mark the remainder of those rows"
-      const board: Board = {
-        grid: [
-          [0, 0, 0, 0],
-          [0, 0, 0, 0],
-          [0, 0, 0, 0],
-          [0, 0, 0, 0],
-          [0, 0, 0, 0],
-          [0, 0, 0, 0],
-          [0, 0, 0, 0],
-          [0, 0, 0, 0],
-          [0, 0, 0, 0],
-          [0, 0, 0, 0],
-          [0, 0, 0, 0],
-        ],
-        stars: 2,
-      };
-      const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "marked", "marked", "unknown"],
-        ["unknown", "marked", "marked", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "marked", "unknown", "unknown"],
-        ["unknown", "marked", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
+  describe("12.1 Squeeze example", () => {
+    const board: Board = {
+      grid: [
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+      ],
+      stars: 2,
+    };
+    const cells: CellState[][] = [
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "marked", "marked", "unknown"],
+      ["unknown", "marked", "marked", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "marked", "unknown", "unknown"],
+      ["unknown", "marked", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+    ];
 
-      const result = squeeze(board, cells);
+    const result = squeeze(board, cells);
 
-      // Should mark cells outside the star-containing 2×2s
-      expect(typeof result).toBe("boolean");
-      expect(cells[6][3]).toBe("marked");
-      expect(cells[7][3]).toBe("marked");
-    });
+    // Should mark cells outside the star-containing 2×2s
+    expect(typeof result).toBe("boolean");
+    expect(cells[6][3]).toBe("marked");
+    expect(cells[7][3]).toBe("marked");
+  });
+  describe("12.2 Squeeze example", () => {
+    const board: Board = {
+      grid: [
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+      ],
+      stars: 2,
+    };
+    const cells: CellState[][] = [
+      ["unknown", "marked", "marked", "unknown"],
+      ["unknown", "marked", "marked", "unknown"],
+      ["unknown", "marked", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "marked", "unknown", "unknown"],
+      ["unknown", "marked", "marked", "unknown"],
+    ];
+
+    const result = squeeze(board, cells);
+
+    // Should mark cells outside the star-containing 2×2s
+    expect(typeof result).toBe("boolean");
+    expect(cells[2][2]).toBe("starred");
+    expect(cells[2][8]).toBe("starred");
+  });
+  describe("12.3 squeeze example", () => {
+    const board: Board = {
+      grid: [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      ],
+      stars: 2,
+    };
+    const cells: CellState[][] = [
+      ["marked", "marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
+      ["marked", "marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
+      ["unknown", "unknown", "unknown", "marked", "marked", "unknown", "unknown", "unknown", "unknown", "unknown",],
+      ["unknown", "unknown", "unknown", "marked", "marked", "unknown", "unknown", "unknown", "unknown", "unknown",],
+      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
+      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
+      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
+      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "marked", "marked",],
+      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "marked", "marked", "marked", "star",],
+      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "marked", "star", "marked", "marked",],
+    ];
+
+    const result = squeeze(board, cells);
+
+    // Should mark cells outside the star-containing 2×2s
+    expect(typeof result).toBe("boolean");
+    expect(cells[6][3]).toBe("marked");
+    expect(cells[7][3]).toBe("marked");
+  });
+  describe("12.4 squeeze example", () => {
+    const board: Board = {
+      grid: [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 1, 0, 1, 0, 0],
+        [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+        [0, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      ],
+      stars: 2,
+    };
+    const cells: CellState[][] = [
+      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
+      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
+      ["unknown", "unknown", "unknown", "unknown", "marked", "marked", "unknown", "unknown", "unknown", "unknown",],
+      ["unknown", "unknown", "unknown", "unknown", "marked", "marked", "unknown", "unknown", "unknown", "unknown",],
+      ["marked", "marked", "marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
+      ["marked", "star", "marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
+      ["marked", "marked", "marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
+      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
+      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
+      ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",],
+    ];
+
+    const result = squeeze(board, cells);
+
+    // Should mark cells outside the star-containing 2×2s
+    expect(typeof result).toBe("boolean");
+    expect(cells[3][7]).toBe("marked");
+    expect(cells[4][3]).toBe("marked");
+        expect(cells[4][6]).toBe("marked");
+            expect(cells[4][7]).toBe("marked");
+                expect(cells[5][3]).toBe("marked");
+                    expect(cells[5][6]).toBe("marked");
+
   });
 });
 
