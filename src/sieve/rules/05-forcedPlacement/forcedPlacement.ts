@@ -33,7 +33,8 @@ export default function forcedPlacement(
       unknowns.length === needed &&
       !hasAdjacentPair(unknowns)
     ) {
-      cells[unknowns[0][0]][unknowns[0][1]] = "star";
+      const [r, c] = unknowns[0];
+      cells[r][c] = "star";
       return true;
     }
   }
@@ -51,7 +52,8 @@ export default function forcedPlacement(
       unknowns.length === needed &&
       !hasAdjacentPair(unknowns)
     ) {
-      cells[unknowns[0][0]][unknowns[0][1]] = "star";
+      const [r, c] = unknowns[0];
+      cells[r][c] = "star";
       return true;
     }
   }
@@ -69,7 +71,8 @@ export default function forcedPlacement(
       unknowns.length === needed &&
       !hasAdjacentPair(unknowns)
     ) {
-      cells[unknowns[0][0]][unknowns[0][1]] = "star";
+      const [r, c] = unknowns[0];
+      cells[r][c] = "star";
       return true;
     }
   }
