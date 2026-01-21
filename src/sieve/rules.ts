@@ -1,5 +1,11 @@
-import { Board, CellState, Coord, StripCache, TilingCache } from "./types";
-import { findAllMinimalTilings } from "./tiling";
+import {
+  Board,
+  CellState,
+  Coord,
+  StripCache,
+  TilingCache,
+} from "./helpers/types";
+import { findAllMinimalTilings } from "./helpers/tiling";
 
 /**
  * Rule 1. Star Neighbors: Mark all 8 neighbors of placed stars
@@ -722,9 +728,10 @@ export function exclusion(
  * For each 1×n strip (which guarantees at least 1 star):
  *   - Try placing a "faux star" at each cell in the strip
  *   - Mark the faux star's 8 neighbors
- *   - If ANY tight region can no longer fit its remaining stars, mark that cell
+ *   - If ANY row, column, or tight region can no longer fit its remaining stars, mark that cell
  *
- * This finds cells within strips where placing a star would break any region's solvability.
+ * The faux star's marks can span multiple regions/rows/cols simultaneously,
+ * creating combined effects that identify invalid star positions.
  */
 export function pressuredExclusion(
   board: Board,
@@ -734,14 +741,15 @@ export function pressuredExclusion(
 ): boolean {
   if (!stripCache) return false;
 
-  const size = board.grid.length;
+  const numRows = board.grid.length;
+  const numCols = board.grid[0].length;
 
   // Build region info
   const regionCells = new Map<number, Coord[]>();
   const regionStars = new Map<number, number>();
 
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
+  for (let r = 0; r < numRows; r++) {
+    for (let c = 0; c < numCols; c++) {
       const regionId = board.grid[r][c];
       if (!regionCells.has(regionId)) {
         regionCells.set(regionId, []);
@@ -753,28 +761,6 @@ export function pressuredExclusion(
       }
     }
   }
-
-  // Find all tight regions: minTileCount == starsNeeded
-  const tightRegions = new Map<
-    number,
-    { cells: Coord[]; starsNeeded: number }
-  >();
-
-  for (const [regionId, rCells] of regionCells) {
-    const existingStars = regionStars.get(regionId) ?? 0;
-    const starsNeeded = board.stars - existingStars;
-    if (starsNeeded <= 0) continue;
-
-    const tiling =
-      tilingCache?.byRegion.get(regionId) ??
-      findAllMinimalTilings(rCells, cells, size);
-
-    if (tiling.minTileCount === starsNeeded) {
-      tightRegions.set(regionId, { cells: rCells, starsNeeded });
-    }
-  }
-
-  if (tightRegions.size === 0) return false;
 
   // Collect all faux star candidates from strips
   const fauxCandidates: Coord[] = [];
@@ -816,7 +802,7 @@ export function pressuredExclusion(
         if (dr === 0 && dc === 0) continue;
         const nr = fauxRow + dr;
         const nc = fauxCol + dc;
-        if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
+        if (nr >= 0 && nr < numRows && nc >= 0 && nc < numCols) {
           if (tempCells[nr][nc] === "unknown") {
             tempCells[nr][nc] = "marked";
           }
@@ -824,21 +810,74 @@ export function pressuredExclusion(
       }
     }
 
-    // Check if ANY tight region becomes unsolvable
-    for (const [regionId, { cells: rCells, starsNeeded }] of tightRegions) {
-      // Adjust stars needed if faux star is in this region
+    // Check if ANY region becomes unsolvable (immediate tiling check)
+    for (const [regionId, rCells] of regionCells) {
+      const existingStars = regionStars.get(regionId) ?? 0;
       const fauxInRegion = board.grid[fauxRow][fauxCol] === regionId;
-      const remainingStarsNeeded = fauxInRegion ? starsNeeded - 1 : starsNeeded;
+      const starsNeeded = board.stars - existingStars - (fauxInRegion ? 1 : 0);
 
-      if (remainingStarsNeeded <= 0) continue; // Faux star completes this region
+      if (starsNeeded <= 0) continue;
 
-      // Recompute tiling for the region with the faux star in place
-      const newTiling = findAllMinimalTilings(rCells, tempCells, size);
+      const newTiling = findAllMinimalTilings(rCells, tempCells, numRows);
 
-      // If region can't fit remaining stars, this faux position is invalid
-      if (newTiling.minTileCount < remainingStarsNeeded) {
+      if (newTiling.minTileCount < starsNeeded) {
         cells[fauxRow][fauxCol] = "marked";
         return true;
+      }
+    }
+
+    // Check for forced column conflicts:
+    // If a region's tilings ALL use the fauxCol, that column gets 2 stars,
+    // which may break other regions that depend on that column
+    for (const [regionId, rCells] of regionCells) {
+      const fauxInRegion = board.grid[fauxRow][fauxCol] === regionId;
+      if (fauxInRegion) continue; // Skip the faux star's own region
+
+      const existingStars = regionStars.get(regionId) ?? 0;
+      const starsNeeded = board.stars - existingStars;
+      if (starsNeeded <= 0) continue;
+
+      const newTiling = findAllMinimalTilings(rCells, tempCells, numRows);
+      if (newTiling.allMinimalTilings.length === 0) continue;
+
+      // Check if fauxCol is used in EVERY minimal tiling for this region
+      const fauxColUsedInAll = newTiling.allMinimalTilings.every((tiling) =>
+        tiling.some((tile) => tile.coveredCells.some(([, c]) => c === fauxCol)),
+      );
+
+      if (fauxColUsedInAll) {
+        // This region MUST place a star in fauxCol
+        // Combined with faux star, fauxCol has 2 stars - it's full
+        // Check if any OTHER region becomes unsolvable without fauxCol
+
+        // Create temp cells with fauxCol cells marked (simulating full column)
+        const colBlockedCells = tempCells.map((row) => [...row]);
+        for (let r = 0; r < numRows; r++) {
+          if (colBlockedCells[r][fauxCol] === "unknown") {
+            colBlockedCells[r][fauxCol] = "marked";
+          }
+        }
+
+        // Check each other region
+        for (const [otherRegionId, otherCells] of regionCells) {
+          if (otherRegionId === regionId) continue;
+          if (board.grid[fauxRow][fauxCol] === otherRegionId) continue;
+
+          const otherExistingStars = regionStars.get(otherRegionId) ?? 0;
+          const otherStarsNeeded = board.stars - otherExistingStars;
+          if (otherStarsNeeded <= 0) continue;
+
+          const otherTiling = findAllMinimalTilings(
+            otherCells,
+            colBlockedCells,
+            numRows,
+          );
+
+          if (otherTiling.minTileCount < otherStarsNeeded) {
+            cells[fauxRow][fauxCol] = "marked";
+            return true;
+          }
+        }
       }
     }
   }

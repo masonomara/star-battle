@@ -1,6 +1,6 @@
 import { layout } from "./generator";
 import { solve } from "./solver";
-import { Board, Puzzle, Solution } from "./types";
+import { Board, Puzzle, Solution } from "./helpers/types";
 
 // Generate random seed
 function randomSeed(): number {
@@ -35,10 +35,14 @@ export function sieve(options: SieveOptions = {}): Puzzle[] {
   while (puzzles.length < count && attempts < maxAttempts) {
     attempts++;
     const seed = options.seed ?? randomSeed();
-    const board = layout(size, stars, seed);
-    const solution = solve(board, seed);
-    if (solution) {
-      puzzles.push(assignDifficulty(solution));
+    try {
+      const board = layout(size, stars, seed);
+      const solution = solve(board, seed);
+      if (solution) {
+        puzzles.push(assignDifficulty(solution));
+      }
+    } catch {
+      // Bad seed (layout stuck or other error), try another
     }
     options.onProgress?.(puzzles.length, attempts);
     if (options.seed !== undefined) break;

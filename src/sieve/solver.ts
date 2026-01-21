@@ -6,7 +6,7 @@ import {
   Solution,
   StripCache,
   TilingCache,
-} from "./types";
+} from "./helpers/types";
 import {
   trivialStarMarks,
   trivialRowComplete,
@@ -16,11 +16,12 @@ import {
   twoByTwoTiling,
   oneByNConfinement,
   exclusion,
+  pressuredExclusion,
   overcounting,
   undercounting,
 } from "./rules";
-import { findAllMinimalTilings } from "./tiling";
-import { computeAllStrips } from "./strips";
+import { findAllMinimalTilings } from "./helpers/tiling";
+import { computeAllStrips } from "./helpers/strips";
 
 /**
  * Check if a board layout is valid before attempting to solve.
@@ -62,6 +63,7 @@ const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: twoByTwoTiling, level: 2, name: "twoByTwoTiling" },
   { rule: oneByNConfinement, level: 2, name: "oneByNConfinement" },
   { rule: exclusion, level: 2, name: "exclusion" },
+  { rule: pressuredExclusion, level: 2, name: "pressuredExclusion" },
   { rule: overcounting, level: 2, name: "overcounting" },
   { rule: undercounting, level: 2, name: "undercounting" },
 ];

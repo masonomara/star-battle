@@ -1,7 +1,7 @@
 import { sieve } from "./sieve";
 import { layout } from "./generator";
 import { solve, StepInfo } from "./solver";
-import { CellState } from "./types";
+import { CellState } from "./helpers/types";
 
 function parseArgs(): Record<string, string> {
   const args: Record<string, string> = {};

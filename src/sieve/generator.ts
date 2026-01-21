@@ -1,12 +1,12 @@
-import { Board } from "./types";
+import { Board } from "./helpers/types";
 
 // Generate board layout from seed
 export function layout(size: number, stars: number, seed: number): Board {
-  // LCG for deterministic randomness
-  let s = seed;
+  // LCG for deterministic randomness (using Math.imul for 32-bit precision)
+  let s = seed | 0;
   const rng = () => {
-    s = (s * 1103515245 + 12345) & 0x7fffffff;
-    return s / 0x7fffffff;
+    s = (Math.imul(s, 1103515245) + 12345) | 0;
+    return (s >>> 0) / 0x100000000;
   };
 
   const grid: number[][] = Array.from({ length: size }, () =>
@@ -103,7 +103,12 @@ export function layout(size: number, stars: number, seed: number): Board {
 
   // Phase 2: Random fill for remaining cells (irregular shapes)
   let unfilled = true;
+  let iterations = 0;
+  const maxIterations = size * size * 100;
   while (unfilled) {
+    if (++iterations > maxIterations) {
+      throw new Error("Layout generation stuck - could not fill grid");
+    }
     unfilled = false;
     for (let row = 0; row < size; row++) {
       for (let col = 0; col < size; col++) {

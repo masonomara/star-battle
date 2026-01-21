@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { findAllMinimalTilings } from "../tiling";
-import { CellState, Coord } from "../types";
+import { findAllMinimalTilings } from "../helpers/tiling";
+import { CellState, Coord } from "../helpers/types";
 
 /**
  * Tiling tests verify minTileCount bounds max stars a region can hold.
