@@ -1,12 +1,6 @@
 import buildRegions from "../../helpers/regions";
 import { findAllMinimalTilings } from "../../helpers/tiling";
-import {
-  Board,
-  CellState,
-  Coord,
-  StripCache,
-  TilingCache,
-} from "../../helpers/types";
+import { Board, CellState, Coord, TilingCache } from "../../helpers/types";
 import { markNeighbors } from "../01-trivialNeighbors/trivialNeighbors";
 
 const key = (r: number, c: number) => `${r},${c}`;
@@ -15,7 +9,6 @@ export default function exclusion(
   board: Board,
   cells: CellState[][],
   tilingCache?: TilingCache,
-  _stripCache?: StripCache,
 ): boolean {
   const size = board.grid.length;
   const regions = buildRegions(board.grid);
