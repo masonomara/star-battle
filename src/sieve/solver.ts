@@ -6,7 +6,6 @@ import trivialRegions from "./rules/04-trivialRegions/trivialRegions";
 import forcedPlacement from "./rules/05-forcedPlacement/forcedPlacement";
 import twoByTwoTiling from "./rules/06-twoByTwoTiling/twoByTwoTiling";
 import oneByNConfinement from "./rules/07-oneByNConfinement/oneByNConfinement";
-import exclusion from "./rules/08-exclusion/exclusion";
 
 /**
  * Check if a board layout is valid before attempting to solve.
@@ -45,7 +44,6 @@ const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: trivialColumns, level: 1, name: "colComplete" },
   { rule: trivialRegions, level: 1, name: "regionComplete" },
   { rule: forcedPlacement, level: 1, name: "forcedPlacement" },
-  { rule: exclusion, level: 2, name: "exclusion" },
   { rule: twoByTwoTiling, level: 3, name: "twoByTwoTiling" },
   { rule: oneByNConfinement, level: 3, name: "oneByNConfinement" },
 ];
