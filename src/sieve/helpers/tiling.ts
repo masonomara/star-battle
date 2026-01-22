@@ -11,7 +11,7 @@
  * Used by multiple rules: 2×2, Exclusion, Pressured Exclusion, Squeeze, Composite Regions.
  */
 
-import { CellState, Coord, Tile, RegionTiling } from "./types";
+import { CellState, Coord, Tile, TilingResult } from "./types";
 import { dlxSolve } from "./dlx";
 import { coordKey, parseKey } from "./cellKey";
 
@@ -26,7 +26,7 @@ function inBounds(row: number, col: number, gridSize: number): boolean {
  * Generate all valid 2×2 tile candidates that overlap the given region cells.
  * Only considers unknown cells (excludes marked and star cells from coverage).
  */
-export function generateTileCandidates(
+function generateTileCandidates(
   regionCells: Coord[],
   cells: CellState[][],
   gridSize: number,
@@ -117,7 +117,7 @@ export function findAllMinimalTilings(
   regionCells: Coord[],
   cells: CellState[][],
   gridSize: number,
-): RegionTiling {
+): TilingResult {
   const candidates = generateTileCandidates(regionCells, cells, gridSize);
 
   // Build set of unknown cells to cover (primary columns)
@@ -133,24 +133,12 @@ export function findAllMinimalTilings(
 
   // Handle empty case (no cells to cover)
   if (unknownCells.length === 0) {
-    return {
-      regionId: -1,
-      cells: regionCells,
-      candidates: [],
-      minTileCount: 0,
-      allMinimalTilings: [[]],
-    };
+    return { minTileCount: 0, allMinimalTilings: [[]] };
   }
 
   // Handle case with no valid candidates
   if (candidates.length === 0) {
-    return {
-      regionId: -1,
-      cells: regionCells,
-      candidates: [],
-      minTileCount: Infinity,
-      allMinimalTilings: [],
-    };
+    return { minTileCount: Infinity, allMinimalTilings: [] };
   }
 
   // Collect all non-region cells touched by any tile (secondary columns)
@@ -202,13 +190,7 @@ export function findAllMinimalTilings(
 
   // No solutions found
   if (solutions.length === 0) {
-    return {
-      regionId: -1,
-      cells: regionCells,
-      candidates,
-      minTileCount: Infinity,
-      allMinimalTilings: [],
-    };
+    return { minTileCount: Infinity, allMinimalTilings: [] };
   }
 
   // Find minimum tile count and filter for minimal solutions
@@ -226,11 +208,5 @@ export function findAllMinimalTilings(
     solution.map((rowIdx) => candidates[rowIdx]),
   );
 
-  return {
-    regionId: -1,
-    cells: regionCells,
-    candidates,
-    minTileCount,
-    allMinimalTilings,
-  };
+  return { minTileCount, allMinimalTilings };
 }

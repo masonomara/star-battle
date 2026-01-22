@@ -31,13 +31,16 @@ export type Tile = {
   coveredCells: Coord[]; // cells within the target region/area
 };
 
-// Result of tiling a single region/area
-export type RegionTiling = {
-  regionId: number; // -1 for composite regions
-  cells: Coord[]; // all cells in the region
-  candidates: Tile[]; // all valid 2×2 positions
+// Pure algorithm output from tiling computation
+export type TilingResult = {
   minTileCount: number; // minimum tiles needed to cover
   allMinimalTilings: Tile[][]; // every tiling achieving minimum
+};
+
+// Cached tiling with metadata for a specific region
+export type RegionTiling = TilingResult & {
+  regionId: number;
+  cells: Coord[];
 };
 
 // Cache of all region tilings for the current board state

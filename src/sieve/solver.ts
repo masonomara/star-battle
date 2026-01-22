@@ -154,9 +154,8 @@ function computeTilingCache(board: Board, cells: CellState[][]): TilingCache {
 
   // Compute tilings for each region
   for (const [regionId, coords] of regionCells) {
-    const tiling = findAllMinimalTilings(coords, cells, size);
-    tiling.regionId = regionId;
-    byRegion.set(regionId, tiling);
+    const result = findAllMinimalTilings(coords, cells, size);
+    byRegion.set(regionId, { ...result, regionId, cells: coords });
   }
 
   return { byRegion };

@@ -1,16 +1,10 @@
 import { cellKey } from "../../helpers/cellKey";
-import {
-  Board,
-  CellState,
-  Coord,
-  StripCache,
-  TilingCache,
-} from "../../helpers/types";
+import { Board, CellState, StripCache, TilingCache } from "../../helpers/types";
 
 export default function oneByNConfinement(
   board: Board,
   cells: CellState[][],
-  tilingCache?: TilingCache,
+  _tilingCache?: TilingCache,
   stripCache?: StripCache,
 ): boolean {
   if (!stripCache) return false;
@@ -82,53 +76,6 @@ export default function oneByNConfinement(
             for (const [r, c] of s.cells) cs.add(cellKey(r, c));
           colContribs.get(col)!.push({ stars: needed, cells: cs });
         }
-      }
-    }
-  }
-
-  if (tilingCache) {
-    for (const [regionId, tiling] of tilingCache.byRegion) {
-      if (tiling.allMinimalTilings.length === 0) continue;
-      const strips = stripCache.byRegion.get(regionId) ?? [];
-      if (strips.length === 0) continue;
-      const needed = strips[0].starsNeeded;
-      if (needed <= 0 || tiling.minTileCount >= needed) continue;
-
-      const remStars = needed - tiling.minTileCount;
-      const covered = new Set<string>();
-      for (const t of tiling.allMinimalTilings[0])
-        for (const c of t.coveredCells) covered.add(cellKey(c[0], c[1]));
-      for (let i = 1; i < tiling.allMinimalTilings.length; i++) {
-        const tc = new Set<string>();
-        for (const t of tiling.allMinimalTilings[i])
-          for (const c of t.coveredCells) tc.add(cellKey(c[0], c[1]));
-        for (const k of covered) if (!tc.has(k)) covered.delete(k);
-      }
-
-      const rem: Coord[] = [];
-      for (const s of strips)
-        for (const [r, c] of s.cells)
-          if (!covered.has(cellKey(r, c))) rem.push([r, c]);
-      if (rem.length === 0) continue;
-
-      const remRows = new Set(rem.map(([r]) => r));
-      const remCols = new Set(rem.map(([, c]) => c));
-
-      if (remRows.size === 1) {
-        const row = [...remRows][0];
-        if (!rowContribs.has(row)) rowContribs.set(row, []);
-        rowContribs.get(row)!.push({
-          stars: remStars,
-          cells: new Set(rem.map(([r, c]) => cellKey(r, c))),
-        });
-      }
-      if (remCols.size === 1) {
-        const col = [...remCols][0];
-        if (!colContribs.has(col)) colContribs.set(col, []);
-        colContribs.get(col)!.push({
-          stars: remStars,
-          cells: new Set(rem.map(([r, c]) => cellKey(r, c))),
-        });
       }
     }
   }
