@@ -1,14 +1,14 @@
+// TODO: Strengthen using forcedCells from tiling results.
+// Per spec Rule 8: if hypothetical star creates forced cells that violate
+// row/column constraints (e.g., two forced in same row), candidate can be marked.
+
 import buildRegions from "../../helpers/regions";
 import { cellKey } from "../../helpers/cellKey";
 import { findAllMinimalTilings } from "../../helpers/tiling";
-import { Board, CellState, Coord, TilingCache } from "../../helpers/types";
-import { markNeighbors } from "../01-trivialNeighbors/trivialNeighbors";
+import { Board, CellState, Coord } from "../../helpers/types";
+import { markNeighbors } from "../../helpers/neighbors";
 
-export default function exclusion(
-  board: Board,
-  cells: CellState[][],
-  tilingCache?: TilingCache,
-): boolean {
+export default function exclusion(board: Board, cells: CellState[][]): boolean {
   const size = board.grid.length;
   const regions = buildRegions(board.grid);
   const regionStars = new Map<number, number>();
@@ -22,9 +22,7 @@ export default function exclusion(
   for (const [id, coords] of regions) {
     const needed = board.stars - regionStars.get(id)!;
     if (needed <= 0) continue;
-    const tiling =
-      tilingCache?.byRegion.get(id) ??
-      findAllMinimalTilings(coords, cells, size);
+    const tiling = findAllMinimalTilings(coords, cells, size);
     if (tiling.minTileCount <= needed + 3) tight.set(id, { coords, needed });
   }
   if (tight.size === 0) return false;

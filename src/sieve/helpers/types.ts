@@ -35,6 +35,7 @@ export type Tile = {
 export type TilingResult = {
   minTileCount: number; // minimum tiles needed to cover
   allMinimalTilings: Tile[][]; // every tiling achieving minimum
+  forcedCells: Coord[]; // cells that are single-coverage in ALL tilings
 };
 
 // Cached tiling with metadata for a specific region

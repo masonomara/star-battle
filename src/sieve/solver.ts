@@ -1,25 +1,10 @@
-import {
-  Board,
-  CellState,
-  Coord,
-  RegionTiling,
-  Solution,
-  StripCache,
-  TilingCache,
-} from "./helpers/types";
-import { findAllMinimalTilings } from "./helpers/tiling";
-import { computeAllStrips } from "./helpers/strips";
+import { Board, CellState, Solution } from "./helpers/types";
 import trivialNeighbors from "./rules/01-trivialNeighbors/trivialNeighbors";
 import trivialRows from "./rules/02-trivialRows/trivialRows";
 import trivialColumns from "./rules/03-trivialColumns/trivialColumns";
 import trivialRegions from "./rules/04-trivialRegions/trivialRegions";
 import forcedPlacement from "./rules/05-forcedPlacement/forcedPlacement";
 import twoByTwoTiling from "./rules/06-twoByTwoTiling/twoByTwoTiling";
-import oneByNConfinement from "./rules/07-oneByNConfinement/oneByNConfinement";
-import exclusion from "./rules/08-exclusion/exclusion";
-import pressuredExclusion from "./rules/09-pressuredExclusion/pressuredExclusion";
-import overcounting from "./rules/11-overcounting/overcounting";
-import undercounting from "./rules/10-undercounting/undercounting";
 
 /**
  * Check if a board layout is valid before attempting to solve.
@@ -50,12 +35,7 @@ export function isValidLayout(board: Board): boolean {
   return true;
 }
 
-type Rule = (
-  board: Board,
-  cells: CellState[][],
-  tilingCache?: TilingCache,
-  stripCache?: StripCache,
-) => boolean;
+type Rule = (board: Board, cells: CellState[][]) => boolean;
 
 const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: trivialNeighbors, level: 1, name: "starNeighbors" },
@@ -129,34 +109,6 @@ export interface SolveOptions {
 }
 
 /**
- * Build tiling cache for all regions.
- */
-function computeTilingCache(board: Board, cells: CellState[][]): TilingCache {
-  const size = board.grid.length;
-  const byRegion = new Map<number, RegionTiling>();
-
-  // Collect cells by region
-  const regionCells = new Map<number, Coord[]>();
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      const regionId = board.grid[r][c];
-      if (!regionCells.has(regionId)) {
-        regionCells.set(regionId, []);
-      }
-      regionCells.get(regionId)!.push([r, c]);
-    }
-  }
-
-  // Compute tilings for each region
-  for (const [regionId, coords] of regionCells) {
-    const result = findAllMinimalTilings(coords, cells, size);
-    byRegion.set(regionId, { ...result, regionId, cells: coords });
-  }
-
-  return { byRegion };
-}
-
-/**
  * Attempt to solve a Star Battle puzzle using production rules.
  * Accepts optional onStep callback for tracing.
  */
@@ -178,10 +130,6 @@ export function solve(
   let cycles = 0;
   let maxLevel = 0;
 
-  // Caches are built lazily and invalidated when rules make progress
-  let tilingCache: TilingCache | undefined;
-  let stripCache: StripCache | undefined;
-
   while (cycles < MAX_CYCLES) {
     cycles++;
 
@@ -189,32 +137,19 @@ export function solve(
       return { board, seed, cells, cycles, maxLevel };
     }
 
-    // Try each rule in order
     let progress = false;
 
     for (const { rule, level, name } of allRules) {
-      // Compute caches lazily when first level 2+ rule is tried
-      if (level >= 2 && !tilingCache) {
-        tilingCache = computeTilingCache(board, cells);
-        stripCache = computeAllStrips(board, cells);
-      }
-
-      if (rule(board, cells, tilingCache, stripCache)) {
+      if (rule(board, cells)) {
         maxLevel = Math.max(maxLevel, level);
         progress = true;
 
-        // Invalidate caches since cells changed
-        tilingCache = undefined;
-        stripCache = undefined;
-
-        // Call trace callback if provided
         if (options.onStep) {
-          const cellsCopy = cells.map((row) => [...row]);
           options.onStep({
             cycle: cycles,
             rule: name,
             level,
-            cells: cellsCopy,
+            cells: cells.map((row) => [...row]),
           });
         }
 

@@ -1,108 +1,15 @@
 /**
  * 2×2 Tiling Algorithm for Star Battle
  *
- * An exact cover problem: tiling an irregular grid region with non-overlapping 2×2 polyominoes, allowing boundary overhang.
- * or
- * Exact polyomino tiling with fixed 2×2 tiles.
+ * Tiles a region with non-overlapping 2×2 squares (allowing boundary overhang).
+ * Uses DLX (Dancing Links) to find all minimal tilings efficiently.
  *
- * Generates tile candidates and finds all non-overlapping tilings for regions.
- * Uses DLX (Dancing Links) to find exact covers efficiently.
- *
- * Used by multiple rules: 2×2, Exclusion, Pressured Exclusion, Squeeze, Composite Regions.
+ * Used by: twoByTwoTiling, exclusion
  */
 
 import { CellState, Coord, Tile, TilingResult } from "./types";
 import { dlxSolve } from "./dlx";
 import { coordKey, parseKey } from "./cellKey";
-
-/**
- * Check if a coordinate is within grid bounds.
- */
-function inBounds(row: number, col: number, gridSize: number): boolean {
-  return row >= 0 && row < gridSize && col >= 0 && col < gridSize;
-}
-
-/**
- * Generate all valid 2×2 tile candidates that overlap the given region cells.
- * Only considers unknown cells (excludes marked and star cells from coverage).
- */
-function generateTileCandidates(
-  regionCells: Coord[],
-  cells: CellState[][],
-  gridSize: number,
-): Tile[] {
-  // Build set of unknown cells in the region
-  const unknownCells = new Set<string>();
-  for (const [r, c] of regionCells) {
-    if (cells[r][c] === "unknown") {
-      unknownCells.add(coordKey([r, c]));
-    }
-  }
-
-  // If no unknown cells, no candidates needed
-  if (unknownCells.size === 0) {
-    return [];
-  }
-
-  // Find all possible 2×2 anchors that could cover any unknown cell
-  // A 2×2 anchored at (r, c) covers cells (r,c), (r,c+1), (r+1,c), (r+1,c+1)
-  const candidateAnchors = new Set<string>();
-
-  for (const [r, c] of regionCells) {
-    if (cells[r][c] !== "unknown") continue;
-
-    // This cell could be covered by 2×2s anchored at:
-    // (r-1, c-1), (r-1, c), (r, c-1), (r, c)
-    for (const dr of [-1, 0]) {
-      for (const dc of [-1, 0]) {
-        const anchorR = r + dr;
-        const anchorC = c + dc;
-
-        // Check if anchor is valid (2×2 fits in grid)
-        if (
-          inBounds(anchorR, anchorC, gridSize) &&
-          inBounds(anchorR + 1, anchorC + 1, gridSize)
-        ) {
-          candidateAnchors.add(coordKey([anchorR, anchorC]));
-        }
-      }
-    }
-  }
-
-  // Build tile objects for each candidate anchor
-  const tiles: Tile[] = [];
-
-  for (const anchorKey of candidateAnchors) {
-    const [anchorR, anchorC] = parseKey(anchorKey);
-
-    // All 4 cells of the 2×2
-    const allCells: Coord[] = [
-      [anchorR, anchorC],
-      [anchorR, anchorC + 1],
-      [anchorR + 1, anchorC],
-      [anchorR + 1, anchorC + 1],
-    ];
-
-    // Which cells are unknown AND in the region
-    const coveredCells: Coord[] = [];
-    for (const cell of allCells) {
-      if (unknownCells.has(coordKey(cell))) {
-        coveredCells.push(cell);
-      }
-    }
-
-    // Only include tiles that cover at least one unknown cell
-    if (coveredCells.length > 0) {
-      tiles.push({
-        anchor: [anchorR, anchorC],
-        cells: allCells,
-        coveredCells,
-      });
-    }
-  }
-
-  return tiles;
-}
 
 /**
  * Find all minimal tilings for a region using DLX.
@@ -118,45 +25,78 @@ export function findAllMinimalTilings(
   cells: CellState[][],
   gridSize: number,
 ): TilingResult {
-  const candidates = generateTileCandidates(regionCells, cells, gridSize);
-
-  // Build set of unknown cells to cover (primary columns)
+  // Build unknown cells set and index map in one pass
   const unknownCells: Coord[] = [];
+  const unknownSet = new Set<string>();
   const primaryCellToIndex = new Map<string, number>();
 
   for (const [r, c] of regionCells) {
     if (cells[r][c] === "unknown") {
-      primaryCellToIndex.set(coordKey([r, c]), unknownCells.length);
+      const key = coordKey([r, c]);
+      unknownSet.add(key);
+      primaryCellToIndex.set(key, unknownCells.length);
       unknownCells.push([r, c]);
     }
   }
 
-  // Handle empty case (no cells to cover)
   if (unknownCells.length === 0) {
-    return { minTileCount: 0, allMinimalTilings: [[]] };
+    return { minTileCount: 0, allMinimalTilings: [[]], forcedCells: [] };
   }
 
-  // Handle case with no valid candidates
+  // Generate tile candidates
+  // A 2×2 anchored at (r,c) covers (r,c), (r,c+1), (r+1,c), (r+1,c+1)
+  const candidateAnchors = new Set<string>();
+  const maxAnchor = gridSize - 2;
+
+  for (const [r, c] of unknownCells) {
+    for (const dr of [-1, 0]) {
+      for (const dc of [-1, 0]) {
+        const ar = r + dr;
+        const ac = c + dc;
+        if (ar >= 0 && ac >= 0 && ar <= maxAnchor && ac <= maxAnchor) {
+          candidateAnchors.add(coordKey([ar, ac]));
+        }
+      }
+    }
+  }
+
+  const candidates: Tile[] = [];
+  for (const anchorKey of candidateAnchors) {
+    const [ar, ac] = parseKey(anchorKey);
+    const allCells: Coord[] = [
+      [ar, ac],
+      [ar, ac + 1],
+      [ar + 1, ac],
+      [ar + 1, ac + 1],
+    ];
+    const coveredCells: Coord[] = [];
+    for (const cell of allCells) {
+      if (unknownSet.has(coordKey(cell))) {
+        coveredCells.push(cell);
+      }
+    }
+    if (coveredCells.length > 0) {
+      candidates.push({ anchor: [ar, ac], cells: allCells, coveredCells });
+    }
+  }
+
   if (candidates.length === 0) {
-    return { minTileCount: Infinity, allMinimalTilings: [] };
+    return { minTileCount: Infinity, allMinimalTilings: [], forcedCells: [] };
   }
 
-  // Collect all non-region cells touched by any tile (secondary columns)
-  const secondaryCells: Coord[] = [];
+  // Collect non-region cells touched by any tile (secondary columns prevent overlap)
   const secondaryCellToIndex = new Map<string, number>();
-
   for (const tile of candidates) {
     for (const cell of tile.cells) {
       const key = coordKey(cell);
       if (!primaryCellToIndex.has(key) && !secondaryCellToIndex.has(key)) {
-        secondaryCellToIndex.set(key, secondaryCells.length);
-        secondaryCells.push(cell);
+        secondaryCellToIndex.set(key, secondaryCellToIndex.size);
       }
     }
   }
 
   const numPrimary = unknownCells.length;
-  const numSecondary = secondaryCells.length;
+  const numSecondary = secondaryCellToIndex.size;
 
   // Build DLX rows: each tile covers some primary and some secondary columns
   const dlxRows: number[][] = [];
@@ -190,7 +130,7 @@ export function findAllMinimalTilings(
 
   // No solutions found
   if (solutions.length === 0) {
-    return { minTileCount: Infinity, allMinimalTilings: [] };
+    return { minTileCount: Infinity, allMinimalTilings: [], forcedCells: [] };
   }
 
   // Find minimum tile count and filter for minimal solutions
@@ -208,5 +148,20 @@ export function findAllMinimalTilings(
     solution.map((rowIdx) => candidates[rowIdx]),
   );
 
-  return { minTileCount, allMinimalTilings };
+  // Find forced cells: cells that are single-coverage in ALL tilings
+  const forcedCells: Coord[] = [];
+  for (const cell of unknownCells) {
+    const key = coordKey(cell);
+    const isForcedInAll = allMinimalTilings.every((tiling) => {
+      const tile = tiling.find((t) =>
+        t.coveredCells.some((c) => coordKey(c) === key),
+      );
+      return tile !== undefined && tile.coveredCells.length === 1;
+    });
+    if (isForcedInAll) {
+      forcedCells.push(cell);
+    }
+  }
+
+  return { minTileCount, allMinimalTilings, forcedCells };
 }
