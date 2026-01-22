@@ -53,6 +53,7 @@ describe("6. The 2×2 Tiling", () => {
       const result = twoByTwoTiling(board, cells);
 
       // Should not place any stars (minTiles=2 > stars=1 for region 0)
+      expect(result).toBe(false);
       expect(cells.flat().filter((c) => c === "star").length).toBe(0);
     });
 
@@ -211,7 +212,6 @@ describe("6. The 2×2 Tiling", () => {
 
       const result = twoByTwoTiling(board, cells);
 
-      // minTiles=0 (no unknowns) != starsNeeded=2, returns false
       expect(result).toBe(false);
     });
 
@@ -350,11 +350,10 @@ describe("6. The 2×2 Tiling", () => {
   });
 
   describe("6.5 Spec coverage gaps", () => {
-    it("6.5.1 gracefully handles minTiles > starsNeeded (region bounds capacity)", () => {
+    it("6.5.1 gracefully handles minTiles < starsNeeded (region lacks capacity)", () => {
       // Region 0: 3 cells in an L that requires 2 tiles minimum
       // But puzzle is 3★, meaning region needs 3 stars
       // minTiles=2 < starsNeeded=3 → impossible, but function should not crash
-      // This tests the bounding behavior from spec example_tiling_2
       const board: Board = {
         grid: [
           [0, 0, 1, 1, 1],

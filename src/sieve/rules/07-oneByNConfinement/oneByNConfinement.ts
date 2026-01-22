@@ -38,8 +38,9 @@ function collectContributions(
   const anchorIdx = axis === "row" ? 0 : 1;
 
   for (const [regionId, strips] of stripCache.byRegion) {
-    if (strips.length === 0) continue;
-    const needed = strips[0]!.starsNeeded;
+    const [firstStrip] = strips;
+    if (!firstStrip) continue;
+    const needed = firstStrip.starsNeeded;
     if (needed <= 0) continue;
 
     const axisStrips = strips.filter((s) => s.orientation === orientation);
@@ -48,7 +49,7 @@ function collectContributions(
     const indices = new Set(axisStrips.map((s) => s.anchor[anchorIdx]));
     if (indices.size !== 1) continue;
 
-    const index = [...indices][0];
+    const index = indices.values().next().value as number;
     if (!isConfined(strips, axis, index)) continue;
 
     const cellSet = new Set<string>();
