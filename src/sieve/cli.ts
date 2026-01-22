@@ -1,7 +1,8 @@
 import { sieve } from "./sieve";
 import { layout } from "./generator";
-import { solve, StepInfo } from "./solver";
+import { solve, isValidLayout, StepInfo } from "./solver";
 import { CellState } from "./helpers/types";
+import { parsePuzzle } from "./helpers/parsePuzzle";
 
 function parseArgs(): Record<string, string> {
   const args: Record<string, string> = {};
@@ -21,13 +22,31 @@ function parseArgs(): Record<string, string> {
   return args;
 }
 
-function main() {
+async function readStdin(): Promise<string> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks).toString("utf-8");
+}
+
+async function main() {
   const args = parseArgs();
   if (args.help === "true") {
-    console.log(
-      `Usage: sieve [--size n] [--stars n] [--count n] [--seed n] [--trace] [--help]`,
-    );
+    console.log(`Usage:
+  sieve [--size n] [--stars n] [--count n] [--seed n] [--trace]
+  echo "A B B..." | sieve [--stars n]   # solve from input`);
     return;
+  }
+
+  // Check for piped input
+  if (!process.stdin.isTTY) {
+    const input = await readStdin();
+    if (input.trim()) {
+      const stars = args.stars ? parseInt(args.stars, 10) : 1;
+      solveFromInput(input, stars);
+      return;
+    }
   }
 
   const size = args.size ? parseInt(args.size, 10) : 10;
@@ -112,6 +131,33 @@ function printCellStateWithDiff(
     });
     console.log(line.join(" "));
   }
+}
+
+function solveFromInput(input: string, stars: number) {
+  const board = parsePuzzle(input, stars);
+
+  if (!isValidLayout(board)) {
+    console.log("Invalid layout");
+    process.exit(1);
+  }
+
+  console.log(`${board.grid.length}x${board.grid.length}, ${stars} star(s)`);
+  console.log("\nRegion grid:");
+  printBoard(board.grid);
+
+  let prevCells: CellState[][] | null = null;
+
+  const result = solve(board, {
+    onStep: (step: StepInfo) => {
+      console.log(
+        `\n--- Cycle ${step.cycle}: ${step.rule} (level ${step.level}) ---`,
+      );
+      printCellStateWithDiff(step.cells, prevCells);
+      prevCells = step.cells.map((row) => [...row]);
+    },
+  });
+
+  console.log(result ? `\n=== SOLVED ===` : `\n=== STUCK ===`);
 }
 
 main();
