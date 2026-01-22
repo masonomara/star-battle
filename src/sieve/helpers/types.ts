@@ -66,3 +66,26 @@ export type Strip = {
 export type StripCache = {
   byRegion: Map<number, Strip[]>; // regionId → all strips from that region
 };
+
+// Failure reasons during puzzle generation
+export type FailureReason =
+  | "generator_stuck"
+  | "solver_failed"
+  | "invalid_tiling";
+
+// Statistics from sieve operation
+export type SieveStats = {
+  attempts: number;
+  failures: Record<FailureReason, number>;
+};
+
+// Typed error for generator failures
+export class GeneratorError extends Error {
+  constructor(
+    message: string,
+    public readonly reason: FailureReason,
+  ) {
+    super(message);
+    this.name = "GeneratorError";
+  }
+}

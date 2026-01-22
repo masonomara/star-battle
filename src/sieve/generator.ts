@@ -1,11 +1,71 @@
-import { Board } from "./helpers/types";
-import { parseKey } from "./helpers/cellKey";
+import { Board, CellState, GeneratorError } from "./helpers/types";
+import { cellKey, parseKey } from "./helpers/cellKey";
+import buildRegions from "./helpers/regions";
+import { findAllMinimalTilings } from "./helpers/tiling";
 
-// Generate board layout from seed
+export type GenerateOptions = {
+  maxAttempts?: number;
+};
+
+export type GenerateResult = {
+  board: Board;
+  seed: number;
+  attempts: number;
+};
+
+/**
+ * Generate a valid puzzle layout. Retries internally until success.
+ */
+export function generate(
+  size: number,
+  stars: number,
+  options: GenerateOptions = {},
+): GenerateResult {
+  validateInputs(size, stars);
+
+  const maxAttempts = options.maxAttempts ?? 1000;
+  const baseSeed = Date.now() ^ (Math.random() * 0x100000000);
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const seed = (baseSeed + attempt) | 0;
+    try {
+      const board = layoutWithSeed(size, stars, seed);
+      return { board, seed, attempts: attempt + 1 };
+    } catch (e) {
+      if (e instanceof GeneratorError) continue;
+      throw e;
+    }
+  }
+
+  throw new GeneratorError(
+    `Failed to generate ${size}x${size} ${stars}-star layout after ${maxAttempts} attempts`,
+    "generator_stuck",
+  );
+}
+
+/**
+ * Generate board layout from specific seed. For deterministic testing.
+ */
 export function layout(size: number, stars: number, seed: number): Board {
+  validateInputs(size, stars);
+  return layoutWithSeed(size, stars, seed);
+}
+
+function validateInputs(size: number, stars: number): void {
   if (size <= 0) {
     throw new Error("Layout generation failed: size must be positive");
   }
+  if (stars <= 0) {
+    throw new Error("Layout generation failed: stars must be positive");
+  }
+  if (stars > Math.floor(size / 2)) {
+    throw new Error(
+      `Layout generation failed: stars (${stars}) cannot exceed size/2 (${Math.floor(size / 2)})`,
+    );
+  }
+}
+
+function layoutWithSeed(size: number, stars: number, seed: number): Board {
   // LCG for deterministic randomness (using Math.imul for 32-bit precision)
   let s = seed | 0;
   const rng = () => {
@@ -62,7 +122,7 @@ export function layout(size: number, stars: number, seed: number): Board {
       if (grid[row][col] !== -1) {
         const regionId = grid[row][col];
         for (const [nr, nc] of getUnfilledNeighbors(row, col)) {
-          frontiers.get(regionId)!.add(`${nr},${nc}`);
+          frontiers.get(regionId)!.add(cellKey(nr, nc));
         }
       }
     }
@@ -101,7 +161,7 @@ export function layout(size: number, stars: number, seed: number): Board {
 
     // Add new neighbors to this region's frontier
     for (const [nr, nc] of getUnfilledNeighbors(row, col)) {
-      frontier.add(`${nr},${nc}`);
+      frontier.add(cellKey(nr, nc));
     }
   }
 
@@ -111,7 +171,7 @@ export function layout(size: number, stars: number, seed: number): Board {
   const maxIterations = size * size * 100;
   while (unfilled) {
     if (++iterations > maxIterations) {
-      throw new Error("Layout generation stuck - could not fill grid");
+      throw new GeneratorError("Layout generation stuck", "generator_stuck");
     }
     unfilled = false;
     for (let row = 0; row < size; row++) {
@@ -137,5 +197,40 @@ export function layout(size: number, stars: number, seed: number): Board {
     }
   }
 
-  return { grid, stars };
+  const board = { grid, stars };
+
+  // Build regions once, validate tiling
+  const regions = buildRegions(grid);
+  if (!isValidTiling(regions, board.stars, size)) {
+    throw new GeneratorError(
+      "Layout generation failed: region cannot fit required stars",
+      "invalid_tiling",
+    );
+  }
+
+  return board;
+}
+
+/**
+ * Check if all regions can fit the required stars using 2×2 tiling.
+ * Each 2×2 tile holds at most 1 star, so minTileCount must be >= stars.
+ */
+function isValidTiling(
+  regions: Map<number, [number, number][]>,
+  stars: number,
+  size: number,
+): boolean {
+  // All cells start as unknown for a fresh puzzle
+  const cells: CellState[][] = Array.from({ length: size }, () =>
+    Array.from({ length: size }, () => "unknown" as CellState),
+  );
+
+  for (const [, coords] of regions) {
+    const tiling = findAllMinimalTilings(coords, cells, size);
+    if (tiling.minTileCount < stars) {
+      return false;
+    }
+  }
+
+  return true;
 }
