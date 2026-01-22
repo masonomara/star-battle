@@ -57,7 +57,7 @@ function main() {
     console.log("Region grid:");
     printBoard(board.grid);
     let prevCells: CellState[][] | null = null;
-    const solution = solve(board, seed, {
+    const result = solve(board, {
       onStep: (step: StepInfo) => {
         console.log(
           `\n--- Cycle ${step.cycle}: ${step.rule} (level ${step.level}) ---`,
@@ -66,7 +66,7 @@ function main() {
         prevCells = step.cells.map((row) => [...row]);
       },
     });
-    console.log(solution ? `\n=== SOLVED ===` : `\n=== STUCK ===`);
+    console.log(result ? `\n=== SOLVED ===` : `\n=== STUCK ===`);
     return;
   }
 

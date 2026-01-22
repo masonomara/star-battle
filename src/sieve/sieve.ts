@@ -39,8 +39,9 @@ export function sieve(options: SieveOptions = {}): Puzzle[] {
     attempts++;
     try {
       const board = layout(size, stars, seed);
-      const solution = solve(board, seed);
-      if (solution) {
+      const result = solve(board);
+      if (result) {
+        const solution: Solution = { ...result, board, seed };
         puzzles.push(assignDifficulty(solution));
       }
     } catch (e) {

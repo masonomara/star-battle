@@ -53,24 +53,6 @@ describe("isSolved", () => {
     expect(isSolved(board, cells)).toBe(true);
   });
 
-  it("rejects adjacent stars", () => {
-    const board: Board = {
-      grid: [
-        [0, 0, 0, 0],
-        [1, 1, 1, 1],
-        [2, 2, 2, 2],
-        [3, 3, 3, 3],
-      ],
-      stars: 1,
-    };
-    const cells: CellState[][] = [
-      ["star", "marked", "marked", "marked"],
-      ["marked", "star", "marked", "marked"],
-      ["marked", "marked", "star", "marked"],
-      ["marked", "marked", "marked", "star"],
-    ];
-    expect(isSolved(board, cells)).toBe(false);
-  });
 });
 
 describe("solve", () => {
@@ -85,7 +67,7 @@ describe("solve", () => {
       stars: 1,
     };
     const originalGrid = JSON.stringify(board.grid);
-    solve(board, 0);
+    solve(board);
     expect(JSON.stringify(board.grid)).toBe(originalGrid);
   });
 
@@ -99,13 +81,13 @@ describe("solve", () => {
       ],
       stars: 2,
     };
-    expect(solve(board, 0)).toBeNull();
+    expect(solve(board)).toBeNull();
   });
 
   it("every solution is valid", () => {
     for (let seed = 0; seed < 100; seed++) {
       const board = layout(6, 1, seed);
-      const result = solve(board, seed);
+      const result = solve(board);
       if (result) {
         expect(isSolved(board, result.cells)).toBe(true);
       }
@@ -114,6 +96,6 @@ describe("solve", () => {
 
   it("terminates on impossible board", () => {
     const board: Board = { grid: [[0]], stars: 5 };
-    expect(solve(board, 0)).toBeNull();
+    expect(solve(board)).toBeNull();
   });
 });

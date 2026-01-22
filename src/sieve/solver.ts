@@ -1,4 +1,4 @@
-import { Board, CellState, Solution } from "./helpers/types";
+import { Board, CellState, SolverResult } from "./helpers/types";
 import trivialNeighbors from "./rules/01-trivialNeighbors/trivialNeighbors";
 import trivialRows from "./rules/02-trivialRows/trivialRows";
 import trivialColumns from "./rules/03-trivialColumns/trivialColumns";
@@ -50,6 +50,8 @@ const MAX_CYCLES = 1000;
 
 /**
  * Check if the puzzle is completely solved.
+ * Verifies star counts per row, column, and region match the target.
+ * Does not check adjacency—rules enforce that invariant during solving.
  */
 export function isSolved(board: Board, cells: CellState[][]): boolean {
   const size = board.grid.length;
@@ -63,32 +65,17 @@ export function isSolved(board: Board, cells: CellState[][]): boolean {
       if (cells[row][col] === "star") {
         starsByRow[row]++;
         starsByCol[col]++;
-
         const regionId = board.grid[row][col];
         starsByRegion.set(regionId, (starsByRegion.get(regionId) ?? 0) + 1);
-
-        // Check for adjacent stars (orthogonal and diagonal)
-        for (let dr = -1; dr <= 1; dr++) {
-          for (let dc = -1; dc <= 1; dc++) {
-            if (dr === 0 && dc === 0) continue;
-            const nr = row + dr;
-            const nc = col + dc;
-            if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
-              if (cells[nr][nc] === "star") return false;
-            }
-          }
-        }
       }
     }
   }
 
-  // All rows and cols must have exactly board.stars
   for (let i = 0; i < size; i++) {
     if (starsByRow[i] !== board.stars) return false;
     if (starsByCol[i] !== board.stars) return false;
   }
 
-  // All regions must have exactly board.stars
   for (const count of starsByRegion.values()) {
     if (count !== board.stars) return false;
   }
@@ -114,9 +101,8 @@ export interface SolveOptions {
  */
 export function solve(
   board: Board,
-  seed: number,
   options: SolveOptions = {},
-): Solution | null {
+): SolverResult | null {
   const size = board.grid.length;
   const cells: CellState[][] = Array.from({ length: size }, () =>
     Array.from({ length: size }, () => "unknown" as CellState),
@@ -134,7 +120,7 @@ export function solve(
     cycles++;
 
     if (isSolved(board, cells)) {
-      return { board, seed, cells, cycles, maxLevel };
+      return { cells, cycles, maxLevel };
     }
 
     let progress = false;

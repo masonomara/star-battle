@@ -7,13 +7,17 @@ export type Board = {
   stars: number; // stars per row/col/region
 };
 
-// Solved puzzle - output of solver
-export type Solution = {
-  board: Board;
-  seed: number;
+// Solver output - what the solver actually computes
+export type SolverResult = {
   cells: CellState[][];
   cycles: number;
   maxLevel: number;
+};
+
+// Complete solution with generation metadata
+export type Solution = SolverResult & {
+  board: Board;
+  seed: number;
 };
 
 // Final puzzle with difficulty - output of sieve

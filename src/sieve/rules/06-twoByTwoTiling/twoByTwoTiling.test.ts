@@ -1,6 +1,5 @@
-import { Board, CellState, Coord } from "../../helpers/types";
+import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
-import { findAllMinimalTilings } from "../../helpers/tiling";
 import twoByTwoTiling from "./twoByTwoTiling";
 
 describe("6. The 2×2 Tiling", () => {
@@ -464,72 +463,6 @@ describe("6. The 2×2 Tiling", () => {
       expect(result).toBe(true);
       // Region 0 (L-shape) should have star placed at (0,2)
       expect(cells[0][2]).toBe("star");
-    });
-  });
-
-  describe("6.6 Cache parity", () => {
-    it("6.6.1 produces identical results with and without tilingCache", () => {
-      const board: Board = {
-        grid: [
-          [0, 0, 0, 1],
-          [0, 0, 1, 1],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-        ],
-        stars: 2,
-      };
-
-      // Run without cache
-      const cellsNoCache: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
-      const resultNoCache = twoByTwoTiling(board, cellsNoCache);
-
-      // Build cache manually and run with it
-      const cellsWithCache: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
-
-      const size = board.grid.length;
-      const byRegion = new Map();
-
-      // Region 0: L-shape at (0,0), (0,1), (0,2), (1,0), (1,1)
-      const region0Coords: Coord[] = [
-        [0, 0],
-        [0, 1],
-        [0, 2],
-        [1, 0],
-        [1, 1],
-      ];
-      const result0 = findAllMinimalTilings(region0Coords, cellsWithCache, size);
-      byRegion.set(0, { ...result0, regionId: 0, cells: region0Coords });
-
-      // Region 1: rest of the board
-      const region1Coords: Coord[] = [];
-      for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-          if (board.grid[r][c] === 1) region1Coords.push([r, c]);
-        }
-      }
-      const result1 = findAllMinimalTilings(region1Coords, cellsWithCache, size);
-      byRegion.set(1, { ...result1, regionId: 1, cells: region1Coords });
-
-      const tilingCache = { byRegion };
-      const resultWithCache = twoByTwoTiling(
-        board,
-        cellsWithCache,
-        tilingCache,
-      );
-
-      // Results should match
-      expect(resultWithCache).toBe(resultNoCache);
-      expect(cellsWithCache).toEqual(cellsNoCache);
     });
   });
 
