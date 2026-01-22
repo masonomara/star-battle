@@ -64,11 +64,6 @@ const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: trivialRegions, level: 1, name: "regionComplete" },
   { rule: forcedPlacement, level: 1, name: "forcedPlacement" },
   { rule: twoByTwoTiling, level: 2, name: "twoByTwoTiling" },
-  { rule: oneByNConfinement, level: 2, name: "oneByNConfinement" },
-  { rule: exclusion, level: 2, name: "exclusion" },
-  { rule: pressuredExclusion, level: 2, name: "pressuredExclusion" },
-  { rule: overcounting, level: 2, name: "overcounting" },
-  { rule: undercounting, level: 2, name: "undercounting" },
 ];
 
 const MAX_CYCLES = 1000;
