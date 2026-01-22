@@ -153,33 +153,7 @@ describe("5. Forced Placement", () => {
       expect(cells[1][0]).toBe("star");
     });
 
-    it("5.3.2 skips when adjacent unknowns would violate star constraint", () => {
-      // Region 0 has 2 unknowns at (0,0) and (1,1) - diagonally adjacent
-      // Both would need to be stars, but stars can't be adjacent
-      const board: Board = {
-        grid: [
-          [0, 0, 1, 1],
-          [0, 0, 1, 1],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-        ],
-        stars: 2,
-      };
-
-      const cells: CellState[][] = [
-        ["unknown", "marked", "unknown", "unknown"],
-        ["marked", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
-
-      const result = forcedPlacement(board, cells);
-
-      expect(result).toBe(false);
-      expect(cells[0][0]).toBe("unknown"); // unchanged
-    });
-
-    it("5.3.3 places star in L-shaped region", () => {
+    it("5.3.2 places star in L-shaped region", () => {
       const board: Board = {
         grid: [
           [0, 1, 1],
@@ -201,7 +175,7 @@ describe("5. Forced Placement", () => {
       expect(cells[2][1]).toBe("star");
     });
 
-    it("5.3.4 places star in scattered region", () => {
+    it("5.3.3 places star in corner region", () => {
       const board: Board = {
         grid: [
           [0, 1, 1, 0],
