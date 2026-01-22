@@ -159,3 +159,20 @@ Maps each rule to its function name in `src/sieve/rules.ts`. Rules are applied i
 | 14. Composite Regions  | `compositeRegions`      | 5     | Combine regions with known ★ counts          |
 
 **Level** indicates rule complexity (1 = simplest, 5 = most advanced). The solver tries simpler rules first and only uses advanced rules when stuck. A puzzle's difficulty score is derived from the highest level rule required to solve it.
+
+### Difficulty Formula
+
+```
+difficulty = min(10, maxLevel × 2 + floor(cycles / 5))
+```
+
+| Component    | Description                                  |
+| ------------ | -------------------------------------------- |
+| **maxLevel** | Highest rule level used during solve (1-5)   |
+| **cycles**   | Number of solver iterations to reach solution|
+| **cap**      | Difficulty is capped at 10                   |
+
+**Examples:**
+- Level 1, 4 cycles: `min(10, 1×2 + 0) = 2`
+- Level 2, 12 cycles: `min(10, 2×2 + 2) = 6`
+- Level 3, 30 cycles: `min(10, 3×2 + 6) = 12` → capped to `10`
