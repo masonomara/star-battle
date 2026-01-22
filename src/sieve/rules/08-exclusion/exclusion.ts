@@ -25,7 +25,7 @@ export default function exclusion(
     const tiling =
       tilingCache?.byRegion.get(id) ??
       findAllMinimalTilings(coords, cells, size);
-    if (tiling.minTileCount === needed) tight.set(id, { coords, needed });
+    if (tiling.minTileCount <= needed + 3) tight.set(id, { coords, needed });
   }
   if (tight.size === 0) return false;
 

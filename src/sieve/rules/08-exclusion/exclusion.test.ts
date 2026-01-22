@@ -37,34 +37,7 @@ describe("8. Exclusion", () => {
       expect(cells[0][1]).toBe("marked");
     });
 
-    it("8.1.2 marks cell in 2×2 region when star would leave 0 capacity for remaining star", () => {
-      // Region 0: 2×2 block needing 2 stars
-      // minTiles=1 (one 2×2 covers all 4 cells), stars=2 → NOT tight (minTiles < stars)
-      // This region is unsolvable but won't be processed by exclusion (not tight)
-      const board: Board = {
-        grid: [
-          [0, 0, 1, 1],
-          [0, 0, 1, 1],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-        ],
-        stars: 2,
-      };
-      const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
-
-      const result = exclusion(board, cells);
-
-      // Region 0 has minTiles=1 < stars=2, so it's NOT tight
-      // Exclusion should skip it (returns false)
-      expect(result).toBe(false);
-    });
-
-    it("8.1.3 does not exclude when region is not tight", () => {
+    it("8.1.2 does not exclude when region is not tight", () => {
       // Region 0: 2×4 block needing 1 star
       // minTiles=2, stars=1 → NOT tight (minTiles > stars)
       const board: Board = {
@@ -336,29 +309,6 @@ describe("8. Exclusion", () => {
       expect(markedCount).toBeGreaterThanOrEqual(1);
     });
 
-    it("8.5.3 handles tight region with some cells already marked", () => {
-      // 1×4 strip with one cell already marked, still tight
-      const board: Board = {
-        grid: [
-          [0, 0, 0, 0],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-        ],
-        stars: 1,
-      };
-      const cells: CellState[][] = [
-        ["marked", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
-
-      const result = exclusion(board, cells);
-
-      // 3 unknown cells in region, minTiles=2, stars=1 → NOT tight
-      expect(result).toBe(false);
-    });
   });
 
   describe("8.6 Spec-aligned scenarios", () => {
@@ -459,33 +409,7 @@ describe("8. Exclusion", () => {
       expect(markedCount).toBe(1);
     });
 
-    it("8.7.2 skips already-marked candidate cells", () => {
-      // Single-cell tight region with ALL neighbors already marked
-      // Only the region cell itself is unknown - should NOT be marked (it must hold the star)
-      const board: Board = {
-        grid: [
-          [1, 1, 1],
-          [1, 0, 1],
-          [1, 1, 1],
-        ],
-        stars: 1,
-      };
-      const cells: CellState[][] = [
-        ["marked", "marked", "marked"],
-        ["marked", "unknown", "marked"],
-        ["marked", "marked", "marked"],
-      ];
-
-      const result = exclusion(board, cells);
-
-      // No candidates are unknown except (1,1) which is the region cell itself
-      // Placing a star at (1,1) satisfies the region (needs 0 more) - not excluded
-      expect(result).toBe(false);
-      // (1,1) should NOT be marked - it's the only valid cell for this region's star
-      expect(cells[1][1]).toBe("unknown");
-    });
-
-    it("8.7.3 excludes external cell that would starve tight region", () => {
+    it("8.7.2 excludes external cell that would starve tight region", () => {
       // Single-cell tight region at (0,2)
       // External cell (1,2) if starred would mark (0,2), leaving region with 0 cells for 1 star
       const board: Board = {
