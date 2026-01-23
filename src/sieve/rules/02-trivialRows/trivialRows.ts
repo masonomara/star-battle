@@ -8,11 +8,11 @@ export default function trivialRows(
   let changed = false;
   for (let row = 0; row < size; row++) {
     let stars = 0;
-    for (let c = 0; c < size; c++) if (cells[row][c] === "star") stars++;
+    for (let col = 0; col < size; col++) if (cells[row][col] === "star") stars++;
     if (stars === board.stars) {
-      for (let c = 0; c < size; c++) {
-        if (cells[row][c] === "unknown") {
-          cells[row][c] = "marked";
+      for (let col = 0; col < size; col++) {
+        if (cells[row][col] === "unknown") {
+          cells[row][col] = "marked";
           changed = true;
         }
       }

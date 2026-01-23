@@ -6,14 +6,14 @@ export default function trivialNeighbors(
 ): boolean {
   const size = board.grid.length;
   let changed = false;
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      if (cells[r][c] !== "star") continue;
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      if (cells[row][col] !== "star") continue;
       for (let dr = -1; dr <= 1; dr++) {
         for (let dc = -1; dc <= 1; dc++) {
           if (dr === 0 && dc === 0) continue;
-          const nr = r + dr,
-            nc = c + dc;
+          const nr = row + dr,
+            nc = col + dc;
           if (
             nr >= 0 &&
             nr < size &&
