@@ -12,8 +12,15 @@ export default function trivialNeighbors(
       for (let dr = -1; dr <= 1; dr++) {
         for (let dc = -1; dc <= 1; dc++) {
           if (dr === 0 && dc === 0) continue;
-          const nr = r + dr, nc = c + dc;
-          if (nr >= 0 && nr < size && nc >= 0 && nc < size && cells[nr][nc] === "unknown") {
+          const nr = r + dr,
+            nc = c + dc;
+          if (
+            nr >= 0 &&
+            nr < size &&
+            nc >= 0 &&
+            nc < size &&
+            cells[nr][nc] === "unknown"
+          ) {
             cells[nr][nc] = "marked";
             changed = true;
           }
