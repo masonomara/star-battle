@@ -244,7 +244,8 @@ describe("6. The 2×2 Tiling", () => {
     it("6.4.4 handles 2-cell region (minimum non-trivial)", () => {
       // 2 adjacent cells: (0,0), (0,1)
       // minTiles=1 (one 2x2 covers both), starsNeeded=1
-      // Neither cell is a single-cell tile → no forced placement
+      // Neither cell is a single-cell tile → no forced star placement
+      // BUT: tile overhang cells (1,0) and (1,1) get marked
       const board: Board = {
         grid: [
           [0, 0, 1, 1],
@@ -264,8 +265,11 @@ describe("6. The 2×2 Tiling", () => {
 
       const result = twoByTwoTiling(board, cells);
 
-      // minTiles=1, starsNeeded=1, but no single-cell tile exists
-      expect(result).toBe(false);
+      // minTiles=1, starsNeeded=1 → tile overhang cells get marked
+      expect(result).toBe(true);
+      // One of (1,0) or (1,1) should be marked
+      const markedCount = cells[1].filter((c) => c === "marked").length;
+      expect(markedCount).toBe(1);
     });
 
     it("6.4.5 handles region entirely within one 2×2", () => {
@@ -297,7 +301,8 @@ describe("6. The 2×2 Tiling", () => {
     it("6.4.6 handles region spanning full row", () => {
       // Full row region: 4 cells horizontally
       // minTiles=2 (each 2x2 covers at most 2 cells), starsNeeded=2
-      // Multiple tilings exist, no single-cell forced
+      // Multiple tilings exist, no single-cell forced for stars
+      // BUT: row 1 cells are overhang in ALL tilings → get marked
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -317,14 +322,16 @@ describe("6. The 2×2 Tiling", () => {
 
       const result = twoByTwoTiling(board, cells);
 
-      // Multiple tilings: {(0,0),(0,1)} + {(0,2),(0,3)} or overlapping variants
-      // No cell is single-coverage in ALL tilings
-      expect(result).toBe(false);
+      // Row 1 cells are tile overhang in ALL tilings → one gets marked
+      expect(result).toBe(true);
+      const markedCount = cells[1].filter((c) => c === "marked").length;
+      expect(markedCount).toBe(1);
     });
 
     it("6.4.7 handles region spanning full column", () => {
       // Full column region: 4 cells vertically
       // minTiles=2 (each 2x2 covers at most 2 cells), starsNeeded=2
+      // Column 1 cells are overhang in ALL tilings → get marked
       const board: Board = {
         grid: [
           [0, 1, 1, 1],
@@ -344,8 +351,10 @@ describe("6. The 2×2 Tiling", () => {
 
       const result = twoByTwoTiling(board, cells);
 
-      // Symmetric to row case - no forced single-cell
-      expect(result).toBe(false);
+      // Column 1 cells are tile overhang in ALL tilings → one gets marked
+      expect(result).toBe(true);
+      const col1Marked = cells.filter((row) => row[1] === "marked").length;
+      expect(col1Marked).toBe(1);
     });
   });
 
@@ -447,17 +456,17 @@ describe("6. The 2×2 Tiling", () => {
       expect(cells[0][0] === "star" || cells[0][2] === "star").toBe(true);
     });
 
-    it("6.5.4 does not mark cells (only places stars)", () => {
-      // This documents the boundary: the function places stars but does NOT mark cells
-      // Even when a cell could theoretically be excluded by tiling logic
+    it("6.5.4 marks non-region overhang cells when minTiles === starsNeeded", () => {
+      // Region 0 is a 1×2 horizontal strip at top-left
+      // minTiles=1, starsNeeded=1 → the tile overhang (row 1) gets marked
       const board: Board = {
         grid: [
-          [0, 0, 0, 1],
           [0, 0, 1, 1],
           [1, 1, 1, 1],
           [1, 1, 1, 1],
+          [1, 1, 1, 1],
         ],
-        stars: 2,
+        stars: 1,
       };
 
       const cells: CellState[][] = [
@@ -467,11 +476,13 @@ describe("6. The 2×2 Tiling", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      twoByTwoTiling(board, cells);
+      const result = twoByTwoTiling(board, cells);
 
-      // Count marked cells - should be zero (function doesn't mark)
+      expect(result).toBe(true);
+      // Overhang cells (1,0) and (1,1) are in ALL minimal tilings → one gets marked
       const markedCount = cells.flat().filter((c) => c === "marked").length;
-      expect(markedCount).toBe(0);
+      expect(markedCount).toBe(1);
+      expect(cells[1][0] === "marked" || cells[1][1] === "marked").toBe(true);
     });
 
     it("6.5.5 processes multiple regions in single call", () => {
