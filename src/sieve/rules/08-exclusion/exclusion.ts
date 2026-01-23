@@ -5,7 +5,6 @@
 import buildRegions from "../../helpers/regions";
 import { findAllMinimalTilings } from "../../helpers/tiling";
 import { Board, CellState, Coord } from "../../helpers/types";
-import { markNeighbors } from "../../helpers/neighbors";
 
 export default function exclusion(board: Board, cells: CellState[][]): boolean {
   const size = board.grid.length;
@@ -29,7 +28,15 @@ export default function exclusion(board: Board, cells: CellState[][]): boolean {
 
       const temp = cells.map((r) => [...r]);
       temp[row][col] = "star";
-      markNeighbors(temp, row, col, size);
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          const nr = row + dr, nc = col + dc;
+          if (nr >= 0 && nr < size && nc >= 0 && nc < size && temp[nr][nc] === "unknown") {
+            temp[nr][nc] = "marked";
+          }
+        }
+      }
 
       for (const [regionId, { coords, needed }] of regionInfo) {
         const inRegion = board.grid[row][col] === regionId;
