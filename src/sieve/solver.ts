@@ -9,6 +9,7 @@ import oneByNConfinement from "./rules/07-oneByNConfinement/oneByNConfinement";
 import exclusion from "./rules/08-exclusion/exclusion";
 import overcounting from "./rules/11-overcounting/overcounting";
 import undercounting from "./rules/10-undercounting/undercounting";
+import squeeze from "./rules/12-squeeze/squeeze";
 
 /**
  * Check if a board layout is valid before attempting to solve.
@@ -52,8 +53,8 @@ const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: twoByTwoTiling, level: 3, name: "twoByTwoTiling" },
 
   { rule: exclusion, level: 4, name: "exclusion" },
-
   { rule: oneByNConfinement, level: 4, name: "oneByNConfinement" },
+  { rule: squeeze, level: 4, name: "squeeze" },
 ];
 
 const MAX_CYCLES = 1000;
