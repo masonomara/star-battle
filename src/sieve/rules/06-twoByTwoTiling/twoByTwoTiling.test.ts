@@ -267,9 +267,9 @@ describe("6. The 2×2 Tiling", () => {
 
       // minTiles=1, starsNeeded=1 → tile overhang cells get marked
       expect(result).toBe(true);
-      // One of (1,0) or (1,1) should be marked
-      const markedCount = cells[1].filter((c) => c === "marked").length;
-      expect(markedCount).toBe(1);
+      // Both (1,0) and (1,1) should be marked (batch behavior)
+      expect(cells[1][0]).toBe("marked");
+      expect(cells[1][1]).toBe("marked");
     });
 
     it("6.4.5 handles region entirely within one 2×2", () => {
@@ -322,10 +322,10 @@ describe("6. The 2×2 Tiling", () => {
 
       const result = twoByTwoTiling(board, cells);
 
-      // Row 1 cells are tile overhang in ALL tilings → one gets marked
+      // Row 1 cells are tile overhang in ALL tilings → all get marked (batch)
       expect(result).toBe(true);
       const markedCount = cells[1].filter((c) => c === "marked").length;
-      expect(markedCount).toBe(1);
+      expect(markedCount).toBe(4);
     });
 
     it("6.4.7 handles region spanning full column", () => {
@@ -351,10 +351,10 @@ describe("6. The 2×2 Tiling", () => {
 
       const result = twoByTwoTiling(board, cells);
 
-      // Column 1 cells are tile overhang in ALL tilings → one gets marked
+      // Column 1 cells are tile overhang in ALL tilings → all get marked (batch)
       expect(result).toBe(true);
       const col1Marked = cells.filter((row) => row[1] === "marked").length;
-      expect(col1Marked).toBe(1);
+      expect(col1Marked).toBe(4);
     });
   });
 
@@ -419,16 +419,18 @@ describe("6. The 2×2 Tiling", () => {
       const result = twoByTwoTiling(board, cells);
 
       // Each cell is isolated → each forms its own single-cell tile
-      // minTiles=3, starsNeeded=3 → each must have a star
-      // Function places one at a time, so should place at least one
+      // minTiles=3, starsNeeded=3 → each must have a star (batch places all)
       expect(result).toBe(true);
       const starCount = cells.flat().filter((c) => c === "star").length;
-      expect(starCount).toBe(1);
+      expect(starCount).toBe(3);
+      expect(cells[0][0]).toBe("star");
+      expect(cells[0][3]).toBe("star");
+      expect(cells[3][0]).toBe("star");
     });
 
-    it("6.5.3 places only one star per invocation even with multiple single-cell tiles", () => {
+    it("6.5.3 places all forced stars in one call (batch behavior)", () => {
       // Region with multiple isolated cells (each is single-cell tile)
-      // Verifies function returns after placing first star
+      // Batch behavior places all forced stars in one call
       const board: Board = {
         grid: [
           [0, 1, 0, 1],
@@ -449,11 +451,11 @@ describe("6. The 2×2 Tiling", () => {
       const result = twoByTwoTiling(board, cells);
 
       expect(result).toBe(true);
-      // Should place exactly one star (function returns after first placement)
+      // Both isolated cells should be starred (batch behavior)
       const starCount = cells.flat().filter((c) => c === "star").length;
-      expect(starCount).toBe(1);
-      // One of the two isolated cells should be starred
-      expect(cells[0][0] === "star" || cells[0][2] === "star").toBe(true);
+      expect(starCount).toBe(2);
+      expect(cells[0][0]).toBe("star");
+      expect(cells[0][2]).toBe("star");
     });
 
     it("6.5.4 marks non-region overhang cells when minTiles === starsNeeded", () => {
@@ -479,10 +481,9 @@ describe("6. The 2×2 Tiling", () => {
       const result = twoByTwoTiling(board, cells);
 
       expect(result).toBe(true);
-      // Overhang cells (1,0) and (1,1) are in ALL minimal tilings → one gets marked
-      const markedCount = cells.flat().filter((c) => c === "marked").length;
-      expect(markedCount).toBe(1);
-      expect(cells[1][0] === "marked" || cells[1][1] === "marked").toBe(true);
+      // Overhang cells (1,0) and (1,1) are in ALL minimal tilings → both get marked (batch)
+      expect(cells[1][0]).toBe("marked");
+      expect(cells[1][1]).toBe("marked");
     });
 
     it("6.5.5 processes multiple regions in single call", () => {

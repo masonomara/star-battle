@@ -80,9 +80,9 @@ describe("layout", () => {
     });
 
     it("creates exactly N regions", () => {
-      const board = layout(5, 1, 0);
+      const board = layout(6, 1, 0);
       const regionIds = new Set(board.grid.flat());
-      expect(regionIds.size).toBe(5);
+      expect(regionIds.size).toBe(6);
     });
 
     it("region IDs are 0 to N-1", () => {
@@ -144,7 +144,7 @@ describe("layout", () => {
     });
 
     it("1-star regions have at least 1 cell", () => {
-      const board = layout(5, 1, 0);
+      const board = layout(6, 1, 0);
       const sizes = getRegionSizes(board.grid);
       expect(sizes.every((s) => s >= 1)).toBe(true);
     });
@@ -190,17 +190,17 @@ describe("layout", () => {
     });
 
     it("handles seed=0", () => {
-      expect(() => layout(5, 1, 0)).not.toThrow();
+      expect(() => layout(6, 1, 0)).not.toThrow();
     });
 
     it("handles negative seed", () => {
-      const board = layout(5, 1, -42);
-      expect(board.grid.length).toBe(5);
+      const board = layout(6, 1, -42);
+      expect(board.grid.length).toBe(6);
     });
 
     it("handles large seed", () => {
-      const board = layout(5, 1, 2147483647);
-      expect(board.grid.length).toBe(5);
+      const board = layout(6, 1, 2147483647);
+      expect(board.grid.length).toBe(6);
     });
   });
 

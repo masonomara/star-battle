@@ -30,9 +30,9 @@ describe("5. Forced Placement", () => {
       ]);
     });
 
-    it("5.1.2 places ONE star per call (incremental design)", () => {
+    it("5.1.2 places all forced stars in one call (batch behavior)", () => {
       // Row 1 has unknowns at (1,1) and (1,3) - not adjacent
-      // Both must be stars, but only ONE placed per call
+      // Both must be stars, batch places both in one call
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -54,7 +54,7 @@ describe("5. Forced Placement", () => {
 
       expect(result).toBe(true);
       expect(cells[1][1]).toBe("star");
-      expect(cells[1][3]).toBe("unknown"); // not placed yet
+      expect(cells[1][3]).toBe("star"); // batch places both
     });
 
     it("5.1.3 places remaining star (has 1 star, 1 unknown)", () => {

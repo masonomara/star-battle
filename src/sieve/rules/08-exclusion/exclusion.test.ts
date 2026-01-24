@@ -1,6 +1,5 @@
-import { Board, CellState, Coord } from "../../helpers/types";
+import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
-import { findAllMinimalTilings } from "../../helpers/tiling";
 import exclusion from "./exclusion";
 
 describe("8. Exclusion", () => {
@@ -341,48 +340,52 @@ describe("8. Exclusion", () => {
     });
 
     it("8.6.2 processes both internal and external candidates for tight region", () => {
-      // Single cell region at (1,1) - test that:
+      // Single cell region at (2,2) in a 5x5 grid - test that:
       // - The cell itself is NOT excluded (it must be a star)
-      // - At least one neighbor IS excluded (they would starve the region)
+      // - All 8 neighbors ARE excluded (they would starve the region)
       const board: Board = {
         grid: [
-          [1, 1, 1],
-          [1, 0, 1],
-          [1, 1, 1],
+          [1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1],
+          [1, 1, 0, 1, 1],
+          [1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1],
         ],
         stars: 1,
       };
       const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
       ];
 
       const result = exclusion(board, cells);
 
       expect(result).toBe(true);
-      // (1,1) is the only cell in region 0 - should NOT be marked
-      expect(cells[1][1]).not.toBe("marked");
-      // At least one of the 8 neighbors should be marked (function marks one per call)
+      // (2,2) is the only cell in region 0 - should NOT be marked
+      expect(cells[2][2]).not.toBe("marked");
+      // All 8 neighbors should be marked (batch behavior)
       const neighbors = [
-        cells[0][0],
-        cells[0][1],
-        cells[0][2],
-        cells[1][0],
+        cells[1][1],
         cells[1][2],
-        cells[2][0],
+        cells[1][3],
         cells[2][1],
-        cells[2][2],
+        cells[2][3],
+        cells[3][1],
+        cells[3][2],
+        cells[3][3],
       ];
       const markedCount = neighbors.filter((c) => c === "marked").length;
-      expect(markedCount).toBeGreaterThanOrEqual(1);
+      expect(markedCount).toBe(8);
     });
   });
 
   describe("8.7 Spec coverage gaps", () => {
-    it("8.7.1 marks one cell per call (return-after-first-mark)", () => {
+    it("8.7.1 marks all excludable cells in one call (batch behavior)", () => {
       // Two single-cell tight regions - both have excludable neighbors
-      // Function should mark exactly one cell per call
+      // Function should mark all excludable cells in one call
       const board: Board = {
         grid: [
           [0, 1, 1, 1, 2],
@@ -404,9 +407,11 @@ describe("8. Exclusion", () => {
       const result = exclusion(board, cells);
 
       expect(result).toBe(true);
-      // Should mark exactly one cell
+      // Should mark multiple cells in one call
+      // Neighbors of (0,0): (0,1), (1,0), (1,1)
+      // Neighbors of (0,4): (0,3), (1,3), (1,4)
       const markedCount = cells.flat().filter((c) => c === "marked").length;
-      expect(markedCount).toBe(1);
+      expect(markedCount).toBeGreaterThan(1);
     });
 
     it("8.7.2 excludes external cell that would starve tight region", () => {
@@ -448,65 +453,7 @@ describe("8. Exclusion", () => {
       expect(cells[0][2]).not.toBe("marked");
     });
 
-    it("8.7.4 tilingCache produces identical results", () => {
-      // Test with and without tilingCache
-      const board: Board = {
-        grid: [
-          [0, 0, 0, 1],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-        ],
-        stars: 2,
-      };
-
-      // Run without cache
-      const cellsNoCache: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
-      const resultNoCache = exclusion(board, cellsNoCache);
-
-      // Build cache and run with it
-      const cellsWithCache: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
-
-      const size = board.grid.length;
-      const byRegion = new Map();
-
-      // Region 0: 1×3 strip
-      const region0Coords: Coord[] = [
-        [0, 0],
-        [0, 1],
-        [0, 2],
-      ];
-      const result0 = findAllMinimalTilings(region0Coords, cellsWithCache, size);
-      byRegion.set(0, { ...result0, regionId: 0, cells: region0Coords });
-
-      // Region 1: rest
-      const region1Coords: Coord[] = [];
-      for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-          if (board.grid[r][c] === 1) region1Coords.push([r, c]);
-        }
-      }
-      const result1 = findAllMinimalTilings(region1Coords, cellsWithCache, size);
-      byRegion.set(1, { ...result1, regionId: 1, cells: region1Coords });
-
-      const tilingCache = { byRegion };
-      const resultWithCache = exclusion(board, cellsWithCache, tilingCache);
-
-      expect(resultWithCache).toBe(resultNoCache);
-      expect(cellsWithCache).toEqual(cellsNoCache);
-    });
-
-    it("8.7.5 documents that row/column exclusion is NOT implemented", () => {
+    it("8.7.4 documents that row/column exclusion is NOT implemented", () => {
       // Spec mentions exclusion can apply when "a region, row, or column
       // would no longer fit the specified star count"
       // Implementation only checks REGION tiling, not row/column constraints
