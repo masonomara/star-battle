@@ -24,6 +24,7 @@ export default function twoByTwoTiling(
 ): boolean {
   const size = board.grid.length;
   const regions = buildRegions(board.grid);
+  let changed = false;
 
   for (const [, coords] of regions) {
     let stars = 0;
@@ -43,7 +44,7 @@ export default function twoByTwoTiling(
     for (const [r, c] of tiling.forcedCells) {
       if (cells[r][c] === "unknown") {
         cells[r][c] = "star";
-        return true;
+        changed = true;
       }
     }
 
@@ -52,11 +53,11 @@ export default function twoByTwoTiling(
     for (const [r, c] of forcedNonRegion) {
       if (cells[r][c] === "unknown") {
         cells[r][c] = "marked";
-        return true;
+        changed = true;
       }
     }
   }
-  return false;
+  return changed;
 }
 
 /**

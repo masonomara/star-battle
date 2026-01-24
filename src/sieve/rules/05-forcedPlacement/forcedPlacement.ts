@@ -2,10 +2,10 @@ import { getRegionCoords } from "../../helpers/regions";
 import { Board, CellState, Coord } from "../../helpers/types";
 
 /**
- * If unknowns === needed stars, places ONE star and returns true.
- * Caller must loop to place remaining forced stars.
+ * If unknowns === needed stars, places all forced stars.
+ * Returns true if any stars were placed.
  */
-function placeOneIfForced(
+function placeAllForced(
   board: Board,
   cells: CellState[][],
   coords: Coord[],
@@ -18,8 +18,9 @@ function placeOneIfForced(
   }
   const needed = board.stars - stars;
   if (needed > 0 && unknowns.length === needed) {
-    const [r, c] = unknowns[0];
-    cells[r][c] = "star";
+    for (const [r, c] of unknowns) {
+      cells[r][c] = "star";
+    }
     return true;
   }
   return false;
@@ -30,22 +31,23 @@ export default function forcedPlacement(
   cells: CellState[][],
 ): boolean {
   const size = board.grid.length;
+  let changed = false;
 
   for (let row = 0; row < size; row++) {
     const coords: Coord[] = [];
     for (let c = 0; c < size; c++) coords.push([row, c]);
-    if (placeOneIfForced(board, cells, coords)) return true;
+    if (placeAllForced(board, cells, coords)) changed = true;
   }
 
   for (let col = 0; col < size; col++) {
     const coords: Coord[] = [];
     for (let r = 0; r < size; r++) coords.push([r, col]);
-    if (placeOneIfForced(board, cells, coords)) return true;
+    if (placeAllForced(board, cells, coords)) changed = true;
   }
 
   for (const coords of getRegionCoords(board.grid)) {
-    if (placeOneIfForced(board, cells, coords)) return true;
+    if (placeAllForced(board, cells, coords)) changed = true;
   }
 
-  return false;
+  return changed;
 }

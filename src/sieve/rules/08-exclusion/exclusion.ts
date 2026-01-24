@@ -9,6 +9,7 @@ import { Board, CellState, Coord } from "../../helpers/types";
 export default function exclusion(board: Board, cells: CellState[][]): boolean {
   const size = board.grid.length;
   const regions = buildRegions(board.grid);
+  let changed = false;
 
   // Build region info: coords and stars still needed
   const regionInfo = new Map<number, { coords: Coord[]; needed: number }>();
@@ -45,10 +46,11 @@ export default function exclusion(board: Board, cells: CellState[][]): boolean {
         const t = findAllMinimalTilings(coords, temp, size);
         if (t.minTileCount < rem) {
           cells[row][col] = "marked";
-          return true;
+          changed = true;
+          break;
         }
       }
     }
   }
-  return false;
+  return changed;
 }

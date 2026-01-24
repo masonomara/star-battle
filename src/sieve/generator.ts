@@ -1,7 +1,7 @@
-import { Board, CellState, GeneratorError } from "./helpers/types";
+import { Board, GeneratorError } from "./helpers/types";
 import { cellKey, parseKey } from "./helpers/cellKey";
 import buildRegions from "./helpers/regions";
-import { findAllMinimalTilings } from "./helpers/tiling";
+import { canTileWithMinCount } from "./helpers/tiling";
 
 const DIRECTIONS: [number, number][] = [
   [-1, 0],
@@ -64,7 +64,7 @@ export function generate(
 ): GenerateResult {
   validateInputs(size, stars);
 
-  const maxAttempts = options.maxAttempts ?? 1000;
+  const maxAttempts = options.maxAttempts ?? 100000;
   const baseSeed = Date.now() ^ (Math.random() * 0x100000000);
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -248,17 +248,10 @@ function isValidTiling(
   stars: number,
   size: number,
 ): boolean {
-  // All cells start as unknown for a fresh puzzle
-  const cells: CellState[][] = Array.from({ length: size }, () =>
-    Array.from({ length: size }, () => "unknown" as CellState),
-  );
-
   for (const [, coords] of regions) {
-    const tiling = findAllMinimalTilings(coords, cells, size);
-    if (tiling.minTileCount < stars) {
+    if (!canTileWithMinCount(coords, size, stars)) {
       return false;
     }
   }
-
   return true;
 }

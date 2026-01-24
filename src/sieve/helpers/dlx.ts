@@ -147,3 +147,62 @@ export function dlxSolve(
   search(buildMatrix(numPrimary, numSecondary, rows), [], solutions);
   return solutions;
 }
+
+/**
+ * Check if a solution exists with at least minRows rows.
+ * Much faster than dlxSolve when we only need to validate minimum tile count.
+ */
+export function dlxHasSolutionWithMinRows(
+  numPrimary: number,
+  numSecondary: number,
+  rows: number[][],
+  minRows: number,
+): boolean {
+  if (numPrimary === 0) return minRows <= 0;
+  const root = buildMatrix(numPrimary, numSecondary, rows);
+  return searchWithMinRows(root, 0, minRows);
+}
+
+function searchWithMinRows(
+  root: RootHeader,
+  depth: number,
+  minRows: number,
+): boolean {
+  if (root.right === root) {
+    return depth >= minRows;
+  }
+
+  let col: ColumnHeader | null = null;
+  let minSize = Infinity;
+  for (
+    let c = root.right as ColumnHeader;
+    c !== root;
+    c = c.right as ColumnHeader
+  ) {
+    if (c.size < minSize) {
+      minSize = c.size;
+      col = c;
+    }
+  }
+  if (!col || col.size === 0) return false;
+
+  cover(col);
+  for (let row = col.down; row !== col; row = row.down) {
+    for (let node = row.right; node !== row; node = node.right) {
+      cover(node.column);
+    }
+    if (searchWithMinRows(root, depth + 1, minRows)) {
+      // Uncover before returning (restore state for caller)
+      for (let node = row.left; node !== row; node = node.left) {
+        uncover(node.column);
+      }
+      uncover(col);
+      return true;
+    }
+    for (let node = row.left; node !== row; node = node.left) {
+      uncover(node.column);
+    }
+  }
+  uncover(col);
+  return false;
+}

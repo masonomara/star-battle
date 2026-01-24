@@ -11,6 +11,8 @@ function processAxis(
   lineRegions: Map<number, Set<number>>,
   regions: Map<number, [number, number][]>,
 ): boolean {
+  let changed = false;
+
   for (let start = 0; start < size; start++) {
     const lineSet = new Set<number>();
     const regSet = new Set<number>();
@@ -31,7 +33,6 @@ function processAxis(
         }
 
         if (valid) {
-          let changed = false;
           for (const id of regSet) {
             for (const [r, c] of regions.get(id)!) {
               const lineIdx = axis === "row" ? r : c;
@@ -41,14 +42,13 @@ function processAxis(
               }
             }
           }
-          if (changed) return true;
         }
       }
 
       if (end > start && added && regSet.size > lineSet.size) break;
     }
   }
-  return false;
+  return changed;
 }
 
 export default function overcounting(
@@ -85,8 +85,8 @@ export default function overcounting(
     }
   }
 
-  if (processAxis("row", size, board, cells, rowRegions, regions)) return true;
-  if (processAxis("col", size, board, cells, colRegions, regions)) return true;
+  const rowChanged = processAxis("row", size, board, cells, rowRegions, regions);
+  const colChanged = processAxis("col", size, board, cells, colRegions, regions);
 
-  return false;
+  return rowChanged || colChanged;
 }

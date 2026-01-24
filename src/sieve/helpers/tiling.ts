@@ -12,6 +12,74 @@ import { dlxSolve } from "./dlx";
 import { coordKey, parseKey } from "./cellKey";
 
 /**
+ * Fast check if a region can be tiled with at least minTiles 2×2 tiles.
+ * Uses backtracking to find non-overlapping tiles.
+ */
+export function canTileWithMinCount(
+  regionCells: Coord[],
+  gridSize: number,
+  minTiles: number,
+): boolean {
+  if (regionCells.length === 0) return minTiles <= 0;
+
+  const regionSet = new Set(regionCells.map(coordKey));
+
+  // Generate all tile candidates that touch at least one region cell
+  const candidateAnchors = new Set<string>();
+  const maxAnchor = gridSize - 2;
+  for (const [r, c] of regionCells) {
+    for (const dr of [-1, 0]) {
+      for (const dc of [-1, 0]) {
+        const ar = r + dr;
+        const ac = c + dc;
+        if (ar >= 0 && ac >= 0 && ar <= maxAnchor && ac <= maxAnchor) {
+          candidateAnchors.add(coordKey([ar, ac]));
+        }
+      }
+    }
+  }
+
+  // Build tiles with their cells
+  const tiles: Set<string>[] = [];
+  for (const anchorKey of candidateAnchors) {
+    const [ar, ac] = parseKey(anchorKey);
+    const cells = new Set([
+      coordKey([ar, ac]),
+      coordKey([ar, ac + 1]),
+      coordKey([ar + 1, ac]),
+      coordKey([ar + 1, ac + 1]),
+    ]);
+    const touchesRegion = [...cells].some((c) => regionSet.has(c));
+    if (touchesRegion) {
+      tiles.push(cells);
+    }
+  }
+
+  if (tiles.length < minTiles) return false;
+
+  // Backtracking search
+  function search(idx: number, count: number, used: Set<string>): boolean {
+    if (count >= minTiles) return true;
+    if (idx >= tiles.length) return false;
+    if (tiles.length - idx + count < minTiles) return false; // Prune
+
+    // Try including tile[idx]
+    const tile = tiles[idx];
+    const overlaps = [...tile].some((c) => used.has(c));
+    if (!overlaps) {
+      for (const c of tile) used.add(c);
+      if (search(idx + 1, count + 1, used)) return true;
+      for (const c of tile) used.delete(c);
+    }
+
+    // Try excluding tile[idx]
+    return search(idx + 1, count, used);
+  }
+
+  return search(0, 0, new Set());
+}
+
+/**
  * Find all minimal tilings for a region using DLX.
  *
  * Uses exact cover with:

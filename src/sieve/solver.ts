@@ -7,6 +7,8 @@ import forcedPlacement from "./rules/05-forcedPlacement/forcedPlacement";
 import twoByTwoTiling from "./rules/06-twoByTwoTiling/twoByTwoTiling";
 import oneByNConfinement from "./rules/07-oneByNConfinement/oneByNConfinement";
 import exclusion from "./rules/08-exclusion/exclusion";
+import overcounting from "./rules/11-overcounting/overcounting";
+import undercounting from "./rules/10-undercounting/undercounting";
 
 /**
  * Check if a board layout is valid before attempting to solve.
@@ -40,14 +42,18 @@ export function isValidLayout(board: Board): boolean {
 type Rule = (board: Board, cells: CellState[][]) => boolean;
 
 const allRules: { rule: Rule; level: number; name: string }[] = [
+  { rule: forcedPlacement, level: 1, name: "forcedPlacement" },
   { rule: trivialNeighbors, level: 1, name: "starNeighbors" },
   { rule: trivialRows, level: 1, name: "rowComplete" },
   { rule: trivialColumns, level: 1, name: "colComplete" },
   { rule: trivialRegions, level: 1, name: "regionComplete" },
-  { rule: forcedPlacement, level: 1, name: "forcedPlacement" },
-  { rule: twoByTwoTiling, level: 2, name: "twoByTwoTiling" },
-  { rule: exclusion, level: 3, name: "exclusion" },
-  // { rule: oneByNConfinement, level: 4, name: "oneByNConfinement" },
+  { rule: overcounting, level: 2, name: "overcounting" },
+  { rule: undercounting, level: 2, name: "undercounting" },
+  { rule: twoByTwoTiling, level: 3, name: "twoByTwoTiling" },
+
+  { rule: exclusion, level: 4, name: "exclusion" },
+
+  { rule: oneByNConfinement, level: 4, name: "oneByNConfinement" },
 ];
 
 const MAX_CYCLES = 1000;

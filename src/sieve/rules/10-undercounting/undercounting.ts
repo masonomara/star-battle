@@ -45,7 +45,6 @@ export default function undercounting(board: Board, cells: CellState[][]): boole
       }
     }
   }
-  if (changed) return true;
 
   for (const id of active) {
     const cols = regionCols.get(id)!;
