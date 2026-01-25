@@ -49,7 +49,7 @@ average: 89.40s
 `npm run sieve -- --size 25 --stars 6 --count 1` run 2:
 `npm run sieve -- --size 25 --stars 6 --count 1` run 3:
 
-## Commit
+## Commit de256d6d0c8e4c32f61e7ed93afe5bc4ff54ceba
 
 -- added pressured exclusion, improved existing exclusion rules
 
@@ -70,9 +70,9 @@ average: 1.16s
 `npm run sieve -- --size 10 --stars 2 --count 10` run 4: 213.67s
 `npm run sieve -- --size 10 --stars 2 --count 10` run 5: 228.73s
 average: 208.51s
-`npm run sieve -- --size 14 --stars 3 --count 10` run 1:
-`npm run sieve -- --size 14 --stars 3 --count 10` run 2:
-`npm run sieve -- --size 14 --stars 3 --count 10` run 3:
+`npm run sieve -- --size 14 --stars 3 --count 10` run 1: failed
+`npm run sieve -- --size 14 --stars 3 --count 10` run 2: failed
+`npm run sieve -- --size 14 --stars 3 --count 10` run 3: failed
 `npm run sieve -- --size 17 --stars 4 --count 5` run 1:
 `npm run sieve -- --size 17 --stars 4 --count 5` run 2:
 `npm run sieve -- --size 17 --stars 4 --count 5` run 3:
