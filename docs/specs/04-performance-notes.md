@@ -82,3 +82,37 @@ average: 208.51s
 `npm run sieve -- --size 25 --stars 6 --count 1` run 1:
 `npm run sieve -- --size 25 --stars 6 --count 1` run 2:
 `npm run sieve -- --size 25 --stars 6 --count 1` run 3:
+
+## Commit 1034d334d30838f0936d2c24a8cc5de9425f9f49
+
+-- added finned counts
+
+`npm run sieve -- --size 8 --stars 1 --count 10` run 1: 1.37s
+`npm run sieve -- --size 8 --stars 1 --count 10` run 2: 1.86s
+`npm run sieve -- --size 8 --stars 1 --count 10` run 3: 1.18s
+`npm run sieve -- --size 8 --stars 1 --count 10` run 4: 1.10s
+`npm run sieve -- --size 8 --stars 1 --count 10` run 5: 2.21s
+`npm run sieve -- --size 8 --stars 1 --count 10` run 6: 1.24s
+`npm run sieve -- --size 8 --stars 1 --count 10` run 7: 1.24s
+`npm run sieve -- --size 8 --stars 1 --count 10` run 8: 1.08s
+`npm run sieve -- --size 8 --stars 1 --count 10` run 9: 1.22s
+`npm run sieve -- --size 8 --stars 1 --count 10` run 10: 0.92s
+average: 1.44s
+`npm run sieve -- --size 10 --stars 2 --count 10` run 1: 91.59s
+`npm run sieve -- --size 10 --stars 2 --count 10` run 2: 84.34s
+`npm run sieve -- --size 10 --stars 2 --count 10` run 3: 112.02s
+`npm run sieve -- --size 10 --stars 2 --count 10` run 4: 99.62s
+`npm run sieve -- --size 10 --stars 2 --count 10` run 5: 160.75s
+average: 109.66s
+`npm run sieve -- --size 14 --stars 3 --count 10` run 1: failed
+`npm run sieve -- --size 14 --stars 3 --count 10` run 2: failed
+`npm run sieve -- --size 14 --stars 3 --count 10` run 3: failed
+`npm run sieve -- --size 17 --stars 4 --count 5` run 1:
+`npm run sieve -- --size 17 --stars 4 --count 5` run 2:
+`npm run sieve -- --size 17 --stars 4 --count 5` run 3:
+`npm run sieve -- --size 21 --stars 5 --count 3` run 1:
+`npm run sieve -- --size 21 --stars 5 --count 3` run 2:
+`npm run sieve -- --size 21 --stars 5 --count 3` run 3:
+`npm run sieve -- --size 25 --stars 6 --count 1` run 1:
+`npm run sieve -- --size 25 --stars 6 --count 1` run 2:
+`npm run sieve -- --size 25 --stars 6 --count 1` run 3:
