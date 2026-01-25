@@ -11,6 +11,7 @@ import pressuredExclusion from "./rules/09-pressuredExclusion/pressuredExclusion
 import overcounting from "./rules/11-overcounting/overcounting";
 import undercounting from "./rules/10-undercounting/undercounting";
 import squeeze from "./rules/12-squeeze/squeeze";
+import finnedCounts from "./rules/12-finnedCounts/finnedCounts";
 
 /**
  * Check if a board layout is valid before attempting to solve.
@@ -56,8 +57,8 @@ const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: exclusion, level: 4, name: "exclusion" },
   { rule: squeeze, level: 5, name: "squeeze" },
   { rule: pressuredExclusion, level: 5, name: "pressuredExclusion" },
-  // { rule: finnedCounts, level: 5, name: "finnedCounts" },
-  // { rule: compositeRegions, level: 6, name: "compositeRegions" },
+  { rule: finnedCounts, level: 6, name: "finnedCounts" },
+  // { rule: compositeRegions, level: 7, name: "compositeRegions" },
 ];
 
 const MAX_CYCLES = 1000;
