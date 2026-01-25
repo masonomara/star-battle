@@ -10,7 +10,7 @@
  */
 
 import buildRegions from "../../helpers/regions";
-import { Board, CellState, Coord } from "../../helpers/types";
+import { Board, CellState } from "../../helpers/types";
 
 /**
  * Check if placing stars creates an unsolvable undercounting situation.
