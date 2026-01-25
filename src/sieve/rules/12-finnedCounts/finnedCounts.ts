@@ -48,6 +48,13 @@ function detectUndercountingViolation(
     }
   }
 
+  // Quick check: any region needs stars but has no unknowns? Immediate violation.
+  for (const [id, stars] of regionStars) {
+    if (stars < board.stars && regionUnknownRows.get(id)!.size === 0) {
+      return true;
+    }
+  }
+
   // Active regions: still need stars AND have unknowns
   const active = [...regionUnknownRows.keys()].filter((id) => {
     const needed = board.stars - regionStars.get(id)!;
@@ -168,6 +175,26 @@ function detectOvercountingViolation(
         rowToRegions.get(r)!.add(id);
         colToRegions.get(c)!.add(id);
       }
+    }
+  }
+
+  // Quick check: any row/col needs stars but has no unknowns? Immediate violation.
+  for (let i = 0; i < size; i++) {
+    if (rowStars[i] < board.stars && rowToRegions.get(i)!.size === 0) {
+      // Row needs stars but has no active regions with unknowns
+      // Check if there are ANY unknowns in this row
+      let hasUnknown = false;
+      for (let c = 0; c < size; c++) {
+        if (cells[i][c] === "unknown") hasUnknown = true;
+      }
+      if (!hasUnknown) return true;
+    }
+    if (colStars[i] < board.stars && colToRegions.get(i)!.size === 0) {
+      let hasUnknown = false;
+      for (let r = 0; r < size; r++) {
+        if (cells[r][i] === "unknown") hasUnknown = true;
+      }
+      if (!hasUnknown) return true;
     }
   }
 
