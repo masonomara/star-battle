@@ -51,10 +51,12 @@ const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: overcounting, level: 2, name: "overcounting" },
   { rule: undercounting, level: 2, name: "undercounting" },
   { rule: twoByTwoTiling, level: 3, name: "twoByTwoTiling" },
-
-  { rule: exclusion, level: 4, name: "exclusion" },
   { rule: oneByNConfinement, level: 4, name: "oneByNConfinement" },
-  { rule: squeeze, level: 4, name: "squeeze" },
+  { rule: exclusion, level: 4, name: "exclusion" },
+  { rule: squeeze, level: 5, name: "squeeze" },
+  // { rule: pressuredExclusion, level: 5, name: "pressuredExclusion" },
+  // { rule: finnedCounts, level: 5, name: "finnedCounts" },
+  // { rule: compositeRegions, level: 6, name: "compositeRegions" },
 ];
 
 const MAX_CYCLES = 1000;
