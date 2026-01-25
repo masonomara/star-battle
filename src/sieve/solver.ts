@@ -7,6 +7,7 @@ import forcedPlacement from "./rules/05-forcedPlacement/forcedPlacement";
 import twoByTwoTiling from "./rules/06-twoByTwoTiling/twoByTwoTiling";
 import oneByNConfinement from "./rules/07-oneByNConfinement/oneByNConfinement";
 import exclusion from "./rules/08-exclusion/exclusion";
+import pressuredExclusion from "./rules/09-pressuredExclusion/pressuredExclusion";
 import overcounting from "./rules/11-overcounting/overcounting";
 import undercounting from "./rules/10-undercounting/undercounting";
 import squeeze from "./rules/12-squeeze/squeeze";
@@ -54,7 +55,7 @@ const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: oneByNConfinement, level: 4, name: "oneByNConfinement" },
   { rule: exclusion, level: 4, name: "exclusion" },
   { rule: squeeze, level: 5, name: "squeeze" },
-  // { rule: pressuredExclusion, level: 5, name: "pressuredExclusion" },
+  { rule: pressuredExclusion, level: 5, name: "pressuredExclusion" },
   // { rule: finnedCounts, level: 5, name: "finnedCounts" },
   // { rule: compositeRegions, level: 6, name: "compositeRegions" },
 ];
