@@ -31,7 +31,7 @@ export function sieve(options: SieveOptions = {}): Puzzle[] {
   const size = options.size ?? 10;
   const stars = options.stars ?? 2;
   const count = options.count ?? 1;
-  const maxAttempts = options.maxAttempts ?? 100000;
+  const maxAttempts = options.maxAttempts ?? 100000000;
   const deterministic = options.seed !== undefined;
 
   const stats: SieveStats = {

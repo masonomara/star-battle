@@ -26,7 +26,7 @@ export default function twoByTwoTiling(
   const regions = buildRegions(board.grid);
   let changed = false;
 
-  for (const [, coords] of regions) {
+  for (const [regionId, coords] of regions) {
     let stars = 0;
     for (const [r, c] of coords) if (cells[r][c] === "star") stars++;
 

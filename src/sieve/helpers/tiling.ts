@@ -12,19 +12,75 @@ import { dlxSolve } from "./dlx";
 import { coordKey, parseKey } from "./cellKey";
 
 /**
- * Fast check if a region can be tiled with at least minTiles 2×2 tiles.
- * Uses backtracking to find non-overlapping tiles.
+ * For cells arranged in a line (single row or column), calculate the
+ * maximum number of non-adjacent stars that can be placed.
+ *
+ * This is equivalent to the maximum independent set on a path graph,
+ * which has a simple greedy solution: place stars greedily from one end,
+ * skipping adjacent cells.
  */
-export function canTileWithMinCount(
+function maxStarsInLine(positions: number[]): number {
+  if (positions.length === 0) return 0;
+
+  const sorted = [...positions].sort((a, b) => a - b);
+  let count = 0;
+  let lastPlaced = -2; // Position of last placed star (-2 so first is always valid)
+
+  for (const pos of sorted) {
+    // Can place here if not adjacent to last placed star
+    if (pos > lastPlaced + 1) {
+      count++;
+      lastPlaced = pos;
+    }
+  }
+
+  return count;
+}
+
+/**
+ * Check if n non-adjacent stars can be placed in the given cells.
+ *
+ * For cells in a single row or column, uses closed-form calculation.
+ * For general 2D arrangements, uses the 2×2 tiling approximation
+ * (which is conservative - may underestimate capacity).
+ */
+function canPlaceNonAdjacentStars(
+  cells: Coord[],
+  n: number,
+  gridSize: number,
+): boolean {
+  if (cells.length < n) return false;
+  if (n === 0) return true;
+
+  // Check if all cells are in a single row
+  const rows = new Set(cells.map(([r]) => r));
+  if (rows.size === 1) {
+    const cols = cells.map(([, c]) => c);
+    return maxStarsInLine(cols) >= n;
+  }
+
+  // Check if all cells are in a single column
+  const cols = new Set(cells.map(([, c]) => c));
+  if (cols.size === 1) {
+    const rowPositions = cells.map(([r]) => r);
+    return maxStarsInLine(rowPositions) >= n;
+  }
+
+  // For 2D arrangements, fall back to 2×2 tiling approximation
+  // This is conservative (may say "no" when "yes" is possible)
+  return canTileWithMinCount2x2(cells, gridSize, n);
+}
+
+/**
+ * Original 2×2 tiling check - used for general 2D cell arrangements.
+ */
+function canTileWithMinCount2x2(
   regionCells: Coord[],
   gridSize: number,
   minTiles: number,
 ): boolean {
-  if (regionCells.length === 0) return minTiles <= 0;
-
   const regionSet = new Set(regionCells.map(coordKey));
 
-  // Generate all tile candidates that touch at least one region cell
   const candidateAnchors = new Set<string>();
   const maxAnchor = gridSize - 2;
   for (const [r, c] of regionCells) {
@@ -39,7 +95,6 @@ export function canTileWithMinCount(
     }
   }
 
-  // Build tiles with their cells
   const tiles: Set<string>[] = [];
   for (const anchorKey of candidateAnchors) {
     const [ar, ac] = parseKey(anchorKey);
@@ -57,13 +112,11 @@ export function canTileWithMinCount(
 
   if (tiles.length < minTiles) return false;
 
-  // Backtracking search
   function search(idx: number, count: number, used: Set<string>): boolean {
     if (count >= minTiles) return true;
     if (idx >= tiles.length) return false;
-    if (tiles.length - idx + count < minTiles) return false; // Prune
+    if (tiles.length - idx + count < minTiles) return false;
 
-    // Try including tile[idx]
     const tile = tiles[idx];
     const overlaps = [...tile].some((c) => used.has(c));
     if (!overlaps) {
@@ -72,11 +125,27 @@ export function canTileWithMinCount(
       for (const c of tile) used.delete(c);
     }
 
-    // Try excluding tile[idx]
     return search(idx + 1, count, used);
   }
 
   return search(0, 0, new Set());
+}
+
+/**
+ * Fast check if a region can fit at least minTiles non-adjacent stars.
+ *
+ * For linear arrangements (single row or column), uses exact calculation.
+ * For 2D arrangements, uses 2×2 tiling heuristic (conservative approximation).
+ */
+export function canTileWithMinCount(
+  regionCells: Coord[],
+  gridSize: number,
+  minTiles: number,
+): boolean {
+  if (regionCells.length === 0) return minTiles <= 0;
+  if (regionCells.length < minTiles) return false;
+
+  return canPlaceNonAdjacentStars(regionCells, minTiles, gridSize);
 }
 
 /**

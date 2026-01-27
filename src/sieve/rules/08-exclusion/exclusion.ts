@@ -104,7 +104,6 @@ function wouldBreakRegion(
   col: number,
   regionInfos: RegionInfo[],
   size: number,
-  grid: number[][],
 ): boolean {
   // Build set of cells that would be marked by this star
   const markedCells = new Set<string>();
@@ -166,7 +165,7 @@ export default function exclusion(board: Board, cells: CellState[][]): boolean {
       const affected = getAffectedRegions(row, col, regionInfos, size);
       if (affected.length === 0) continue;
 
-      if (wouldBreakRegion(row, col, affected, size, board.grid)) {
+      if (wouldBreakRegion(row, col, affected, size)) {
         cells[row][col] = "marked";
         changed = true;
       }

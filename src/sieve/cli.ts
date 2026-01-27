@@ -40,7 +40,7 @@ async function main() {
   }
 
   // Check for piped input (only if explicitly not a TTY and has data ready)
-  if (process.stdin.isTTY === false) {
+  if (!process.stdin.isTTY) {
     const input = await readStdin();
     if (input.trim()) {
       const stars = args.stars ? parseInt(args.stars, 10) : 1;
