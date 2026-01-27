@@ -13,7 +13,7 @@
  *    (the tile's star must be in the pair portion)
  */
 
-import { coordKey } from "../../helpers/cellKey";
+import { coordKey, parseKey } from "../../helpers/cellKey";
 import { findAllMinimalTilings } from "../../helpers/tiling";
 import { Board, CellState, Coord, Tile } from "../../helpers/types";
 
@@ -24,14 +24,14 @@ export default function squeeze(board: Board, cells: CellState[][]): boolean {
 
   // Process row pairs
   for (let row = 0; row < size - 1; row++) {
-    if (processRowPair(row, size, starsPerPair, board, cells)) {
+    if (processRowPair(row, size, starsPerPair, cells)) {
       changed = true;
     }
   }
 
   // Process column pairs
   for (let col = 0; col < size - 1; col++) {
-    if (processColPair(col, size, starsPerPair, board, cells)) {
+    if (processColPair(col, size, starsPerPair, cells)) {
       changed = true;
     }
   }
@@ -43,7 +43,6 @@ function processRowPair(
   row: number,
   size: number,
   starsPerPair: number,
-  board: Board,
   cells: CellState[][],
 ): boolean {
   // Collect unknown cells in this row pair
@@ -89,6 +88,21 @@ function processRowPair(
     }
   }
 
+  // Mark cells that would block all star candidates via adjacency
+  const pairCellSet = new Set(pairCells.map(coordKey));
+  const adjacencyBlocked = findAdjacencyBlockedCells(
+    tiling.allMinimalTilings,
+    pairCellSet,
+    cells,
+    size,
+  );
+  for (const [r, c] of adjacencyBlocked) {
+    if (cells[r][c] === "unknown") {
+      cells[r][c] = "marked";
+      changed = true;
+    }
+  }
+
   return changed;
 }
 
@@ -96,7 +110,6 @@ function processColPair(
   col: number,
   size: number,
   starsPerPair: number,
-  board: Board,
   cells: CellState[][],
 ): boolean {
   // Collect unknown cells in this column pair
@@ -139,6 +152,21 @@ function processColPair(
     }
   }
 
+  // Mark cells that would block all star candidates via adjacency
+  const pairCellSet = new Set(pairCells.map(coordKey));
+  const adjacencyBlocked = findAdjacencyBlockedCells(
+    tiling.allMinimalTilings,
+    pairCellSet,
+    cells,
+    size,
+  );
+  for (const [r, c] of adjacencyBlocked) {
+    if (cells[r][c] === "unknown") {
+      cells[r][c] = "marked";
+      changed = true;
+    }
+  }
+
   return changed;
 }
 
@@ -173,4 +201,70 @@ function findForcedOutsideCells(allMinimalTilings: Tile[][]): Coord[] {
     const [r, c] = key.split(",").map(Number);
     return [r, c] as Coord;
   });
+}
+
+/**
+ * Check if two cells are adjacent (including diagonals).
+ */
+function isAdjacent(cell1: Coord, cell2: Coord): boolean {
+  const [r1, c1] = cell1;
+  const [r2, c2] = cell2;
+  const dr = Math.abs(r1 - r2);
+  const dc = Math.abs(c1 - c2);
+  return dr <= 1 && dc <= 1 && (dr > 0 || dc > 0);
+}
+
+/**
+ * Find cells that would block all star candidates for some tile via adjacency.
+ *
+ * If a cell C is adjacent to ALL coveredCells of some tile in EVERY minimal tiling,
+ * then starring C would mark all possible star locations for that tile - contradiction.
+ * Therefore C can be marked.
+ */
+function findAdjacencyBlockedCells(
+  allMinimalTilings: Tile[][],
+  pairCellSet: Set<string>,
+  cells: CellState[][],
+  size: number,
+): Coord[] {
+  if (allMinimalTilings.length === 0) return [];
+
+  // Collect unknown cells adjacent to the pair but not in the pair
+  const adjacentCells = new Set<string>();
+  for (const key of pairCellSet) {
+    const [r, c] = parseKey(key);
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        if (dr === 0 && dc === 0) continue;
+        const nr = r + dr;
+        const nc = c + dc;
+        if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
+          const nkey = coordKey([nr, nc]);
+          if (!pairCellSet.has(nkey) && cells[nr][nc] === "unknown") {
+            adjacentCells.add(nkey);
+          }
+        }
+      }
+    }
+  }
+
+  const blockedCells: Coord[] = [];
+
+  for (const candidateKey of adjacentCells) {
+    const candidate = parseKey(candidateKey);
+
+    // Check if in EVERY tiling, this candidate blocks at least one tile completely
+    const blocksInAllTilings = allMinimalTilings.every((tiling) =>
+      tiling.some((tile) =>
+        // Candidate must be adjacent to ALL coveredCells of this tile
+        tile.coveredCells.every((covered) => isAdjacent(candidate, covered)),
+      ),
+    );
+
+    if (blocksInAllTilings) {
+      blockedCells.push(candidate);
+    }
+  }
+
+  return blockedCells;
 }
