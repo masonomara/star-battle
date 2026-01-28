@@ -1173,18 +1173,6 @@ describe("8. Exclusion", () => {
 
       const result = exclusion(board, cells);
 
-      // This should find exclusions if the logic is correct
-      // Document what was marked
-      if (result) {
-        const markedCells: string[] = [];
-        for (let r = 0; r < 12; r++) {
-          for (let c = 0; c < 12; c++) {
-            if (cells[r][c] === "marked") {
-              markedCells.push(`(${r},${c})`);
-            }
-          }
-        }
-      }
       expect(typeof result).toBe("boolean");
     });
 
