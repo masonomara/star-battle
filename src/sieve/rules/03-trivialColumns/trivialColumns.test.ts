@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import trivialColumns from "./trivialColumns";
 import { Board, CellState } from "../../helpers/types";
 
-describe("trivialColumns", () => {
-  describe("True Positives - correctly marks remaining cells", () => {
-    it("marks remaining cells when column has required stars", () => {
+describe("03. trivialColumns", () => {
+  describe("03.1 Marks remaining cells correctly", () => {
+    it("03.1.1 marks remaining cells when column has required stars", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -29,7 +29,7 @@ describe("trivialColumns", () => {
       ]);
     });
 
-    it("marks remaining cells with 2-star requirement", () => {
+    it("03.1.2 marks remaining cells with 2-star requirement", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -55,7 +55,7 @@ describe("trivialColumns", () => {
       expect(cells[3][0]).toBe("marked");
     });
 
-    it("marks cells in multiple complete columns", () => {
+    it("03.1.3 marks cells in multiple complete columns", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -80,7 +80,7 @@ describe("trivialColumns", () => {
       ]);
     });
 
-    it("marks only unknown cells, preserves marked cells", () => {
+    it("03.1.4 marks only unknown cells and preserves marked cells", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -104,8 +104,8 @@ describe("trivialColumns", () => {
     });
   });
 
-  describe("True Negatives - correctly returns false", () => {
-    it("returns false when no columns are complete", () => {
+  describe("03.2 No-op cases", () => {
+    it("03.2.1 returns false when no columns are complete", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -130,7 +130,7 @@ describe("trivialColumns", () => {
       ]);
     });
 
-    it("returns false when column already fully marked", () => {
+    it("03.2.2 returns false when column already fully marked", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -150,7 +150,7 @@ describe("trivialColumns", () => {
       expect(result).toBe(false);
     });
 
-    it("returns false when column has fewer stars than required", () => {
+    it("03.2.3 returns false when column has fewer stars than required", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -173,8 +173,8 @@ describe("trivialColumns", () => {
     });
   });
 
-  describe("False Positives - should not mark incorrectly", () => {
-    it("does not mark cells in incomplete columns", () => {
+  describe("03.3 Does not mark incorrectly", () => {
+    it("03.3.1 does not mark cells in incomplete columns", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -198,7 +198,7 @@ describe("trivialColumns", () => {
       expect(cells[3][0]).toBe("unknown");
     });
 
-    it("does not affect other columns when one column is complete", () => {
+    it("03.3.2 does not affect other columns when one column is complete", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -221,7 +221,7 @@ describe("trivialColumns", () => {
       expect(cells[1][2]).toBe("unknown");
     });
 
-    it("does not overwrite stars", () => {
+    it("03.3.3 does not overwrite stars", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -245,8 +245,8 @@ describe("trivialColumns", () => {
     });
   });
 
-  describe("False Negatives - should not miss markings", () => {
-    it("marks all columns that are complete in one pass", () => {
+  describe("03.4 Edge cases", () => {
+    it("03.4.1 marks all columns that are complete in one pass", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -270,7 +270,7 @@ describe("trivialColumns", () => {
       ]);
     });
 
-    it("handles last column correctly", () => {
+    it("03.4.2 handles last column correctly", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -292,7 +292,7 @@ describe("trivialColumns", () => {
       expect(cells[2][2]).toBe("star");
     });
 
-    it("handles middle column correctly", () => {
+    it("03.4.3 handles middle column correctly", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],

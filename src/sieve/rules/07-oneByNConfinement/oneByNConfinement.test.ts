@@ -14,9 +14,9 @@ function makeCells(rows: string[]): CellState[][] {
   );
 }
 
-describe("7. The 1×n Confinement", () => {
-  describe("Row confinement", () => {
-    it("marks row remainder when region confined to single row", () => {
+describe("07. oneByNConfinement", () => {
+  describe("07.1 Row confinement", () => {
+    it("07.1.1 marks row remainder when region confined to single row", () => {
       // Region 1 unknowns all in row 1 → mark rest of row 1
       const board: Board = {
         grid: [
@@ -34,7 +34,7 @@ describe("7. The 1×n Confinement", () => {
       expect(cells[1][3]).toBe("marked");
     });
 
-    it("marks row remainder with 2★ confinement", () => {
+    it("07.1.2 marks row remainder with 2-star confinement", () => {
       // Region 0 unknowns all in row 2 → mark rest of row 2
       const board: Board = {
         grid: [
@@ -53,8 +53,8 @@ describe("7. The 1×n Confinement", () => {
       expect(cells[2][5]).toBe("marked");
     });
 
-    it("marks when two 1×n regions together fill row quota", () => {
-      // Regions 1 and 2 each confined to row 1, together account for 2★
+    it("07.1.3 marks when two confined regions together fill row quota", () => {
+      // Regions 1 and 2 each confined to row 1, together account for 2 stars
       const board: Board = {
         grid: [
           [0, 0, 0, 0, 0, 0],
@@ -72,8 +72,8 @@ describe("7. The 1×n Confinement", () => {
     });
   });
 
-  describe("Column confinement", () => {
-    it("marks column remainder when region confined to single column", () => {
+  describe("07.2 Column confinement", () => {
+    it("07.2.1 marks column remainder when region confined to single column", () => {
       // Region 1 unknowns all in col 1 → mark rest of col 1
       const board: Board = {
         grid: [
@@ -91,7 +91,7 @@ describe("7. The 1×n Confinement", () => {
       expect(cells[3][1]).toBe("marked");
     });
 
-    it("marks when two 1×n regions together fill column quota", () => {
+    it("07.2.2 marks when two confined regions together fill column quota", () => {
       // Regions 1 and 2 each confined to col 1
       const board: Board = {
         grid: [
@@ -109,7 +109,7 @@ describe("7. The 1×n Confinement", () => {
       expect(cells[2][1]).toBe("marked");
     });
 
-    it("marks column remainder with 2★ confinement", () => {
+    it("07.2.3 marks column remainder with 2-star confinement", () => {
       // Region 0 unknowns all in col 0 → mark rest of col 0
       const board: Board = {
         grid: [
@@ -129,8 +129,8 @@ describe("7. The 1×n Confinement", () => {
     });
   });
 
-  describe("No confinement", () => {
-    it("returns false when regions span multiple rows and columns", () => {
+  describe("07.3 No-op cases", () => {
+    it("07.3.1 returns false when regions span multiple rows and columns", () => {
       const board: Board = {
         grid: [
           [0, 0, 1, 1],
@@ -145,7 +145,7 @@ describe("7. The 1×n Confinement", () => {
       expect(oneByNConfinement(board, cells)).toBe(false);
     });
 
-    it("returns false when region already has all stars", () => {
+    it("07.3.2 returns false when region already has all stars", () => {
       const board: Board = {
         grid: [
           [0, 0, 1, 1],
@@ -160,7 +160,7 @@ describe("7. The 1×n Confinement", () => {
       expect(oneByNConfinement(board, cells)).toBe(false);
     });
 
-    it("returns false when 1×n spans entire row (nothing to mark)", () => {
+    it("07.3.3 returns false when confined region spans entire row", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -175,7 +175,7 @@ describe("7. The 1×n Confinement", () => {
       expect(oneByNConfinement(board, cells)).toBe(false);
     });
 
-    it("returns false when regions span multiple rows despite existing star", () => {
+    it("07.3.4 returns false when regions span multiple rows despite existing star", () => {
       const board: Board = {
         grid: [
           [0, 1, 1, 2, 2],
@@ -191,8 +191,8 @@ describe("7. The 1×n Confinement", () => {
     });
   });
 
-  describe("Edge cases", () => {
-    it("handles single-cell region (trivially confined)", () => {
+  describe("07.4 Edge cases", () => {
+    it("07.4.1 marks row remainder for single-cell region", () => {
       const board: Board = {
         grid: [
           [0, 1, 1, 1],
@@ -210,15 +210,15 @@ describe("7. The 1×n Confinement", () => {
       expect(cells[0][3]).toBe("marked");
     });
 
-    it("returns false for empty grid", () => {
+    it("07.4.2 returns false for empty grid", () => {
       const board: Board = { grid: [], stars: 1 };
       const cells: CellState[][] = [];
 
       expect(oneByNConfinement(board, cells)).toBe(false);
     });
 
-    it("handles 3★ puzzle with row confinement", () => {
-      // Region 0 unknowns all in row 0, needs 3★
+    it("07.4.3 marks row remainder in 3-star puzzle with row confinement", () => {
+      // Region 0 unknowns all in row 0, needs 3 stars
       const board: Board = {
         grid: [
           [0, 0, 0, 0, 0, 0, 1, 1],

@@ -75,7 +75,7 @@ describe("11. Overcounting", () => {
       expect(cells[2][3]).toBe("marked");
     });
 
-    it("11.1.3 marks cells in 2★ puzzle", () => {
+    it("11.1.3 marks cells when 2 regions contain 2 rows (2★ puzzle)", () => {
       // Regions 0,1 completely contain rows 0-1
       // Both regions appear in both rows (vertical stripes), so no single row triggers overcounting
       // 2 regions × 2 stars = 4 stars must be in rows 0-1
@@ -372,7 +372,7 @@ describe("11. Overcounting", () => {
       expect(cells[3][0]).toBe("unknown");
     });
 
-    it("11.4.3 processes smallest valid case: 1 region containing 1 row", () => {
+    it("11.4.3 handles smallest valid case with 1 region containing 1 row", () => {
       // Minimal case
       const board: Board = {
         grid: [

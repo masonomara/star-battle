@@ -2,13 +2,13 @@ import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
 import exclusion from "./exclusion";
 
-describe("8. Exclusion", () => {
+describe("08. Exclusion", () => {
   // Exclusion only applies to "tight" regions where minTileCount == starsNeeded.
   // For each unknown cell in/near a tight region, if placing a star there
   // would reduce the region's tiling capacity below (starsNeeded - 1), exclude it.
 
-  describe("8.1 Internal exclusion (cells inside tight region)", () => {
-    it("8.1.1 marks middle cell in 1×3 region when star would break tiling capacity", () => {
+  describe("08.1 Internal exclusion (cells inside tight region)", () => {
+    it("08.1.1 marks middle cell in 1x3 region when star would break tiling capacity", () => {
       // Region 0: 1×3 horizontal strip needing 2 stars
       // minTiles=2 (each 2×2 covers at most 2 cells of a 1-wide strip), stars=2 → TIGHT
       // If (0,1) starred → marks (0,0) and (0,2) → 0 cells left but need 1 more star
@@ -36,7 +36,7 @@ describe("8. Exclusion", () => {
       expect(cells[0][1]).toBe("marked");
     });
 
-    it("8.1.2 does not exclude when region is not tight", () => {
+    it("08.1.2 returns false when region is not tight", () => {
       // Region 0: 2×4 block needing 1 star
       // minTiles=2, stars=1 → NOT tight (minTiles > stars)
       const board: Board = {
@@ -63,8 +63,8 @@ describe("8. Exclusion", () => {
     });
   });
 
-  describe("8.2 External exclusion (cells outside tight region)", () => {
-    it("8.2.1 marks ONE neighbor of single-cell tight region per call", () => {
+  describe("08.2 External exclusion (cells outside tight region)", () => {
+    it("08.2.1 marks ONE neighbor of single-cell tight region per call", () => {
       // Region 0: single cell (0,2) needing 1 star
       // minTiles=1, stars=1 → TIGHT
       // Any neighbor starred would mark (0,2) → region has 0 cells for 1 star
@@ -103,7 +103,7 @@ describe("8. Exclusion", () => {
       expect(markedCount).toBeGreaterThanOrEqual(1);
     });
 
-    it("8.2.2 marks external cell adjacent to tight 1×2 region", () => {
+    it("08.2.2 marks external cell adjacent to tight 1x2 region", () => {
       // Region 0: 1×2 horizontal strip at [0,0],[0,1], minTiles=1, stars=1 → TIGHT
       // External cells [1,0] and [1,1] are adjacent to BOTH region cells
       // Placing a star there marks both region cells, leaving 0 capacity for 1 star
@@ -133,8 +133,8 @@ describe("8. Exclusion", () => {
     });
   });
 
-  describe("8.3 Tight region identification", () => {
-    it("8.3.1 excludes cells in 1×5 strip with 3 stars (tight region)", () => {
+  describe("08.3 Tight region identification", () => {
+    it("08.3.1 excludes cells in 1x5 strip with 3 stars (tight region)", () => {
       // Region 0: 1×5 strip needing 3 stars
       // minTiles=3 (ceil(5/2)), stars=3 → TIGHT
       // Placing star at (0,1) marks (0,0) and (0,2), leaving (0,3),(0,4)
@@ -171,8 +171,8 @@ describe("8. Exclusion", () => {
     });
   });
 
-  describe("8.4 No exclusion scenarios", () => {
-    it("8.4.1 returns false when no tight regions exist", () => {
+  describe("08.4 No exclusion scenarios", () => {
+    it("08.4.1 returns false when no tight regions exist", () => {
       // Single large region with lots of slack
       const board: Board = {
         grid: [
@@ -196,7 +196,7 @@ describe("8. Exclusion", () => {
       expect(result).toBe(false);
     });
 
-    it("8.4.2 returns false when tight region already has all stars", () => {
+    it("08.4.2 returns false when tight region already has all stars", () => {
       // Single-cell region with its star already placed
       const board: Board = {
         grid: [
@@ -220,7 +220,7 @@ describe("8. Exclusion", () => {
       expect(result).toBe(false);
     });
 
-    it("8.4.3 returns false when star placement still leaves sufficient capacity", () => {
+    it("08.4.3 returns false when star placement still leaves sufficient capacity", () => {
       // Tight region but all placements are valid
       // 1×4 strip with 2 stars, but stars can fit in non-adjacent positions
       const board: Board = {
@@ -250,8 +250,8 @@ describe("8. Exclusion", () => {
     });
   });
 
-  describe("8.5 Edge cases", () => {
-    it("8.5.1 does not exclude the only cell in a single-cell region", () => {
+  describe("08.5 Edge cases", () => {
+    it("08.5.1 does not exclude the only cell in a single-cell region", () => {
       // Region 0: single cell, needs 1 star
       // The cell itself should NOT be excluded (it must be a star)
       const board: Board = {
@@ -274,7 +274,7 @@ describe("8. Exclusion", () => {
       expect(cells[0][0]).not.toBe("marked");
     });
 
-    it("8.5.2 handles multiple tight regions", () => {
+    it("08.5.2 handles multiple tight regions", () => {
       // Two single-cell regions, both tight
       // Region 0 at (0,0), Region 2 at (0,4)
       const board: Board = {
@@ -310,8 +310,8 @@ describe("8. Exclusion", () => {
 
   });
 
-  describe("8.6 Spec-aligned scenarios", () => {
-    it("8.6.1 excludes using tiling analysis per spec", () => {
+  describe("08.6 Spec-aligned scenarios", () => {
+    it("08.6.1 excludes using tiling analysis per spec", () => {
       // From spec: "considering a star's immediate marks and attempting
       // to tile the remainder with 2×2s"
       // Region with minTiles == stars, test that tiling correctly bounds capacity
@@ -339,7 +339,7 @@ describe("8. Exclusion", () => {
       expect(result).toBe(false);
     });
 
-    it("8.6.2 processes both internal and external candidates for tight region", () => {
+    it("08.6.2 processes both internal and external candidates for tight region", () => {
       // Single cell region at (2,2) in a 5x5 grid - test that:
       // - The cell itself is NOT excluded (it must be a star)
       // - All 8 neighbors ARE excluded (they would starve the region)
@@ -382,8 +382,8 @@ describe("8. Exclusion", () => {
     });
   });
 
-  describe("8.7 Spec coverage gaps", () => {
-    it("8.7.1 marks all excludable cells in one call (batch behavior)", () => {
+  describe("08.7 Spec coverage gaps", () => {
+    it("08.7.1 marks all excludable cells in one call (batch behavior)", () => {
       // Two single-cell tight regions - both have excludable neighbors
       // Function should mark all excludable cells in one call
       const board: Board = {
@@ -414,7 +414,7 @@ describe("8. Exclusion", () => {
       expect(markedCount).toBeGreaterThan(1);
     });
 
-    it("8.7.2 excludes external cell that would starve tight region", () => {
+    it("08.7.2 excludes external cell that would starve tight region", () => {
       // Single-cell tight region at (0,2)
       // External cell (1,2) if starred would mark (0,2), leaving region with 0 cells for 1 star
       const board: Board = {
@@ -453,7 +453,7 @@ describe("8. Exclusion", () => {
       expect(cells[0][2]).not.toBe("marked");
     });
 
-    it("8.7.3 marks cell in region A when starring would break neighboring region B", () => {
+    it("08.7.3 marks cell in region A when starring would break neighboring region B", () => {
       // Key scenario: Cell is in region A, but if starred, its neighbors
       // would mark cells in region B, making B unsolvable.
       //
@@ -485,39 +485,9 @@ describe("8. Exclusion", () => {
       expect(cells[0][1]).toBe("marked");
     });
 
-    it("8.7.4 marks cell when neighbors would break region with 2-star requirement", () => {
+    it("08.7.4 marks cell when neighbors would break region with 2-star requirement", () => {
       // More complex scenario: 2-star puzzle where marking neighbors
       // leaves a region unable to fit 2 non-adjacent stars.
-      //
-      // Grid:  0 0 0 1 1 1     Region 0: left half (9 cells)
-      //        0 0 0 1 1 1     Region 1: right half (9 cells)
-      //        0 0 0 1 1 1
-      //        2 2 2 2 2 2     Region 2: bottom half (18 cells)
-      //        2 2 2 2 2 2
-      //        2 2 2 2 2 2
-      //
-      // Region 1 is a 3x3 block needing 2 stars. It can barely fit 2 stars.
-      // If cell (1,2) in region 0 is starred, it marks (0,3), (1,3), (2,3).
-      // These are the entire left column of region 1.
-      // Remaining region 1 cells: 6 cells in 2 columns. Can this fit 2 stars? Yes.
-      //
-      // Let's make a tighter example where the remaining cells CAN'T fit.
-      //
-      // Tighter grid:  0 0 1 1     Region 0: left 2 cols (8 cells)
-      //                0 0 1 1     Region 1: right 2 cols (8 cells), needs 2 stars
-      //                0 0 1 1
-      //                0 0 1 1
-      //
-      // Region 1 as 2x4 block can fit 2 stars (e.g., at (0,2) and (2,3))
-      // If we star (1,1) in region 0, neighbors are (0,0),(0,1),(0,2),(1,0),(1,2),(2,0),(2,1),(2,2)
-      // Region 1 cells marked: (0,2), (1,2), (2,2) - entire column 2
-      // Remaining region 1: column 3 only = 4 cells in a single column
-      // Can 4 cells in a column fit 2 non-adjacent stars? Yes: (0,3) and (2,3)
-      //
-      // Need even tighter: remaining cells can't fit 2 stars.
-      //
-      // Ultra-tight: Region 1 has only 3 cells in an L-shape, needs 2 stars
-      // But minimum cells for 2 non-adjacent stars is 3 (positions 0,2 in a line)
       //
       // Grid:  0 0 0 0 0     5x5 grid
       //        0 0 0 1 1     Region 1: L-shape, 3 cells at (1,3),(1,4),(2,4)
@@ -555,7 +525,7 @@ describe("8. Exclusion", () => {
       expect(cells[1][2]).toBe("marked");
     });
 
-    it("8.7.5 marks cell in region U when starring would break region R (complex case)", () => {
+    it("08.7.5 marks cell in region U when starring would break region R (complex case)", () => {
       // Mirror the user's puzzle: 25x25 board with regions U and R adjacent.
       // Extract a 10x10 section around the critical area.
       //
@@ -650,63 +620,20 @@ describe("8. Exclusion", () => {
       // This test documents the complex case - adjust expectations based on findings
     });
 
-    it("8.7.6 marks cell when region has sparse 2D pattern needing 2 stars", () => {
+    it("08.7.6 marks cell when region has sparse 2D pattern needing 2 stars", () => {
       // Key insight: The tiling check might incorrectly approve sparse 2D patterns.
       // Create a region with cells that LOOK like they can fit 2 stars,
       // but actually can't due to adjacency constraints.
       //
-      // Region layout (X = region, . = other):
-      // . . . . .
-      // . X . X .     Cells at (1,1), (1,3)
-      // . . . . .
-      // . X . X .     Cells at (3,1), (3,3)
-      // . . . . .
+      // Grid setup: Region 1 is 2x3, but after marking, becomes 2x2
+      // 0 0 0 1 1 1     Region 1: 2x3 block (6 cells)
+      // 0 0 0 1 1 1
+      // 0 0 0 0 0 0
       //
-      // This region has 4 cells in a 2x2 diagonal pattern.
-      // For 2 stars: can (1,1) and (3,3) both have stars? They're 2 apart diagonally.
-      // Distance: sqrt(4+4) = 2.83, so NOT adjacent - YES can fit 2 stars.
-      //
-      // Let's make it so they ARE adjacent:
-      // . . . . .
-      // . X X . .     Cells at (1,1), (1,2)
-      // . X X . .     Cells at (2,1), (2,2) - a 2x2 block
-      // . . . . .
-      // . . . . .
-      //
-      // A 2x2 block can fit at most 1 star (any star marks all 3 neighbors).
-      // If this region needs 2 stars, it's impossible.
-      //
-      // But in our puzzle, the region is larger. Let's create a pattern where:
-      // - Region has cells in a specific 2D pattern
-      // - The remaining cells after marking can't fit required stars
-      //
-      // Complex L-shape needing 2 stars:
-      // 0 0 0 1 1
-      // 0 0 0 1 1
-      // 0 0 0 0 1
-      // 0 0 0 0 1
-      // 2 2 2 2 2
-      //
-      // Region 1: L-shape, cells (0,3),(0,4),(1,3),(1,4),(2,4),(3,4) = 6 cells
-      // Can fit 2 stars: (0,3) and (2,4) are not adjacent, or (0,4) and (3,4)
-      //
-      // If we star (2,2) in region 0, neighbors include (1,3),(2,3),(3,3)
-      // But (2,3) and (3,3) are in region 0, not 1.
-      // Region 1 cells marked: (1,3)
-      // Remaining: (0,3),(0,4),(1,4),(2,4),(3,4) = 5 cells
-      // Can 5 cells fit 2 stars? Yes, e.g., (0,3) and (3,4)
-      //
-      // Need a tighter region. Let's use:
-      // 0 0 0 1 1
-      // 0 0 X 1 1     X = cell to test at (1,2)
-      // 0 0 0 1 0
-      // 0 0 0 0 0
-      //
-      // Region 1: (0,3),(0,4),(1,3),(1,4),(2,3) = 5 cells, needs 2 stars
-      // Star at (1,2) marks neighbors: (0,1),(0,2),(0,3),(1,1),(1,3),(2,1),(2,2),(2,3)
-      // Region 1 cells marked: (0,3),(1,3),(2,3) = 3 cells
-      // Remaining region 1: (0,4),(1,4) = 2 adjacent cells
-      // 2 adjacent cells can fit at most 1 star, but need 2 -> BREAKS!
+      // If star at (1,2), marks (0,1),(0,2),(0,3),(1,1),(1,3),(2,1),(2,2),(2,3)
+      // Region 1 marked: (0,3),(1,3)
+      // Remaining: (0,4),(0,5),(1,4),(1,5) - still 2x2 block
+      // 2x2 can't fit 2 stars!
       const board: Board = {
         grid: [
           [0, 0, 0, 1, 1],
@@ -732,7 +659,7 @@ describe("8. Exclusion", () => {
       expect(cells[1][2]).toBe("marked");
     });
 
-    it("8.7.7 BUG: tiling check misses adjacent star positions from multi-cell tiles", () => {
+    it("08.7.7 BUG: tiling check misses adjacent star positions from multi-cell tiles", () => {
       // This test exposes a bug in canTileWithMinCount2x2.
       //
       // Scenario: A 2x2 block of cells needs 2 stars.
@@ -787,23 +714,11 @@ describe("8. Exclusion", () => {
       expect(cells[2][1]).toBe("marked");
     });
 
-    it("8.7.8 marks cell when remaining region has diagonal-adjacent cells needing 2 stars", () => {
+    it("08.7.8 marks cell when remaining region has diagonal-adjacent cells needing 2 stars", () => {
       // Key case: After marking, remaining cells are diagonally adjacent (2D, not linear).
       // Two diagonally adjacent cells can only fit 1 star, not 2.
       //
       // Grid:
-      // 0 0 1 1 1     Region 1: cells at (0,2),(0,3),(0,4),(1,3),(1,4),(2,4)
-      // 0 0 0 1 1     An L-shape needing 2 stars
-      // 0 0 0 0 1
-      // 0 0 0 0 0
-      // 0 0 0 0 0
-      //
-      // If we star (1,2), neighbors marked: (0,1),(0,2),(0,3),(1,1),(1,3),(2,1),(2,2),(2,3)
-      // Region 1 cells marked: (0,2),(0,3),(1,3)
-      // Remaining region 1: (0,4),(1,4),(2,4) - a vertical line!
-      // 3 cells in a column can fit 2 stars: (0,4) and (2,4). So this works.
-      //
-      // Let me try a tighter configuration:
       // 0 0 0 1 1     Region 1: cells at (0,3),(0,4),(1,4) - 3 cells, L-shape
       // 0 0 0 0 1     Needs 2 stars
       // 0 0 0 0 0
@@ -838,7 +753,7 @@ describe("8. Exclusion", () => {
       expect(cells[0][2]).toBe("marked");
     });
 
-    it("8.7.9 marks cell when remaining cells form compact 2x3 block needing 2 stars", () => {
+    it("08.7.9 marks cell when remaining cells form compact 2x3 block needing 2 stars", () => {
       // A 2x3 block can fit 2 stars (e.g., opposite corners), but
       // certain subsets cannot. Test the boundary.
       //
@@ -882,7 +797,7 @@ describe("8. Exclusion", () => {
       expect(cells[1][2]).toBe("marked");
     });
 
-    it("8.7.10 reproduces user puzzle: R/U region boundary exclusion", () => {
+    it("08.7.10 reproduces user puzzle: R/U region boundary exclusion", () => {
       // From user's 25x25 puzzle, extracting rows 16-20, cols 12-20 (0-indexed).
       // Original regions around the R/U boundary:
       //
@@ -948,7 +863,7 @@ describe("8. Exclusion", () => {
       // This test documents behavior - adjust based on findings
     });
 
-    it("8.7.11 6-star puzzle: marks cell when neighbors would break region R", () => {
+    it("08.7.11 6-star puzzle: marks cell when neighbors would break region R", () => {
       // From user's 25x25, 6-star puzzle at cycle 105.
       // Cell at (row 17, col 15) is in region U (20).
       // Its neighbors include many cells in region R (17).
@@ -1024,7 +939,7 @@ describe("8. Exclusion", () => {
       expect(typeof result).toBe("boolean");
     });
 
-    it("8.7.12 6-star tight region: marks cell when remaining cells form impossible pattern", () => {
+    it("08.7.12 6-star tight region: marks cell when remaining cells form impossible pattern", () => {
       // Create a very tight region that needs 6 stars.
       // After marking neighbors of an adjacent cell, the remaining configuration
       // cannot fit 6 non-adjacent stars.
@@ -1042,21 +957,6 @@ describe("8. Exclusion", () => {
       // But if we mark 3 cells from column 2 (middle), remaining is
       // two 3x2 blocks separated by gap - can this fit 6 stars?
       // Left 3x2: max 3 stars. Right 3x2: max 3 stars. Total: 6. OK!
-      //
-      // Let's try 2x7 strip (14 cells) needing 6 stars.
-      // Max in 2x7: checking... positions (0,0), (0,2), (0,4), (0,6), (1,1), (1,3), (1,5)
-      // That's 7 stars possible. 6 should work.
-      //
-      // If we mark cells (0,3), (1,3) (middle column), remaining:
-      // Left: (0,0-2), (1,0-2) = 6 cells in 2x3. Max 3 stars.
-      // Right: (0,4-6), (1,4-6) = 6 cells in 2x3. Max 3 stars.
-      // Total: 6 stars. Still works!
-      //
-      // Need to find a configuration where marking removes a critical cell
-      // that makes 6 stars impossible.
-      //
-      // Let's try L-shape: 2x5 + additional cells = 13 cells needing 6 stars.
-      // This is getting complex. Let me use a specific pattern.
       const R = 0;
       const U = 1;
       const O = 2;
@@ -1089,16 +989,6 @@ describe("8. Exclusion", () => {
       // Row 1: can fit 3 stars (positions 1,3,5)
       // Row 2: positions 1,5,6 - (2,1), (2,5), (2,6). (2,5) and (2,6) adjacent.
       // Row 3: (3,1) alone
-      //
-      // Pattern:
-      // Row 1: (1,1)-(1,6) all unknown
-      // Row 2: (2,1), (2,5), (2,6) unknown
-      // Row 3: (3,1) unknown
-      //
-      // Stars possible: (1,1), (1,3), (1,5) + (2,1) would be adjacent to (1,1)
-      // Try: (1,2), (1,4), (1,6), (2,1) - wait, (1,2) and (2,1) are diagonal adjacent!
-      //
-      // This is getting complex. Let me simplify.
 
       const cells: CellState[][] = Array.from({ length: 8 }, () =>
         Array.from({ length: 8 }, () => "unknown" as CellState)
@@ -1110,7 +1000,7 @@ describe("8. Exclusion", () => {
       expect(typeof result).toBe("boolean");
     });
 
-    it("8.7.13 reproduces exact user puzzle: row 17 col 15 exclusion", () => {
+    it("08.7.13 reproduces exact user puzzle: row 17 col 15 exclusion", () => {
       // From user's puzzle, extracting the R/U boundary area.
       // Region R (17) cells from rows 14-22, cols 12-17
       // Region U (20) cells from rows 16-24, cols 15-21
@@ -1176,7 +1066,7 @@ describe("8. Exclusion", () => {
       expect(typeof result).toBe("boolean");
     });
 
-    it("8.7.14 documents that row/column exclusion is NOT implemented", () => {
+    it("08.7.14 documents that row/column exclusion is NOT implemented", () => {
       // Spec mentions exclusion can apply when "a region, row, or column
       // would no longer fit the specified star count"
       // Implementation only checks REGION tiling, not row/column constraints

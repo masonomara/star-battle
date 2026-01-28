@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import trivialRows from "./trivialRows";
 import { Board, CellState } from "../../helpers/types";
 
-describe("trivialRows", () => {
-  describe("True Positives - correctly marks remaining cells", () => {
-    it("marks remaining cells when row has required stars", () => {
+describe("02. trivialRows", () => {
+  describe("02.1 Marks remaining cells correctly", () => {
+    it("02.1.1 marks remaining cells when row has required stars", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -29,7 +29,7 @@ describe("trivialRows", () => {
       ]);
     });
 
-    it("marks remaining cells with 2-star requirement", () => {
+    it("02.1.2 marks remaining cells with 2-star requirement", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -57,7 +57,7 @@ describe("trivialRows", () => {
       ]);
     });
 
-    it("marks cells in multiple complete rows", () => {
+    it("02.1.3 marks cells in multiple complete rows", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -83,8 +83,8 @@ describe("trivialRows", () => {
     });
   });
 
-  describe("True Negatives - correctly returns false", () => {
-    it("returns false when no rows are complete", () => {
+  describe("02.2 No-op cases", () => {
+    it("02.2.1 returns false when no rows are complete", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -109,7 +109,7 @@ describe("trivialRows", () => {
       ]);
     });
 
-    it("returns false when row already fully marked", () => {
+    it("02.2.2 returns false when row already fully marked", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -129,7 +129,7 @@ describe("trivialRows", () => {
       expect(result).toBe(false);
     });
 
-    it("returns false when row has fewer stars than required", () => {
+    it("02.2.3 returns false when row has fewer stars than required", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -152,8 +152,8 @@ describe("trivialRows", () => {
     });
   });
 
-  describe("False Positives - should not mark incorrectly", () => {
-    it("does not mark cells in incomplete rows", () => {
+  describe("02.3 Does not mark incorrectly", () => {
+    it("02.3.1 does not mark cells in incomplete rows", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -175,7 +175,7 @@ describe("trivialRows", () => {
       expect(cells[0]).toEqual(["star", "unknown", "unknown", "unknown"]);
     });
 
-    it("does not overwrite stars", () => {
+    it("02.3.2 does not overwrite stars", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -199,8 +199,8 @@ describe("trivialRows", () => {
     });
   });
 
-  describe("False Negatives - should not miss markings", () => {
-    it("marks all rows that are complete in one pass", () => {
+  describe("02.4 Edge cases", () => {
+    it("02.4.1 marks all rows that are complete in one pass", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],

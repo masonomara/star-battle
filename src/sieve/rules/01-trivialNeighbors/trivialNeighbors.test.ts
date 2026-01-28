@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import trivialNeighbors from "./trivialNeighbors";
 import { Board, CellState } from "../../helpers/types";
 
-describe("trivialNeighbors", () => {
-  describe("True Positives - correctly marks neighbors", () => {
-    it("marks all 8 neighbors of center star", () => {
+describe("01. trivialNeighbors", () => {
+  describe("01.1 Marks neighbors correctly", () => {
+    it("01.1.1 marks all 8 neighbors of center star", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -29,7 +29,7 @@ describe("trivialNeighbors", () => {
       ]);
     });
 
-    it("marks 3 neighbors of corner star", () => {
+    it("01.1.2 marks 3 neighbors of corner star", () => {
       const board: Board = {
         grid: [
           [0, 0],
@@ -51,7 +51,7 @@ describe("trivialNeighbors", () => {
       ]);
     });
 
-    it("marks 5 neighbors of edge star", () => {
+    it("01.1.3 marks 5 neighbors of edge star", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -76,7 +76,7 @@ describe("trivialNeighbors", () => {
       ]);
     });
 
-    it("marks neighbors of multiple stars", () => {
+    it("01.1.4 marks neighbors of multiple stars", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -105,8 +105,8 @@ describe("trivialNeighbors", () => {
     });
   });
 
-  describe("True Negatives - correctly returns false", () => {
-    it("returns false when no stars exist", () => {
+  describe("01.2 No-op cases", () => {
+    it("01.2.1 returns false when no stars exist", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -131,7 +131,7 @@ describe("trivialNeighbors", () => {
       ]);
     });
 
-    it("returns false when all neighbors already marked", () => {
+    it("01.2.2 returns false when all neighbors already marked", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -151,7 +151,7 @@ describe("trivialNeighbors", () => {
       expect(result).toBe(false);
     });
 
-    it("returns false when star neighbors are all stars", () => {
+    it("01.2.3 returns false when star neighbors are all stars", () => {
       const board: Board = {
         grid: [
           [0, 0],
@@ -170,8 +170,8 @@ describe("trivialNeighbors", () => {
     });
   });
 
-  describe("False Positives - should not mark incorrectly", () => {
-    it("does not mark cells beyond neighbors", () => {
+  describe("01.3 Edge cases", () => {
+    it("01.3.1 preserves cells beyond immediate neighbors", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0, 0],
@@ -199,7 +199,7 @@ describe("trivialNeighbors", () => {
       expect(cells[4][4]).toBe("unknown");
     });
 
-    it("does not overwrite existing stars", () => {
+    it("01.3.2 preserves existing stars in neighbor positions", () => {
       const board: Board = {
         grid: [
           [0, 0, 0],
@@ -218,9 +218,5 @@ describe("trivialNeighbors", () => {
 
       expect(cells[2][2]).toBe("star");
     });
-
-
   });
-
-  
 });

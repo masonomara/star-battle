@@ -1,4 +1,4 @@
-import { Board, CellState, Coord } from "../../helpers/types";
+import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
 import undercounting from "./undercounting";
 
@@ -64,7 +64,7 @@ describe("10. Undercounting", () => {
       expect(cells[1][3]).toBe("marked");
     });
 
-    it("10.1.3 marks cells when 3 regions contained in 3 rows (2★ puzzle)", () => {
+    it("10.1.3 marks cells when 3 regions contained in 3 rows for 2-star puzzle", () => {
       // Regions 0, 1, 2 contained within rows 0-2
       // 3 rows × 2 stars = 6 stars must come from these 3 regions
       // Cells in rows 0-2 outside regions 0,1,2 should be marked
@@ -154,7 +154,7 @@ describe("10. Undercounting", () => {
       expect(cells[3][1]).toBe("marked");
     });
 
-    it("10.2.3 marks cells when 3 regions contained in 3 columns (2★ puzzle)", () => {
+    it("10.2.3 marks cells when 3 regions contained in 3 columns for 2-star puzzle", () => {
       // Mirror of 10.1.3 but for columns
       // Regions 0, 1, 2 each contained within columns 0-2
       // 3 cols × 2 stars = 6 stars must come from these 3 regions
@@ -321,7 +321,7 @@ describe("10. Undercounting", () => {
       expect(cells[0][3]).toBe("unknown");
     });
 
-    it("10.4.3 marks all eligible cells in single call (batch behavior)", () => {
+    it("10.4.3 marks all eligible cells in single call", () => {
       // Multiple cells should be marked in one call
       // Region 0 in row 0 (cols 0-1), region 2 spans rows 0-3
       const board: Board = {

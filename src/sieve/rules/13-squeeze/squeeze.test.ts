@@ -1,12 +1,12 @@
-import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
 import squeeze from "./squeeze";
+import { Board, CellState } from "../../helpers/types";
 
-describe("12. The Squeeze", () => {
-  describe("12.1 Row pair squeeze", () => {
-    it("12.1.1 places star when row pair forces single-cell tile", () => {
+describe("13. Squeeze", () => {
+  describe("13.1 Row pair squeeze", () => {
+    it("13.1.1 returns false when row pair cells can share 2x2 tiles", () => {
       // Two consecutive rows with marks creating a squeeze opportunity
-      // Row pair 0-1 in a 2★ puzzle needs 4 stars total
+      // Row pair 0-1 in a 2-star puzzle needs 4 stars total
       // Marks create isolated cells that must be stars
       //
       // Row 0: X . . X    (X = marked)
@@ -37,20 +37,20 @@ describe("12. The Squeeze", () => {
       ];
 
       // Row pair 0-1: unknowns at (0,0), (0,3), (1,0), (1,3)
-      // Need 4 stars, each pair of vertically adjacent cells forms one 2×2
+      // Need 4 stars, each pair of vertically adjacent cells forms one 2x2
       // minTiles = 2, but we need 4 stars... so no squeeze
-      // Actually: (0,0)+(1,0) can share a 2×2, (0,3)+(1,3) can share a 2×2
-      // minTiles = 2, neededStars = 4 → no match, no progress
+      // Actually: (0,0)+(1,0) can share a 2x2, (0,3)+(1,3) can share a 2x2
+      // minTiles = 2, neededStars = 4 -> no match, no progress
       const result = squeeze(board, cells);
       expect(result).toBe(false);
     });
 
-    it("12.1.2 places star with proper squeeze setup", () => {
+    it("13.1.2 places star when squeeze conditions match", () => {
       // Setup where squeeze actually works:
-      // 4 isolated cells in row pair, each needs its own 2×2
+      // 4 isolated cells in row pair, each needs its own 2x2
       // Row 0: . X . X . X .
       // Row 1: X . X . X . X
-      // This creates 4 cells that can't share 2×2s
+      // This creates 4 cells that can't share 2x2s
       const board: Board = {
         grid: [
           [0, 0, 0, 0, 0, 0, 0],
@@ -76,8 +76,7 @@ describe("12. The Squeeze", () => {
       ];
 
       // Row pair 0-1 unknowns: (0,0), (0,3), (0,6), (1,2), (1,5)
-      // That's 5 cells, need 4 stars (2★ × 2 rows)
-      // Let me recalculate...
+      // That's 5 cells, need 4 stars (2-star x 2 rows)
       const result = squeeze(board, cells);
 
       // Check if any stars were placed
@@ -93,7 +92,7 @@ describe("12. The Squeeze", () => {
       }
     });
 
-    it("12.1.3 marks cells outside pair covered by all tilings", () => {
+    it("13.1.3 marks cells outside pair when covered by all tilings", () => {
       // Row pair 0-1 with cells that force tiles to overhang into row 2
       // The overhang cells should be marked
       const board: Board = {
@@ -127,8 +126,8 @@ describe("12. The Squeeze", () => {
     });
   });
 
-  describe("12.2 Column pair squeeze", () => {
-    it("12.2.1 places star when column pair forces single-cell tile", () => {
+  describe("13.2 Column pair squeeze", () => {
+    it("13.2.1 handles column pair squeeze setup", () => {
       // Similar to row test but for columns
       const board: Board = {
         grid: [
@@ -149,7 +148,7 @@ describe("12. The Squeeze", () => {
       ];
 
       // Col pair 0-1 unknowns: (0,0), (3,0)
-      // Need 4 stars (2★ × 2 cols), only 2 unknowns → won't match
+      // Need 4 stars (2-star x 2 cols), only 2 unknowns -> won't match
       const result = squeeze(board, cells);
 
       // This specific setup may not trigger squeeze
@@ -158,8 +157,8 @@ describe("12. The Squeeze", () => {
     });
   });
 
-  describe("12.3 No progress cases", () => {
-    it("12.3.1 returns false when minTiles !== neededStars", () => {
+  describe("13.3 No-op cases", () => {
+    it("13.3.1 returns false when minTiles does not equal neededStars", () => {
       // Setup where tiles don't match star count
       const board: Board = {
         grid: [
@@ -180,13 +179,13 @@ describe("12. The Squeeze", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      // With 8 unknowns in a 2x4 block, minTiles = 2 (two 2×2s cover it)
-      // Need 4 stars, so minTiles(2) !== needed(4) → no progress
+      // With 8 unknowns in a 2x4 block, minTiles = 2 (two 2x2s cover it)
+      // Need 4 stars, so minTiles(2) !== needed(4) -> no progress
       const result = squeeze(board, cells);
       expect(result).toBe(false);
     });
 
-    it("12.3.2 returns false when pair already has enough stars", () => {
+    it("13.3.2 returns false when pair already has enough stars", () => {
       // Use a valid 1-star puzzle to test that squeeze returns false
       // when a row pair already has its required stars
       const board: Board = {
@@ -212,7 +211,7 @@ describe("12. The Squeeze", () => {
       expect(result).toBe(false);
     });
 
-    it("12.3.3 returns false when no unknown cells in pair", () => {
+    it("13.3.3 returns false when no unknown cells exist in pair", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -236,9 +235,9 @@ describe("12. The Squeeze", () => {
     });
   });
 
-  describe("12.4 Edge cases", () => {
-    it("12.4.1 handles 1★ puzzle", () => {
-      // 1★ means each row pair needs 2 stars
+  describe("13.4 Edge cases", () => {
+    it("13.4.1 handles 1-star puzzle", () => {
+      // 1-star means each row pair needs 2 stars
       const board: Board = {
         grid: [
           [0, 0, 1, 1],
@@ -261,8 +260,8 @@ describe("12. The Squeeze", () => {
       expect(typeof result).toBe("boolean");
     });
 
-    it("12.4.2 handles 3★ puzzle", () => {
-      // 3★ means each row pair needs 6 stars
+    it("13.4.2 handles 3-star puzzle", () => {
+      // 3-star means each row pair needs 6 stars
       const board: Board = {
         grid: [
           [0, 0, 0, 1, 1, 1],
@@ -283,7 +282,7 @@ describe("12. The Squeeze", () => {
       expect(typeof result).toBe("boolean");
     });
 
-    it("12.4.3 handles minimum grid size (2×2)", () => {
+    it("13.4.3 handles minimum grid size (2x2)", () => {
       const board: Board = {
         grid: [
           [0, 1],
@@ -297,14 +296,14 @@ describe("12. The Squeeze", () => {
         ["unknown", "unknown"],
       ];
 
-      // 2×2 grid: row pair 0-1 is the whole grid
+      // 2x2 grid: row pair 0-1 is the whole grid
       // 4 cells, need 2 stars, minTiles = 1
-      // No match → no progress
+      // No match -> no progress
       const result = squeeze(board, cells);
       expect(typeof result).toBe("boolean");
     });
 
-    it("12.4.4 handles last row pair", () => {
+    it("13.4.4 handles last row pair", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -328,7 +327,7 @@ describe("12. The Squeeze", () => {
       expect(typeof result).toBe("boolean");
     });
 
-    it("12.4.5 handles last column pair", () => {
+    it("13.4.5 handles last column pair", () => {
       const board: Board = {
         grid: [
           [0, 0, 1, 1],
@@ -352,10 +351,10 @@ describe("12. The Squeeze", () => {
     });
   });
 
-  describe("12.5 Spec examples", () => {
-    it("12.5.1 squeeze identifies star-containing-2×2s (spec squeeze_1 concept)", () => {
-      // From spec: "squeeze four 2×2s across the middle pair of columns"
-      // When minTiles matches needed stars, each 2×2 contains exactly one star
+  describe("13.5 Spec examples", () => {
+    it("13.5.1 identifies star-containing 2x2s per spec squeeze_1 concept", () => {
+      // From spec: "squeeze four 2x2s across the middle pair of columns"
+      // When minTiles matches needed stars, each 2x2 contains exactly one star
       // This test verifies the core mechanism
       const board: Board = {
         grid: [
