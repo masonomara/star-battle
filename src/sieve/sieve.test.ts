@@ -181,14 +181,6 @@ describe("sieve", () => {
       expect(p.difficulty).toBe(expected);
     });
 
-    it.skip("caps difficulty at 10", () => {
-      // Generate multiple puzzles and verify none exceed 10
-      const puzzles = sieve({ size: 8, stars: 1, count: 10, maxAttempts: 500 });
-      for (const p of puzzles) {
-        expect(p.difficulty).toBeLessThanOrEqual(10);
-      }
-    });
-
     it("has minimum difficulty of 2 for level 1 puzzles", () => {
       // Level 1 with 0 cycles = 1 * 2 + 0 = 2
       const puzzles = sieve({ size: 6, stars: 1, count: 5, maxAttempts: 200 });
