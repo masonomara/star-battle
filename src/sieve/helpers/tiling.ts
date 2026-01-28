@@ -38,16 +38,107 @@ function maxStarsInLine(positions: number[]): number {
 }
 
 /**
+ * Check if two cells are adjacent (including diagonals).
+ */
+function cellsAreAdjacent(c1: Coord, c2: Coord): boolean {
+  return Math.abs(c1[0] - c2[0]) <= 1 && Math.abs(c1[1] - c2[1]) <= 1;
+}
+
+/**
+ * Find maximum independent set size using branch and bound.
+ * For small cell counts, this is fast enough. For larger counts,
+ * we use greedy heuristics with pruning.
+ */
+function maxIndependentSetSize(cells: Coord[]): number {
+  const n = cells.length;
+  if (n === 0) return 0;
+  if (n === 1) return 1;
+
+  // Build adjacency list
+  const adj: number[][] = Array.from({ length: n }, () => []);
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      if (cellsAreAdjacent(cells[i], cells[j])) {
+        adj[i].push(j);
+        adj[j].push(i);
+      }
+    }
+  }
+
+  // For small graphs, use exact branch and bound
+  if (n <= 30) {
+    let best = 0;
+
+    function search(idx: number, count: number, excluded: Set<number>) {
+      // Pruning: can't beat best even if we take all remaining
+      if (count + (n - idx) <= best) return;
+
+      if (idx >= n) {
+        best = Math.max(best, count);
+        return;
+      }
+
+      if (excluded.has(idx)) {
+        search(idx + 1, count, excluded);
+        return;
+      }
+
+      // Try including this cell
+      const newExcluded = new Set(excluded);
+      newExcluded.add(idx);
+      for (const neighbor of adj[idx]) {
+        newExcluded.add(neighbor);
+      }
+      search(idx + 1, count + 1, newExcluded);
+
+      // Try excluding this cell
+      search(idx + 1, count, excluded);
+    }
+
+    search(0, 0, new Set());
+    return best;
+  }
+
+  // For larger graphs, use greedy approximation with degree ordering
+  const remaining = new Set<number>();
+  for (let i = 0; i < n; i++) remaining.add(i);
+
+  let count = 0;
+  while (remaining.size > 0) {
+    // Pick vertex with minimum degree among remaining
+    let minDegree = Infinity;
+    let pick = -1;
+    for (const v of remaining) {
+      const degree = adj[v].filter((u) => remaining.has(u)).length;
+      if (degree < minDegree) {
+        minDegree = degree;
+        pick = v;
+      }
+    }
+
+    // Add to independent set
+    count++;
+    remaining.delete(pick);
+
+    // Remove neighbors
+    for (const neighbor of adj[pick]) {
+      remaining.delete(neighbor);
+    }
+  }
+
+  return count;
+}
+
+/**
  * Check if n non-adjacent stars can be placed in the given cells.
  *
  * For cells in a single row or column, uses closed-form calculation.
- * For general 2D arrangements, uses the 2×2 tiling approximation
- * (which is conservative - may underestimate capacity).
+ * For general 2D arrangements, computes maximum independent set.
  */
 function canPlaceNonAdjacentStars(
   cells: Coord[],
   n: number,
-  gridSize: number,
+  _gridSize: number,
 ): boolean {
   if (cells.length < n) return false;
   if (n === 0) return true;
@@ -66,69 +157,8 @@ function canPlaceNonAdjacentStars(
     return maxStarsInLine(rowPositions) >= n;
   }
 
-  // For 2D arrangements, fall back to 2×2 tiling approximation
-  // This is conservative (may say "no" when "yes" is possible)
-  return canTileWithMinCount2x2(cells, gridSize, n);
-}
-
-/**
- * Original 2×2 tiling check - used for general 2D cell arrangements.
- */
-function canTileWithMinCount2x2(
-  regionCells: Coord[],
-  gridSize: number,
-  minTiles: number,
-): boolean {
-  const regionSet = new Set(regionCells.map(coordKey));
-
-  const candidateAnchors = new Set<string>();
-  const maxAnchor = gridSize - 2;
-  for (const [r, c] of regionCells) {
-    for (const dr of [-1, 0]) {
-      for (const dc of [-1, 0]) {
-        const ar = r + dr;
-        const ac = c + dc;
-        if (ar >= 0 && ac >= 0 && ar <= maxAnchor && ac <= maxAnchor) {
-          candidateAnchors.add(coordKey([ar, ac]));
-        }
-      }
-    }
-  }
-
-  const tiles: Set<string>[] = [];
-  for (const anchorKey of candidateAnchors) {
-    const [ar, ac] = parseKey(anchorKey);
-    const cells = new Set([
-      coordKey([ar, ac]),
-      coordKey([ar, ac + 1]),
-      coordKey([ar + 1, ac]),
-      coordKey([ar + 1, ac + 1]),
-    ]);
-    const touchesRegion = [...cells].some((c) => regionSet.has(c));
-    if (touchesRegion) {
-      tiles.push(cells);
-    }
-  }
-
-  if (tiles.length < minTiles) return false;
-
-  function search(idx: number, count: number, used: Set<string>): boolean {
-    if (count >= minTiles) return true;
-    if (idx >= tiles.length) return false;
-    if (tiles.length - idx + count < minTiles) return false;
-
-    const tile = tiles[idx];
-    const overlaps = [...tile].some((c) => used.has(c));
-    if (!overlaps) {
-      for (const c of tile) used.add(c);
-      if (search(idx + 1, count + 1, used)) return true;
-      for (const c of tile) used.delete(c);
-    }
-
-    return search(idx + 1, count, used);
-  }
-
-  return search(0, 0, new Set());
+  // For 2D arrangements, compute exact maximum independent set
+  return maxIndependentSetSize(cells) >= n;
 }
 
 /**

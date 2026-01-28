@@ -76,6 +76,7 @@ async function main() {
     console.log("Region grid:");
     printBoard(board.grid);
     let prevCells: CellState[][] | null = null;
+    const traceStart = Date.now();
     const result = solve(board, {
       onStep: (step: StepInfo) => {
         console.log(
@@ -85,7 +86,8 @@ async function main() {
         prevCells = step.cells.map((row) => [...row]);
       },
     });
-    console.log(result ? `\n=== SOLVED ===` : `\n=== STUCK ===`);
+    const traceTime = ((Date.now() - traceStart) / 1000).toFixed(2);
+    console.log(result ? `\n=== SOLVED === ${traceTime}s` : `\n=== STUCK === ${traceTime}s`);
     return;
   }
 
@@ -146,6 +148,7 @@ function solveFromInput(input: string, stars: number) {
   printBoard(board.grid);
 
   let prevCells: CellState[][] | null = null;
+  const solveStart = Date.now();
 
   const result = solve(board, {
     onStep: (step: StepInfo) => {
@@ -157,7 +160,8 @@ function solveFromInput(input: string, stars: number) {
     },
   });
 
-  console.log(result ? `\n=== SOLVED ===` : `\n=== STUCK ===`);
+  const solveTime = ((Date.now() - solveStart) / 1000).toFixed(2);
+  console.log(result ? `\n=== SOLVED === ${solveTime}s` : `\n=== STUCK === ${solveTime}s`);
 }
 
 main();

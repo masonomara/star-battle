@@ -46,20 +46,20 @@ export function isValidLayout(board: Board): boolean {
 type Rule = (board: Board, cells: CellState[][]) => boolean;
 
 const allRules: { rule: Rule; level: number; name: string }[] = [
-  { rule: forcedPlacement, level: 1, name: "forcedPlacement" },
-  { rule: trivialNeighbors, level: 1, name: "starNeighbors" },
-  { rule: trivialRows, level: 1, name: "rowComplete" },
-  { rule: trivialColumns, level: 1, name: "colComplete" },
-  { rule: trivialRegions, level: 1, name: "regionComplete" },
-  { rule: overcounting, level: 2, name: "overcounting" },
-  { rule: undercounting, level: 2, name: "undercounting" },
-  { rule: twoByTwoTiling, level: 3, name: "twoByTwoTiling" },
-  { rule: oneByNConfinement, level: 4, name: "oneByNConfinement" },
-  { rule: exclusion, level: 4, name: "exclusion" },
-  { rule: squeeze, level: 5, name: "squeeze" },
-  { rule: pressuredExclusion, level: 5, name: "pressuredExclusion" },
-  { rule: finnedCounts, level: 6, name: "finnedCounts" },
-  { rule: compositeRegions, level: 7, name: "compositeRegions" },
+  { rule: forcedPlacement, level: 1, name: "Forced Placement" },
+  { rule: trivialNeighbors, level: 1, name: "Star Neighbors" },
+  { rule: trivialRows, level: 1, name: "Row Complete" },
+  { rule: trivialColumns, level: 1, name: "Column Complete" },
+  { rule: trivialRegions, level: 1, name: "Region Complete" },
+  { rule: overcounting, level: 2, name: "Overcounting" },
+  { rule: undercounting, level: 2, name: "Undercounting" },
+  { rule: twoByTwoTiling, level: 3, name: "2x2 Tiling" },
+  { rule: oneByNConfinement, level: 4, name: "1xn Confinement" },
+  { rule: exclusion, level: 4, name: "Exclusion" },
+  { rule: squeeze, level: 5, name: "Squeeze" },
+  { rule: pressuredExclusion, level: 5, name: "Pressured Exclusion" },
+  { rule: finnedCounts, level: 6, name: "Finned Counts" },
+  { rule: compositeRegions, level: 7, name: "Composite Regions" },
 ];
 
 const MAX_CYCLES = 1000;

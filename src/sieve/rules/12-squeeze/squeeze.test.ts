@@ -187,6 +187,8 @@ describe("12. The Squeeze", () => {
     });
 
     it("12.3.2 returns false when pair already has enough stars", () => {
+      // Use a valid 1-star puzzle to test that squeeze returns false
+      // when a row pair already has its required stars
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
@@ -194,13 +196,14 @@ describe("12. The Squeeze", () => {
           [1, 1, 1, 1],
           [1, 1, 1, 1],
         ],
-        stars: 2,
+        stars: 1,
       };
 
-      // Row pair 0-1 already has 4 stars
+      // Row pair 0-1 already has 2 stars (1 per row, satisfies region 0)
+      // Row pair 2-3 has unknown cells but plenty of space
       const cells: CellState[][] = [
-        ["star", "marked", "marked", "star"],
-        ["marked", "star", "star", "marked"],
+        ["star", "marked", "marked", "marked"],
+        ["marked", "marked", "star", "marked"],
         ["unknown", "unknown", "unknown", "unknown"],
         ["unknown", "unknown", "unknown", "unknown"],
       ];

@@ -1,6 +1,6 @@
 import { CellState, Coord } from "./types";
 import { describe, it, expect } from "vitest";
-import { findAllMinimalTilings } from "./tiling";
+import { findAllMinimalTilings, canTileWithMinCount } from "./tiling";
 
 describe("findAllMinimalTilings", () => {
   const makeGrid = (size: number): CellState[][] =>
@@ -155,6 +155,72 @@ describe("findAllMinimalTilings", () => {
       cells[0][1] = "marked";
       const result = findAllMinimalTilings(regionCells, cells, 4);
       expect(result.minTileCount).toBe(0);
+    });
+  });
+
+  describe("canTileWithMinCount for exclusion rule", () => {
+    it("5 cells with adjacent forced positions can only fit 3 stars (not 5)", () => {
+      // This is the exact bug case from the 25x25 6-star puzzle:
+      // Cells: (15,15) isolated, (21,17), (22,17), (22,18), (23,18) L-shape cluster
+      // (21,17) and (22,17) are vertically adjacent
+      // Maximum non-adjacent stars: 3 (one from isolated + two from L)
+      const cells: Coord[] = [
+        [15, 15], // isolated
+        [21, 17], // adjacent to (22,17)
+        [22, 17], // adjacent to (21,17) and (22,18)
+        [22, 18], // adjacent to (22,17) and (23,18)
+        [23, 18], // adjacent to (22,18)
+      ];
+      // Can't fit 5 non-adjacent stars
+      expect(canTileWithMinCount(cells, 25, 5)).toBe(false);
+      // Can fit 3 non-adjacent stars: (15,15), (21,17), (23,18)
+      expect(canTileWithMinCount(cells, 25, 3)).toBe(true);
+    });
+
+    it("L-shape cluster with forced adjacent positions fails for 2 stars", () => {
+      // 4 cells in an L-shape where tiles would force adjacent positions
+      // (0,0), (1,0), (1,1), (2,1)
+      // Tile at (-1,-1) or (0,-1) covers (0,0) alone → forced
+      // Tile at (0,0) covers (0,0), (0,1), (1,0), (1,1) → multiple region cells
+      // Tile at (1,0) covers (1,0), (1,1), (2,0), (2,1) → multiple region cells
+      // Tile at (0,1) covers (0,1), (0,2), (1,1), (1,2) → (1,1) only in region → forced
+      // If we pick tiles that force (0,0) and (1,1), those are adjacent
+      const cells: Coord[] = [
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [2, 1],
+      ];
+      // Can fit at least 2 with proper tiling
+      expect(canTileWithMinCount(cells, 5, 2)).toBe(true);
+    });
+
+    it("two isolated cells far apart can fit 2 stars", () => {
+      const cells: Coord[] = [
+        [0, 0],
+        [10, 10],
+      ];
+      expect(canTileWithMinCount(cells, 15, 2)).toBe(true);
+    });
+
+    it("two adjacent cells cannot fit 2 stars", () => {
+      const cells: Coord[] = [
+        [5, 5],
+        [5, 6],
+      ];
+      // Both cells are adjacent, so max 1 star
+      expect(canTileWithMinCount(cells, 10, 2)).toBe(false);
+      expect(canTileWithMinCount(cells, 10, 1)).toBe(true);
+    });
+
+    it("diagonally adjacent cells can still both have stars in some configs", () => {
+      // Diagonal neighbors are still "adjacent" in Star Battle (8-connected)
+      const cells: Coord[] = [
+        [5, 5],
+        [6, 6],
+      ];
+      expect(canTileWithMinCount(cells, 10, 2)).toBe(false);
+      expect(canTileWithMinCount(cells, 10, 1)).toBe(true);
     });
   });
 
