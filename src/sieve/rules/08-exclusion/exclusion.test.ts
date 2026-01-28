@@ -1184,7 +1184,6 @@ describe("8. Exclusion", () => {
             }
           }
         }
-        console.log(`Marked ${markedCells.length} cells after exclusion`);
       }
       expect(typeof result).toBe("boolean");
     });

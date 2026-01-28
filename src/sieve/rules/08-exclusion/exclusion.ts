@@ -179,12 +179,10 @@ function wouldBreakRegion(
   regionInfos: RegionInfo[],
   markedCells: Set<string>,
   size: number,
-  debug = false,
 ): boolean {
   for (const info of regionInfos) {
     // Count remaining unknown cells after hypothetical marks
     const remainingUnknown: Coord[] = [];
-    const markedFromRegion: Coord[] = [];
     let starInRegion = false;
 
     for (const [r, c] of info.unknownCoords) {
@@ -193,41 +191,22 @@ function wouldBreakRegion(
         starInRegion = true;
       } else if (!markedCells.has(key)) {
         remainingUnknown.push([r, c]);
-      } else {
-        markedFromRegion.push([r, c]);
       }
     }
 
     const adjustedNeed = starInRegion ? info.needed - 1 : info.needed;
 
-    if (debug) {
-      console.log(`\n[DEBUG] Region ${info.id} analysis for star at (${row + 1}, ${col + 1}):`);
-      console.log(`  Star in region: ${starInRegion}`);
-      console.log(`  Region needs: ${info.needed} stars, adjusted: ${adjustedNeed}`);
-      console.log(`  Region unknown cells: ${info.unknownCoords.length}`);
-      console.log(`  Cells that would be marked: ${markedFromRegion.map(([r, c]) => `(${r + 1},${c + 1})`).join(", ") || "none"}`);
-      console.log(`  Remaining unknown cells: ${remainingUnknown.length}`);
-      console.log(`  Remaining coords: ${remainingUnknown.map(([r, c]) => `(${r + 1},${c + 1})`).join(", ")}`);
-    }
-
     if (adjustedNeed <= 0) continue;
 
     // Quick check: not enough cells remain
     if (remainingUnknown.length < adjustedNeed) {
-      if (debug) console.log(`  -> WOULD BREAK: not enough cells (${remainingUnknown.length} < ${adjustedNeed})`);
       return true;
     }
 
     // Tiling check: can remaining cells fit required stars?
-    const canTile = canTileWithMinCount(remainingUnknown, size, adjustedNeed);
-    if (debug) {
-      console.log(`  Tiling check: canTileWithMinCount(${remainingUnknown.length} cells, need ${adjustedNeed}) = ${canTile}`);
-    }
-    if (!canTile) {
-      if (debug) console.log(`  -> WOULD BREAK: tiling check failed`);
+    if (!canTileWithMinCount(remainingUnknown, size, adjustedNeed)) {
       return true;
     }
-    if (debug) console.log(`  -> OK: region can still fit stars`);
   }
 
   return false;
@@ -303,12 +282,6 @@ function wouldBreakLine(
   return false;
 }
 
-// Debug target: set to true and specify cell to debug (1-indexed)
-const DEBUG_ENABLED = false;
-const DEBUG_ROW = 4; // 1-indexed (row 3 0-indexed) - cell in region C
-const DEBUG_COL = 24; // 1-indexed (col 23 0-indexed) - C cell bordering D
-const DEBUG_REGION_ID = 3; // D = 3 (region affected by the cell)
-
 export default function exclusion(board: Board, cells: CellState[][]): boolean {
   const size = board.grid.length;
   const regions = buildRegions(board.grid);
@@ -324,19 +297,6 @@ export default function exclusion(board: Board, cells: CellState[][]): boolean {
     return false;
   }
 
-  // Debug: show target region's current state
-  if (DEBUG_ENABLED) {
-    const targetRegion = regionInfos.find((r) => r.id === DEBUG_REGION_ID);
-    if (targetRegion) {
-      console.log(`\n[DEBUG] Region ${DEBUG_REGION_ID} state before exclusion check:`);
-      console.log(`  Unknown cells: ${targetRegion.unknownCoords.length}`);
-      console.log(`  Needs: ${targetRegion.needed} stars`);
-      console.log(`  Coords: ${targetRegion.unknownCoords.map(([r, c]) => `(${r},${c})`).join(", ")}`);
-    } else {
-      console.log(`\n[DEBUG] Region ${DEBUG_REGION_ID} not found in regionInfos (may already have all stars)`);
-    }
-  }
-
   let changed = false;
 
   for (let row = 0; row < size; row++) {
@@ -345,29 +305,9 @@ export default function exclusion(board: Board, cells: CellState[][]): boolean {
 
       const markedCells = buildMarkedCells(row, col, size);
 
-      // Debug for specific cell (convert 1-indexed to 0-indexed)
-      const isDebugCell =
-        DEBUG_ENABLED && row === DEBUG_ROW - 1 && col === DEBUG_COL - 1;
-
-      if (isDebugCell) {
-        console.log(`\n[DEBUG] ========== Checking cell (${row + 1}, ${col + 1}) ==========`);
-        console.log(`  Marked cells from star: ${[...markedCells].join(", ")}`);
-      }
-
       // Check regions
       if (regionInfos.length > 0) {
         const affected = getAffectedRegions(row, col, regionInfos, size);
-
-        if (isDebugCell) {
-          console.log(`  Affected regions: ${affected.map((r) => r.id).join(", ")}`);
-          // Filter to just target region for detailed debug
-          const targetRegion = affected.filter((r) => r.id === DEBUG_REGION_ID);
-          if (targetRegion.length > 0) {
-            wouldBreakRegion(row, col, targetRegion, markedCells, size, true);
-          } else {
-            console.log(`  Region ${DEBUG_REGION_ID} is NOT in affected regions!`);
-          }
-        }
 
         if (
           affected.length > 0 &&
@@ -375,9 +315,6 @@ export default function exclusion(board: Board, cells: CellState[][]): boolean {
         ) {
           cells[row][col] = "marked";
           changed = true;
-          if (isDebugCell) {
-            console.log(`  -> CELL MARKED by exclusion`);
-          }
           continue;
         }
       }

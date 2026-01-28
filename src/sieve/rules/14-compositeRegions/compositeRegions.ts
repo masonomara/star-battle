@@ -612,24 +612,16 @@ function findExternalForcedCells(
  * Used when 2×2 tiling has slack but ratio is tight.
  */
 function analyzeViaDirectEnumeration(
-  composite: Composite,
   currentUnknowns: Coord[],
   currentStarsNeeded: number,
   board: Board,
   cells: CellState[][],
   size: number,
-  debug: boolean = false,
 ): boolean {
   const validPlacements = enumerateValidPlacements(
     currentUnknowns,
     currentStarsNeeded,
   );
-
-  if (debug) {
-    console.log(
-      `    Direct enumeration found ${validPlacements.length} valid placements`,
-    );
-  }
 
   // No valid placements or too many to analyze
   if (validPlacements.length === 0 || validPlacements.length >= 1000) {
@@ -670,12 +662,6 @@ function analyzeViaDirectEnumeration(
     if (!inAnyPlacement.has(key)) {
       inNoPlacements.add(key);
     }
-  }
-
-  if (debug) {
-    console.log(
-      `    Forced stars: ${inAllPlacements.size}, Forced marks: ${inNoPlacements.size}`,
-    );
   }
 
   let changed = false;
@@ -721,9 +707,6 @@ function analyzeViaDirectEnumeration(
     }
     if (regionStars >= board.stars) continue;
 
-    if (debug) {
-      console.log(`    PLACE STAR at (${r},${c}) [direct enum]`);
-    }
     cells[r][c] = "star";
     changed = true;
   }
@@ -732,9 +715,6 @@ function analyzeViaDirectEnumeration(
   for (const key of inNoPlacements) {
     const [r, c] = key.split(",").map(Number);
     if (cells[r][c] === "unknown") {
-      if (debug) {
-        console.log(`    MARK (${r},${c}) as excluded [direct enum]`);
-      }
       cells[r][c] = "marked";
       changed = true;
     }
@@ -751,7 +731,6 @@ function analyzeComposite(
   board: Board,
   cells: CellState[][],
   size: number,
-  debug: boolean = false,
 ): boolean {
   // Refresh unknownCells to current state (in case of stale composite)
   const currentUnknowns = composite.unknownCells.filter(
@@ -770,11 +749,6 @@ function analyzeComposite(
 
   // Quick feasibility check
   if (!canTileWithMinCount(currentUnknowns, size, currentStarsNeeded)) {
-    if (debug) {
-      console.log(
-        `  [${composite.id}] SKIP: can't fit ${currentStarsNeeded} tiles in ${currentUnknowns.length} cells`,
-      );
-    }
     return false;
   }
 
@@ -782,50 +756,21 @@ function analyzeComposite(
   if (canTileWithMinCount(currentUnknowns, size, currentStarsNeeded + 1)) {
     // Has slack via 2×2 tiling, but try direct enumeration for tight ratios
     if (currentUnknowns.length < currentStarsNeeded * 8) {
-      if (debug) {
-        console.log(
-          `  [${composite.id}] SLACK via tiling, trying direct enumeration (${currentUnknowns.length} cells, need ${currentStarsNeeded})`,
-        );
-      }
       const result = analyzeViaDirectEnumeration(
-        composite,
         currentUnknowns,
         currentStarsNeeded,
         board,
         cells,
         size,
-        debug,
       );
       if (result) return true;
-    }
-    if (debug) {
-      console.log(
-        `  [${composite.id}] SKIP: has slack (can fit ${currentStarsNeeded + 1})`,
-      );
     }
     return false; // Has slack, not tight
   }
 
-  if (debug) {
-    console.log(
-      `  [${composite.id}] TIGHT: ${currentUnknowns.length} cells, need ${currentStarsNeeded} stars`,
-    );
-  }
-
   const tiling = findAllMinimalTilings(currentUnknowns, cells, size);
 
-  if (debug) {
-    console.log(
-      `    minTileCount=${tiling.minTileCount}, tilings=${tiling.allMinimalTilings.length}, forced=${tiling.forcedCells.length}`,
-    );
-  }
-
   if (tiling.minTileCount !== currentStarsNeeded) {
-    if (debug) {
-      console.log(
-        `    SKIP: minTileCount ${tiling.minTileCount} !== needed ${currentStarsNeeded}`,
-      );
-    }
     return false;
   }
 
@@ -886,9 +831,6 @@ function analyzeComposite(
 
     if (regionStars >= board.stars) continue;
 
-    if (debug) {
-      console.log(`    PLACE STAR at (${r},${c})`);
-    }
     cells[r][c] = "star";
     changed = true;
   }
@@ -902,9 +844,6 @@ function analyzeComposite(
 
   for (const [r, c] of externalForced) {
     if (cells[r][c] === "unknown") {
-      if (debug) {
-        console.log(`    MARK (${r},${c}) as excluded`);
-      }
       cells[r][c] = "marked";
       changed = true;
     }
@@ -916,7 +855,6 @@ function analyzeComposite(
 export default function compositeRegions(
   board: Board,
   cells: CellState[][],
-  debug: boolean = false,
 ): boolean {
   const size = board.grid.length;
   if (size === 0) return false;
@@ -934,42 +872,6 @@ export default function compositeRegions(
     ...findCombinationComposites(board, cells, regionMetas, adjacency),
   ];
 
-  if (debug) {
-    const underRow = findUndercountingComposites(
-      board,
-      cells,
-      regionMetas,
-      "row",
-    ).length;
-    const underCol = findUndercountingComposites(
-      board,
-      cells,
-      regionMetas,
-      "col",
-    ).length;
-    const overRow = findOvercountingComposites(
-      board,
-      cells,
-      regionMetas,
-      "row",
-    ).length;
-    const overCol = findOvercountingComposites(
-      board,
-      cells,
-      regionMetas,
-      "col",
-    ).length;
-    const combos = findCombinationComposites(
-      board,
-      cells,
-      regionMetas,
-      adjacency,
-    ).length;
-    console.log(
-      `[compositeRegions] Found ${composites.length} composites: underRow=${underRow}, underCol=${underCol}, overRow=${overRow}, overCol=${overCol}, combos=${combos}`,
-    );
-  }
-
   if (composites.length === 0) return false;
 
   // Deduplicate by unknown cell signature
@@ -985,13 +887,9 @@ export default function compositeRegions(
     if (sig === "" || seen.has(sig)) continue;
     seen.add(sig);
 
-    if (analyzeComposite(composite, board, cells, size, debug)) {
+    if (analyzeComposite(composite, board, cells, size)) {
       return true;
     }
-  }
-
-  if (debug) {
-    console.log(`[compositeRegions] No composites triggered`);
   }
 
   return false;
