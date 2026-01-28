@@ -5,9 +5,9 @@ import { Board, CellState, Coord } from "../../helpers/types";
  * Check if two cells are adjacent (share edge or corner).
  */
 function areAdjacent(a: Coord, b: Coord): boolean {
-  const dr = Math.abs(a[0] - b[0]);
-  const dc = Math.abs(a[1] - b[1]);
-  return dr <= 1 && dc <= 1 && !(dr === 0 && dc === 0);
+  const drow = Math.abs(a[0] - b[0]);
+  const dcol = Math.abs(a[1] - b[1]);
+  return drow <= 1 && dcol <= 1 && !(drow === 0 && dcol === 0);
 }
 
 /**
@@ -36,9 +36,9 @@ function placeAllForced(
 ): boolean {
   let stars = 0;
   const unknowns: Coord[] = [];
-  for (const [r, c] of coords) {
-    if (cells[r][c] === "star") stars++;
-    else if (cells[r][c] === "unknown") unknowns.push([r, c]);
+  for (const [row, col] of coords) {
+    if (cells[row][col] === "star") stars++;
+    else if (cells[row][col] === "unknown") unknowns.push([row, col]);
   }
   const needed = board.stars - stars;
   if (needed > 0 && unknowns.length === needed) {
@@ -46,8 +46,8 @@ function placeAllForced(
     if (hasAdjacentPair(unknowns)) {
       return false; // Unsolvable - let solver fail
     }
-    for (const [r, c] of unknowns) {
-      cells[r][c] = "star";
+    for (const [row, col] of unknowns) {
+      cells[row][col] = "star";
     }
     return true;
   }
@@ -63,13 +63,13 @@ export default function forcedPlacement(
 
   for (let row = 0; row < size; row++) {
     const coords: Coord[] = [];
-    for (let c = 0; c < size; c++) coords.push([row, c]);
+    for (let col = 0; col < size; col++) coords.push([row, col]);
     if (placeAllForced(board, cells, coords)) changed = true;
   }
 
   for (let col = 0; col < size; col++) {
     const coords: Coord[] = [];
-    for (let r = 0; r < size; r++) coords.push([r, col]);
+    for (let row = 0; row < size; row++) coords.push([row, col]);
     if (placeAllForced(board, cells, coords)) changed = true;
   }
 

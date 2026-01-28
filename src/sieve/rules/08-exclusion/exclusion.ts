@@ -47,10 +47,10 @@ function buildRegionInfo(
     const unknownCoords: Coord[] = [];
     const cellSet = new Set<string>();
 
-    for (const [r, c] of coords) {
-      cellSet.add(cellKey(r, c));
-      if (cells[r][c] === "star") stars++;
-      else if (cells[r][c] === "unknown") unknownCoords.push([r, c]);
+    for (const [row, col] of coords) {
+      cellSet.add(cellKey(row, col));
+      if (cells[row][col] === "star") stars++;
+      else if (cells[row][col] === "unknown") unknownCoords.push([row, col]);
     }
 
     const needed = board.stars - stars;
@@ -76,13 +76,13 @@ function buildLineInfo(
   const cols: LineInfo[] = [];
 
   // Build row info
-  for (let r = 0; r < size; r++) {
+  for (let row = 0; row < size; row++) {
     let stars = 0;
     const unknownCoords: Coord[] = [];
 
-    for (let c = 0; c < size; c++) {
-      if (cells[r][c] === "star") stars++;
-      else if (cells[r][c] === "unknown") unknownCoords.push([r, c]);
+    for (let col = 0; col < size; col++) {
+      if (cells[row][col] === "star") stars++;
+      else if (cells[row][col] === "unknown") unknownCoords.push([row, col]);
     }
 
     const needed = board.stars - stars;
@@ -90,17 +90,17 @@ function buildLineInfo(
 
     // No pre-filter - check all rows
 
-    rows.push({ index: r, unknownCoords, needed });
+    rows.push({ index: row, unknownCoords, needed });
   }
 
   // Build column info
-  for (let c = 0; c < size; c++) {
+  for (let col = 0; col < size; col++) {
     let stars = 0;
     const unknownCoords: Coord[] = [];
 
-    for (let r = 0; r < size; r++) {
-      if (cells[r][c] === "star") stars++;
-      else if (cells[r][c] === "unknown") unknownCoords.push([r, c]);
+    for (let row = 0; row < size; row++) {
+      if (cells[row][col] === "star") stars++;
+      else if (cells[row][col] === "unknown") unknownCoords.push([row, col]);
     }
 
     const needed = board.stars - stars;
@@ -108,7 +108,7 @@ function buildLineInfo(
 
     // No pre-filter - check all columns
 
-    cols.push({ index: c, unknownCoords, needed });
+    cols.push({ index: col, unknownCoords, needed });
   }
 
   return { rows, cols };
@@ -128,12 +128,12 @@ function getAffectedRegions(
 
   // Build set of cells in the 3x3 area around (row, col)
   const nearbyKeys = new Set<string>();
-  for (let dr = -1; dr <= 1; dr++) {
-    for (let dc = -1; dc <= 1; dc++) {
-      const nr = row + dr;
-      const nc = col + dc;
-      if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
-        nearbyKeys.add(cellKey(nr, nc));
+  for (let drow = -1; drow <= 1; drow++) {
+    for (let dcol = -1; dcol <= 1; dcol++) {
+      const nrow = row + drow;
+      const ncol = col + dcol;
+      if (nrow >= 0 && nrow < size && ncol >= 0 && ncol < size) {
+        nearbyKeys.add(cellKey(nrow, ncol));
       }
     }
   }
@@ -157,13 +157,13 @@ function getAffectedRegions(
 function buildMarkedCells(row: number, col: number, size: number): Set<string> {
   const markedCells = new Set<string>();
   markedCells.add(cellKey(row, col));
-  for (let dr = -1; dr <= 1; dr++) {
-    for (let dc = -1; dc <= 1; dc++) {
-      if (dr === 0 && dc === 0) continue;
-      const nr = row + dr;
-      const nc = col + dc;
-      if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
-        markedCells.add(cellKey(nr, nc));
+  for (let drow = -1; drow <= 1; drow++) {
+    for (let dcol = -1; dcol <= 1; dcol++) {
+      if (drow === 0 && dcol === 0) continue;
+      const nrow = row + drow;
+      const ncol = col + dcol;
+      if (nrow >= 0 && nrow < size && ncol >= 0 && ncol < size) {
+        markedCells.add(cellKey(nrow, ncol));
       }
     }
   }
@@ -185,12 +185,12 @@ function wouldBreakRegion(
     const remainingUnknown: Coord[] = [];
     let starInRegion = false;
 
-    for (const [r, c] of info.unknownCoords) {
-      const key = cellKey(r, c);
-      if (r === row && c === col) {
+    for (const [urow, ucol] of info.unknownCoords) {
+      const key = cellKey(urow, ucol);
+      if (urow === row && ucol === col) {
         starInRegion = true;
       } else if (!markedCells.has(key)) {
-        remainingUnknown.push([r, c]);
+        remainingUnknown.push([urow, ucol]);
       }
     }
 
@@ -230,12 +230,12 @@ function wouldBreakLine(
     const remainingUnknown: Coord[] = [];
     let starInLine = false;
 
-    for (const [r, c] of info.unknownCoords) {
-      const key = cellKey(r, c);
-      if (r === row && c === col) {
+    for (const [urow, ucol] of info.unknownCoords) {
+      const key = cellKey(urow, ucol);
+      if (urow === row && ucol === col) {
         starInLine = true;
       } else if (!markedCells.has(key)) {
-        remainingUnknown.push([r, c]);
+        remainingUnknown.push([urow, ucol]);
       }
     }
 
@@ -258,12 +258,12 @@ function wouldBreakLine(
     const remainingUnknown: Coord[] = [];
     let starInLine = false;
 
-    for (const [r, c] of info.unknownCoords) {
-      const key = cellKey(r, c);
-      if (r === row && c === col) {
+    for (const [urow, ucol] of info.unknownCoords) {
+      const key = cellKey(urow, ucol);
+      if (urow === row && ucol === col) {
         starInLine = true;
       } else if (!markedCells.has(key)) {
-        remainingUnknown.push([r, c]);
+        remainingUnknown.push([urow, ucol]);
       }
     }
 

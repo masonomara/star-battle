@@ -72,18 +72,18 @@ function processRowPair(
   let changed = false;
 
   // Place stars on forced cells (single-coverage in all tilings)
-  for (const [r, c] of tiling.forcedCells) {
-    if (cells[r][c] === "unknown") {
-      cells[r][c] = "star";
+  for (const [frow, fcol] of tiling.forcedCells) {
+    if (cells[frow][fcol] === "unknown") {
+      cells[frow][fcol] = "star";
       changed = true;
     }
   }
 
   // Mark cells outside the pair that are covered by ALL tilings
   const forcedOutside = findForcedOutsideCells(tiling.allMinimalTilings);
-  for (const [r, c] of forcedOutside) {
-    if (cells[r][c] === "unknown") {
-      cells[r][c] = "marked";
+  for (const [orow, ocol] of forcedOutside) {
+    if (cells[orow][ocol] === "unknown") {
+      cells[orow][ocol] = "marked";
       changed = true;
     }
   }
@@ -96,9 +96,9 @@ function processRowPair(
     cells,
     size,
   );
-  for (const [r, c] of adjacencyBlocked) {
-    if (cells[r][c] === "unknown") {
-      cells[r][c] = "marked";
+  for (const [brow, bcol] of adjacencyBlocked) {
+    if (cells[brow][bcol] === "unknown") {
+      cells[brow][bcol] = "marked";
       changed = true;
     }
   }
@@ -137,17 +137,17 @@ function processColPair(
 
   let changed = false;
 
-  for (const [r, c] of tiling.forcedCells) {
-    if (cells[r][c] === "unknown") {
-      cells[r][c] = "star";
+  for (const [frow, fcol] of tiling.forcedCells) {
+    if (cells[frow][fcol] === "unknown") {
+      cells[frow][fcol] = "star";
       changed = true;
     }
   }
 
   const forcedOutside = findForcedOutsideCells(tiling.allMinimalTilings);
-  for (const [r, c] of forcedOutside) {
-    if (cells[r][c] === "unknown") {
-      cells[r][c] = "marked";
+  for (const [orow, ocol] of forcedOutside) {
+    if (cells[orow][ocol] === "unknown") {
+      cells[orow][ocol] = "marked";
       changed = true;
     }
   }
@@ -160,9 +160,9 @@ function processColPair(
     cells,
     size,
   );
-  for (const [r, c] of adjacencyBlocked) {
-    if (cells[r][c] === "unknown") {
-      cells[r][c] = "marked";
+  for (const [brow, bcol] of adjacencyBlocked) {
+    if (cells[brow][bcol] === "unknown") {
+      cells[brow][bcol] = "marked";
       changed = true;
     }
   }
@@ -198,8 +198,8 @@ function findForcedOutsideCells(allMinimalTilings: Tile[][]): Coord[] {
   );
 
   return intersection.map((key) => {
-    const [r, c] = key.split(",").map(Number);
-    return [r, c] as Coord;
+    const [row, col] = key.split(",").map(Number);
+    return [row, col] as Coord;
   });
 }
 
@@ -207,11 +207,11 @@ function findForcedOutsideCells(allMinimalTilings: Tile[][]): Coord[] {
  * Check if two cells are adjacent (including diagonals).
  */
 function isAdjacent(cell1: Coord, cell2: Coord): boolean {
-  const [r1, c1] = cell1;
-  const [r2, c2] = cell2;
-  const dr = Math.abs(r1 - r2);
-  const dc = Math.abs(c1 - c2);
-  return dr <= 1 && dc <= 1 && (dr > 0 || dc > 0);
+  const [row1, col1] = cell1;
+  const [row2, col2] = cell2;
+  const drow = Math.abs(row1 - row2);
+  const dcol = Math.abs(col1 - col2);
+  return drow <= 1 && dcol <= 1 && (drow > 0 || dcol > 0);
 }
 
 /**
@@ -232,15 +232,15 @@ function findAdjacencyBlockedCells(
   // Collect unknown cells adjacent to the pair but not in the pair
   const adjacentCells = new Set<string>();
   for (const key of pairCellSet) {
-    const [r, c] = parseKey(key);
-    for (let dr = -1; dr <= 1; dr++) {
-      for (let dc = -1; dc <= 1; dc++) {
-        if (dr === 0 && dc === 0) continue;
-        const nr = r + dr;
-        const nc = c + dc;
-        if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
-          const nkey = coordKey([nr, nc]);
-          if (!pairCellSet.has(nkey) && cells[nr][nc] === "unknown") {
+    const [row, col] = parseKey(key);
+    for (let drow = -1; drow <= 1; drow++) {
+      for (let dcol = -1; dcol <= 1; dcol++) {
+        if (drow === 0 && dcol === 0) continue;
+        const nrow = row + drow;
+        const ncol = col + dcol;
+        if (nrow >= 0 && nrow < size && ncol >= 0 && ncol < size) {
+          const nkey = coordKey([nrow, ncol]);
+          if (!pairCellSet.has(nkey) && cells[nrow][ncol] === "unknown") {
             adjacentCells.add(nkey);
           }
         }

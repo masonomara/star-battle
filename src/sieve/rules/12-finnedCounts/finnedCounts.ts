@@ -29,21 +29,21 @@ function detectUndercountingViolation(
   const rowStars = new Array(size).fill(0);
   const colStars = new Array(size).fill(0);
 
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      const id = board.grid[r][c];
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      const id = board.grid[row][col];
       if (!regionUnknownRows.has(id)) {
         regionUnknownRows.set(id, new Set());
         regionUnknownCols.set(id, new Set());
         regionStars.set(id, 0);
       }
-      if (cells[r][c] === "unknown") {
-        regionUnknownRows.get(id)!.add(r);
-        regionUnknownCols.get(id)!.add(c);
-      } else if (cells[r][c] === "star") {
+      if (cells[row][col] === "unknown") {
+        regionUnknownRows.get(id)!.add(row);
+        regionUnknownCols.get(id)!.add(col);
+      } else if (cells[row][col] === "star") {
         regionStars.set(id, regionStars.get(id)! + 1);
-        rowStars[r]++;
-        colStars[c]++;
+        rowStars[row]++;
+        colStars[col]++;
       }
     }
   }
@@ -72,7 +72,7 @@ function detectUndercountingViolation(
     const contained = active.filter((otherId) => {
       const otherRows = regionUnknownRows.get(otherId)!;
       if (otherRows.size === 0) return false;
-      return [...otherRows].every((r) => rows.has(r));
+      return [...otherRows].every((row) => rows.has(row));
     });
 
     // Calculate total stars needed by contained regions
@@ -83,8 +83,8 @@ function detectUndercountingViolation(
 
     // Calculate stars available in these rows
     let starsAvailable = 0;
-    for (const r of rows) {
-      starsAvailable += board.stars - rowStars[r];
+    for (const row of rows) {
+      starsAvailable += board.stars - rowStars[row];
     }
 
     // Violation: need more stars than rows can provide
@@ -101,7 +101,7 @@ function detectUndercountingViolation(
     const contained = active.filter((otherId) => {
       const otherCols = regionUnknownCols.get(otherId)!;
       if (otherCols.size === 0) return false;
-      return [...otherCols].every((c) => cols.has(c));
+      return [...otherCols].every((col) => cols.has(col));
     });
 
     let starsNeeded = 0;
@@ -110,8 +110,8 @@ function detectUndercountingViolation(
     }
 
     let starsAvailable = 0;
-    for (const c of cols) {
-      starsAvailable += board.stars - colStars[c];
+    for (const col of cols) {
+      starsAvailable += board.stars - colStars[col];
     }
 
     if (starsNeeded > starsAvailable) {
@@ -140,17 +140,17 @@ function detectOvercountingViolation(
 
   for (const [id, coords] of regions) {
     let stars = 0;
-    for (const [r, c] of coords) {
-      if (cells[r][c] === "star") stars++;
+    for (const [row, col] of coords) {
+      if (cells[row][col] === "star") stars++;
     }
     regionStars.set(id, stars);
   }
 
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      if (cells[r][c] === "star") {
-        rowStars[r]++;
-        colStars[c]++;
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      if (cells[row][col] === "star") {
+        rowStars[row]++;
+        colStars[col]++;
       }
     }
   }
@@ -168,12 +168,12 @@ function detectOvercountingViolation(
     colToRegions.set(i, new Set());
   }
 
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      const id = board.grid[r][c];
-      if (activeRegions.has(id) && cells[r][c] === "unknown") {
-        rowToRegions.get(r)!.add(id);
-        colToRegions.get(c)!.add(id);
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      const id = board.grid[row][col];
+      if (activeRegions.has(id) && cells[row][col] === "unknown") {
+        rowToRegions.get(row)!.add(id);
+        colToRegions.get(col)!.add(id);
       }
     }
   }
@@ -184,15 +184,15 @@ function detectOvercountingViolation(
       // Row needs stars but has no active regions with unknowns
       // Check if there are ANY unknowns in this row
       let hasUnknown = false;
-      for (let c = 0; c < size; c++) {
-        if (cells[i][c] === "unknown") hasUnknown = true;
+      for (let col = 0; col < size; col++) {
+        if (cells[i][col] === "unknown") hasUnknown = true;
       }
       if (!hasUnknown) return true;
     }
     if (colStars[i] < board.stars && colToRegions.get(i)!.size === 0) {
       let hasUnknown = false;
-      for (let r = 0; r < size; r++) {
-        if (cells[r][i] === "unknown") hasUnknown = true;
+      for (let row = 0; row < size; row++) {
+        if (cells[row][i] === "unknown") hasUnknown = true;
       }
       if (!hasUnknown) return true;
     }
@@ -225,9 +225,9 @@ function detectOvercountingViolation(
 
       // Check if rows are fully contained in these regions
       let fullyContained = true;
-      for (const r of rowSet) {
-        for (let c = 0; c < size && fullyContained; c++) {
-          if (cells[r][c] === "unknown" && !regSet.has(board.grid[r][c])) {
+      for (const row of rowSet) {
+        for (let col = 0; col < size && fullyContained; col++) {
+          if (cells[row][col] === "unknown" && !regSet.has(board.grid[row][col])) {
             fullyContained = false;
           }
         }
@@ -236,8 +236,8 @@ function detectOvercountingViolation(
       if (fullyContained) {
         // Calculate stars needed by rows vs available in regions
         let starsNeeded = 0;
-        for (const r of rowSet) {
-          starsNeeded += board.stars - rowStars[r];
+        for (const row of rowSet) {
+          starsNeeded += board.stars - rowStars[row];
         }
 
         let starsAvailable = 0;
@@ -266,9 +266,9 @@ function detectOvercountingViolation(
       }
 
       let fullyContained = true;
-      for (const c of colSet) {
-        for (let r = 0; r < size && fullyContained; r++) {
-          if (cells[r][c] === "unknown" && !regSet.has(board.grid[r][c])) {
+      for (const col of colSet) {
+        for (let row = 0; row < size && fullyContained; row++) {
+          if (cells[row][col] === "unknown" && !regSet.has(board.grid[row][col])) {
             fullyContained = false;
           }
         }
@@ -276,8 +276,8 @@ function detectOvercountingViolation(
 
       if (fullyContained) {
         let starsNeeded = 0;
-        for (const c of colSet) {
-          starsNeeded += board.stars - colStars[c];
+        for (const col of colSet) {
+          starsNeeded += board.stars - colStars[col];
         }
 
         let starsAvailable = 0;
@@ -304,18 +304,18 @@ function applyHypotheticalStar(
   col: number,
   size: number,
 ): CellState[][] {
-  const copy: CellState[][] = cells.map((r) => [...r]);
+  const copy: CellState[][] = cells.map((cellRow) => [...cellRow]);
   copy[row][col] = "star";
 
   // Mark all 8 neighbors
-  for (let dr = -1; dr <= 1; dr++) {
-    for (let dc = -1; dc <= 1; dc++) {
-      if (dr === 0 && dc === 0) continue;
-      const nr = row + dr;
-      const nc = col + dc;
-      if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
-        if (copy[nr][nc] === "unknown") {
-          copy[nr][nc] = "marked";
+  for (let drow = -1; drow <= 1; drow++) {
+    for (let dcol = -1; dcol <= 1; dcol++) {
+      if (drow === 0 && dcol === 0) continue;
+      const nrow = row + drow;
+      const ncol = col + dcol;
+      if (nrow >= 0 && nrow < size && ncol >= 0 && ncol < size) {
+        if (copy[nrow][ncol] === "unknown") {
+          copy[nrow][ncol] = "marked";
         }
       }
     }

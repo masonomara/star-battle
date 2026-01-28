@@ -8,17 +8,17 @@ export default function undercounting(board: Board, cells: CellState[][]): boole
   const regionCols = new Map<number, Set<number>>();
   const regionStars = new Map<number, number>();
 
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      const id = board.grid[r][c];
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      const id = board.grid[row][col];
       if (!regionRows.has(id)) {
         regionRows.set(id, new Set());
         regionCols.set(id, new Set());
         regionStars.set(id, 0);
       }
-      regionRows.get(id)!.add(r);
-      regionCols.get(id)!.add(c);
-      if (cells[r][c] === "star") regionStars.set(id, regionStars.get(id)! + 1);
+      regionRows.get(id)!.add(row);
+      regionCols.get(id)!.add(col);
+      if (cells[row][col] === "star") regionStars.set(id, regionStars.get(id)! + 1);
     }
   }
 
@@ -26,9 +26,9 @@ export default function undercounting(board: Board, cells: CellState[][]): boole
     (id) => regionStars.get(id)! < board.stars,
   );
   const inRows = (id: number, rows: Set<number>) =>
-    [...regionRows.get(id)!].every((r) => rows.has(r));
+    [...regionRows.get(id)!].every((row) => rows.has(row));
   const inCols = (id: number, cols: Set<number>) =>
-    [...regionCols.get(id)!].every((c) => cols.has(c));
+    [...regionCols.get(id)!].every((col) => cols.has(col));
 
   for (const id of active) {
     const rows = regionRows.get(id)!;
@@ -36,9 +36,9 @@ export default function undercounting(board: Board, cells: CellState[][]): boole
     if (contained.length === rows.size) {
       const set = new Set(contained);
       for (const row of rows) {
-        for (let c = 0; c < size; c++) {
-          if (!set.has(board.grid[row][c]) && cells[row][c] === "unknown") {
-            cells[row][c] = "marked";
+        for (let col = 0; col < size; col++) {
+          if (!set.has(board.grid[row][col]) && cells[row][col] === "unknown") {
+            cells[row][col] = "marked";
             changed = true;
           }
         }
@@ -52,9 +52,9 @@ export default function undercounting(board: Board, cells: CellState[][]): boole
     if (contained.length === cols.size) {
       const set = new Set(contained);
       for (const col of cols) {
-        for (let r = 0; r < size; r++) {
-          if (!set.has(board.grid[r][col]) && cells[r][col] === "unknown") {
-            cells[r][col] = "marked";
+        for (let row = 0; row < size; row++) {
+          if (!set.has(board.grid[row][col]) && cells[row][col] === "unknown") {
+            cells[row][col] = "marked";
             changed = true;
           }
         }

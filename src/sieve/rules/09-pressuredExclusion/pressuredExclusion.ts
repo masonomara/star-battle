@@ -40,9 +40,9 @@ function findTightRegions(
     let existingStars = 0;
     const unknownCoords: Coord[] = [];
 
-    for (const [r, c] of coords) {
-      if (cells[r][c] === "star") existingStars++;
-      else if (cells[r][c] === "unknown") unknownCoords.push([r, c]);
+    for (const [row, col] of coords) {
+      if (cells[row][col] === "star") existingStars++;
+      else if (cells[row][col] === "unknown") unknownCoords.push([row, col]);
     }
 
     const starsNeeded = board.stars - existingStars;
@@ -78,16 +78,16 @@ function getCellsAdjacentToTightRegions(
   const adjacent = new Set<string>();
 
   for (const region of tightRegions) {
-    for (const [r, c] of region.unknownCoords) {
+    for (const [row, col] of region.unknownCoords) {
       // Check all 8 neighbors
-      for (let dr = -1; dr <= 1; dr++) {
-        for (let dc = -1; dc <= 1; dc++) {
-          if (dr === 0 && dc === 0) continue;
-          const nr = r + dr;
-          const nc = c + dc;
-          if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
-            if (cells[nr][nc] === "unknown") {
-              adjacent.add(cellKey(nr, nc));
+      for (let drow = -1; drow <= 1; drow++) {
+        for (let dcol = -1; dcol <= 1; dcol++) {
+          if (drow === 0 && dcol === 0) continue;
+          const nrow = row + drow;
+          const ncol = col + dcol;
+          if (nrow >= 0 && nrow < size && ncol >= 0 && ncol < size) {
+            if (cells[nrow][ncol] === "unknown") {
+              adjacent.add(cellKey(nrow, ncol));
             }
           }
         }
@@ -113,13 +113,13 @@ function wouldBreakAnyTightRegion(
   // Build set of cells that would be marked by this star
   const markedCells = new Set<string>();
   markedCells.add(cellKey(row, col));
-  for (let dr = -1; dr <= 1; dr++) {
-    for (let dc = -1; dc <= 1; dc++) {
-      if (dr === 0 && dc === 0) continue;
-      const nr = row + dr;
-      const nc = col + dc;
-      if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
-        markedCells.add(cellKey(nr, nc));
+  for (let drow = -1; drow <= 1; drow++) {
+    for (let dcol = -1; dcol <= 1; dcol++) {
+      if (drow === 0 && dcol === 0) continue;
+      const nrow = row + drow;
+      const ncol = col + dcol;
+      if (nrow >= 0 && nrow < size && ncol >= 0 && ncol < size) {
+        markedCells.add(cellKey(nrow, ncol));
       }
     }
   }
@@ -129,12 +129,12 @@ function wouldBreakAnyTightRegion(
     const remainingUnknown: Coord[] = [];
     let starInRegion = false;
 
-    for (const [r, c] of region.unknownCoords) {
-      const key = cellKey(r, c);
-      if (r === row && c === col) {
+    for (const [urow, ucol] of region.unknownCoords) {
+      const key = cellKey(urow, ucol);
+      if (urow === row && ucol === col) {
         starInRegion = true;
       } else if (!markedCells.has(key)) {
-        remainingUnknown.push([r, c]);
+        remainingUnknown.push([urow, ucol]);
       }
     }
 

@@ -27,17 +27,17 @@ function processAxis(
         let valid = true;
         for (const line of lineSet) {
           for (let i = 0; i < size && valid; i++) {
-            const [r, c] = axis === "row" ? [line, i] : [i, line];
-            if (!regSet.has(board.grid[r][c])) valid = false;
+            const [row, col] = axis === "row" ? [line, i] : [i, line];
+            if (!regSet.has(board.grid[row][col])) valid = false;
           }
         }
 
         if (valid) {
           for (const id of regSet) {
-            for (const [r, c] of regions.get(id)!) {
-              const lineIdx = axis === "row" ? r : c;
-              if (!lineSet.has(lineIdx) && cells[r][c] === "unknown") {
-                cells[r][c] = "marked";
+            for (const [row, col] of regions.get(id)!) {
+              const lineIdx = axis === "row" ? row : col;
+              if (!lineSet.has(lineIdx) && cells[row][col] === "unknown") {
+                cells[row][col] = "marked";
                 changed = true;
               }
             }
@@ -61,7 +61,7 @@ export default function overcounting(
   const regionStars = new Map<number, number>();
   for (const [id, coords] of regions) {
     let stars = 0;
-    for (const [r, c] of coords) if (cells[r][c] === "star") stars++;
+    for (const [row, col] of coords) if (cells[row][col] === "star") stars++;
     regionStars.set(id, stars);
   }
 
@@ -75,12 +75,12 @@ export default function overcounting(
     rowRegions.set(i, new Set());
     colRegions.set(i, new Set());
   }
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      const id = board.grid[r][c];
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      const id = board.grid[row][col];
       if (active.has(id)) {
-        rowRegions.get(r)!.add(id);
-        colRegions.get(c)!.add(id);
+        rowRegions.get(row)!.add(id);
+        colRegions.get(col)!.add(id);
       }
     }
   }

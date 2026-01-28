@@ -28,7 +28,7 @@ export default function twoByTwoTiling(
 
   for (const [regionId, coords] of regions) {
     let stars = 0;
-    for (const [r, c] of coords) if (cells[r][c] === "star") stars++;
+    for (const [row, col] of coords) if (cells[row][col] === "star") stars++;
 
     const needed = board.stars - stars;
     if (needed <= 0) continue;
@@ -41,18 +41,18 @@ export default function twoByTwoTiling(
     if (tiling.minTileCount !== needed) continue;
 
     // Place stars on forced cells (single-coverage in all tilings)
-    for (const [r, c] of tiling.forcedCells) {
-      if (cells[r][c] === "unknown") {
-        cells[r][c] = "star";
+    for (const [row, col] of tiling.forcedCells) {
+      if (cells[row][col] === "unknown") {
+        cells[row][col] = "star";
         changed = true;
       }
     }
 
     // Mark non-region cells that are covered by tiles in ALL minimal tilings
     const forcedNonRegion = findForcedNonRegionCells(tiling.allMinimalTilings);
-    for (const [r, c] of forcedNonRegion) {
-      if (cells[r][c] === "unknown") {
-        cells[r][c] = "marked";
+    for (const [row, col] of forcedNonRegion) {
+      if (cells[row][col] === "unknown") {
+        cells[row][col] = "marked";
         changed = true;
       }
     }
@@ -89,7 +89,7 @@ function findForcedNonRegionCells(allMinimalTilings: Tile[][]): Coord[] {
 
   // Convert back to coordinates
   return intersection.map((key) => {
-    const [r, c] = key.split(",").map(Number);
-    return [r, c] as Coord;
+    const [row, col] = key.split(",").map(Number);
+    return [row, col] as Coord;
   });
 }

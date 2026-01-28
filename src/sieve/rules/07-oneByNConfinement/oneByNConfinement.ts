@@ -54,7 +54,7 @@ function collectContributions(
 
     const cellSet = new Set<string>();
     for (const s of axisStrips) {
-      for (const [r, c] of s.cells) cellSet.add(cellKey(r, c));
+      for (const [row, col] of s.cells) cellSet.add(cellKey(row, col));
     }
 
     if (!contribs.has(index)) contribs.set(index, []);
@@ -93,9 +93,9 @@ function markRemainder(
     }
 
     for (let i = 0; i < size; i++) {
-      const [r, c] = axis === "row" ? [index, i] : [i, index];
-      if (cells[r][c] === "unknown" && !contributing.has(cellKey(r, c))) {
-        cells[r][c] = "marked";
+      const [row, col] = axis === "row" ? [index, i] : [i, index];
+      if (cells[row][col] === "unknown" && !contributing.has(cellKey(row, col))) {
+        cells[row][col] = "marked";
         changed = true;
       }
     }

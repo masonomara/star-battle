@@ -10,7 +10,7 @@ import exclusion from "./rules/08-exclusion/exclusion";
 import pressuredExclusion from "./rules/09-pressuredExclusion/pressuredExclusion";
 import overcounting from "./rules/11-overcounting/overcounting";
 import undercounting from "./rules/10-undercounting/undercounting";
-import squeeze from "./rules/12-squeeze/squeeze";
+import squeeze from "./rules/13-squeeze/squeeze";
 import finnedCounts from "./rules/12-finnedCounts/finnedCounts";
 import compositeRegions from "./rules/14-compositeRegions/compositeRegions";
 

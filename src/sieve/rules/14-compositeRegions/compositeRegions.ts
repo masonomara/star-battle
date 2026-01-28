@@ -56,14 +56,14 @@ function buildRegionMetas(
     const allCols = new Set<number>();
     let starsPlaced = 0;
 
-    for (const [r, c] of coords) {
-      allRows.add(r);
-      allCols.add(c);
-      if (cells[r][c] === "unknown") {
-        unknownCoords.push([r, c]);
-        rows.add(r);
-        cols.add(c);
-      } else if (cells[r][c] === "star") {
+    for (const [row, col] of coords) {
+      allRows.add(row);
+      allCols.add(col);
+      if (cells[row][col] === "unknown") {
+        unknownCoords.push([row, col]);
+        rows.add(row);
+        cols.add(col);
+      } else if (cells[row][col] === "star") {
         starsPlaced++;
       }
     }
@@ -111,16 +111,16 @@ function buildAdjacencyGraph(
     [-1, 1],
   ];
 
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      const id = board.grid[r][c];
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      const id = board.grid[row][col];
       if (!regionMetas.has(id)) continue;
 
-      for (const [dr, dc] of deltas) {
-        const nr = r + dr;
-        const nc = c + dc;
-        if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
-          const neighborId = board.grid[nr][nc];
+      for (const [drow, dcol] of deltas) {
+        const nrow = row + drow;
+        const ncol = col + dcol;
+        if (nrow >= 0 && nrow < size && ncol >= 0 && ncol < size) {
+          const neighborId = board.grid[nrow][ncol];
           if (neighborId !== id && regionMetas.has(neighborId)) {
             adjacency.get(id)!.add(neighborId);
           }
@@ -173,23 +173,23 @@ function findUndercountingComposites(
 
       for (const lineIdx of lines) {
         for (let i = 0; i < size; i++) {
-          const [r, c] = axis === "row" ? [lineIdx, i] : [i, lineIdx];
-          if (!containedIds.has(board.grid[r][c])) {
-            leftoverCells.push([r, c]);
+          const [row, col] = axis === "row" ? [lineIdx, i] : [i, lineIdx];
+          if (!containedIds.has(board.grid[row][col])) {
+            leftoverCells.push([row, col]);
           }
         }
       }
 
       // Count stars already placed in leftover cells
       const leftoverStarsPlaced = leftoverCells.filter(
-        ([r, c]) => cells[r][c] === "star",
+        ([row, col]) => cells[row][col] === "star",
       ).length;
       const leftoverStarsNeeded = (M - N) * board.stars - leftoverStarsPlaced;
 
       if (leftoverStarsNeeded <= 0) continue;
 
       const unknownCells = leftoverCells.filter(
-        ([r, c]) => cells[r][c] === "unknown",
+        ([row, col]) => cells[row][col] === "unknown",
       );
 
       // Pre-filter: need enough unknowns and not too many
@@ -284,8 +284,8 @@ function findOvercountingComposites(
         let fullyContained = true;
         for (const line of lineSet) {
           for (let i = 0; i < size && fullyContained; i++) {
-            const [r, c] = axis === "row" ? [line, i] : [i, line];
-            if (cells[r][c] === "unknown" && !regSet.has(board.grid[r][c])) {
+            const [row, col] = axis === "row" ? [line, i] : [i, line];
+            if (cells[row][col] === "unknown" && !regSet.has(board.grid[row][col])) {
               fullyContained = false;
             }
           }
@@ -296,17 +296,17 @@ function findOvercountingComposites(
           const leftoverCells: Coord[] = [];
           for (const regId of regSet) {
             const region = regionMetas.get(regId)!;
-            for (const [r, c] of region.coords) {
-              const lineIdx = axis === "row" ? r : c;
+            for (const [row, col] of region.coords) {
+              const lineIdx = axis === "row" ? row : col;
               if (!lineSet.has(lineIdx)) {
-                leftoverCells.push([r, c]);
+                leftoverCells.push([row, col]);
               }
             }
           }
 
           // Count stars already placed in leftover cells
           const leftoverStarsPlaced = leftoverCells.filter(
-            ([r, c]) => cells[r][c] === "star",
+            ([row, col]) => cells[row][col] === "star",
           ).length;
           const leftoverStarsNeeded =
             (N - M) * board.stars - leftoverStarsPlaced;
@@ -314,7 +314,7 @@ function findOvercountingComposites(
           if (leftoverStarsNeeded <= 0) continue;
 
           const unknownCells = leftoverCells.filter(
-            ([r, c]) => cells[r][c] === "unknown",
+            ([row, col]) => cells[row][col] === "unknown",
           );
 
           // Pre-filter: need enough unknowns and not too many
@@ -514,11 +514,11 @@ function enumerateValidPlacements(
   const adjacent: Set<number>[] = unknowns.map(() => new Set());
 
   for (let i = 0; i < unknowns.length; i++) {
-    const [r, c] = unknowns[i];
-    for (let dr = -1; dr <= 1; dr++) {
-      for (let dc = -1; dc <= 1; dc++) {
-        if (dr === 0 && dc === 0) continue;
-        const key = coordKey([r + dr, c + dc] as Coord);
+    const [row, col] = unknowns[i];
+    for (let drow = -1; drow <= 1; drow++) {
+      for (let dcol = -1; dcol <= 1; dcol++) {
+        if (drow === 0 && dcol === 0) continue;
+        const key = coordKey([row + drow, col + dcol] as Coord);
         const j = coordToIdx.get(key);
         if (j !== undefined && j !== i) {
           adjacent[i].add(j);
@@ -579,8 +579,8 @@ function findExternalForcedCells(
   const outsideSets: Set<string>[] = allMinimalTilings.map((tiling) => {
     const outside = new Set<string>();
     for (const tile of tiling) {
-      for (const [r, c] of tile.cells) {
-        const key = coordKey([r, c]);
+      for (const [row, col] of tile.cells) {
+        const key = coordKey([row, col]);
         if (!compositeSet.has(key)) {
           outside.add(key);
         }
@@ -602,8 +602,8 @@ function findExternalForcedCells(
   }
 
   return [...intersection].map((key) => {
-    const [r, c] = key.split(",").map(Number);
-    return [r, c] as Coord;
+    const [row, col] = key.split(",").map(Number);
+    return [row, col] as Coord;
   });
 }
 
@@ -668,18 +668,18 @@ function analyzeViaDirectEnumeration(
 
   // Place forced stars (with validation)
   for (const key of inAllPlacements) {
-    const [r, c] = key.split(",").map(Number);
-    if (cells[r][c] !== "unknown") continue;
+    const [row, col] = key.split(",").map(Number);
+    if (cells[row][col] !== "unknown") continue;
 
     // Check no adjacent star exists
     let hasAdjacentStar = false;
-    for (let dr = -1; dr <= 1 && !hasAdjacentStar; dr++) {
-      for (let dc = -1; dc <= 1 && !hasAdjacentStar; dc++) {
-        if (dr === 0 && dc === 0) continue;
-        const nr = r + dr;
-        const nc = c + dc;
-        if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
-          if (cells[nr][nc] === "star") {
+    for (let drow = -1; drow <= 1 && !hasAdjacentStar; drow++) {
+      for (let dcol = -1; dcol <= 1 && !hasAdjacentStar; dcol++) {
+        if (drow === 0 && dcol === 0) continue;
+        const nrow = row + drow;
+        const ncol = col + dcol;
+        if (nrow >= 0 && nrow < size && ncol >= 0 && ncol < size) {
+          if (cells[nrow][ncol] === "star") {
             hasAdjacentStar = true;
           }
         }
@@ -691,12 +691,12 @@ function analyzeViaDirectEnumeration(
     let rowStars = 0;
     let colStars = 0;
     for (let i = 0; i < size; i++) {
-      if (cells[r][i] === "star") rowStars++;
-      if (cells[i][c] === "star") colStars++;
+      if (cells[row][i] === "star") rowStars++;
+      if (cells[i][col] === "star") colStars++;
     }
     if (rowStars >= board.stars || colStars >= board.stars) continue;
 
-    const regionId = board.grid[r][c];
+    const regionId = board.grid[row][col];
     let regionStars = 0;
     for (let rr = 0; rr < size; rr++) {
       for (let cc = 0; cc < size; cc++) {
@@ -707,15 +707,15 @@ function analyzeViaDirectEnumeration(
     }
     if (regionStars >= board.stars) continue;
 
-    cells[r][c] = "star";
+    cells[row][col] = "star";
     changed = true;
   }
 
   // Mark cells that appear in no valid placement
   for (const key of inNoPlacements) {
-    const [r, c] = key.split(",").map(Number);
-    if (cells[r][c] === "unknown") {
-      cells[r][c] = "marked";
+    const [row, col] = key.split(",").map(Number);
+    if (cells[row][col] === "unknown") {
+      cells[row][col] = "marked";
       changed = true;
     }
   }
@@ -734,12 +734,12 @@ function analyzeComposite(
 ): boolean {
   // Refresh unknownCells to current state (in case of stale composite)
   const currentUnknowns = composite.unknownCells.filter(
-    ([r, c]) => cells[r][c] === "unknown",
+    ([row, col]) => cells[row][col] === "unknown",
   );
 
   // Count stars placed in composite since creation
   const starsPlacedInComposite = composite.unknownCells.filter(
-    ([r, c]) => cells[r][c] === "star",
+    ([row, col]) => cells[row][col] === "star",
   ).length;
 
   const currentStarsNeeded = composite.starsNeeded - starsPlacedInComposite;
@@ -780,26 +780,26 @@ function analyzeComposite(
   // Must verify adjacency - composite cells may be disconnected
   // Also check that forced cells aren't adjacent to each other (invalid analysis)
   const forcedSet = new Set(
-    tiling.forcedCells.map(([r, c]) => coordKey([r, c])),
+    tiling.forcedCells.map(([row, col]) => coordKey([row, col])),
   );
 
-  for (const [r, c] of tiling.forcedCells) {
-    if (cells[r][c] !== "unknown") continue;
+  for (const [frow, fcol] of tiling.forcedCells) {
+    if (cells[frow][fcol] !== "unknown") continue;
 
     // Check no adjacent star exists AND no adjacent forced cell
     let hasAdjacentConflict = false;
-    for (let dr = -1; dr <= 1 && !hasAdjacentConflict; dr++) {
-      for (let dc = -1; dc <= 1 && !hasAdjacentConflict; dc++) {
-        if (dr === 0 && dc === 0) continue;
-        const nr = r + dr;
-        const nc = c + dc;
-        if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
+    for (let drow = -1; drow <= 1 && !hasAdjacentConflict; drow++) {
+      for (let dcol = -1; dcol <= 1 && !hasAdjacentConflict; dcol++) {
+        if (drow === 0 && dcol === 0) continue;
+        const nrow = frow + drow;
+        const ncol = fcol + dcol;
+        if (nrow >= 0 && nrow < size && ncol >= 0 && ncol < size) {
           // Adjacent to existing star
-          if (cells[nr][nc] === "star") {
+          if (cells[nrow][ncol] === "star") {
             hasAdjacentConflict = true;
           }
           // Adjacent to another forced cell (would create adjacent stars)
-          if (forcedSet.has(coordKey([nr, nc]))) {
+          if (forcedSet.has(coordKey([nrow, ncol]))) {
             hasAdjacentConflict = true;
           }
         }
@@ -812,14 +812,14 @@ function analyzeComposite(
     let rowStars = 0;
     let colStars = 0;
     for (let i = 0; i < size; i++) {
-      if (cells[r][i] === "star") rowStars++;
-      if (cells[i][c] === "star") colStars++;
+      if (cells[frow][i] === "star") rowStars++;
+      if (cells[i][fcol] === "star") colStars++;
     }
 
     if (rowStars >= board.stars || colStars >= board.stars) continue;
 
     // Check region quota
-    const regionId = board.grid[r][c];
+    const regionId = board.grid[frow][fcol];
     let regionStars = 0;
     for (let rr = 0; rr < size; rr++) {
       for (let cc = 0; cc < size; cc++) {
@@ -831,7 +831,7 @@ function analyzeComposite(
 
     if (regionStars >= board.stars) continue;
 
-    cells[r][c] = "star";
+    cells[frow][fcol] = "star";
     changed = true;
   }
 
@@ -842,9 +842,9 @@ function analyzeComposite(
     compositeSet,
   );
 
-  for (const [r, c] of externalForced) {
-    if (cells[r][c] === "unknown") {
-      cells[r][c] = "marked";
+  for (const [erow, ecol] of externalForced) {
+    if (cells[erow][ecol] === "unknown") {
+      cells[erow][ecol] = "marked";
       changed = true;
     }
   }
@@ -880,7 +880,7 @@ export default function compositeRegions(
   for (const composite of composites) {
     // Refresh signature based on current unknowns
     const currentUnknowns = composite.unknownCells.filter(
-      ([r, c]) => cells[r][c] === "unknown",
+      ([row, col]) => cells[row][col] === "unknown",
     );
     const sig = currentUnknowns.map(coordKey).sort().join("|");
 
