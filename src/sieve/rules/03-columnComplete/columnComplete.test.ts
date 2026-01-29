@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import trivialColumns from "./trivialColumns";
+import columnComplete from "./columnComplete";
 import { Board, CellState } from "../../helpers/types";
 
-describe("03. trivialColumns", () => {
+describe("03. columnComplete", () => {
   describe("03.1 Marks remaining cells correctly", () => {
     it("03.1.1 marks remaining cells when column has required stars", () => {
       const board: Board = {
@@ -19,7 +19,7 @@ describe("03. trivialColumns", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = trivialColumns(board, cells);
+      const result = columnComplete(board, cells);
 
       expect(result).toBe(true);
       expect(cells).toEqual([
@@ -46,7 +46,7 @@ describe("03. trivialColumns", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = trivialColumns(board, cells);
+      const result = columnComplete(board, cells);
 
       expect(result).toBe(true);
       expect(cells[0][0]).toBe("star");
@@ -70,7 +70,7 @@ describe("03. trivialColumns", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = trivialColumns(board, cells);
+      const result = columnComplete(board, cells);
 
       expect(result).toBe(true);
       expect(cells).toEqual([
@@ -95,7 +95,7 @@ describe("03. trivialColumns", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = trivialColumns(board, cells);
+      const result = columnComplete(board, cells);
 
       expect(result).toBe(true);
       expect(cells[0][0]).toBe("star");
@@ -120,7 +120,7 @@ describe("03. trivialColumns", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = trivialColumns(board, cells);
+      const result = columnComplete(board, cells);
 
       expect(result).toBe(false);
       expect(cells).toEqual([
@@ -145,7 +145,7 @@ describe("03. trivialColumns", () => {
         ["marked", "unknown", "unknown"],
       ];
 
-      const result = trivialColumns(board, cells);
+      const result = columnComplete(board, cells);
 
       expect(result).toBe(false);
     });
@@ -167,7 +167,7 @@ describe("03. trivialColumns", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = trivialColumns(board, cells);
+      const result = columnComplete(board, cells);
 
       expect(result).toBe(false);
     });
@@ -191,7 +191,7 @@ describe("03. trivialColumns", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      trivialColumns(board, cells);
+      columnComplete(board, cells);
 
       expect(cells[1][0]).toBe("unknown");
       expect(cells[2][0]).toBe("unknown");
@@ -213,7 +213,7 @@ describe("03. trivialColumns", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      trivialColumns(board, cells);
+      columnComplete(board, cells);
 
       expect(cells[0][1]).toBe("unknown");
       expect(cells[0][2]).toBe("unknown");
@@ -238,7 +238,7 @@ describe("03. trivialColumns", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      trivialColumns(board, cells);
+      columnComplete(board, cells);
 
       expect(cells[0][0]).toBe("star");
       expect(cells[2][0]).toBe("star");
@@ -261,7 +261,7 @@ describe("03. trivialColumns", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      trivialColumns(board, cells);
+      columnComplete(board, cells);
 
       expect(cells).toEqual([
         ["star", "star", "star"],
@@ -285,7 +285,7 @@ describe("03. trivialColumns", () => {
         ["unknown", "unknown", "star"],
       ];
 
-      trivialColumns(board, cells);
+      columnComplete(board, cells);
 
       expect(cells[0][2]).toBe("marked");
       expect(cells[1][2]).toBe("marked");
@@ -307,7 +307,7 @@ describe("03. trivialColumns", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      trivialColumns(board, cells);
+      columnComplete(board, cells);
 
       expect(cells[0][1]).toBe("marked");
       expect(cells[1][1]).toBe("star");

@@ -1,17 +1,17 @@
 import { Board, CellState, SolverResult } from "./helpers/types";
-import trivialNeighbors from "./rules/01-trivialNeighbors/trivialNeighbors";
-import trivialRows from "./rules/02-trivialRows/trivialRows";
-import trivialColumns from "./rules/03-trivialColumns/trivialColumns";
-import trivialRegions from "./rules/04-trivialRegions/trivialRegions";
+import starNeighbors from "./rules/01-starNeighbors/starNeighbors";
+import rowComplete from "./rules/02-rowComplete/rowComplete";
+import columnComplete from "./rules/03-columnComplete/columnComplete";
+import regionComplete from "./rules/04-regionComplete/regionComplete";
 import forcedPlacement from "./rules/05-forcedPlacement/forcedPlacement";
-import twoByTwoTiling from "./rules/06-twoByTwoTiling/twoByTwoTiling";
-import oneByNConfinement from "./rules/07-oneByNConfinement/oneByNConfinement";
-import exclusion from "./rules/08-exclusion/exclusion";
-import pressuredExclusion from "./rules/09-pressuredExclusion/pressuredExclusion";
-import overcounting from "./rules/11-overcounting/overcounting";
-import undercounting from "./rules/10-undercounting/undercounting";
-import squeeze from "./rules/13-squeeze/squeeze";
+import undercounting from "./rules/06-undercounting/undercounting";
+import overcounting from "./rules/07-overcounting/overcounting";
+import twoByTwoTiling from "./rules/08-twoByTwoTiling/twoByTwoTiling";
+import oneByNConfinement from "./rules/09-oneByNConfinement/oneByNConfinement";
+import exclusion from "./rules/10-exclusion/exclusion";
+import pressuredExclusion from "./rules/11-pressuredExclusion/pressuredExclusion";
 import finnedCounts from "./rules/12-finnedCounts/finnedCounts";
+import squeeze from "./rules/13-squeeze/squeeze";
 import compositeRegions from "./rules/14-compositeRegions/compositeRegions";
 
 /**
@@ -47,19 +47,19 @@ type Rule = (board: Board, cells: CellState[][]) => boolean;
 
 const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: forcedPlacement, level: 1, name: "Forced Placement" },
-  { rule: trivialNeighbors, level: 1, name: "Star Neighbors" },
-  { rule: trivialRows, level: 1, name: "Row Complete" },
-  { rule: trivialColumns, level: 1, name: "Column Complete" },
-  { rule: trivialRegions, level: 1, name: "Region Complete" },
-  { rule: overcounting, level: 2, name: "Overcounting" },
+  { rule: starNeighbors, level: 1, name: "Star Neighbors" },
+  { rule: rowComplete, level: 1, name: "Row Complete" },
+  { rule: columnComplete, level: 1, name: "Column Complete" },
+  { rule: regionComplete, level: 1, name: "Region Complete" },
   { rule: undercounting, level: 2, name: "Undercounting" },
-  { rule: twoByTwoTiling, level: 3, name: "2x2 Tiling" },
-  { rule: oneByNConfinement, level: 4, name: "1xn Confinement" },
+  { rule: overcounting, level: 2, name: "Overcounting" },
+  { rule: twoByTwoTiling, level: 3, name: "2×2 Tiling" },
+  { rule: oneByNConfinement, level: 4, name: "1×n Confinement" },
   { rule: exclusion, level: 4, name: "Exclusion" },
-  { rule: squeeze, level: 5, name: "Squeeze" },
   { rule: pressuredExclusion, level: 5, name: "Pressured Exclusion" },
-  { rule: finnedCounts, level: 6, name: "Finned Counts" },
-  { rule: compositeRegions, level: 7, name: "Composite Regions" },
+  { rule: finnedCounts, level: 5, name: "Finned Counts" },
+  { rule: squeeze, level: 5, name: "The Squeeze" },
+  { rule: compositeRegions, level: 6, name: "Composite Regions" },
 ];
 
 const MAX_CYCLES = 1000;

@@ -1,6 +1,6 @@
 import { Board, CellState } from "../../helpers/types";
 
-export default function trivialNeighbors(
+export default function starNeighbors(
   board: Board,
   cells: CellState[][],
 ): boolean {

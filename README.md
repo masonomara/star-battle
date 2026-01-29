@@ -28,8 +28,8 @@ src/sieve/
 ├── solver.ts       # Rule-based solver
 ├── helpers/        # Shared utilities (tiling, regions, types)
 └── rules/          # One folder per rule with implementation + tests
-    ├── 01-trivialNeighbors/
-    ├── 02-trivialRows/
+    ├── 01-starNeighbors/
+    ├── 02-rowComplete/
     └── ...         # 14 rules total
 ```
 
@@ -127,13 +127,11 @@ npm test
 
 11. **Pressured Exclusion** – Like **Exclusion**, but considers **1×n Confinements** that span multiple regions. Mark cells where placing a star would make a region/row/column unable to fit all required stars. Single-depth search, deduced with **2×2 Tiling** and **1×n Confinement**.
 
-12. **The Squeeze** – Create side-by-side column/row pairs and run 2x2 tiling. Apply stars when **Forced Placements** occur, mark cells where **Exclusion** occurs.
+12. **Finned Counts** – Check for **Exclusion** scenarios when placing a star would violate an undercounting or overcounting scenario. Mark cells where **Exclusion** occurs.
 
-### Level 6: Finned Counts
+13. **The Squeeze** – Create side-by-side column/row pairs and run 2x2 tiling. Apply stars when **Forced Placements** occur, mark cells where **Exclusion** occurs.
 
-13. **Finned Counts** – Check for **Exclusion** scenarios when placing a star would violate an undercounting or overcounting scenario. Mark cells where **Exclusion** occurs.
-
-### Level 7: Composite Regions
+### Level 6: Composite Regions
 
 14. **Composite Regions** – Combine regions with known star counts into composite regions. If _n_ regions are contained by _m_ rows/columns (_m_ > _n_) and the leftover area has (_m_ - _n_) × _stars_, apply tiling logic to composites for **Forced Placement** and **Exclusion**.
 

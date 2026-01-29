@@ -1,7 +1,7 @@
 import { getRegionCoords } from "../../helpers/regions";
 import { Board, CellState } from "../../helpers/types";
 
-export default function trivialRegions(
+export default function regionComplete(
   board: Board,
   cells: CellState[][],
 ): boolean {

@@ -2,13 +2,13 @@ import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
 import pressuredExclusion from "./pressuredExclusion";
 
-describe("09. Pressured Exclusion", () => {
+describe("11. Pressured Exclusion", () => {
   // Per spec: "Pressured exclusion is like exclusion, but in the presence of
   // other stars or 1×ns." Marks cells where a hypothetical star would break
   // a tight region (minTileCount === starsNeeded).
 
-  describe("09.1 Primary behavior", () => {
-    it("09.1.1 marks cell when faux star would break a tight region", () => {
+  describe("11.1 Primary behavior", () => {
+    it("11.1.1 marks cell when faux star would break a tight region", () => {
       // Region 0: single cell at (0,0) → TIGHT (minTiles=1, stars=1)
       // Region 1: fills the rest
       // Faux star at any neighbor of (0,0) marks (0,0) → region 0 unsolvable
@@ -38,8 +38,8 @@ describe("09. Pressured Exclusion", () => {
     });
   });
 
-  describe("09.2 No-op cases", () => {
-    it("09.2.1 returns false when no tight regions exist in simple grid", () => {
+  describe("11.2 No-op cases", () => {
+    it("11.2.1 returns false when no tight regions exist in simple grid", () => {
       const board: Board = {
         grid: [
           [0, 0],
@@ -56,7 +56,7 @@ describe("09. Pressured Exclusion", () => {
       expect(result).toBe(false); // No tight regions
     });
 
-    it("09.2.2 returns false when no tight regions exist with large regions", () => {
+    it("11.2.2 returns false when no tight regions exist with large regions", () => {
       // Region 0: 2×4 block, minTiles > stars → NOT tight
       const board: Board = {
         grid: [
@@ -79,8 +79,8 @@ describe("09. Pressured Exclusion", () => {
     });
   });
 
-  describe("09.3 Pressure scenarios", () => {
-    it("09.3.1 marks cell when existing star creates pressure", () => {
+  describe("11.3 Pressure scenarios", () => {
+    it("11.3.1 marks cell when existing star creates pressure", () => {
       // Pre-placed star at (0,0) already marks its neighbors
       // Region 1 (single cell at 0,2) is now tight
       // Faux star at neighbors of (0,2) would mark it, breaking region 1
@@ -117,7 +117,7 @@ describe("09. Pressured Exclusion", () => {
       expect(newMarks.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("09.3.2 marks cell when 1×n confinement creates pressure", () => {
+    it("11.3.2 marks cell when 1×n confinement creates pressure", () => {
       // Region 0: confined to row 0 (cols 0-1) - tight 1×2 strip
       // Faux star at (1,0) or (1,1) would mark both cells of region 0
       const board: Board = {
@@ -145,7 +145,7 @@ describe("09. Pressured Exclusion", () => {
       expect(neighborsMarked).toBe(true);
     });
 
-    it("09.3.3 handles row-based pressure symmetrically", () => {
+    it("11.3.3 handles row-based pressure symmetrically", () => {
       // Region 0: row 0 cols 0-2, with (0,0) and (0,1) marked → (0,2) is tight
       // Faux star at neighbors of (0,2) would break region 0
       const board: Board = {

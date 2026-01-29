@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import trivialNeighbors from "./trivialNeighbors";
+import starNeighbors from "./starNeighbors";
 import { Board, CellState } from "../../helpers/types";
 
-describe("01. trivialNeighbors", () => {
+describe("01. starNeighbors", () => {
   describe("01.1 Marks neighbors correctly", () => {
     it("01.1.1 marks all 8 neighbors of center star", () => {
       const board: Board = {
@@ -19,7 +19,7 @@ describe("01. trivialNeighbors", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = trivialNeighbors(board, cells);
+      const result = starNeighbors(board, cells);
 
       expect(result).toBe(true);
       expect(cells).toEqual([
@@ -42,7 +42,7 @@ describe("01. trivialNeighbors", () => {
         ["unknown", "unknown"],
       ];
 
-      const result = trivialNeighbors(board, cells);
+      const result = starNeighbors(board, cells);
 
       expect(result).toBe(true);
       expect(cells).toEqual([
@@ -66,7 +66,7 @@ describe("01. trivialNeighbors", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = trivialNeighbors(board, cells);
+      const result = starNeighbors(board, cells);
 
       expect(result).toBe(true);
       expect(cells).toEqual([
@@ -93,7 +93,7 @@ describe("01. trivialNeighbors", () => {
         ["unknown", "unknown", "unknown", "star"],
       ];
 
-      const result = trivialNeighbors(board, cells);
+      const result = starNeighbors(board, cells);
 
       expect(result).toBe(true);
       expect(cells).toEqual([
@@ -121,7 +121,7 @@ describe("01. trivialNeighbors", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = trivialNeighbors(board, cells);
+      const result = starNeighbors(board, cells);
 
       expect(result).toBe(false);
       expect(cells).toEqual([
@@ -146,7 +146,7 @@ describe("01. trivialNeighbors", () => {
         ["marked", "marked", "marked"],
       ];
 
-      const result = trivialNeighbors(board, cells);
+      const result = starNeighbors(board, cells);
 
       expect(result).toBe(false);
     });
@@ -164,7 +164,7 @@ describe("01. trivialNeighbors", () => {
         ["star", "star"],
       ];
 
-      const result = trivialNeighbors(board, cells);
+      const result = starNeighbors(board, cells);
 
       expect(result).toBe(false);
     });
@@ -190,7 +190,7 @@ describe("01. trivialNeighbors", () => {
         ["unknown", "unknown", "unknown", "unknown", "unknown"],
       ];
 
-      trivialNeighbors(board, cells);
+      starNeighbors(board, cells);
 
       // Corners should remain unknown (2 cells away)
       expect(cells[0][0]).toBe("unknown");
@@ -214,7 +214,7 @@ describe("01. trivialNeighbors", () => {
         ["unknown", "unknown", "star"],
       ];
 
-      trivialNeighbors(board, cells);
+      starNeighbors(board, cells);
 
       expect(cells[2][2]).toBe("star");
     });

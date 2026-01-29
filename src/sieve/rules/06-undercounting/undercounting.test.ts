@@ -2,13 +2,13 @@ import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
 import undercounting from "./undercounting";
 
-describe("10. Undercounting", () => {
+describe("06. Undercounting", () => {
   // Undercounting: N regions completely contained within N rows/cols
   // → Stars in those rows/cols must be in those regions
   // → Mark cells in those rows/cols that lie OUTSIDE the N regions
 
-  describe("10.1 Row-based undercounting", () => {
-    it("10.1.1 marks cells outside region when 1 region contained in 1 row", () => {
+  describe("06.1 Row-based undercounting", () => {
+    it("06.1.1 marks cells outside region when 1 region contained in 1 row", () => {
       // Region 0 fits entirely in row 0 (cols 0-2)
       // Row 0 needs 1 star, which must come from region 0
       // Cells in row 0 outside region 0 (col 3) should be marked
@@ -34,7 +34,7 @@ describe("10. Undercounting", () => {
       expect(cells[0][3]).toBe("marked"); // outside region 0, in row 0
     });
 
-    it("10.1.2 marks cells when 2 regions contained in 2 rows", () => {
+    it("06.1.2 marks cells when 2 regions contained in 2 rows", () => {
       // Regions 0 and 1 fit entirely within rows 0-1
       // 2 rows need 2 stars, must come from regions 0 and 1
       // Cells in rows 0-1 outside regions 0,1 should be marked
@@ -64,7 +64,7 @@ describe("10. Undercounting", () => {
       expect(cells[1][3]).toBe("marked");
     });
 
-    it("10.1.3 marks cells when 3 regions contained in 3 rows for 2-star puzzle", () => {
+    it("06.1.3 marks cells when 3 regions contained in 3 rows for 2-star puzzle", () => {
       // Regions 0, 1, 2 contained within rows 0-2
       // 3 rows × 2 stars = 6 stars must come from these 3 regions
       // Cells in rows 0-2 outside regions 0,1,2 should be marked
@@ -101,8 +101,8 @@ describe("10. Undercounting", () => {
     });
   });
 
-  describe("10.2 Column-based undercounting", () => {
-    it("10.2.1 marks cells outside region when 1 region contained in 1 column", () => {
+  describe("06.2 Column-based undercounting", () => {
+    it("06.2.1 marks cells outside region when 1 region contained in 1 column", () => {
       // Region 0 fits entirely in column 0 (rows 0-2)
       // Col 0 needs 1 star, which must come from region 0
       // Cells in col 0 outside region 0 (row 3) should be marked
@@ -128,7 +128,7 @@ describe("10. Undercounting", () => {
       expect(cells[3][0]).toBe("marked"); // outside region 0, in col 0
     });
 
-    it("10.2.2 marks cells when 2 regions contained in 2 columns", () => {
+    it("06.2.2 marks cells when 2 regions contained in 2 columns", () => {
       // Regions 0 and 1 fit entirely within columns 0-1
       const board: Board = {
         grid: [
@@ -154,8 +154,8 @@ describe("10. Undercounting", () => {
       expect(cells[3][1]).toBe("marked");
     });
 
-    it("10.2.3 marks cells when 3 regions contained in 3 columns for 2-star puzzle", () => {
-      // Mirror of 10.1.3 but for columns
+    it("06.2.3 marks cells when 3 regions contained in 3 columns for 2-star puzzle", () => {
+      // Mirror of 06.1.3 but for columns
       // Regions 0, 1, 2 each contained within columns 0-2
       // 3 cols × 2 stars = 6 stars must come from these 3 regions
       const board: Board = {
@@ -191,8 +191,8 @@ describe("10. Undercounting", () => {
     });
   });
 
-  describe("10.3 No undercounting", () => {
-    it("10.3.1 returns false when no regions contained within row set", () => {
+  describe("06.3 No undercounting", () => {
+    it("06.3.1 returns false when no regions contained within row set", () => {
       // All regions span multiple row ranges
       const board: Board = {
         grid: [
@@ -215,7 +215,7 @@ describe("10. Undercounting", () => {
       expect(result).toBe(false);
     });
 
-    it("10.3.2 returns false when regions fill their rows completely", () => {
+    it("06.3.2 returns false when regions fill their rows completely", () => {
       // Region fills entire row - no cells outside region to mark
       const board: Board = {
         grid: [
@@ -238,7 +238,7 @@ describe("10. Undercounting", () => {
       expect(result).toBe(false);
     });
 
-    it("10.3.3 returns false when cells already marked", () => {
+    it("06.3.3 returns false when cells already marked", () => {
       const board: Board = {
         grid: [
           [0, 0, 0, 1],
@@ -261,8 +261,8 @@ describe("10. Undercounting", () => {
     });
   });
 
-  describe("10.4 Edge cases", () => {
-    it("10.4.1 handles non-contiguous rows containing regions", () => {
+  describe("06.4 Edge cases", () => {
+    it("06.4.1 handles non-contiguous rows containing regions", () => {
       // Region 0 in row 0, region 1 in row 2 (skipping row 1)
       // This should NOT trigger undercounting (rows must be contiguous? or not?)
       // Per spec, we check "groups of consecutive rows" for squeeze,
@@ -292,7 +292,7 @@ describe("10. Undercounting", () => {
       expect(cells[2][3]).toBe("marked"); // region 2 in row 2
     });
 
-    it("10.4.2 skips regions that already have full star quota", () => {
+    it("06.4.2 skips regions that already have full star quota", () => {
       // Region 0 contained in row 0, but already has its star
       // Should NOT trigger undercounting since region 0 is "inactive"
       const board: Board = {
@@ -321,7 +321,7 @@ describe("10. Undercounting", () => {
       expect(cells[0][3]).toBe("unknown");
     });
 
-    it("10.4.3 marks all eligible cells in single call", () => {
+    it("06.4.3 marks all eligible cells in single call", () => {
       // Multiple cells should be marked in one call
       // Region 0 in row 0 (cols 0-1), region 2 spans rows 0-3
       const board: Board = {
@@ -351,7 +351,7 @@ describe("10. Undercounting", () => {
       expect(cells[0][4]).toBe("marked");
     });
 
-    it("10.4.4 processes rows before columns", () => {
+    it("06.4.4 processes rows before columns", () => {
       // Setup where both row-based and column-based undercounting could apply
       // Implementation processes rows first, then columns
       const board: Board = {

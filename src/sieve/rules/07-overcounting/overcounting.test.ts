@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import { Board, CellState } from "../../helpers/types";
 import overcounting from "./overcounting";
 
-describe("11. Overcounting", () => {
+describe("07. Overcounting", () => {
   // Overcounting: N regions completely CONTAIN N rows/cols
   // → Stars in those N regions must be in those rows/cols
   // → Mark cells of each region that lie OUTSIDE the N rows/cols
 
-  describe("11.1 Row-based overcounting", () => {
-    it("11.1.1 marks cells outside rows when 1 region contains 1 row", () => {
+  describe("07.1 Row-based overcounting", () => {
+    it("07.1.1 marks cells outside rows when 1 region contains 1 row", () => {
       // Region 0 spans rows 0-2, but completely contains row 0
       // (i.e., row 0 is entirely within region 0)
       // Wait - that's the opposite. Let me re-read the spec.
@@ -43,7 +43,7 @@ describe("11. Overcounting", () => {
       expect(cells[2][0]).toBe("marked");
     });
 
-    it("11.1.2 marks cells when 2 regions contain 2 rows", () => {
+    it("07.1.2 marks cells when 2 regions contain 2 rows", () => {
       // Rows 0-1 are completely covered by regions 0 and 1
       // Both regions appear in both rows, so no single row triggers 1-region overcounting
       // Region 0 in cols 0-1, Region 1 in cols 2-3, both span rows 0-2
@@ -75,7 +75,7 @@ describe("11. Overcounting", () => {
       expect(cells[2][3]).toBe("marked");
     });
 
-    it("11.1.3 marks cells when 2 regions contain 2 rows (2★ puzzle)", () => {
+    it("07.1.3 marks cells when 2 regions contain 2 rows (2★ puzzle)", () => {
       // Regions 0,1 completely contain rows 0-1
       // Both regions appear in both rows (vertical stripes), so no single row triggers overcounting
       // 2 regions × 2 stars = 4 stars must be in rows 0-1
@@ -110,7 +110,7 @@ describe("11. Overcounting", () => {
       expect(cells[2][5]).toBe("marked");
     });
 
-    it("11.1.4 marks cells when 3 regions contain 3 rows (2★ puzzle)", () => {
+    it("07.1.4 marks cells when 3 regions contain 3 rows (2★ puzzle)", () => {
       // Regions 0, 1, 2 completely contain rows 0-2
       // Each region has cells outside those rows that should be marked
       const board: Board = {
@@ -146,8 +146,8 @@ describe("11. Overcounting", () => {
     });
   });
 
-  describe("11.2 Column-based overcounting", () => {
-    it("11.2.1 marks cells outside columns when 1 region contains 1 column", () => {
+  describe("07.2 Column-based overcounting", () => {
+    it("07.2.1 marks cells outside columns when 1 region contains 1 column", () => {
       // Region 0 completely contains column 0, plus has cell (0,1)
       // Many regions per row prevent row-based overcounting from triggering first
       const board: Board = {
@@ -173,7 +173,7 @@ describe("11. Overcounting", () => {
       expect(cells[0][1]).toBe("marked");
     });
 
-    it("11.2.2 marks cells when 2 regions contain 2 columns", () => {
+    it("07.2.2 marks cells when 2 regions contain 2 columns", () => {
       // Regions 0 and 1 completely contain columns 0-1
       // Region 0 also has cell (0,2) outside cols 0-1
       // Many unique regions per row prevent row-based from triggering
@@ -200,7 +200,7 @@ describe("11. Overcounting", () => {
       expect(cells[0][2]).toBe("marked");
     });
 
-    it("11.2.3 marks cells when 3 regions contain 3 columns (2★ puzzle)", () => {
+    it("07.2.3 marks cells when 3 regions contain 3 columns (2★ puzzle)", () => {
       // Regions 0, 1, 2 completely contain columns 0-2
       // Each region has cells outside those columns
       // Use many unique regions per row to prevent row-based from triggering
@@ -233,8 +233,8 @@ describe("11. Overcounting", () => {
     });
   });
 
-  describe("11.3 No overcounting", () => {
-    it("11.3.1 returns false when no regions completely contain row sets", () => {
+  describe("07.3 No overcounting", () => {
+    it("07.3.1 returns false when no regions completely contain row sets", () => {
       // Each row has a different mix of regions - no N regions contain N rows
       // Row 0: {0,1}, Row 1: {0,2}, Row 2: {1,3}, Row 3: {2,3}
       // No subset of rows is completely covered by the same set of regions
@@ -259,7 +259,7 @@ describe("11. Overcounting", () => {
       expect(result).toBe(false);
     });
 
-    it("11.3.2 returns false when regions are exactly the rows (nothing outside to mark)", () => {
+    it("07.3.2 returns false when regions are exactly the rows (nothing outside to mark)", () => {
       // Region 0 is exactly row 0, region 1 is exactly row 1, etc.
       const board: Board = {
         grid: [
@@ -283,7 +283,7 @@ describe("11. Overcounting", () => {
       expect(result).toBe(false);
     });
 
-    it("11.3.3 returns false when cells already marked", () => {
+    it("07.3.3 returns false when cells already marked", () => {
       // Region 0 contains row 0, but its only cell outside row 0 is already marked
       // Many unique regions per column prevent column-based overcounting
       const board: Board = {
@@ -309,8 +309,8 @@ describe("11. Overcounting", () => {
     });
   });
 
-  describe("11.4 Edge cases", () => {
-    it("11.4.1 marks non-contiguous cells when region contains a row", () => {
+  describe("07.4 Edge cases", () => {
+    it("07.4.1 marks non-contiguous cells when region contains a row", () => {
       // Region 0 contains row 0, but also has cells in row 2 (non-contiguous)
       // Those non-contiguous cells should be marked
       const board: Board = {
@@ -340,7 +340,7 @@ describe("11. Overcounting", () => {
       expect(cells[2][3]).toBe("marked");
     });
 
-    it("11.4.2 skips regions that already have full star quota", () => {
+    it("07.4.2 skips regions that already have full star quota", () => {
       // Region 0 contains row 0, but already has its star
       // Region 1 spans multiple rows and doesn't contain any row completely
       // Should NOT trigger overcounting since region 0 is "inactive"
@@ -372,7 +372,7 @@ describe("11. Overcounting", () => {
       expect(cells[3][0]).toBe("unknown");
     });
 
-    it("11.4.3 handles smallest valid case with 1 region containing 1 row", () => {
+    it("07.4.3 handles smallest valid case with 1 region containing 1 row", () => {
       // Minimal case
       const board: Board = {
         grid: [
@@ -396,7 +396,7 @@ describe("11. Overcounting", () => {
       expect(cells[1][0]).toBe("marked");
     });
 
-    it("11.4.4 marks all eligible cells in single call (batch behavior)", () => {
+    it("07.4.4 marks all eligible cells in single call (batch behavior)", () => {
       // Multiple cells from multiple regions should be marked in one call
       // Regions 0, 1 contain rows 0-1, both have cells outside
       const board: Board = {
@@ -425,7 +425,7 @@ describe("11. Overcounting", () => {
       expect(cells[2][3]).toBe("marked");
     });
 
-    it("11.4.5 processes rows before columns", () => {
+    it("07.4.5 processes rows before columns", () => {
       // Setup where both row-based and column-based overcounting could apply
       // Implementation processes rows first
       const board: Board = {
