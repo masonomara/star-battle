@@ -3,11 +3,9 @@ import { solve } from "./solver";
 import { GeneratorError, Puzzle, SieveStats, Solution } from "./helpers/types";
 
 // Assign difficulty based on solve metrics
-// Formula: min(10, maxLevel * 2 + floor(cycles / 5))
+// Formula: maxLevel * 4 + cycles / 4
 function assignDifficulty(solution: Solution): Puzzle {
-  const levelBase = solution.maxLevel * 2;
-  const cycleBonus = Math.floor(solution.cycles / 5);
-  const difficulty = Math.min(10, levelBase + cycleBonus);
+  const difficulty = Math.round(solution.maxLevel * 4 + solution.cycles / 4);
   return { ...solution, difficulty };
 }
 
@@ -17,6 +15,8 @@ type SieveOptions = {
   count?: number;
   seed?: number; // deterministic mode: use layout() with incrementing seeds
   maxAttempts?: number;
+  minDifficulty?: number;
+  maxDifficulty?: number;
   onProgress?: (solved: number, attempts: number, stats: SieveStats) => void;
 };
 
@@ -66,7 +66,12 @@ export function sieve(options: SieveOptions = {}): Puzzle[] {
 
     if (result) {
       const solution: Solution = { ...result, board, seed };
-      puzzles.push(assignDifficulty(solution));
+      const puzzle = assignDifficulty(solution);
+      const minDiff = options.minDifficulty ?? 0;
+      const maxDiff = options.maxDifficulty ?? Infinity;
+      if (puzzle.difficulty >= minDiff && puzzle.difficulty <= maxDiff) {
+        puzzles.push(puzzle);
+      }
     } else {
       stats.failures.solver_failed++;
     }

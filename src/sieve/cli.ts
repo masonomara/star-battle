@@ -35,6 +35,7 @@ async function main() {
   if (args.help === "true") {
     console.log(`Usage:
   sieve [--size n] [--stars n] [--count n] [--seed n] [--trace]
+  sieve [--minDiff n] [--maxDiff n]     # filter by difficulty range
   echo "A B B..." | sieve [--stars n]   # solve from input`);
     return;
   }
@@ -53,6 +54,8 @@ async function main() {
   const stars = args.stars ? parseInt(args.stars, 10) : 2;
   const count = args.count ? parseInt(args.count, 10) : 1;
   const seed = args.seed ? parseInt(args.seed, 10) : undefined;
+  const minDiff = args.minDiff ? parseInt(args.minDiff, 10) : undefined;
+  const maxDiff = args.maxDiff ? parseInt(args.maxDiff, 10) : undefined;
 
   if (size < 4 || size > 25 || !Number.isFinite(size)) {
     console.error("Error: size must be between 4 and 25");
@@ -67,8 +70,11 @@ async function main() {
     process.exit(1);
   }
 
+  const diffRange = minDiff !== undefined || maxDiff !== undefined
+    ? `, difficulty ${minDiff ?? 0}-${maxDiff ?? "∞"}`
+    : "";
   console.log(
-    `${size}×${size}, ${stars} stars${seed !== undefined ? `, seed ${seed}` : ""}\n`,
+    `${size}×${size}, ${stars} stars${seed !== undefined ? `, seed ${seed}` : ""}${diffRange}\n`,
   );
 
   if (args.trace === "true" && seed !== undefined) {
@@ -87,7 +93,8 @@ async function main() {
       },
     });
     const traceTime = ((Date.now() - traceStart) / 1000).toFixed(2);
-    console.log(result ? `\n=== SOLVED === ${traceTime}s` : `\n=== STUCK === ${traceTime}s`);
+    const difficulty = result ? Math.round(result.maxLevel * 4 + result.cycles / 4) : null;
+    console.log(result ? `\n=== SOLVED === ${traceTime}s | difficulty: ${difficulty}` : `\n=== STUCK === ${traceTime}s`);
     return;
   }
 
@@ -97,6 +104,8 @@ async function main() {
     stars,
     count,
     seed,
+    minDifficulty: minDiff,
+    maxDifficulty: maxDiff,
     onProgress: (solved, attempts) =>
       process.stdout.write(`\rGenerated: ${attempts} | Solved: ${solved}`),
   });
@@ -161,7 +170,8 @@ function solveFromInput(input: string, stars: number) {
   });
 
   const solveTime = ((Date.now() - solveStart) / 1000).toFixed(2);
-  console.log(result ? `\n=== SOLVED === ${solveTime}s` : `\n=== STUCK === ${solveTime}s`);
+  const difficulty = result ? Math.round(result.maxLevel * 4 + result.cycles / 4) : null;
+  console.log(result ? `\n=== SOLVED === ${solveTime}s | difficulty: ${difficulty}` : `\n=== STUCK === ${solveTime}s`);
 }
 
 main();
