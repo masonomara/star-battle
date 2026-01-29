@@ -36,60 +36,6 @@ describe("12. finnedCounts", () => {
       const someMarked = cells[1][0] === "marked" || cells[1][1] === "marked";
       expect(someMarked).toBe(true);
     });
-
-    it("12.1.2 detects column-based undercounting when star would eliminate region capacity", () => {
-      // Region 0: col 0, rows 0-1
-      // Region 1: col 0, rows 2-3
-      // Both regions span only col 0
-      const board: Board = {
-        grid: [
-          [0, 2, 2, 2],
-          [0, 2, 2, 2],
-          [1, 3, 3, 3],
-          [1, 3, 3, 3],
-        ],
-        stars: 1,
-      };
-      const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
-
-      const result = finnedCounts(board, cells);
-      // A star adjacent to col 0 cells could create violations
-      expect(typeof result).toBe("boolean");
-    });
-  });
-
-  describe("12.2 Overcounting violations", () => {
-    it("12.2.1 marks cell that would force too many rows into too few regions", () => {
-      // Setup where a star would force too many rows into too few regions
-      // Region 0: spans rows 0-1, cols 0-1
-      // Rows 0-1 both contained entirely in region 0
-      // If we place star that eliminates region 0 from one row, violation
-      const board: Board = {
-        grid: [
-          [0, 0, 1, 1],
-          [0, 0, 1, 1],
-          [2, 2, 2, 2],
-          [2, 2, 2, 2],
-        ],
-        stars: 1,
-      };
-      const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
-
-      const result = finnedCounts(board, cells);
-      // May or may not find violations depending on exact geometry
-      // This tests that the function runs without error
-      expect(typeof result).toBe("boolean");
-    });
   });
 
   describe("12.3 No-op cases", () => {
@@ -148,9 +94,11 @@ describe("12. finnedCounts", () => {
   });
 
   describe("12.4 Edge cases", () => {
-    it("12.4.1 handles partially solved board with existing stars", () => {
-      // Region 0: single cell at (0,0) - already tight
-      // Placing a star adjacent to (0,0) would mark it, breaking region 0
+    it("12.4.1 marks cells adjacent to single-cell region that still needs a star", () => {
+      // Region 0: single cell at (0,0) - needs 1 star
+      // Region 1: rest of top two rows - needs 1 star
+      // Region 2: bottom two rows - already has a star at (2,0)
+      // Placing a star at (0,1) or (1,0) or (1,1) would mark (0,0), leaving region 0 with 0 unknowns
       const board: Board = {
         grid: [
           [0, 1, 1, 1],
@@ -168,8 +116,12 @@ describe("12. finnedCounts", () => {
       ];
 
       const result = finnedCounts(board, cells);
-      // Function should handle existing stars correctly
-      expect(typeof result).toBe("boolean");
+
+      expect(result).toBe(true);
+      // Cells adjacent to (0,0) that would mark it if starred: (0,1), (1,0), (1,1)
+      expect(cells[0][1]).toBe("marked");
+      expect(cells[1][0]).toBe("marked");
+      expect(cells[1][1]).toBe("marked");
     });
   });
 });

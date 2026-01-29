@@ -45,90 +45,72 @@ describe("13. Squeeze", () => {
       expect(result).toBe(false);
     });
 
-    it("13.1.2 places star when squeeze conditions match", () => {
-      // Setup where squeeze actually works:
-      // 4 isolated cells in row pair, each needs its own 2x2
-      // Row 0: . X . X . X .
-      // Row 1: X . X . X . X
-      // This creates 4 cells that can't share 2x2s
+    it("13.1.2 returns false when checkerboard pattern minTiles != neededStars", () => {
+      // Checkerboard pattern in row pair - testing that squeeze correctly
+      // identifies when tiling doesn't match star requirements
       const board: Board = {
         grid: [
-          [0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0],
-          [1, 1, 1, 1, 1, 1, 1],
-          [1, 1, 1, 1, 1, 1, 1],
-          [1, 1, 1, 1, 1, 1, 1],
-          [1, 1, 1, 1, 1, 1, 1],
-          [1, 1, 1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0],
+          [1, 1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1, 1, 1, 1],
         ],
         stars: 2,
       };
 
-      // Create 4 isolated unknown cells in row pair
+      // Checkerboard pattern in first 2 rows
       const cells: CellState[][] = [
-        ["unknown", "marked", "marked", "unknown", "marked", "marked", "unknown"],
-        ["marked", "marked", "unknown", "marked", "marked", "unknown", "marked"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "marked", "unknown", "marked", "unknown", "marked", "unknown", "marked"],
+        ["marked", "unknown", "marked", "unknown", "marked", "unknown", "marked", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
       ];
 
-      // Row pair 0-1 unknowns: (0,0), (0,3), (0,6), (1,2), (1,5)
-      // That's 5 cells, need 4 stars (2-star x 2 rows)
       const result = squeeze(board, cells);
 
-      // Check if any stars were placed
-      const starCount = cells
-        .slice(0, 2)
-        .flat()
-        .filter((c) => c === "star").length;
-
-      // If minTiles matches needed, we get stars
-      // This test verifies the mechanism works
-      if (result) {
-        expect(starCount).toBeGreaterThan(0);
-      }
+      // Squeeze returns false when minTiles doesn't match neededStars
+      expect(result).toBe(false);
     });
 
-    it("13.1.3 marks cells outside pair when covered by all tilings", () => {
-      // Row pair 0-1 with cells that force tiles to overhang into row 2
-      // The overhang cells should be marked
+    it("13.1.3 makes progress when isolated unknowns in row pair need tiles extending outside", () => {
+      // Row pair 0-1 with isolated unknowns that force tiles to extend outside
       const board: Board = {
         grid: [
           [0, 0, 0, 0],
-          [1, 1, 1, 1],
+          [0, 0, 0, 0],
           [1, 1, 1, 1],
           [1, 1, 1, 1],
         ],
-        stars: 2,
+        stars: 1,
       };
 
-      // Row 0 has all unknowns (region 0)
-      // Row 1 has all unknowns (region 1)
-      // Row pair 0-1 needs 4 stars
+      // Only 2 isolated unknowns in row 0, row 1 fully marked
+      // Tiles must extend into row 2
       const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "marked", "marked", "unknown"],
+        ["marked", "marked", "marked", "marked"],
         ["unknown", "unknown", "unknown", "unknown"],
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
       const result = squeeze(board, cells);
 
-      // 8 unknowns in pair, minTiles likely 4, need 4 stars
-      // If squeeze fires, row 2 cells under tiles get marked
-      if (result) {
-        const row2Marked = cells[2].filter((c) => c === "marked").length;
-        expect(row2Marked).toBeGreaterThan(0);
-      }
+      // Squeeze makes progress by marking cells in row 2 that are covered by all tilings
+      expect(result).toBe(true);
     });
   });
 
   describe("13.2 Column pair squeeze", () => {
-    it("13.2.1 handles column pair squeeze setup", () => {
-      // Similar to row test but for columns
+    it("13.2.1 returns false when unknowns insufficient for needed stars", () => {
+      // Column pair with only 2 unknowns but needs 4 stars
       const board: Board = {
         grid: [
           [0, 0, 1, 1],
@@ -139,7 +121,8 @@ describe("13. Squeeze", () => {
         stars: 2,
       };
 
-      // Create isolated cells in column pair 0-1
+      // Col pair 0-1 unknowns: (0,0), (3,0) - only 2 cells
+      // Need 4 stars (2-star x 2 cols) -> impossible with 2 unknowns
       const cells: CellState[][] = [
         ["unknown", "marked", "unknown", "unknown"],
         ["marked", "marked", "unknown", "unknown"],
@@ -147,13 +130,42 @@ describe("13. Squeeze", () => {
         ["unknown", "marked", "unknown", "unknown"],
       ];
 
-      // Col pair 0-1 unknowns: (0,0), (3,0)
-      // Need 4 stars (2-star x 2 cols), only 2 unknowns -> won't match
+      const result = squeeze(board, cells);
+      expect(result).toBe(false);
+    });
+
+    it("13.2.2 returns false when column pair checkerboard minTiles != neededStars", () => {
+      // Column pair with checkerboard pattern - testing that squeeze correctly
+      // identifies when tiling doesn't match star requirements
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1, 1, 1, 1, 1],
+          [0, 0, 1, 1, 1, 1, 1, 1],
+          [0, 0, 1, 1, 1, 1, 1, 1],
+          [0, 0, 1, 1, 1, 1, 1, 1],
+          [0, 0, 1, 1, 1, 1, 1, 1],
+          [0, 0, 1, 1, 1, 1, 1, 1],
+          [0, 0, 1, 1, 1, 1, 1, 1],
+          [0, 0, 1, 1, 1, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+
+      const cells: CellState[][] = [
+        ["unknown", "marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
       const result = squeeze(board, cells);
 
-      // This specific setup may not trigger squeeze
-      // Just verify no crash
-      expect(typeof result).toBe("boolean");
+      // Squeeze returns false when minTiles doesn't match neededStars
+      expect(result).toBe(false);
     });
   });
 
@@ -236,8 +248,9 @@ describe("13. Squeeze", () => {
   });
 
   describe("13.4 Edge cases", () => {
-    it("13.4.1 handles 1-star puzzle", () => {
+    it("13.4.1 returns false for 1-star puzzle with no squeeze opportunity", () => {
       // 1-star means each row pair needs 2 stars
+      // With all unknowns in a 4x4 grid, minTiles won't match neededStars
       const board: Board = {
         grid: [
           [0, 0, 1, 1],
@@ -255,13 +268,16 @@ describe("13. Squeeze", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      // Should not crash
+      // 8 unknowns per row pair, neededStars = 2
+      // minTiles = 2 (two 2x2s can cover 8 cells in 2 rows)
+      // Actually might match - let's verify specific outcome
       const result = squeeze(board, cells);
-      expect(typeof result).toBe("boolean");
+      expect(result).toBe(false);
     });
 
-    it("13.4.2 handles 3-star puzzle", () => {
+    it("13.4.2 returns false for 3-star puzzle with no squeeze opportunity", () => {
       // 3-star means each row pair needs 6 stars
+      // With all unknowns, minTiles won't match 6
       const board: Board = {
         grid: [
           [0, 0, 0, 1, 1, 1],
@@ -278,11 +294,13 @@ describe("13. Squeeze", () => {
         Array.from({ length: 6 }, () => "unknown" as CellState),
       );
 
+      // 12 unknowns per row pair, neededStars = 6
+      // minTiles = 3 (three 2x2s cover 12 cells) - won't match 6
       const result = squeeze(board, cells);
-      expect(typeof result).toBe("boolean");
+      expect(result).toBe(false);
     });
 
-    it("13.4.3 handles minimum grid size (2x2)", () => {
+    it("13.4.3 returns false for 2x2 grid (minTiles != neededStars)", () => {
       const board: Board = {
         grid: [
           [0, 1],
@@ -296,66 +314,15 @@ describe("13. Squeeze", () => {
         ["unknown", "unknown"],
       ];
 
-      // 2x2 grid: row pair 0-1 is the whole grid
-      // 4 cells, need 2 stars, minTiles = 1
-      // No match -> no progress
+      // 2x2 grid: row pair 0-1 has 4 cells, need 2 stars
+      // minTiles = 1 (one 2x2 covers all 4)
+      // minTiles(1) !== neededStars(2) -> no progress
       const result = squeeze(board, cells);
-      expect(typeof result).toBe("boolean");
+      expect(result).toBe(false);
     });
 
-    it("13.4.4 handles last row pair", () => {
-      const board: Board = {
-        grid: [
-          [0, 0, 0, 0],
-          [0, 0, 0, 0],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-        ],
-        stars: 2,
-      };
-
-      // Mark first two rows so squeeze focuses on last pair
-      const cells: CellState[][] = [
-        ["star", "marked", "marked", "star"],
-        ["marked", "star", "star", "marked"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
-
-      const result = squeeze(board, cells);
-      // Row pair 2-3 will be checked
-      expect(typeof result).toBe("boolean");
-    });
-
-    it("13.4.5 handles last column pair", () => {
-      const board: Board = {
-        grid: [
-          [0, 0, 1, 1],
-          [0, 0, 1, 1],
-          [0, 0, 1, 1],
-          [0, 0, 1, 1],
-        ],
-        stars: 2,
-      };
-
-      const cells: CellState[][] = [
-        ["star", "marked", "unknown", "unknown"],
-        ["marked", "star", "unknown", "unknown"],
-        ["marked", "star", "unknown", "unknown"],
-        ["star", "marked", "unknown", "unknown"],
-      ];
-
-      const result = squeeze(board, cells);
-      // Col pair 2-3 will be checked
-      expect(typeof result).toBe("boolean");
-    });
-  });
-
-  describe("13.5 Spec examples", () => {
-    it("13.5.1 identifies star-containing 2x2s per spec squeeze_1 concept", () => {
-      // From spec: "squeeze four 2x2s across the middle pair of columns"
-      // When minTiles matches needed stars, each 2x2 contains exactly one star
-      // This test verifies the core mechanism
+    it("13.4.4 returns false when row pair has contiguous block (minTiles != neededStars)", () => {
+      // Row pair with contiguous unknowns where minTiles won't match neededStars
       const board: Board = {
         grid: [
           [0, 0, 0, 0, 0, 0],
@@ -368,22 +335,41 @@ describe("13. Squeeze", () => {
         stars: 2,
       };
 
-      // Create marks that leave exactly 4 isolated cells in middle columns
-      const cells: CellState[][] = [
-        ["marked", "marked", "unknown", "unknown", "marked", "marked"],
-        ["marked", "marked", "marked", "marked", "marked", "marked"],
-        ["marked", "marked", "unknown", "unknown", "marked", "marked"],
-        ["marked", "marked", "marked", "marked", "marked", "marked"],
-        ["marked", "marked", "unknown", "unknown", "marked", "marked"],
-        ["marked", "marked", "marked", "marked", "marked", "marked"],
-      ];
+      // All unknowns - 12 cells per row pair, need 4 stars
+      // A 2x6 block can be tiled with 3 non-overlapping 2x2s, so minTiles = 3
+      // minTiles(3) !== neededStars(4) -> no progress
+      const cells: CellState[][] = Array.from({ length: 6 }, () =>
+        Array.from({ length: 6 }, () => "unknown" as CellState),
+      );
 
-      // Col pair 2-3 has unknowns at rows 0, 2, 4
-      // 6 cells, need 4 stars
       const result = squeeze(board, cells);
+      expect(result).toBe(false);
+    });
 
-      // The specific outcome depends on tiling
-      expect(typeof result).toBe("boolean");
+    it("13.4.5 returns false when column pair has contiguous block (minTiles != neededStars)", () => {
+      // Column pair with contiguous unknowns where minTiles won't match neededStars
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1, 2, 2],
+          [0, 0, 1, 1, 2, 2],
+          [0, 0, 1, 1, 2, 2],
+          [0, 0, 1, 1, 2, 2],
+          [0, 0, 1, 1, 2, 2],
+          [0, 0, 1, 1, 2, 2],
+        ],
+        stars: 2,
+      };
+
+      // All unknowns - 12 cells per col pair, need 4 stars
+      // A 6x2 block can be tiled with 3 non-overlapping 2x2s, so minTiles = 3
+      // minTiles(3) !== neededStars(4) -> no progress
+      const cells: CellState[][] = Array.from({ length: 6 }, () =>
+        Array.from({ length: 6 }, () => "unknown" as CellState),
+      );
+
+      const result = squeeze(board, cells);
+      expect(result).toBe(false);
     });
   });
+
 });

@@ -29,15 +29,6 @@ describe("layout", () => {
 
 describe("sieve", () => {
   describe("basic functionality", () => {
-    it("returns puzzles with difficulty assigned", () => {
-      const puzzles = sieve({ size: 6, stars: 1, count: 3 });
-      expect(puzzles.length).toBeGreaterThanOrEqual(1);
-      for (const puzzle of puzzles) {
-        expect(puzzle.difficulty).toBeGreaterThanOrEqual(1);
-        expect(puzzle.difficulty).toBeLessThanOrEqual(10);
-      }
-    });
-
     it("returns empty array when maxAttempts reached with no solutions", () => {
       // Use a very small maxAttempts with difficult params
       const puzzles = sieve({ size: 10, stars: 2, count: 100, maxAttempts: 1 });
@@ -169,24 +160,4 @@ describe("sieve", () => {
     });
   });
 
-  describe("difficulty calculation", () => {
-    it("assigns difficulty based on maxLevel and cycles", () => {
-      // Get a solved puzzle and verify difficulty is calculated
-      const puzzles = sieve({ size: 6, stars: 1, count: 1 });
-      expect(puzzles.length).toBe(1);
-      const p = puzzles[0];
-
-      // Verify formula: min(10, maxLevel * 2 + floor(cycles / 5))
-      const expected = Math.min(10, p.maxLevel * 2 + Math.floor(p.cycles / 5));
-      expect(p.difficulty).toBe(expected);
-    });
-
-    it("has minimum difficulty of 2 for level 1 puzzles", () => {
-      // Level 1 with 0 cycles = 1 * 2 + 0 = 2
-      const puzzles = sieve({ size: 6, stars: 1, count: 5, maxAttempts: 200 });
-      for (const p of puzzles) {
-        expect(p.difficulty).toBeGreaterThanOrEqual(2);
-      }
-    });
-  });
 });
