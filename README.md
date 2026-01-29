@@ -36,8 +36,8 @@ src/sieve/
 ## Get Started
 
 ```bash
-git clone https://github.com/masonomara/starbattle.git
-cd starbattle
+git clone https://github.com/masonomara/star-battle.git
+cd star-battle
 npm install
 ```
 
