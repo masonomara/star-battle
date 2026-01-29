@@ -1,0 +1,177 @@
+import { sieve } from "./sieve";
+import { layout } from "./generator";
+import { solve, isValidLayout, StepInfo } from "./solver";
+import { CellState } from "./helpers/types";
+import { parsePuzzle } from "./helpers/parsePuzzle";
+
+function parseArgs(): Record<string, string> {
+  const args: Record<string, string> = {};
+  const argv = process.argv.slice(2);
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i].startsWith("--")) {
+      const key = argv[i].slice(2);
+      const nextArg = argv[i + 1];
+      if (nextArg && !nextArg.startsWith("--")) {
+        args[key] = nextArg;
+        i++;
+      } else {
+        args[key] = "true";
+      }
+    }
+  }
+  return args;
+}
+
+async function readStdin(): Promise<string> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks).toString("utf-8");
+}
+
+async function main() {
+  const args = parseArgs();
+  if (args.help === "true") {
+    console.log(`Usage:
+  sieve [--size n] [--stars n] [--count n] [--seed n] [--trace]
+  sieve [--minDiff n] [--maxDiff n]     # filter by difficulty range
+  echo "A B B..." | sieve [--stars n]   # solve from input`);
+    return;
+  }
+
+  // Check for piped input (only if explicitly not a TTY and has data ready)
+  if (!process.stdin.isTTY) {
+    const input = await readStdin();
+    if (input.trim()) {
+      const stars = args.stars ? parseInt(args.stars, 10) : 1;
+      solveFromInput(input, stars);
+      return;
+    }
+  }
+
+  const size = args.size ? parseInt(args.size, 10) : 10;
+  const stars = args.stars ? parseInt(args.stars, 10) : 2;
+  const count = args.count ? parseInt(args.count, 10) : 1;
+  const seed = args.seed ? parseInt(args.seed, 10) : undefined;
+  const minDiff = args.minDiff ? parseInt(args.minDiff, 10) : undefined;
+  const maxDiff = args.maxDiff ? parseInt(args.maxDiff, 10) : undefined;
+
+  if (size < 4 || size > 25 || !Number.isFinite(size)) {
+    console.error("Error: size must be between 4 and 25");
+    process.exit(1);
+  }
+  if (stars < 1 || stars > 6 || !Number.isFinite(stars)) {
+    console.error("Error: stars must be between 1 and 6");
+    process.exit(1);
+  }
+  if (count < 1 || count > 300 || !Number.isFinite(count)) {
+    console.error("Error: count must be between 1 and 300");
+    process.exit(1);
+  }
+
+  const diffRange = minDiff !== undefined || maxDiff !== undefined
+    ? `, difficulty ${minDiff ?? 0}-${maxDiff ?? "∞"}`
+    : "";
+  console.log(
+    `${size}×${size}, ${stars} stars${seed !== undefined ? `, seed ${seed}` : ""}${diffRange}\n`,
+  );
+
+  if (args.trace === "true" && seed !== undefined) {
+    const board = layout(size, stars, seed);
+    console.log("Region grid:");
+    printBoard(board.grid);
+    let prevCells: CellState[][] | null = null;
+    const traceStart = Date.now();
+    const result = solve(board, {
+      onStep: (step: StepInfo) => {
+        console.log(
+          `\n--- Cycle ${step.cycle}: ${step.rule} (level ${step.level}) ---`,
+        );
+        printCellStateWithDiff(step.cells, prevCells);
+        prevCells = step.cells.map((row) => [...row]);
+      },
+    });
+    const traceTime = ((Date.now() - traceStart) / 1000).toFixed(2);
+    const difficulty = result ? Math.round(result.maxLevel * 4 + result.cycles / 4) : null;
+    console.log(result ? `\n=== SOLVED === ${traceTime}s | difficulty: ${difficulty}` : `\n=== STUCK === ${traceTime}s`);
+    return;
+  }
+
+  const startTime = Date.now();
+  const puzzles = sieve({
+    size,
+    stars,
+    count,
+    seed,
+    minDifficulty: minDiff,
+    maxDifficulty: maxDiff,
+    onProgress: (solved, attempts) =>
+      process.stdout.write(`\rGenerated: ${attempts} | Solved: ${solved}`),
+  });
+  console.log(` | ${((Date.now() - startTime) / 1000).toFixed(2)}s\n`);
+
+  if (puzzles.length === 0) {
+    console.log("No solvable puzzles found");
+  } else {
+    for (const p of puzzles) {
+      console.log(
+        `Seed: ${p.seed}\nDifficulty: ${p.difficulty} (cycles: ${p.cycles}, maxLevel: ${p.maxLevel})`,
+      );
+      printBoard(p.board.grid);
+      console.log("");
+    }
+  }
+}
+
+function printBoard(grid: number[][]) {
+  const width = Math.max(...grid.flat()).toString().length;
+  for (const row of grid)
+    console.log(row.map((n) => n.toString().padStart(width)).join(" "));
+}
+
+function printCellStateWithDiff(
+  cells: CellState[][],
+  prev: CellState[][] | null,
+) {
+  const sym = { unknown: ".", marked: "X", star: "★" };
+  for (let r = 0; r < cells.length; r++) {
+    const line = cells[r].map((c, i) => {
+      const s = sym[c];
+      return prev && prev[r][i] !== c ? `\x1b[43m\x1b[30m${s}\x1b[0m` : s;
+    });
+    console.log(line.join(" "));
+  }
+}
+
+function solveFromInput(input: string, stars: number) {
+  const board = parsePuzzle(input, stars);
+
+  if (!isValidLayout(board)) {
+    console.log("Invalid layout");
+    process.exit(1);
+  }
+
+  console.log(`${board.grid.length}x${board.grid.length}, ${stars} star(s)`);
+  console.log("\nRegion grid:");
+  printBoard(board.grid);
+
+  let prevCells: CellState[][] | null = null;
+  const solveStart = Date.now();
+
+  const result = solve(board, {
+    onStep: (step: StepInfo) => {
+      console.log(
+        `\n--- Cycle ${step.cycle}: ${step.rule} (level ${step.level}) ---`,
+      );
+      printCellStateWithDiff(step.cells, prevCells);
+      prevCells = step.cells.map((row) => [...row]);
+    },
+  });
+
+  const solveTime = ((Date.now() - solveStart) / 1000).toFixed(2);
+  const difficulty = result ? Math.round(result.maxLevel * 4 + result.cycles / 4) : null;
+  console.log(result ? `\n=== SOLVED === ${solveTime}s | difficulty: ${difficulty}` : `\n=== STUCK === ${solveTime}s`);
+}
+
+main();

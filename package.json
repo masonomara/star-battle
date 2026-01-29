@@ -1,14 +1,13 @@
 {
-  "name": "star-battle",
-  "version": "0.1.0",
-  "type": "module",
   "scripts": {
-    "generate": "tsx src/generator/commands/generate.ts",
-    "generate:verbose": "tsx src/generator/commands/generate-verbose.ts",
-    "solve": "tsx src/generator/commands/solve-custom.ts"
+    "test": "vitest",
+    "sieve": "npx tsx src/sieve/cli.ts"
   },
   "devDependencies": {
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "@types/node": "^25.0.9",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.17",
+    "wrangler": "^4.59.2"
   }
 }
