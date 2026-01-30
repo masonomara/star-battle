@@ -46,11 +46,11 @@ export function isValidLayout(board: Board): boolean {
 type Rule = (board: Board, cells: CellState[][]) => boolean;
 
 const allRules: { rule: Rule; level: number; name: string }[] = [
-  { rule: forcedPlacement, level: 1, name: "Forced Placement" },
   { rule: starNeighbors, level: 1, name: "Star Neighbors" },
   { rule: rowComplete, level: 1, name: "Row Complete" },
   { rule: columnComplete, level: 1, name: "Column Complete" },
   { rule: regionComplete, level: 1, name: "Region Complete" },
+  { rule: forcedPlacement, level: 1, name: "Forced Placement" },
   { rule: undercounting, level: 2, name: "Undercounting" },
   { rule: overcounting, level: 2, name: "Overcounting" },
   { rule: twoByTwoTiling, level: 3, name: "2×2 Tiling" },
