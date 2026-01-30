@@ -15,7 +15,7 @@ Generating a puzzle with a valid layout and satisfies Star Battle Rules is easy.
 
 - **Generator** – produces a randomized grid divided into _n_ regions, validates star placement via 2×2 tiling
 - **Solver** – executes production rules from simple to complex
-- **Production Rules** – logical solving techniques a human can perform, based on [Kris De Ana's Star Battle Guide](https://kris.pengy.ca/starbattle)
+- **Production Rules** – logical solving techniques a human can perform, based on [Kris De Asis's Star Battle Guide](https://kris.pengy.ca/starbattle)
 - **Sieve** – orchestrates generation and solving, assigns difficulty ratings
 
 ## Project Structure
