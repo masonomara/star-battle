@@ -6,7 +6,7 @@ Star Battle puzzle generator using inference rules that emulate human deduction 
 
 Generating a puzzle with a valid layout and satisfies Star Battle Rules is easy. However, a valid layout may not be solvable by human deduction without guessing. This game is meant to be played by humans. Each rule is logical and able to be computed by a human.
 
-### Star Battle Rules
+### Star Battle Constraints
 
 - Each row, column, and region must contain exactly _n_ stars
 - Stars cannot touch horizontally, vertically, or diagonally
