@@ -1,8 +1,8 @@
 # Star Battle Generator
 
-Star Battle puzzle generator using production rules that emulate human deduction to produce solvable puzzles without brute-force guessing or backtracking.
+Star Battle puzzle generator using inference rules that emulate human deduction to produce solvable puzzles without brute-force guessing or backtracking.
 
-### Why Production Rules?
+### Why Inference Rules?
 
 Generating a puzzle with a valid layout and satisfies Star Battle Rules is easy. However, a valid layout may not be solvable by human deduction without guessing. This game is meant to be played by humans. Each rule is logical and able to be computed by a human.
 
@@ -14,8 +14,8 @@ Generating a puzzle with a valid layout and satisfies Star Battle Rules is easy.
 ### Key Components
 
 - **Generator** – produces a randomized grid divided into _n_ regions, validates star placement via 2×2 tiling
-- **Solver** – executes production rules from simple to complex
-- **Production Rules** – logical solving techniques a human can perform, based on [Kris De Asis's Star Battle Guide](https://kris.pengy.ca/starbattle)
+- **Solver** – executes inference rules from simple to complex
+- **Inference Rules** – logical solving techniques a human can perform, based on [Kris De Asis's Star Battle Guide](https://kris.pengy.ca/starbattle)
 - **Sieve** – orchestrates generation and solving, assigns difficulty ratings
 
 ## Project Structure
@@ -93,7 +93,7 @@ npm test
 - `--trace` – Show solve steps (requires `--seed`)
 - `--help` – Show options
 
-## Production Rules
+## Inference Rules
 
 ### Level 1: Trivial Marks
 

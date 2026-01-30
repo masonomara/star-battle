@@ -112,7 +112,7 @@ export interface SolveOptions {
 }
 
 /**
- * Attempt to solve a Star Battle puzzle using production rules.
+ * Attempt to solve a Star Battle puzzle using inference rules.
  * Accepts optional onStep callback for tracing.
  */
 export function solve(
