@@ -69,20 +69,21 @@ Puzzles are stored in R2 and fetched on demand. Client caches locally for offlin
 
 ```text
 puzzles/
+  manifest.json            # Pack index (id, slug, name, free, order, puzzleCount)
   packs/
-    intro.json           # Free, fetched on first launch
-    1star-5x5.json       # Free
-    1star-6x6.json       # Free
-    1star-8x8.json       # Free
-    2star-10x10.json     # Free
-    3star-14x14.json     # Free
-    expert-25x25.json    # Paid pack (future)
+    a1b2c3.json            # intro (free, fetched on first launch)
+    f2c8a1.json            # 1star-5x5 (free)
+    d4e5f6.json            # 1star-6x6 (free)
+    b7c8d9.json            # 1star-8x8 (free)
+    e1f2a3.json            # 2star-10x10 (free)
+    c4d5e6.json            # 3star-14x14 (free)
+    f7a8b9.json            # expert-25x25 (paid, future)
   daily/
     2025-01-30.sbf
     2025-01-31.sbf
     ...
   weekly/
-    2025-05.sbf
+    2025-W05.sbf
     ...
   monthly/
     2025-01.sbf
@@ -121,23 +122,41 @@ Metadata keys:
 ```typescript
 // packs/{packId}.json
 type PackFile = {
-  id: string; // "1star-5x5"
-  name: string; // "1-Star 5×5"
+  id: string; // stable hash, e.g., "f2c8a1" (generated once at creation)
+  slug: string; // URL-friendly name, e.g., "1star-5x5" (can change)
+  name: string; // display name, e.g., "1-Star 5×5" (can change)
   free: boolean; // true for free packs
-  puzzles: string[]; // Array of SBF strings
+  order: number; // display order in library (1, 2, 3...)
+  puzzles: PackPuzzle[]; // Array of puzzle objects
+};
+
+type PackPuzzle = {
+  id: string; // stable hash, e.g., "a7f3c2" (first 6 chars of SBF SHA-256)
+  sbf: string; // puzzle data in SBF format
 };
 ```
 
+IDs are generated once at pack/puzzle creation time:
+
+- **Pack ID** — First 6 chars of SHA-256 hash of initial pack content (slug + puzzle IDs)
+- **Puzzle ID** — First 6 chars of SHA-256 hash of SBF string
+
+This ensures:
+
+- **Stability** — IDs never change, even if names or order change
+- **Determinism** — Same content always produces same ID
+- **Collision resistance** — 6 hex chars = 16M possibilities, safe at scale
+
 ### Puzzle ID Strategy
 
-Stable, human-readable IDs used in both API requests and progress storage:
+Stable IDs used in both API requests and progress storage:
 
-| Type    | Format                | Example              |
-| ------- | --------------------- | -------------------- |
-| Library | `{pack}:{index}`      | `"1star-5x5:12"`     |
-| Daily   | `daily:{YYYY-MM-DD}`  | `"daily:2025-01-30"` |
-| Weekly  | `weekly:{YYYY}-{WW}`  | `"weekly:2025-05"`   |
-| Monthly | `monthly:{YYYY}-{MM}` | `"monthly:2025-01"`  |
+| Type    | Format                  | Example              |
+| ------- | ----------------------- | -------------------- |
+| Library | `{packId}:{puzzleId}`   | `"f2c8a1:a7f3c2"`    |
+| Daily   | `daily:{YYYY-MM-DD}`    | `"daily:2025-01-30"` |
+| Weekly  | `weekly:{YYYY}-W{WW}`   | `"weekly:2025-W05"`  |
+| Monthly | `monthly:{YYYY}-{MM}`   | `"monthly:2025-01"`  |
 
 ### Client Caching
 
@@ -157,9 +176,11 @@ async function getPuzzle(id: string): Promise<string> {
     return puzzle;
   }
 
-  // Pack puzzle: "1star-5x5:12" → fetch pack, return puzzle at index
+  // Pack puzzle: "f2c8a1:a7f3c2" → fetch pack by hash ID, find puzzle by ID
   const pack = await getOrFetchPack(type);
-  return pack.puzzles[parseInt(key)];
+  const puzzle = pack.puzzles.find((p) => p.id === key);
+  if (!puzzle) throw new Error(`Puzzle ${id} not found in pack`);
+  return puzzle.sbf;
 }
 
 async function getOrFetchPack(packId: string): Promise<PackFile> {
@@ -192,23 +213,28 @@ When the app launches for the first time, all free packs download immediately an
 
 ```typescript
 async function onFirstLaunch() {
-  const freePacks = [
-    "intro",
-    "1star-5x5",
-    "1star-6x6",
-    "1star-8x8",
-    "2star-10x10",
-    "3star-14x14",
-  ];
+  // Fetch pack manifest from server (lists all available packs)
+  const manifest = await fetch("/puzzles/manifest").then((r) => r.json());
 
   // Download all free packs in parallel
-  await Promise.all(freePacks.map((packId) => fetchAndCachePack(packId)));
+  const freePacks = manifest.packs.filter((p: PackMeta) => p.free);
+  await Promise.all(freePacks.map((p: PackMeta) => fetchAndCachePack(p.id)));
 }
 
 async function onPurchase(packId: string) {
   // Download purchased pack immediately after purchase confirmed
   await fetchAndCachePack(packId);
 }
+
+// Manifest response type
+type PackMeta = {
+  id: string; // stable hash, e.g., "f2c8a1"
+  slug: string; // "1star-5x5"
+  name: string; // "1-Star 5×5"
+  free: boolean;
+  order: number;
+  puzzleCount: number;
+};
 ```
 
 ### Cache Behavior
@@ -238,7 +264,7 @@ CREATE INDEX idx_users_email ON users(email);
 -- Puzzle progress (one row per user per puzzle)
 CREATE TABLE puzzle_progress (
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  puzzle_id TEXT NOT NULL,          -- "1star-5x5:12", "daily:2025-01-30"
+  puzzle_id TEXT NOT NULL,          -- "f2c8a1:a7f3c2", "daily:2025-01-30"
   cells TEXT NOT NULL,              -- JSON: flattened cell states
   time_ms INTEGER NOT NULL DEFAULT 0,
   completed INTEGER NOT NULL DEFAULT 0,  -- 0 or 1
@@ -286,7 +312,7 @@ CREATE TABLE user_settings (
 -- Pack progression (tracks sequential unlock within each pack)
 CREATE TABLE pack_progress (
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  pack_id TEXT NOT NULL,                       -- "1star-5x5", "intro"
+  pack_id TEXT NOT NULL,                       -- "f2c8a1", "a1b2c3" (stable hash)
   unlocked_index INTEGER NOT NULL DEFAULT 0,   -- highest unlocked puzzle index
   updated_at INTEGER NOT NULL,
   PRIMARY KEY (user_id, pack_id)
@@ -392,10 +418,18 @@ POST /sync
 ### Puzzles
 
 ```text
+GET /puzzles/manifest
+  Response: { packs: PackMeta[] }
+
+  - Returns all available packs with metadata (id, slug, name, free, order, puzzleCount)
+  - CDN caching: Cache-Control: public, max-age=3600
+  - Client uses this to discover packs and their stable IDs
+
 GET /puzzles/pack/:packId
   Headers:  Authorization: Bearer <token> (optional for free packs)
   Response: PackFile
 
+  - packId is the stable hash ID (e.g., "f2c8a1")
   - Free packs: serve directly from R2
   - Paid packs: verify purchase in D1, then serve
   - CDN caching: Cache-Control: public, max-age=86400
@@ -808,9 +842,10 @@ worker/
 
 r2/
   puzzles/
+    manifest.json         # Pack index with IDs, slugs, names
     packs/
-      intro.json
-      1star-5x5.json
+      a1b2c3.json         # intro
+      f2c8a1.json         # 1star-5x5
       ...
     daily/
       2025-01-30.sbf
