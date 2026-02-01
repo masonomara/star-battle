@@ -308,7 +308,194 @@ describe("10. Exclusion", () => {
     });
   });
 
-  describe("10.7 Spec coverage gaps", () => {
+  describe("10.7 Row and Column exclusion", () => {
+    it("10.7.1 marks cell when star would leave row unable to fit required stars", () => {
+      // Row 0 has 4 cells, needs 2 stars
+      // If star at (1,1), marks (0,0), (0,1), (0,2)
+      // Row 0 left with only (0,3) - can't fit 2 stars
+      // This should be caught by ROW exclusion, not region exclusion
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0],  // Region 0: entire row 0
+          [1, 1, 1, 1],  // Region 1: rows 1-3 (large, not tight)
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = exclusion(board, cells);
+
+      expect(result).toBe(true);
+      // (1,1) should be marked - starring it breaks row 0
+      expect(cells[1][1]).toBe("marked");
+    });
+
+    it("10.7.2 marks cell when star would leave column unable to fit required stars", () => {
+      // Col 0 has 4 cells, needs 2 stars
+      // If star at (1,1), marks (0,0), (1,0), (2,0)
+      // Col 0 left with only (3,0) - can't fit 2 stars
+      // This should be caught by COLUMN exclusion
+      const board: Board = {
+        grid: [
+          [0, 1, 1, 1],  // Region 0: entire col 0
+          [0, 1, 1, 1],
+          [0, 1, 1, 1],
+          [0, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = exclusion(board, cells);
+
+      expect(result).toBe(true);
+      // (1,1) should be marked - starring it breaks col 0
+      expect(cells[1][1]).toBe("marked");
+    });
+
+    it("10.7.3 marks cell when star would leave row with untileable cells", () => {
+      // Row 1 has 5 cells, needs 2 stars
+      // If star at (0,2), marks (1,1), (1,2), (1,3)
+      // Row 1 left with (1,0) and (1,4) - 2 cells for 2 stars
+      // But (1,0) and (1,4) are 4 apart, so they CAN fit 2 stars
+      // Let's make it tighter...
+      //
+      // Actually, let's test: Row 1 has 4 cells at positions 1,2,3,4
+      // Star at (0,2) marks (1,1), (1,2), (1,3)
+      // Row 1 left with (1,4) only - can't fit 2 stars
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0, 0],
+          [0, 1, 1, 1, 1],  // Row 1 has region 1 cells at cols 1-4
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["marked", "unknown", "unknown", "unknown", "unknown"],  // (1,0) already marked
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = exclusion(board, cells);
+
+      expect(result).toBe(true);
+      // (0,2) should be marked - starring it leaves row 1 with only (1,4) for 2 stars
+      expect(cells[0][2]).toBe("marked");
+    });
+
+    it("10.7.4 marks cell when star leaves row with adjacent-only cells", () => {
+      // Row 0 needs 2 stars, has 5 cells
+      // Star at (1,2) marks (0,1), (0,2), (0,3)
+      // Row 0 left with (0,0) and (0,4) - these are NOT adjacent, CAN fit 2 stars
+      // So this should NOT be marked
+      //
+      // But if row has 4 cells at 0,1,2,3:
+      // Star at (1,1) marks (0,0), (0,1), (0,2)
+      // Row 0 left with (0,3) only - can't fit 2 stars
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0, 1],  // Row 0: 4 cells in region 0
+          [0, 0, 0, 0, 1],
+          [0, 0, 0, 0, 1],
+          [0, 0, 0, 0, 1],
+          [0, 0, 0, 0, 1],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = exclusion(board, cells);
+
+      expect(result).toBe(true);
+      // (1,1) should be marked - starring it leaves row 0 unable to fit 2 stars
+      expect(cells[1][1]).toBe("marked");
+    });
+
+    it("10.7.5 does NOT mark cell when row can still fit stars after marking", () => {
+      // Row 0 needs 2 stars, has 6 cells
+      // Star at (1,2) marks (0,1), (0,2), (0,3)
+      // Row 0 left with (0,0), (0,4), (0,5) - 3 cells for 2 stars
+      // These cells CAN fit 2 stars (0,0 and 0,4, or 0,0 and 0,5, etc.)
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 0, 0, 0],
+          [1, 1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = exclusion(board, cells);
+
+      // (1,2) should NOT be marked - row 0 can still fit 2 stars
+      // Actually, we need to check if ANY exclusion happens
+      // The point is (1,2) specifically should not be marked due to row 0
+      expect(cells[1][2]).not.toBe("marked");
+    });
+
+    it("10.7.6 marks cell when column left with insufficient tiling capacity", () => {
+      // Col 0 needs 2 stars
+      // Col 0 cells: rows 0,1,2,3 (4 cells)
+      // Star at (1,1) marks (0,0), (1,0), (2,0)
+      // Col 0 left with only (3,0) - can't fit 2 stars
+      const board: Board = {
+        grid: [
+          [0, 1, 1, 1],
+          [0, 1, 1, 1],
+          [0, 1, 1, 1],
+          [0, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = exclusion(board, cells);
+
+      expect(result).toBe(true);
+      expect(cells[1][1]).toBe("marked");
+    });
+  });
+
+  describe("10.8 Spec coverage gaps", () => {
     it("10.7.1 marks all excludable cells in one call (batch behavior)", () => {
       // Two single-cell tight regions - both have excludable neighbors
       // Function should mark all excludable cells in one call

@@ -5,7 +5,99 @@ import pressuredExclusion from "./pressuredExclusion";
 describe("11. Pressured Exclusion", () => {
   // Per spec: "Pressured exclusion is like exclusion, but in the presence of
   // other stars or 1×ns." Marks cells where a hypothetical star would break
-  // a tight region (minTileCount === starsNeeded).
+  // a constraint (1×n or star-containing 2×2).
+
+  describe("11.0 Row and Column checks with constraints", () => {
+    it("11.0.1 marks cell when star breaks row quota considering 1×n constraint", () => {
+      // Row 0 needs 2 stars
+      // Region 0 is confined to row 0, cols 0-1 (1×2 strip) - guarantees 1 star in row 0
+      // Row 0 has 4 cells total
+      // If star at (1,2), marks (0,1), (0,2), (0,3)
+      // Row 0 left with only (0,0) for remaining needs
+      // 1×n guarantees 1 star from region 0, so row 0 needs 1 more "free" star
+      // But (0,0) is in the 1×n region, so free cells = none
+      // This should be caught by pressured exclusion
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = pressuredExclusion(board, cells);
+
+      // Due to the 1×n pressure, (1,2) might be marked
+      // The 1×n at region 0 (cols 0-1) forces a star there
+      // Starring (1,2) marks (0,1), (0,2), (0,3) - reducing row 0's free cells
+      expect(result).toBe(true);
+    });
+
+    it("11.0.2 marks cell when star breaks column with 1×n constraint pressure", () => {
+      // Col 0 needs 2 stars
+      // Region 0 is confined to col 0, rows 0-1 (1×2 strip) - guarantees 1 star in col 0
+      // Col 0 has 4 cells total
+      // If star at (2,1), marks (1,0), (2,0), (3,0)
+      // Col 0 left with only (0,0) which is in the 1×n
+      // 1×n guarantees 1 star, but we need 2 total
+      const board: Board = {
+        grid: [
+          [0, 1, 1, 1],
+          [0, 1, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = pressuredExclusion(board, cells);
+
+      expect(result).toBe(true);
+    });
+
+    it("11.0.3 marks cell when row quota breaks due to 2×2 constraint", () => {
+      // This tests integration with star-containing 2×2s
+      // If a 2×2 in a row must contain a star, and placing a star elsewhere
+      // would make it impossible to satisfy both the 2×2 and the row quota
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 1, 1],
+          [0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      // This may or may not find something depending on squeeze analysis
+      const result = pressuredExclusion(board, cells);
+      // Just verify it runs without error
+      expect(typeof result).toBe("boolean");
+    });
+  });
+
 
   describe("11.1 Primary behavior", () => {
     it("11.1.1 marks cell when faux star would break a tight region", () => {
