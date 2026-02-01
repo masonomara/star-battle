@@ -13,6 +13,7 @@ import pressuredExclusion from "./rules/11-pressuredExclusion/pressuredExclusion
 import finnedCounts from "./rules/12-finnedCounts/finnedCounts";
 import squeeze from "./rules/13-squeeze/squeeze";
 import compositeRegions from "./rules/14-compositeRegions/compositeRegions";
+import deepExclusion from "./rules/15-deepExclusion/deepExclusion";
 
 /**
  * Check if a board layout is valid before attempting to solve.
@@ -60,6 +61,7 @@ const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: finnedCounts, level: 5, name: "Finned Counts" },
   { rule: squeeze, level: 5, name: "The Squeeze" },
   { rule: compositeRegions, level: 6, name: "Composite Regions" },
+  { rule: deepExclusion, level: 7, name: "Deep Exclusion" },
 ];
 
 const MAX_CYCLES = 1000;

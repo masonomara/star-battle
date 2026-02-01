@@ -238,6 +238,7 @@ const RULE_METADATA: { name: string; level: number }[] = [
   { name: "Finned Counts", level: 5 },
   { name: "The Squeeze", level: 5 },
   { name: "Composite Regions", level: 6 },
+  { name: "Deep Exclusion", level: 7 },
 ];
 
 interface RuleStats {
