@@ -61,7 +61,8 @@ const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: finnedCounts, level: 5, name: "Finned Counts" },
   { rule: squeeze, level: 5, name: "The Squeeze" },
   { rule: compositeRegions, level: 6, name: "Composite Regions" },
-  { rule: deepExclusion, level: 7, name: "Deep Exclusion" },
+
+  { rule: (b, c) => deepExclusion(b, c, { maxDepth: 2 }), level: 7, name: "Deep Exclusion" },
 ];
 
 const MAX_CYCLES = 1000;
