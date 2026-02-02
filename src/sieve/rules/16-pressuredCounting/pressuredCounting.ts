@@ -30,7 +30,6 @@ type RegionData = {
   starsNeeded: number;
   unknownInside: Coord[];
   unknownOutside: Coord[];
-  capacityInside: number;
   capacityOutside: number;
   mustContribute: number; // min stars that MUST go inside
   starsOutside: number; // stars that MUST go outside (starsNeeded - mustContribute)
@@ -88,7 +87,6 @@ function analyzeLineRange(
 
     if (unknownInside.length === 0) continue;
 
-    const capacityInside = calculateCapacity(unknownInside);
     const capacityOutside = calculateCapacity(unknownOutside);
     const mustContribute = Math.max(0, starsNeeded - capacityOutside);
     const starsOutside = starsNeeded - mustContribute;
@@ -98,7 +96,6 @@ function analyzeLineRange(
       starsNeeded,
       unknownInside,
       unknownOutside,
-      capacityInside,
       capacityOutside,
       mustContribute,
       starsOutside,

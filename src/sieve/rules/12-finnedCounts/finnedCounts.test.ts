@@ -38,6 +38,45 @@ describe("12. finnedCounts", () => {
     });
   });
 
+  describe("12.2 Overcounting detection", () => {
+    it("12.2.1 should mark cell that would create overcounting violation", () => {
+      // Rows 0-2 span regions 0, 1, 2 (3 regions for 3 rows: balanced)
+      // Region 0: cols 0-1 in rows 0-2
+      // Region 2: col 2 in rows 0-2
+      // Region 1: col 3 in rows 0-2
+      // Region 3: row 3
+      //
+      // A star in region 2 (col 2) marks neighbors in col 2, leaving rows
+      // with unknowns only in region 0. Two rows needing stars from one
+      // region that can only provide one star = overcounting violation.
+      const board: Board = {
+        grid: [
+          [0, 0, 2, 1],
+          [0, 0, 2, 1],
+          [0, 0, 2, 1],
+          [3, 3, 3, 3],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = finnedCounts(board, cells);
+
+      expect(result).toBe(true);
+      // Stars in region 2 (column 2) would create overcounting violations
+      const colTwoMarked =
+        cells[0][2] === "marked" ||
+        cells[1][2] === "marked" ||
+        cells[2][2] === "marked";
+      expect(colTwoMarked).toBe(true);
+    });
+  });
+
   describe("12.3 No-op cases", () => {
     it("12.3.1 returns false when large open grid has no violations", () => {
       // Large open grid - plenty of room
