@@ -47,22 +47,25 @@ export function isValidLayout(board: Board): boolean {
 type Rule = (board: Board, cells: CellState[][]) => boolean;
 
 const allRules: { rule: Rule; level: number; name: string }[] = [
-  { rule: starNeighbors, level: 1, name: "Star Neighbors" },
-  { rule: rowComplete, level: 1, name: "Row Complete" },
-  { rule: columnComplete, level: 1, name: "Column Complete" },
-  { rule: regionComplete, level: 1, name: "Region Complete" },
-  { rule: forcedPlacement, level: 1, name: "Forced Placement" },
+  { rule: starNeighbors, level: 0, name: "Star Neighbors" },
+  { rule: rowComplete, level: 0, name: "Row Complete" },
+  { rule: columnComplete, level: 0, name: "Column Complete" },
+  { rule: regionComplete, level: 0, name: "Region Complete" },
+  { rule: forcedPlacement, level: 0, name: "Forced Placement" },
+  { rule: exclusion, level: 1, name: "Exclusion" },
   { rule: undercounting, level: 2, name: "Undercounting" },
   { rule: overcounting, level: 2, name: "Overcounting" },
   { rule: twoByTwoTiling, level: 3, name: "2×2 Tiling" },
-  { rule: oneByNConfinement, level: 4, name: "1×n Confinement" },
-  { rule: exclusion, level: 4, name: "Exclusion" },
+  { rule: oneByNConfinement, level: 3, name: "1×n Confinement" },
+  { rule: squeeze, level: 4, name: "The Squeeze" },
   { rule: pressuredExclusion, level: 5, name: "Pressured Exclusion" },
   { rule: finnedCounts, level: 5, name: "Finned Counts" },
-  { rule: squeeze, level: 5, name: "The Squeeze" },
   { rule: compositeRegions, level: 6, name: "Composite Regions" },
-
-  { rule: (b, c) => deepExclusion(b, c, { maxDepth: 2 }), level: 7, name: "Deep Exclusion" },
+  {
+    rule: (b, c) => deepExclusion(b, c, { maxDepth: 2 }),
+    level: 7,
+    name: "Deep Exclusion",
+  },
 ];
 
 const MAX_CYCLES = 1000;
@@ -75,7 +78,10 @@ export type BoardStatus = "solved" | "valid" | "invalid";
  * - "solved": all star counts match target
  * - "valid": solvable but not yet complete
  */
-export function checkBoardState(board: Board, cells: CellState[][]): BoardStatus {
+export function checkBoardState(
+  board: Board,
+  cells: CellState[][],
+): BoardStatus {
   const size = board.grid.length;
 
   const starsByRow = new Array(size).fill(0);
@@ -100,14 +106,18 @@ export function checkBoardState(board: Board, cells: CellState[][]): BoardStatus
         if (row + 1 < size) {
           if (cells[row + 1][col] === "star") return "invalid";
           if (col > 0 && cells[row + 1][col - 1] === "star") return "invalid";
-          if (col + 1 < size && cells[row + 1][col + 1] === "star") return "invalid";
+          if (col + 1 < size && cells[row + 1][col + 1] === "star")
+            return "invalid";
         }
       }
 
       if (cell !== "marked") {
         availableByRow[row]++;
         availableByCol[col]++;
-        availableByRegion.set(regionId, (availableByRegion.get(regionId) ?? 0) + 1);
+        availableByRegion.set(
+          regionId,
+          (availableByRegion.get(regionId) ?? 0) + 1,
+        );
       }
     }
   }
