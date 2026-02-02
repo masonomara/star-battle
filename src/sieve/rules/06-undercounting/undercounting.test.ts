@@ -375,5 +375,74 @@ describe("06. Undercounting", () => {
       // Either way, something should be marked
       expect(result).toBe(true);
     });
+
+    it("06.4.5 finds union-based patterns where no single region spans container", () => {
+      // Region 0 spans rows {0, 1}
+      // Region 1 spans rows {1, 2}
+      // Region 2 spans rows {0, 2}
+      // Union is {0, 1, 2} - 3 regions in 3 rows
+      // No single region spans all 3 rows, so single-region seeding misses this
+      const board: Board = {
+        grid: [
+          [0, 0, 2, 2, 3],
+          [0, 0, 1, 1, 3],
+          [2, 2, 1, 1, 3],
+          [3, 3, 3, 3, 3],
+          [3, 3, 3, 3, 3],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = undercounting(board, cells);
+
+      // Regions 0, 1, 2 together span rows {0, 1, 2}
+      // 3 regions fully contained in 3 rows
+      // Region 3 cells in rows 0-2 should be marked: (0,4), (1,4), (2,4)
+      expect(result).toBe(true);
+      expect(cells[0][4]).toBe("marked");
+      expect(cells[1][4]).toBe("marked");
+      expect(cells[2][4]).toBe("marked");
+    });
+
+    it("06.4.6 finds union-based column patterns", () => {
+      // Region 0 spans cols {0, 1}
+      // Region 1 spans cols {1, 2}
+      // Region 2 spans cols {0, 2}
+      // Union is {0, 1, 2} - 3 regions in 3 cols
+      const board: Board = {
+        grid: [
+          [0, 0, 3, 3, 3],
+          [0, 1, 1, 3, 3],
+          [2, 1, 2, 3, 3],
+          [3, 3, 3, 3, 3],
+          [3, 3, 3, 3, 3],
+        ],
+        stars: 1,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = undercounting(board, cells);
+
+      // Regions 0, 1, 2 together span cols {0, 1, 2}
+      // 3 regions fully contained in 3 cols
+      // Region 3 cells in cols 0-2 should be marked: row 3 cols 0-2
+      expect(result).toBe(true);
+      expect(cells[3][0]).toBe("marked");
+      expect(cells[3][1]).toBe("marked");
+      expect(cells[3][2]).toBe("marked");
+    });
   });
 });
