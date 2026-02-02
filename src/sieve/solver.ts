@@ -18,7 +18,6 @@ import finnedCounts from "./rules/12-finnedCounts/finnedCounts";
 import squeeze from "./rules/13-squeeze/squeeze";
 import compositeRegions from "./rules/14-compositeRegions/compositeRegions";
 import deepExclusion from "./rules/15-deepExclusion/deepExclusion";
-import pressuredCounting from "./rules/16-pressuredCounting/pressuredCounting";
 
 /**
  * Check if a board layout is valid before attempting to solve.
@@ -77,7 +76,6 @@ const allRules: RuleEntry[] = [
   { rule: squeeze, level: 4, name: "The Squeeze", needsAnalysis: false },
   { rule: pressuredExclusion, level: 5, name: "Pressured Exclusion", needsAnalysis: true },
   { rule: finnedCounts, level: 5, name: "Finned Counts", needsAnalysis: true },
-  { rule: pressuredCounting, level: 5, name: "Pressured Counting", needsAnalysis: true },
   { rule: compositeRegions, level: 6, name: "Composite Regions", needsAnalysis: true },
   {
     rule: (b: Board, c: CellState[][]) => deepExclusion(b, c, { maxDepth: 2 }),
