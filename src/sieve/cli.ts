@@ -224,19 +224,20 @@ function parseSbf(sbf: string): Board {
 
 // Rule metadata for reporting (must match solver.ts allRules)
 const RULE_METADATA: { name: string; level: number }[] = [
-  { name: "Star Neighbors", level: 1 },
-  { name: "Row Complete", level: 1 },
-  { name: "Column Complete", level: 1 },
-  { name: "Region Complete", level: 1 },
-  { name: "Forced Placement", level: 1 },
+  { name: "Star Neighbors", level: 0 },
+  { name: "Row Complete", level: 0 },
+  { name: "Column Complete", level: 0 },
+  { name: "Region Complete", level: 0 },
+  { name: "Forced Placement", level: 0 },
+  { name: "Exclusion", level: 1 },
   { name: "Undercounting", level: 2 },
   { name: "Overcounting", level: 2 },
   { name: "2×2 Tiling", level: 3 },
-  { name: "1×n Confinement", level: 4 },
-  { name: "Exclusion", level: 4 },
+  { name: "1×n Confinement", level: 3 },
+  { name: "The Squeeze", level: 4 },
   { name: "Pressured Exclusion", level: 5 },
   { name: "Finned Counts", level: 5 },
-  { name: "The Squeeze", level: 5 },
+  { name: "Pressured Counting", level: 5 },
   { name: "Composite Regions", level: 6 },
   { name: "Deep Exclusion", level: 7 },
 ];
