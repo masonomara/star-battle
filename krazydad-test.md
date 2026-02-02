@@ -17,11 +17,13 @@ Testing solver against 1000 puzzles from Krazydad's 10x10 2-star collection.
 ## Data Formats
 
 **Input** (`random_sample_10x10.txt`):
+
 ```
 10,10,2,"AAAABBBBB...","0101000000..." # comment
 ```
 
 **SBF** (`puzzles.sbf`):
+
 ```
 10x2.0000111122...
 ```
@@ -32,6 +34,12 @@ Testing solver against 1000 puzzles from Krazydad's 10x10 2-star collection.
 
 ```bash
 ./scripts/convert-to-sbf.sh random_sample_10x10.txt > puzzles.sbf
+```
+
+### Find first three unsolved puzzles
+
+```bash
+head -3 unsolved_clean.sbf | npx tsx src/sieve/cli.ts --sbf /dev/stdin --trace
 ```
 
 ### Run solver and get rule usage stats
@@ -66,21 +74,3 @@ npx tsx src/sieve/cli.ts --sbf unsolved_clean.sbf --trace > trace_all.txt 2>&1
 npx tsx src/sieve/cli.ts --sbf puzzles.sbf --verbose
 ```
 
-## Rule Usage Summary (1000 puzzles)
-
-| Rule | Level | Times Used | % of Puzzles |
-|------|-------|------------|--------------|
-| Forced Placement | L1 | 14529 | 94% |
-| Star Neighbors | L1 | 7543 | 94% |
-| Column Complete | L1 | 2959 | 87% |
-| Row Complete | L1 | 1685 | 74% |
-| Region Complete | L1 | 354 | 29% |
-| Undercounting | L2 | 756 | 76% |
-| Overcounting | L2 | 148 | 15% |
-| 2×2 Tiling | L3 | 3204 | 99% |
-| Exclusion | L4 | 3939 | 100% |
-| 1×n Confinement | L4 | 732 | 54% |
-| Finned Counts | L5 | 1184 | 73% |
-| The Squeeze | L5 | 200 | 18% |
-| Pressured Exclusion | L5 | 0 | 0% |
-| Composite Regions | L6 | 99 | 8% |
