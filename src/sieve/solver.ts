@@ -58,10 +58,10 @@ const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: overcounting, level: 2, name: "Overcounting" },
   { rule: twoByTwoTiling, level: 3, name: "2×2 Tiling" },
   { rule: oneByNConfinement, level: 3, name: "1×n Confinement" },
-  { rule: pressuredCounting, level: 3, name: "Pressured Counting" },
   { rule: squeeze, level: 4, name: "The Squeeze" },
   { rule: pressuredExclusion, level: 5, name: "Pressured Exclusion" },
   { rule: finnedCounts, level: 5, name: "Finned Counts" },
+  { rule: pressuredCounting, level: 5, name: "Pressured Counting" },
   { rule: compositeRegions, level: 6, name: "Composite Regions" },
   {
     rule: (b, c) => deepExclusion(b, c, { maxDepth: 2 }),
