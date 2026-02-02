@@ -35,7 +35,7 @@ export function findOneByNConstraints(
 
   // Use pre-computed data if analysis provided
   if (analysis) {
-    for (const [regionId, meta] of analysis.regionMetas) {
+    for (const [regionId, meta] of analysis.regions) {
       const { unknownCoords, starsNeeded } = meta;
 
       if (starsNeeded <= 0 || unknownCoords.length === 0) continue;

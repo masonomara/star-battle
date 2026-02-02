@@ -21,17 +21,18 @@ export default function undercounting(
   cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
-  const { size, regionRows, regionCols, activeRegions } = analysis;
-  const active = activeRegions.map((r) => r.id);
+  const { size, regions } = analysis;
+
+  const regionIds = [...regions.keys()];
 
   const inRows = (id: number, rows: Set<number>) =>
-    [...regionRows.get(id)!].every((row) => rows.has(row));
+    [...regions.get(id)!.rows].every((row) => rows.has(row));
   const inCols = (id: number, cols: Set<number>) =>
-    [...regionCols.get(id)!].every((col) => cols.has(col));
+    [...regions.get(id)!.cols].every((col) => cols.has(col));
 
   // Helper to apply undercounting for a given row set
   const applyRowUndercounting = (rows: Set<number>): boolean => {
-    const contained = active.filter((i) => inRows(i, rows));
+    const contained = regionIds.filter((i) => inRows(i, rows));
     if (contained.length === rows.size) {
       const set = new Set(contained);
       let localChanged = false;
@@ -50,7 +51,7 @@ export default function undercounting(
 
   // Helper to apply undercounting for a given col set
   const applyColUndercounting = (cols: Set<number>): boolean => {
-    const contained = active.filter((i) => inCols(i, cols));
+    const contained = regionIds.filter((i) => inCols(i, cols));
     if (contained.length === cols.size) {
       const set = new Set(contained);
       let localChanged = false;
@@ -74,29 +75,31 @@ export default function undercounting(
   let colChanged = false;
 
   // Single-region seeding
-  for (const id of active) {
-    const rowKey = [...regionRows.get(id)!].sort((a, b) => a - b).join(",");
+  for (const id of regionIds) {
+    const regionRows = regions.get(id)!.rows;
+    const rowKey = [...regionRows].sort((a, b) => a - b).join(",");
     if (!processedRows.has(rowKey)) {
       processedRows.add(rowKey);
-      if (applyRowUndercounting(regionRows.get(id)!)) rowChanged = true;
+      if (applyRowUndercounting(regionRows)) rowChanged = true;
     }
   }
-  for (const id of active) {
-    const colKey = [...regionCols.get(id)!].sort((a, b) => a - b).join(",");
+  for (const id of regionIds) {
+    const regionCols = regions.get(id)!.cols;
+    const colKey = [...regionCols].sort((a, b) => a - b).join(",");
     if (!processedCols.has(colKey)) {
       processedCols.add(colKey);
-      if (applyColUndercounting(regionCols.get(id)!)) colChanged = true;
+      if (applyColUndercounting(regionCols)) colChanged = true;
     }
   }
 
   // Union-based seeding: combinations of 2 to N regions
-  const maxCombinationSize = Math.min(active.length, 24);
+  const maxCombinationSize = Math.min(regionIds.length, 24);
   for (let k = 2; k <= maxCombinationSize; k++) {
-    for (const combo of combinations(active, k)) {
+    for (const combo of combinations(regionIds, k)) {
       // Row union
       const rowUnion = new Set<number>();
       for (const id of combo) {
-        for (const row of regionRows.get(id)!) rowUnion.add(row);
+        for (const row of regions.get(id)!.rows) rowUnion.add(row);
       }
       const rowKey = [...rowUnion].sort((a, b) => a - b).join(",");
       if (!processedRows.has(rowKey)) {
@@ -107,7 +110,7 @@ export default function undercounting(
       // Col union
       const colUnion = new Set<number>();
       for (const id of combo) {
-        for (const col of regionCols.get(id)!) colUnion.add(col);
+        for (const col of regions.get(id)!.cols) colUnion.add(col);
       }
       const colKey = [...colUnion].sort((a, b) => a - b).join(",");
       if (!processedCols.has(colKey)) {

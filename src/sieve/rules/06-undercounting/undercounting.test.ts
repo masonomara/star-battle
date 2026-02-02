@@ -298,9 +298,9 @@ describe("06. Undercounting", () => {
       expect(cells[2][3]).toBe("marked"); // region 2 in row 2
     });
 
-    it("06.4.2 skips regions that already have full star quota", () => {
-      // Region 0 contained in row 0, but already has its star
-      // Should NOT trigger undercounting since region 0 is "inactive"
+    it("06.4.2 marks cells when region is fully contained in row", () => {
+      // Region 0 contained in row 0 (has its star already, but still applies)
+      // 1 region in 1 row → mark other cells in that row
       const board: Board = {
         grid: [
           [0, 0, 0, 1],
@@ -317,14 +317,12 @@ describe("06. Undercounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      // Region 0 already has 1 star (= board.stars), so it's inactive
-      // Implementation filters to active regions only
       const result = runUndercounting(board, cells);
 
-      // Should return false - no undercounting applies with inactive region
-      expect(result).toBe(false);
-      // Cell (0,3) should NOT be marked since region 0 is inactive
-      expect(cells[0][3]).toBe("unknown");
+      // Region 0 is fully in row 0, so all stars in row 0 must be in region 0
+      // Cell (0,3) is in region 1 but row 0, so it gets marked
+      expect(result).toBe(true);
+      expect(cells[0][3]).toBe("marked");
     });
 
     it("06.4.3 marks all eligible cells in single call", () => {

@@ -117,7 +117,10 @@ export function computeAllStrips(
   // Use pre-computed regionStars if analysis provided, otherwise compute
   let regionStars: Map<number, number>;
   if (analysis) {
-    regionStars = analysis.regionStars;
+    regionStars = new Map();
+    for (const [id, meta] of analysis.regions) {
+      regionStars.set(id, meta.starsPlaced);
+    }
   } else {
     regionStars = new Map<number, number>();
     for (let row = 0; row < numRows; row++) {

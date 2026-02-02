@@ -31,12 +31,12 @@ type Composite = {
  */
 function buildAdjacencyGraph(
   board: Board,
-  regionMetas: Map<number, RegionMeta>,
+  regions: Map<number, RegionMeta>,
 ): Map<number, Set<number>> {
   const adjacency = new Map<number, Set<number>>();
   const size = board.grid.length;
 
-  for (const [id] of regionMetas) {
+  for (const [id] of regions) {
     adjacency.set(id, new Set());
   }
 
@@ -54,14 +54,14 @@ function buildAdjacencyGraph(
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
       const id = board.grid[row][col];
-      if (!regionMetas.has(id)) continue;
+      if (!regions.has(id)) continue;
 
       for (const [drow, dcol] of deltas) {
         const nrow = row + drow;
         const ncol = col + dcol;
         if (nrow >= 0 && nrow < size && ncol >= 0 && ncol < size) {
           const neighborId = board.grid[nrow][ncol];
-          if (neighborId !== id && regionMetas.has(neighborId)) {
+          if (neighborId !== id && regions.has(neighborId)) {
             adjacency.get(id)!.add(neighborId);
           }
         }
@@ -79,12 +79,12 @@ function buildAdjacencyGraph(
 function findUndercountingComposites(
   board: Board,
   cells: CellState[][],
-  regionMetas: Map<number, RegionMeta>,
+  regions: Map<number, RegionMeta>,
   axis: "row" | "col",
 ): Composite[] {
   const composites: Composite[] = [];
   const size = board.grid.length;
-  const activeRegions = [...regionMetas.values()].filter(
+  const activeRegions = [...regions.values()].filter(
     (r) => r.starsNeeded > 0,
   );
 
@@ -92,12 +92,12 @@ function findUndercountingComposites(
 
   for (const seedRegion of activeRegions) {
     // Use allRows/allCols for the seed lines (full region extent)
-    const lines = axis === "row" ? seedRegion.allRows : seedRegion.allCols;
+    const lines = axis === "row" ? seedRegion.rows : seedRegion.cols;
     if (lines.size === 0) continue;
 
     // Find all regions fully contained in these lines (using full extent)
     const contained = activeRegions.filter((r) => {
-      const rLines = axis === "row" ? r.allRows : r.allCols;
+      const rLines = axis === "row" ? r.rows : r.cols;
       if (rLines.size === 0) return false;
       return [...rLines].every((l) => lines.has(l));
     });
@@ -164,12 +164,12 @@ function findUndercountingComposites(
 function findOvercountingComposites(
   board: Board,
   cells: CellState[][],
-  regionMetas: Map<number, RegionMeta>,
+  regions: Map<number, RegionMeta>,
   axis: "row" | "col",
 ): Composite[] {
   const composites: Composite[] = [];
   const size = board.grid.length;
-  const activeRegions = [...regionMetas.values()].filter(
+  const activeRegions = [...regions.values()].filter(
     (r) => r.starsNeeded > 0,
   );
 
@@ -185,7 +185,7 @@ function findOvercountingComposites(
 
   for (const region of activeRegions) {
     // Use allRows/allCols for complete coverage
-    const allLines = axis === "row" ? region.allRows : region.allCols;
+    const allLines = axis === "row" ? region.rows : region.cols;
     const unknownLines = axis === "row" ? region.unknownRows : region.unknownCols;
     for (const line of allLines) {
       lineToRegions.get(line)!.add(region.id);
@@ -235,7 +235,7 @@ function findOvercountingComposites(
           // Leftover = region cells outside these lines
           const leftoverCells: Coord[] = [];
           for (const regId of regSet) {
-            const region = regionMetas.get(regId)!;
+            const region = regions.get(regId)!;
             for (const [row, col] of region.coords) {
               const lineIdx = axis === "row" ? row : col;
               if (!lineSet.has(lineIdx)) {
@@ -287,12 +287,12 @@ function findOvercountingComposites(
 function findCombinationComposites(
   board: Board,
   cells: CellState[][],
-  regionMetas: Map<number, RegionMeta>,
+  regions: Map<number, RegionMeta>,
   adjacency: Map<number, Set<number>>,
 ): Composite[] {
   const composites: Composite[] = [];
   const processed = new Set<string>();
-  const activeRegions = [...regionMetas.values()].filter(
+  const activeRegions = [...regions.values()].filter(
     (r) => r.starsNeeded > 0,
   );
 
@@ -320,7 +320,7 @@ function findCombinationComposites(
     for (const id2 of neighbors1) {
       if (id2 <= r1.id) continue; // Avoid duplicates
 
-      const r2 = regionMetas.get(id2);
+      const r2 = regions.get(id2);
       if (!r2 || r2.starsNeeded <= 0) continue;
 
       const key = `${r1.id}-${id2}`;
@@ -354,7 +354,7 @@ function findCombinationComposites(
     for (const id2 of neighbors1) {
       if (id2 <= r1.id) continue;
 
-      const r2 = regionMetas.get(id2);
+      const r2 = regions.get(id2);
       if (!r2 || r2.starsNeeded <= 0) continue;
 
       const neighbors2 = adjacency.get(id2);
@@ -364,7 +364,7 @@ function findCombinationComposites(
       for (const id3 of neighbors2) {
         if (id3 <= id2) continue; // Avoid duplicates via sorted order
 
-        const r3 = regionMetas.get(id3);
+        const r3 = regions.get(id3);
         if (!r3 || r3.starsNeeded <= 0) continue;
 
         const tripletKey = `${r1.id}-${id2}-${id3}`;
@@ -399,7 +399,7 @@ function findCombinationComposites(
         if (id3 <= id2) continue;
         if (!neighbors2.has(id3)) continue; // Must also be adjacent to r2
 
-        const r3 = regionMetas.get(id3);
+        const r3 = regions.get(id3);
         if (!r3 || r3.starsNeeded <= 0) continue;
 
         const tripletKey = `${r1.id}-${id2}-${id3}`;
@@ -797,18 +797,18 @@ export default function compositeRegions(
   cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
-  const { size, regionMetas } = analysis;
+  const { size, regions } = analysis;
   if (size === 0) return false;
 
-  const adjacency = buildAdjacencyGraph(board, regionMetas);
+  const adjacency = buildAdjacencyGraph(board, regions);
 
   // Collect all composites
   const composites: Composite[] = [
-    ...findUndercountingComposites(board, cells, regionMetas, "row"),
-    ...findUndercountingComposites(board, cells, regionMetas, "col"),
-    ...findOvercountingComposites(board, cells, regionMetas, "row"),
-    ...findOvercountingComposites(board, cells, regionMetas, "col"),
-    ...findCombinationComposites(board, cells, regionMetas, adjacency),
+    ...findUndercountingComposites(board, cells, regions, "row"),
+    ...findUndercountingComposites(board, cells, regions, "col"),
+    ...findOvercountingComposites(board, cells, regions, "row"),
+    ...findOvercountingComposites(board, cells, regions, "col"),
+    ...findCombinationComposites(board, cells, regions, adjacency),
   ];
 
   if (composites.length === 0) return false;

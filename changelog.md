@@ -74,9 +74,12 @@ I acknowledge that some puzzle players like to guess, but i figured the complexi
 
 ## Step 3: Added banded exclusions
 
-I re-reviewed kris de asis's rules becuase soemthignw as missing, i noted that her second sample puzzle here: https://www.puzzle-star-battle.com/?e=NToxNywzNzMsNTg3 was not being solved by my sovler. I could recognize the apttern and understood that the finned counts implementation was missing it, and that its a valid human rule that just wasnt expliccitely noted. I thought it deserved its won rule, pressured counting
+I re-reviewed kris de asis's rules becuase soemthignw as missing, i noted that her second sample puzzle here: https://www.puzzle-star-battle.com/?e=NToxNywzNzMsNTg3 was not being solved by my sovler. I could recognize the apttern and understood that the finned counts implementation was missing it, and that its a valid human rule that just wasnt expliccitely noted. 
 
 **14) Pressured Counting** (group 6 - level 2, all other rules are renumbered)
+
+
+Modified counting rules
 
 Step 3 results:
 
