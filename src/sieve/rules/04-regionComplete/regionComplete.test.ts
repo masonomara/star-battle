@@ -30,16 +30,4 @@ describe("04. regionComplete", () => {
       ]);
     });
   });
-
-  describe("04.2 No-op cases", () => {
-    it("04.2.1 returns false when no region has required stars", () => {
-      // TODO: Add test case
-    });
-  });
-
-  describe("04.3 Edge cases", () => {
-    it("04.3.1 handles minimum grid size", () => {
-      // TODO: Add test case
-    });
-  });
 });
