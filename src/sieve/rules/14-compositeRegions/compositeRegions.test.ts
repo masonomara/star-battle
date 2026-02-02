@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 import compositeRegions from "./compositeRegions";
 import { Board, CellState } from "../../helpers/types";
+import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
+
+function runCompositeRegions(board: Board, cells: CellState[][]): boolean {
+  const analysis = buildBoardAnalysis(board, cells);
+  return compositeRegions(board, cells, analysis);
+}
 
 describe("14. Composite Regions", () => {
   describe("14.1 Successful deductions", () => {
@@ -30,7 +36,7 @@ describe("14. Composite Regions", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = compositeRegions(board, cells);
+      const result = runCompositeRegions(board, cells);
 
       // The rule should analyze composites and may find deductions
       // In this case, the leftover (row 2 with region 2) needs 1 star
@@ -61,7 +67,7 @@ describe("14. Composite Regions", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = compositeRegions(board, cells);
+      const result = runCompositeRegions(board, cells);
 
       // With (0,0) marked, region 0 has (0,1) and (1,0) as unknowns
       // These are adjacent, so only one can be a star
@@ -92,7 +98,7 @@ describe("14. Composite Regions", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = compositeRegions(board, cells);
+      const result = runCompositeRegions(board, cells);
 
       expect(typeof result).toBe("boolean");
     });
@@ -123,7 +129,7 @@ describe("14. Composite Regions", () => {
         ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = compositeRegions(board, cells);
+      const result = runCompositeRegions(board, cells);
 
       // Region 0 has only (1,1) unknown. It needs 1 star.
       // Direct enumeration should find this forced placement
@@ -152,7 +158,7 @@ describe("14. Composite Regions", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = compositeRegions(board, cells);
+      const result = runCompositeRegions(board, cells);
       expect(result).toBe(false);
     });
 
@@ -173,7 +179,7 @@ describe("14. Composite Regions", () => {
         Array.from({ length: 6 }, () => "unknown" as CellState),
       );
 
-      const result = compositeRegions(board, cells);
+      const result = runCompositeRegions(board, cells);
       // Should return false quickly due to pre-filtering
       expect(result).toBe(false);
     });

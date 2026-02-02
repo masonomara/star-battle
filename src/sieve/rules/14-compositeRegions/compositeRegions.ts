@@ -9,25 +9,13 @@
  * forced placements and exclusions.
  */
 
-import buildRegions from "../../helpers/regions";
 import {
   findAllMinimalTilings,
   canTileWithMinCount,
 } from "../../helpers/tiling";
 import { Board, CellState, Coord, Tile } from "../../helpers/types";
 import { coordKey } from "../../helpers/cellKey";
-
-type RegionMeta = {
-  id: number;
-  coords: Coord[];
-  unknownCoords: Coord[];
-  rows: Set<number>;
-  cols: Set<number>;
-  allRows: Set<number>;
-  allCols: Set<number>;
-  starsPlaced: number;
-  starsNeeded: number;
-};
+import { BoardAnalysis, RegionMeta } from "../../helpers/boardAnalysis";
 
 type Composite = {
   id: string;
@@ -37,54 +25,6 @@ type Composite = {
   starsNeeded: number;
   regionIds: Set<number>;
 };
-
-/**
- * Build metadata for all regions.
- */
-function buildRegionMetas(
-  board: Board,
-  cells: CellState[][],
-  regions: Map<number, Coord[]>,
-): Map<number, RegionMeta> {
-  const metas = new Map<number, RegionMeta>();
-
-  for (const [id, coords] of regions) {
-    const unknownCoords: Coord[] = [];
-    const rows = new Set<number>();
-    const cols = new Set<number>();
-    const allRows = new Set<number>();
-    const allCols = new Set<number>();
-    let starsPlaced = 0;
-
-    for (const [row, col] of coords) {
-      allRows.add(row);
-      allCols.add(col);
-      if (cells[row][col] === "unknown") {
-        unknownCoords.push([row, col]);
-        rows.add(row);
-        cols.add(col);
-      } else if (cells[row][col] === "star") {
-        starsPlaced++;
-      }
-    }
-
-    const starsNeeded = board.stars - starsPlaced;
-
-    metas.set(id, {
-      id,
-      coords,
-      unknownCoords,
-      rows,
-      cols,
-      allRows,
-      allCols,
-      starsPlaced,
-      starsNeeded,
-    });
-  }
-
-  return metas;
-}
 
 /**
  * Build adjacency graph (8-connected regions).
@@ -246,7 +186,7 @@ function findOvercountingComposites(
   for (const region of activeRegions) {
     // Use allRows/allCols for complete coverage
     const allLines = axis === "row" ? region.allRows : region.allCols;
-    const unknownLines = axis === "row" ? region.rows : region.cols;
+    const unknownLines = axis === "row" ? region.unknownRows : region.unknownCols;
     for (const line of allLines) {
       lineToRegions.get(line)!.add(region.id);
     }
@@ -855,12 +795,11 @@ function analyzeComposite(
 export default function compositeRegions(
   board: Board,
   cells: CellState[][],
+  analysis: BoardAnalysis,
 ): boolean {
-  const size = board.grid.length;
+  const { size, regionMetas } = analysis;
   if (size === 0) return false;
 
-  const regions = buildRegions(board.grid);
-  const regionMetas = buildRegionMetas(board, cells, regions);
   const adjacency = buildAdjacencyGraph(board, regionMetas);
 
   // Collect all composites

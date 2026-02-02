@@ -1,4 +1,5 @@
 import { Board, CellState } from "../../helpers/types";
+import { BoardAnalysis } from "../../helpers/boardAnalysis";
 
 // Generate all combinations of size k from array
 function* combinations<T>(arr: T[], k: number): Generator<T[]> {
@@ -15,30 +16,14 @@ function* combinations<T>(arr: T[], k: number): Generator<T[]> {
   }
 }
 
-export default function undercounting(board: Board, cells: CellState[][]): boolean {
-  const size = board.grid.length;
+export default function undercounting(
+  board: Board,
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+): boolean {
+  const { size, regionRows, regionCols, activeRegions } = analysis;
+  const active = activeRegions.map((r) => r.id);
 
-  const regionRows = new Map<number, Set<number>>();
-  const regionCols = new Map<number, Set<number>>();
-  const regionStars = new Map<number, number>();
-
-  for (let row = 0; row < size; row++) {
-    for (let col = 0; col < size; col++) {
-      const id = board.grid[row][col];
-      if (!regionRows.has(id)) {
-        regionRows.set(id, new Set());
-        regionCols.set(id, new Set());
-        regionStars.set(id, 0);
-      }
-      regionRows.get(id)!.add(row);
-      regionCols.get(id)!.add(col);
-      if (cells[row][col] === "star") regionStars.set(id, regionStars.get(id)! + 1);
-    }
-  }
-
-  const active = [...regionRows.keys()].filter(
-    (id) => regionStars.get(id)! < board.stars,
-  );
   const inRows = (id: number, rows: Set<number>) =>
     [...regionRows.get(id)!].every((row) => rows.has(row));
   const inCols = (id: number, cols: Set<number>) =>

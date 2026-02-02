@@ -1,6 +1,12 @@
 import { Board, CellState } from "../../helpers/types";
+import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
 import { describe, it, expect } from "vitest";
 import undercounting from "./undercounting";
+
+function runUndercounting(board: Board, cells: CellState[][]): boolean {
+  const analysis = buildBoardAnalysis(board, cells);
+  return undercounting(board, cells, analysis);
+}
 
 describe("06. Undercounting", () => {
   // Undercounting: N regions completely contained within N rows/cols
@@ -28,7 +34,7 @@ describe("06. Undercounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = undercounting(board, cells);
+      const result = runUndercounting(board, cells);
 
       expect(result).toBe(true);
       expect(cells[0][3]).toBe("marked"); // outside region 0, in row 0
@@ -54,7 +60,7 @@ describe("06. Undercounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = undercounting(board, cells);
+      const result = runUndercounting(board, cells);
 
       expect(result).toBe(true);
       // Region 2 cells in rows 0-1 should be marked: (0,2), (0,3), (1,2), (1,3)
@@ -88,7 +94,7 @@ describe("06. Undercounting", () => {
         ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = undercounting(board, cells);
+      const result = runUndercounting(board, cells);
 
       expect(result).toBe(true);
       // Region 3 cells in rows 0-2 should be marked
@@ -122,7 +128,7 @@ describe("06. Undercounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = undercounting(board, cells);
+      const result = runUndercounting(board, cells);
 
       expect(result).toBe(true);
       expect(cells[3][0]).toBe("marked"); // outside region 0, in col 0
@@ -146,7 +152,7 @@ describe("06. Undercounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = undercounting(board, cells);
+      const result = runUndercounting(board, cells);
 
       expect(result).toBe(true);
       // Region 2 cells in cols 0-1 should be marked: (3,0), (3,1)
@@ -178,7 +184,7 @@ describe("06. Undercounting", () => {
         ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = undercounting(board, cells);
+      const result = runUndercounting(board, cells);
 
       expect(result).toBe(true);
       // Region 3 cells in cols 0-2 should be marked (rows 4-5, cols 0-2)
@@ -210,7 +216,7 @@ describe("06. Undercounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = undercounting(board, cells);
+      const result = runUndercounting(board, cells);
 
       expect(result).toBe(false);
     });
@@ -233,7 +239,7 @@ describe("06. Undercounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = undercounting(board, cells);
+      const result = runUndercounting(board, cells);
 
       expect(result).toBe(false);
     });
@@ -255,7 +261,7 @@ describe("06. Undercounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = undercounting(board, cells);
+      const result = runUndercounting(board, cells);
 
       expect(result).toBe(false);
     });
@@ -283,7 +289,7 @@ describe("06. Undercounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = undercounting(board, cells);
+      const result = runUndercounting(board, cells);
 
       // Regions 0 and 1 are each contained in a single row
       // Row 0 + row 2 = 2 rows, contains 2 regions → marks region 2 cells in those rows
@@ -313,7 +319,7 @@ describe("06. Undercounting", () => {
 
       // Region 0 already has 1 star (= board.stars), so it's inactive
       // Implementation filters to active regions only
-      const result = undercounting(board, cells);
+      const result = runUndercounting(board, cells);
 
       // Should return false - no undercounting applies with inactive region
       expect(result).toBe(false);
@@ -342,7 +348,7 @@ describe("06. Undercounting", () => {
         ["unknown", "unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = undercounting(board, cells);
+      const result = runUndercounting(board, cells);
 
       expect(result).toBe(true);
       // All region 2 cells in row 0 should be marked in ONE call
@@ -368,7 +374,7 @@ describe("06. Undercounting", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = undercounting(board, cells);
+      const result = runUndercounting(board, cells);
 
       // Region 0 contained in row 0, region 1 contained in row 1
       // But also region 0 contained in cols 0-1, region 1 in col 0
@@ -400,7 +406,7 @@ describe("06. Undercounting", () => {
         ["unknown", "unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = undercounting(board, cells);
+      const result = runUndercounting(board, cells);
 
       // Regions 0, 1, 2 together span rows {0, 1, 2}
       // 3 regions fully contained in 3 rows
@@ -434,7 +440,7 @@ describe("06. Undercounting", () => {
         ["unknown", "unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = undercounting(board, cells);
+      const result = runUndercounting(board, cells);
 
       // Regions 0, 1, 2 together span cols {0, 1, 2}
       // 3 regions fully contained in 3 cols

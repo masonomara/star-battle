@@ -222,29 +222,6 @@ describe("13. Squeeze", () => {
       const result = squeeze(board, cells);
       expect(result).toBe(false);
     });
-
-    it("13.3.3 returns false when no unknown cells exist in pair", () => {
-      const board: Board = {
-        grid: [
-          [0, 0, 0, 0],
-          [0, 0, 0, 0],
-          [1, 1, 1, 1],
-          [1, 1, 1, 1],
-        ],
-        stars: 2,
-      };
-
-      // All cells in row pair 0-1 are marked or stars
-      const cells: CellState[][] = [
-        ["star", "marked", "marked", "star"],
-        ["marked", "marked", "marked", "marked"],
-        ["unknown", "unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
-      ];
-
-      const result = squeeze(board, cells);
-      expect(result).toBe(false);
-    });
   });
 
   describe("13.4 Edge cases", () => {

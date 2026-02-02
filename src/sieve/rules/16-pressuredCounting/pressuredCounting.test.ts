@@ -1,6 +1,12 @@
 import { Board, CellState } from "../../helpers/types";
+import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
 import { describe, it, expect } from "vitest";
 import pressuredCounting from "./pressuredCounting";
+
+function runPressuredCounting(board: Board, cells: CellState[][]): boolean {
+  const analysis = buildBoardAnalysis(board, cells);
+  return pressuredCounting(board, cells, analysis);
+}
 
 describe("Rule 16: Pressured Counting", () => {
   // Pressured Counting: When analyzing a row/column pair,
@@ -25,8 +31,8 @@ describe("Rule 16: Pressured Counting", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      // Call pressuredCounting(board, cells)
-      const result = pressuredCounting(board, cells);
+      // Call runPressuredCounting(board, cells)
+      const result = runPressuredCounting(board, cells);
 
       // Assert typeof result === "boolean"
       expect(typeof result).toBe("boolean");
@@ -53,7 +59,7 @@ describe("Rule 16: Pressured Counting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = pressuredCounting(board, cells);
+      const result = runPressuredCounting(board, cells);
 
       // Assert returns false - no tight constraints exist
       expect(result).toBe(false);

@@ -1,6 +1,12 @@
 import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
 import oneByNConfinement from "./oneByNConfinement";
+import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
+
+function runOneByNConfinement(board: Board, cells: CellState[][]): boolean {
+  const analysis = buildBoardAnalysis(board, cells);
+  return oneByNConfinement(board, cells, analysis);
+}
 
 /** Create a cells grid from compact string representation */
 function makeCells(rows: string[]): CellState[][] {
@@ -29,7 +35,7 @@ describe("09. oneByNConfinement", () => {
       };
       const cells = makeCells(["....", "....", "xx..", "xx.."]);
 
-      expect(oneByNConfinement(board, cells)).toBe(true);
+      expect(runOneByNConfinement(board, cells)).toBe(true);
       expect(cells[1][2]).toBe("marked");
       expect(cells[1][3]).toBe("marked");
     });
@@ -47,7 +53,7 @@ describe("09. oneByNConfinement", () => {
       };
       const cells = makeCells(["x.....", "x.....", "......", "......"]);
 
-      expect(oneByNConfinement(board, cells)).toBe(true);
+      expect(runOneByNConfinement(board, cells)).toBe(true);
       expect(cells[2][3]).toBe("marked");
       expect(cells[2][4]).toBe("marked");
       expect(cells[2][5]).toBe("marked");
@@ -66,7 +72,7 @@ describe("09. oneByNConfinement", () => {
       };
       const cells = makeCells(["......", "......", "xx..xx", "xx..xx"]);
 
-      expect(oneByNConfinement(board, cells)).toBe(true);
+      expect(runOneByNConfinement(board, cells)).toBe(true);
       expect(cells[1][2]).toBe("marked");
       expect(cells[1][3]).toBe("marked");
     });
@@ -86,7 +92,7 @@ describe("09. oneByNConfinement", () => {
       };
       const cells = makeCells(["..x.", "..x.", "....", "...."]);
 
-      expect(oneByNConfinement(board, cells)).toBe(true);
+      expect(runOneByNConfinement(board, cells)).toBe(true);
       expect(cells[2][1]).toBe("marked");
       expect(cells[3][1]).toBe("marked");
     });
@@ -105,7 +111,7 @@ describe("09. oneByNConfinement", () => {
       };
       const cells = makeCells(["x...", "x...", "....", "x...", "x..."]);
 
-      expect(oneByNConfinement(board, cells)).toBe(true);
+      expect(runOneByNConfinement(board, cells)).toBe(true);
       expect(cells[2][1]).toBe("marked");
     });
 
@@ -123,7 +129,7 @@ describe("09. oneByNConfinement", () => {
       };
       const cells = makeCells(["....", "....", ".x..", "....", "...."]);
 
-      expect(oneByNConfinement(board, cells)).toBe(true);
+      expect(runOneByNConfinement(board, cells)).toBe(true);
       expect(cells[3][0]).toBe("marked");
       expect(cells[4][0]).toBe("marked");
     });
@@ -142,7 +148,7 @@ describe("09. oneByNConfinement", () => {
       };
       const cells = makeCells(["....", "....", "....", "...."]);
 
-      expect(oneByNConfinement(board, cells)).toBe(false);
+      expect(runOneByNConfinement(board, cells)).toBe(false);
     });
 
     it("09.3.2 returns false when region already has all stars", () => {
@@ -157,7 +163,7 @@ describe("09. oneByNConfinement", () => {
       };
       const cells = makeCells(["*x..", "xx..", "xx..", "xx.."]);
 
-      expect(oneByNConfinement(board, cells)).toBe(false);
+      expect(runOneByNConfinement(board, cells)).toBe(false);
     });
 
     it("09.3.3 returns false when confined region spans entire row", () => {
@@ -172,7 +178,7 @@ describe("09. oneByNConfinement", () => {
       };
       const cells = makeCells(["....", "....", "....", "...."]);
 
-      expect(oneByNConfinement(board, cells)).toBe(false);
+      expect(runOneByNConfinement(board, cells)).toBe(false);
     });
 
     it("09.3.4 returns false when regions span multiple rows despite existing star", () => {
@@ -187,7 +193,7 @@ describe("09. oneByNConfinement", () => {
       };
       const cells = makeCells(["*....", "x....", "x....", "x...."]);
 
-      expect(oneByNConfinement(board, cells)).toBe(false);
+      expect(runOneByNConfinement(board, cells)).toBe(false);
     });
   });
 
@@ -204,7 +210,7 @@ describe("09. oneByNConfinement", () => {
       };
       const cells = makeCells(["....", "....", "....", "...."]);
 
-      expect(oneByNConfinement(board, cells)).toBe(true);
+      expect(runOneByNConfinement(board, cells)).toBe(true);
       expect(cells[0][1]).toBe("marked");
       expect(cells[0][2]).toBe("marked");
       expect(cells[0][3]).toBe("marked");
@@ -214,7 +220,7 @@ describe("09. oneByNConfinement", () => {
       const board: Board = { grid: [], stars: 1 };
       const cells: CellState[][] = [];
 
-      expect(oneByNConfinement(board, cells)).toBe(false);
+      expect(runOneByNConfinement(board, cells)).toBe(false);
     });
 
     it("09.4.3 marks row remainder in 3-star puzzle with row confinement", () => {
@@ -230,7 +236,7 @@ describe("09. oneByNConfinement", () => {
       };
       const cells = makeCells(["........", "xxxxxx..", "xxxxxx..", "........"]);
 
-      expect(oneByNConfinement(board, cells)).toBe(true);
+      expect(runOneByNConfinement(board, cells)).toBe(true);
       expect(cells[0][6]).toBe("marked");
       expect(cells[0][7]).toBe("marked");
     });

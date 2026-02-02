@@ -1,4 +1,5 @@
 import { Board, CellState, Coord, Strip, StripCache } from "./types";
+import { BoardAnalysis } from "./boardAnalysis";
 
 /**
  * Find all horizontal strips (1×n) in a single row.
@@ -103,18 +104,28 @@ function findVerticalStrips(
 /**
  * Compute all strips (1×n and n×1) for the current board state.
  * Returns a cache indexed by row, column, and region.
+ * Optionally accepts BoardAnalysis to reuse pre-computed regionStars.
  */
-export function computeAllStrips(board: Board, cells: CellState[][]): StripCache {
+export function computeAllStrips(
+  board: Board,
+  cells: CellState[][],
+  analysis?: BoardAnalysis,
+): StripCache {
   const numRows = board.grid.length;
   const numCols = board.grid[0].length;
 
-  // Pre-compute stars per region
-  const regionStars = new Map<number, number>();
-  for (let row = 0; row < numRows; row++) {
-    for (let col = 0; col < numCols; col++) {
-      const regionId = board.grid[row][col];
-      if (cells[row][col] === "star") {
-        regionStars.set(regionId, (regionStars.get(regionId) ?? 0) + 1);
+  // Use pre-computed regionStars if analysis provided, otherwise compute
+  let regionStars: Map<number, number>;
+  if (analysis) {
+    regionStars = analysis.regionStars;
+  } else {
+    regionStars = new Map<number, number>();
+    for (let row = 0; row < numRows; row++) {
+      for (let col = 0; col < numCols; col++) {
+        const regionId = board.grid[row][col];
+        if (cells[row][col] === "star") {
+          regionStars.set(regionId, (regionStars.get(regionId) ?? 0) + 1);
+        }
       }
     }
   }

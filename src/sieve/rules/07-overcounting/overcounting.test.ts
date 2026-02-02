@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { Board, CellState } from "../../helpers/types";
+import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
 import overcounting from "./overcounting";
+
+function runOvercounting(board: Board, cells: CellState[][]): boolean {
+  const analysis = buildBoardAnalysis(board, cells);
+  return overcounting(board, cells, analysis);
+}
 
 describe("07. Overcounting", () => {
   // Overcounting: N regions completely CONTAIN N rows/cols
@@ -34,7 +40,7 @@ describe("07. Overcounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = overcounting(board, cells);
+      const result = runOvercounting(board, cells);
 
       expect(result).toBe(true);
       // Region 0 contains rows 0-1 completely (8 cells)
@@ -63,7 +69,7 @@ describe("07. Overcounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = overcounting(board, cells);
+      const result = runOvercounting(board, cells);
 
       expect(result).toBe(true);
       // Regions 0 and 1 together contain rows 0-1 completely
@@ -99,7 +105,7 @@ describe("07. Overcounting", () => {
         ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = overcounting(board, cells);
+      const result = runOvercounting(board, cells);
 
       expect(result).toBe(true);
       // Region 0 cells outside rows 0-1: (2,0), (2,1)
@@ -133,7 +139,7 @@ describe("07. Overcounting", () => {
         ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = overcounting(board, cells);
+      const result = runOvercounting(board, cells);
 
       expect(result).toBe(true);
       // Regions 0, 1, 2 contain rows 0-2 completely
@@ -166,7 +172,7 @@ describe("07. Overcounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = overcounting(board, cells);
+      const result = runOvercounting(board, cells);
 
       expect(result).toBe(true);
       // Region 0 cell outside col 0: (0,1)
@@ -193,7 +199,7 @@ describe("07. Overcounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = overcounting(board, cells);
+      const result = runOvercounting(board, cells);
 
       expect(result).toBe(true);
       // Region 0 cell outside cols 0-1: (0,2)
@@ -224,7 +230,7 @@ describe("07. Overcounting", () => {
         ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = overcounting(board, cells);
+      const result = runOvercounting(board, cells);
 
       expect(result).toBe(true);
       // Regions 0, 1, 2 contain cols 0-2 completely
@@ -254,7 +260,7 @@ describe("07. Overcounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = overcounting(board, cells);
+      const result = runOvercounting(board, cells);
 
       expect(result).toBe(false);
     });
@@ -277,7 +283,7 @@ describe("07. Overcounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = overcounting(board, cells);
+      const result = runOvercounting(board, cells);
 
       // Each region is exactly 1 row, no cells outside to mark
       expect(result).toBe(false);
@@ -302,7 +308,7 @@ describe("07. Overcounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = overcounting(board, cells);
+      const result = runOvercounting(board, cells);
 
       // Region 0 contains row 0, (1,0) is outside row 0 but already marked
       expect(result).toBe(false);
@@ -329,7 +335,7 @@ describe("07. Overcounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = overcounting(board, cells);
+      const result = runOvercounting(board, cells);
 
       // Region 0 contains row 0 completely
       // Region 0 has cells (2,0-3) outside row 0 - should be marked
@@ -362,7 +368,7 @@ describe("07. Overcounting", () => {
 
       // Region 0 already has 1 star (= board.stars), so it's inactive
       // Region 1 is active but doesn't contain any row completely (col 0 is region 0)
-      const result = overcounting(board, cells);
+      const result = runOvercounting(board, cells);
 
       // Should return false - region 0 is inactive, region 1 doesn't contain any row
       expect(result).toBe(false);
@@ -388,7 +394,7 @@ describe("07. Overcounting", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = overcounting(board, cells);
+      const result = runOvercounting(board, cells);
 
       expect(result).toBe(true);
       // Region 0 contains row 0 completely
@@ -415,7 +421,7 @@ describe("07. Overcounting", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = overcounting(board, cells);
+      const result = runOvercounting(board, cells);
 
       expect(result).toBe(true);
       // All region 0 and 1 cells in row 2 should be marked in ONE call
@@ -442,7 +448,7 @@ describe("07. Overcounting", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = overcounting(board, cells);
+      const result = runOvercounting(board, cells);
 
       // Region 0 contains row 0 (row-based)
       // Region 0 also contains col 0 (column-based)

@@ -1,6 +1,7 @@
 import { cellKey } from "../../helpers/cellKey";
 import { computeAllStrips } from "../../helpers/strips";
 import { Board, CellState, Strip, StripCache } from "../../helpers/types";
+import { BoardAnalysis } from "../../helpers/boardAnalysis";
 
 type Axis = "row" | "col";
 type Contrib = { stars: number; cells: Set<string> };
@@ -107,10 +108,11 @@ function markRemainder(
 export default function oneByNConfinement(
   board: Board,
   cells: CellState[][],
+  analysis: BoardAnalysis,
 ): boolean {
   if (board.grid.length === 0) return false;
 
-  const stripCache = computeAllStrips(board, cells);
+  const stripCache = computeAllStrips(board, cells, analysis);
   const rowContribs = collectContributions(stripCache, "row");
   const colContribs = collectContributions(stripCache, "col");
 

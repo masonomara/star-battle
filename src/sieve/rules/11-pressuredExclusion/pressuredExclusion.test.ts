@@ -1,6 +1,12 @@
 import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
 import pressuredExclusion from "./pressuredExclusion";
+import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
+
+function runPressuredExclusion(board: Board, cells: CellState[][]): boolean {
+  const analysis = buildBoardAnalysis(board, cells);
+  return pressuredExclusion(board, cells, analysis);
+}
 
 describe("11. Pressured Exclusion", () => {
   // Per spec: "Pressured exclusion is like exclusion, but in the presence of
@@ -33,7 +39,7 @@ describe("11. Pressured Exclusion", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = pressuredExclusion(board, cells);
+      const result = runPressuredExclusion(board, cells);
 
       // Due to the 1×n pressure, (1,2) might be marked
       // The 1×n at region 0 (cols 0-1) forces a star there
@@ -64,7 +70,7 @@ describe("11. Pressured Exclusion", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = pressuredExclusion(board, cells);
+      const result = runPressuredExclusion(board, cells);
 
       expect(result).toBe(true);
     });
@@ -92,7 +98,7 @@ describe("11. Pressured Exclusion", () => {
       ];
 
       // This may or may not find something depending on squeeze analysis
-      const result = pressuredExclusion(board, cells);
+      const result = runPressuredExclusion(board, cells);
       // Just verify it runs without error
       expect(typeof result).toBe("boolean");
     });
@@ -120,7 +126,7 @@ describe("11. Pressured Exclusion", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = pressuredExclusion(board, cells);
+      const result = runPressuredExclusion(board, cells);
 
       expect(result).toBe(true);
       // Neighbors of (0,0) should be marked - they would break the tight region
@@ -144,7 +150,7 @@ describe("11. Pressured Exclusion", () => {
         ["unknown", "unknown"],
       ];
 
-      const result = pressuredExclusion(board, cells);
+      const result = runPressuredExclusion(board, cells);
       expect(result).toBe(false); // No tight regions
     });
 
@@ -166,7 +172,7 @@ describe("11. Pressured Exclusion", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = pressuredExclusion(board, cells);
+      const result = runPressuredExclusion(board, cells);
       expect(result).toBe(false);
     });
   });
@@ -192,7 +198,7 @@ describe("11. Pressured Exclusion", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = pressuredExclusion(board, cells);
+      const result = runPressuredExclusion(board, cells);
 
       expect(result).toBe(true);
       // Cells neighboring (0,2) get marked: (0,3), (1,2), (1,3)
@@ -228,7 +234,7 @@ describe("11. Pressured Exclusion", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = pressuredExclusion(board, cells);
+      const result = runPressuredExclusion(board, cells);
 
       expect(result).toBe(true);
       // (1,0) or (1,1) should be marked - they neighbor region 0's cells
@@ -256,7 +262,7 @@ describe("11. Pressured Exclusion", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = pressuredExclusion(board, cells);
+      const result = runPressuredExclusion(board, cells);
 
       expect(result).toBe(true);
       // Neighbors of (0,2) should be marked

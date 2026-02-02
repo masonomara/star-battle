@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 import finnedCounts from "./finnedCounts";
 import { Board, CellState } from "../../helpers/types";
+import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
+
+function runFinnedCounts(board: Board, cells: CellState[][]): boolean {
+  const analysis = buildBoardAnalysis(board, cells);
+  return finnedCounts(board, cells, analysis);
+}
 
 describe("12. finnedCounts", () => {
   // Per spec: marks cells where a hypothetical star would create
@@ -29,7 +35,7 @@ describe("12. finnedCounts", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = finnedCounts(board, cells);
+      const result = runFinnedCounts(board, cells);
 
       expect(result).toBe(true);
       // (1,0) and (1,1) neighbor both region 0 cells - marking would leave region 0 empty
@@ -65,7 +71,7 @@ describe("12. finnedCounts", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = finnedCounts(board, cells);
+      const result = runFinnedCounts(board, cells);
 
       expect(result).toBe(true);
       // Stars in region 2 (column 2) would create overcounting violations
@@ -96,7 +102,7 @@ describe("12. finnedCounts", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = finnedCounts(board, cells);
+      const result = runFinnedCounts(board, cells);
       expect(result).toBe(false);
     });
 
@@ -118,7 +124,7 @@ describe("12. finnedCounts", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      finnedCounts(board, cells);
+      runFinnedCounts(board, cells);
 
       // Count marked cells - should be minimal or none for this layout
       let markedCount = 0;
@@ -154,7 +160,7 @@ describe("12. finnedCounts", () => {
         ["marked", "marked", "unknown", "unknown"],
       ];
 
-      const result = finnedCounts(board, cells);
+      const result = runFinnedCounts(board, cells);
 
       expect(result).toBe(true);
       // Cells adjacent to (0,0) that would mark it if starred: (0,1), (1,0), (1,1)

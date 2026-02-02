@@ -11,8 +11,8 @@
  * exactly how many stars each region contributes, enabling deductions.
  */
 
-import buildRegions from "../../helpers/regions";
 import { Board, CellState, Coord } from "../../helpers/types";
+import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { maxIndependentSetSize } from "../../helpers/tiling";
 
 /**
@@ -41,13 +41,13 @@ type RegionData = {
 function analyzeLineRange(
   board: Board,
   cells: CellState[][],
+  analysis: BoardAnalysis,
   axis: "row" | "col",
   startLine: number,
   endLine: number,
 ): boolean {
-  const size = board.grid.length;
+  const { size, regionMetas } = analysis;
   const lineCount = endLine - startLine + 1;
-  const regions = buildRegions(board.grid);
 
   // Count stars already in the range
   let starsInRange = 0;
@@ -61,22 +61,17 @@ function analyzeLineRange(
   const starsNeededInRange = board.stars * lineCount - starsInRange;
   if (starsNeededInRange <= 0) return false;
 
-  // Build region data
+  // Build region data using pre-computed metadata
   const regionDataMap = new Map<number, RegionData>();
 
-  for (const [id, coords] of regions) {
-    let starsPlaced = 0;
-    for (const [row, col] of coords) {
-      if (cells[row][col] === "star") starsPlaced++;
-    }
-    const starsNeeded = board.stars - starsPlaced;
+  for (const [id, meta] of regionMetas) {
+    const { starsNeeded, unknownCoords } = meta;
     if (starsNeeded <= 0) continue;
 
     const unknownInside: Coord[] = [];
     const unknownOutside: Coord[] = [];
 
-    for (const [row, col] of coords) {
-      if (cells[row][col] !== "unknown") continue;
+    for (const [row, col] of unknownCoords) {
       const lineIdx = axis === "row" ? row : col;
       if (lineIdx >= startLine && lineIdx <= endLine) {
         unknownInside.push([row, col]);
@@ -163,21 +158,26 @@ function analyzeLineRange(
 export default function pressuredCounting(
   board: Board,
   cells: CellState[][],
+  analysis: BoardAnalysis,
 ): boolean {
-  const size = board.grid.length;
+  const { size } = analysis;
 
   // Try different span sizes (1, 2, 3)
   for (let span = 1; span <= 3; span++) {
     // Analyze row ranges
     for (let start = 0; start <= size - span; start++) {
-      if (analyzeLineRange(board, cells, "row", start, start + span - 1)) {
+      if (
+        analyzeLineRange(board, cells, analysis, "row", start, start + span - 1)
+      ) {
         return true;
       }
     }
 
     // Analyze column ranges
     for (let start = 0; start <= size - span; start++) {
-      if (analyzeLineRange(board, cells, "col", start, start + span - 1)) {
+      if (
+        analyzeLineRange(board, cells, analysis, "col", start, start + span - 1)
+      ) {
         return true;
       }
     }

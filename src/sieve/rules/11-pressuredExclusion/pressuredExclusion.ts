@@ -22,6 +22,7 @@ import {
 } from "../../helpers/starContaining2x2";
 import { canTileWithMinCount } from "../../helpers/tiling";
 import { Board, CellState, Coord } from "../../helpers/types";
+import { BoardAnalysis } from "../../helpers/boardAnalysis";
 
 /**
  * A unified constraint type that represents either a 1×n or a star-containing 2×2.
@@ -376,12 +377,13 @@ function wouldBreakRowOrColumn(
 export default function pressuredExclusion(
   board: Board,
   cells: CellState[][],
+  analysis: BoardAnalysis,
 ): boolean {
   const size = board.grid.length;
   if (size === 0) return false;
 
   // Find all constraints
-  const oneByNConstraints = findOneByNConstraints(board, cells);
+  const oneByNConstraints = findOneByNConstraints(board, cells, analysis);
   const twoByTwoConstraints = findStarContaining2x2s(board, cells);
 
   // No constraints means no pressure-based exclusions possible

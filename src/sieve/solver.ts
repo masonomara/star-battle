@@ -1,4 +1,8 @@
 import { Board, CellState, SolverResult } from "./helpers/types";
+import {
+  BoardAnalysis,
+  buildBoardAnalysis,
+} from "./helpers/boardAnalysis";
 import starNeighbors from "./rules/01-starNeighbors/starNeighbors";
 import rowComplete from "./rules/02-rowComplete/rowComplete";
 import columnComplete from "./rules/03-columnComplete/columnComplete";
@@ -46,27 +50,40 @@ export function isValidLayout(board: Board): boolean {
 }
 
 type Rule = (board: Board, cells: CellState[][]) => boolean;
+type AnalysisRule = (
+  board: Board,
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+) => boolean;
 
-const allRules: { rule: Rule; level: number; name: string }[] = [
-  { rule: starNeighbors, level: 0, name: "Star Neighbors" },
-  { rule: rowComplete, level: 0, name: "Row Complete" },
-  { rule: columnComplete, level: 0, name: "Column Complete" },
-  { rule: regionComplete, level: 0, name: "Region Complete" },
-  { rule: forcedPlacement, level: 0, name: "Forced Placement" },
-  { rule: exclusion, level: 1, name: "Exclusion" },
-  { rule: undercounting, level: 2, name: "Undercounting" },
-  { rule: overcounting, level: 2, name: "Overcounting" },
-  { rule: twoByTwoTiling, level: 3, name: "2×2 Tiling" },
-  { rule: oneByNConfinement, level: 3, name: "1×n Confinement" },
-  { rule: squeeze, level: 4, name: "The Squeeze" },
-  { rule: pressuredExclusion, level: 5, name: "Pressured Exclusion" },
-  { rule: finnedCounts, level: 5, name: "Finned Counts" },
-  { rule: pressuredCounting, level: 5, name: "Pressured Counting" },
-  { rule: compositeRegions, level: 6, name: "Composite Regions" },
+type RuleEntry = {
+  rule: Rule | AnalysisRule;
+  level: number;
+  name: string;
+  needsAnalysis: boolean;
+};
+
+const allRules: RuleEntry[] = [
+  { rule: starNeighbors, level: 0, name: "Star Neighbors", needsAnalysis: false },
+  { rule: rowComplete, level: 0, name: "Row Complete", needsAnalysis: false },
+  { rule: columnComplete, level: 0, name: "Column Complete", needsAnalysis: false },
+  { rule: regionComplete, level: 0, name: "Region Complete", needsAnalysis: false },
+  { rule: forcedPlacement, level: 0, name: "Forced Placement", needsAnalysis: false },
+  { rule: exclusion, level: 1, name: "Exclusion", needsAnalysis: false },
+  { rule: undercounting, level: 2, name: "Undercounting", needsAnalysis: true },
+  { rule: overcounting, level: 2, name: "Overcounting", needsAnalysis: true },
+  { rule: twoByTwoTiling, level: 3, name: "2×2 Tiling", needsAnalysis: false },
+  { rule: oneByNConfinement, level: 3, name: "1×n Confinement", needsAnalysis: true },
+  { rule: squeeze, level: 4, name: "The Squeeze", needsAnalysis: false },
+  { rule: pressuredExclusion, level: 5, name: "Pressured Exclusion", needsAnalysis: true },
+  { rule: finnedCounts, level: 5, name: "Finned Counts", needsAnalysis: true },
+  { rule: pressuredCounting, level: 5, name: "Pressured Counting", needsAnalysis: true },
+  { rule: compositeRegions, level: 6, name: "Composite Regions", needsAnalysis: true },
   {
-    rule: (b, c) => deepExclusion(b, c, { maxDepth: 2 }),
+    rule: (b: Board, c: CellState[][]) => deepExclusion(b, c, { maxDepth: 2 }),
     level: 7,
     name: "Deep Exclusion",
+    needsAnalysis: false,
   },
 ];
 
@@ -186,9 +203,21 @@ export function solve(
     if (status === "invalid") return null;
 
     let progress = false;
+    let analysis: BoardAnalysis | null = null;
 
-    for (const { rule, level, name } of allRules) {
-      if (rule(board, cells)) {
+    for (const { rule, level, name, needsAnalysis } of allRules) {
+      let result: boolean;
+
+      if (needsAnalysis) {
+        if (analysis === null) {
+          analysis = buildBoardAnalysis(board, cells);
+        }
+        result = (rule as AnalysisRule)(board, cells, analysis);
+      } else {
+        result = (rule as Rule)(board, cells);
+      }
+
+      if (result) {
         maxLevel = Math.max(maxLevel, level);
         progress = true;
 

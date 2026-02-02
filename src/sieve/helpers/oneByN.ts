@@ -8,6 +8,7 @@
 
 import { cellKey } from "./cellKey";
 import { Board, CellState, Coord } from "./types";
+import { BoardAnalysis } from "./boardAnalysis";
 
 export type OneByNConstraint = {
   regionId: number;
@@ -22,15 +23,53 @@ export type OneByNConstraint = {
  *
  * A constraint is found when ALL unknown cells of a region
  * that still needs stars are in a single row or column.
+ * Optionally accepts BoardAnalysis to reuse pre-computed data.
  */
 export function findOneByNConstraints(
   board: Board,
   cells: CellState[][],
+  analysis?: BoardAnalysis,
 ): OneByNConstraint[] {
   const size = board.grid.length;
   const constraints: OneByNConstraint[] = [];
 
-  // Group unknown cells by region
+  // Use pre-computed data if analysis provided
+  if (analysis) {
+    for (const [regionId, meta] of analysis.regionMetas) {
+      const { unknownCoords, starsNeeded } = meta;
+
+      if (starsNeeded <= 0 || unknownCoords.length === 0) continue;
+
+      // Check if all unknowns are in a single row
+      const rows = new Set(unknownCoords.map(([r]) => r));
+      if (rows.size === 1) {
+        const rowIndex = rows.values().next().value as number;
+        constraints.push({
+          regionId,
+          axis: "row",
+          index: rowIndex,
+          cells: unknownCoords,
+          starsNeeded,
+        });
+      }
+
+      // Check if all unknowns are in a single column
+      const cols = new Set(unknownCoords.map(([, c]) => c));
+      if (cols.size === 1) {
+        const colIndex = cols.values().next().value as number;
+        constraints.push({
+          regionId,
+          axis: "col",
+          index: colIndex,
+          cells: unknownCoords,
+          starsNeeded,
+        });
+      }
+    }
+    return constraints;
+  }
+
+  // Fallback: compute from scratch
   const regionUnknowns = new Map<number, Coord[]>();
   const regionStars = new Map<number, number>();
 

@@ -1,5 +1,5 @@
-import buildRegions from "../../helpers/regions";
-import { Board, CellState } from "../../helpers/types";
+import { Board, CellState, Coord } from "../../helpers/types";
+import { BoardAnalysis } from "../../helpers/boardAnalysis";
 
 type Axis = "row" | "col";
 
@@ -9,7 +9,7 @@ function processAxis(
   board: Board,
   cells: CellState[][],
   lineRegions: Map<number, Set<number>>,
-  regions: Map<number, [number, number][]>,
+  regions: Map<number, Coord[]>,
 ): boolean {
   let changed = false;
 
@@ -54,39 +54,27 @@ function processAxis(
 export default function overcounting(
   board: Board,
   cells: CellState[][],
+  analysis: BoardAnalysis,
 ): boolean {
-  const size = board.grid.length;
-  const regions = buildRegions(board.grid);
+  const { size, regions, rowToActiveRegionsAll, colToActiveRegionsAll } =
+    analysis;
 
-  const regionStars = new Map<number, number>();
-  for (const [id, coords] of regions) {
-    let stars = 0;
-    for (const [row, col] of coords) if (cells[row][col] === "star") stars++;
-    regionStars.set(id, stars);
-  }
-
-  const active = new Set(
-    [...regions.keys()].filter((id) => regionStars.get(id)! < board.stars),
+  const rowChanged = processAxis(
+    "row",
+    size,
+    board,
+    cells,
+    rowToActiveRegionsAll,
+    regions,
   );
-
-  const rowRegions = new Map<number, Set<number>>();
-  const colRegions = new Map<number, Set<number>>();
-  for (let i = 0; i < size; i++) {
-    rowRegions.set(i, new Set());
-    colRegions.set(i, new Set());
-  }
-  for (let row = 0; row < size; row++) {
-    for (let col = 0; col < size; col++) {
-      const id = board.grid[row][col];
-      if (active.has(id)) {
-        rowRegions.get(row)!.add(id);
-        colRegions.get(col)!.add(id);
-      }
-    }
-  }
-
-  const rowChanged = processAxis("row", size, board, cells, rowRegions, regions);
-  const colChanged = processAxis("col", size, board, cells, colRegions, regions);
+  const colChanged = processAxis(
+    "col",
+    size,
+    board,
+    cells,
+    colToActiveRegionsAll,
+    regions,
+  );
 
   return rowChanged || colChanged;
 }
