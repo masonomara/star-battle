@@ -1,5 +1,5 @@
 /**
- * Rule 13: Finned Counts
+ * Rule 12: Finned Counts
  *
  * Marks cells where placing a hypothetical star would create an unsolvable
  * counting constraint. This happens when:

@@ -4,7 +4,7 @@ import { Board, CellState, Coord, Tile } from "../../helpers/types";
 import { coordKey } from "../../helpers/cellKey";
 
 /**
- * Rule 6: The 2×2 Tiling
+ * Rule 8: The 2×2 Tiling
  *
  * When minTiles === starsNeeded, each tile contains exactly one star.
  *

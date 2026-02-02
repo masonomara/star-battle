@@ -1,5 +1,5 @@
 /**
- * Rule 9: Pressured Exclusion
+ * Rule 11: Pressured Exclusion
  *
  * Like exclusion, but accounting for:
  * 1. 1×n constraints (regions confined to single row/col)

@@ -1,5 +1,5 @@
 /**
- * Rule 8: Exclusion
+ * Rule 10: Exclusion
  *
  * Marks cells where a hypothetical star would make some region, row, or column
  * unable to fit its required stars. If placing a star at (r,c) and marking its
