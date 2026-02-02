@@ -48,8 +48,10 @@ function cellsAreAdjacent(c1: Coord, c2: Coord): boolean {
  * Find maximum independent set size using branch and bound.
  * For small cell counts, this is fast enough. For larger counts,
  * we use greedy heuristics with pruning.
+ *
+ * This equals the maximum number of non-adjacent stars that can be placed.
  */
-function maxIndependentSetSize(cells: Coord[]): number {
+export function maxIndependentSetSize(cells: Coord[]): number {
   const n = cells.length;
   if (n === 0) return 0;
   if (n === 1) return 1;

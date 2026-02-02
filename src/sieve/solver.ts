@@ -14,6 +14,7 @@ import finnedCounts from "./rules/12-finnedCounts/finnedCounts";
 import squeeze from "./rules/13-squeeze/squeeze";
 import compositeRegions from "./rules/14-compositeRegions/compositeRegions";
 import deepExclusion from "./rules/15-deepExclusion/deepExclusion";
+import pressuredCounting from "./rules/16-pressuredCounting/pressuredCounting";
 
 /**
  * Check if a board layout is valid before attempting to solve.
@@ -57,6 +58,7 @@ const allRules: { rule: Rule; level: number; name: string }[] = [
   { rule: overcounting, level: 2, name: "Overcounting" },
   { rule: twoByTwoTiling, level: 3, name: "2×2 Tiling" },
   { rule: oneByNConfinement, level: 3, name: "1×n Confinement" },
+  { rule: pressuredCounting, level: 3, name: "Pressured Counting" },
   { rule: squeeze, level: 4, name: "The Squeeze" },
   { rule: pressuredExclusion, level: 5, name: "Pressured Exclusion" },
   { rule: finnedCounts, level: 5, name: "Finned Counts" },
