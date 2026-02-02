@@ -1,45 +1,77 @@
 /**
- * Rule 12: The Squeeze
+ * Rule 13: The Squeeze
  *
- * Minimally tile 2×2s across pairs of consecutive rows (or columns) where
- * every star can be accounted for.
+ * From Kris de Asis: "Minimally tile 2×2s across pairs of consecutive rows
+ * (or columns) where every star can be accounted for."
  *
- * For N★ puzzles, a row/col pair contains 2N stars. If we can tile the pair
- * with exactly 2N non-overlapping 2×2s, each tile contains exactly one star.
+ * Two complementary approaches:
  *
- * This yields:
- * 1. Stars: Cells with single-coverage in ALL minimal tilings must be stars
- * 2. Marks: Cells outside the pair covered by ALL tilings can't have stars
- *    (the tile's star must be in the pair portion)
+ * 1. TILING APPROACH: If we can tile the pair with exactly N non-overlapping
+ *    2×2s (where N = stars needed), each tile contains exactly one star.
+ *    - Stars: Cells with single-coverage in ALL minimal tilings
+ *    - Marks: Cells outside the pair covered by ALL tilings
+ *
+ * 2. CAPACITY APPROACH: When tiling isn't exact, analyze per-cross-line
+ *    capacity. If total capacity = stars needed, each cross-line contributes
+ *    exactly its max. Combined with region constraints, this marks cells
+ *    that can't possibly contribute to the required count.
  */
 
 import { coordKey, parseKey } from "../../helpers/cellKey";
-import { findAllMinimalTilings } from "../../helpers/tiling";
+import { findAllMinimalTilings, maxIndependentSetSize } from "../../helpers/tiling";
+import buildRegions from "../../helpers/regions";
 import { Board, CellState, Coord, Tile } from "../../helpers/types";
 
 export default function squeeze(board: Board, cells: CellState[][]): boolean {
   const size = board.grid.length;
   const starsPerPair = board.stars * 2;
-  let changed = false;
 
   // Process row pairs
   for (let row = 0; row < size - 1; row++) {
-    if (processRowPair(row, size, starsPerPair, cells)) {
-      changed = true;
+    if (processRowPair(board, row, size, starsPerPair, cells)) {
+      return true;
     }
   }
 
   // Process column pairs
   for (let col = 0; col < size - 1; col++) {
-    if (processColPair(col, size, starsPerPair, cells)) {
-      changed = true;
+    if (processColPair(board, col, size, starsPerPair, cells)) {
+      return true;
     }
   }
 
-  return changed;
+  return false;
+}
+
+/**
+ * Calculate capacity: max non-adjacent stars that can fit.
+ */
+function capacity(cells: Coord[]): number {
+  if (cells.length === 0) return 0;
+  if (cells.length === 1) return 1;
+  return maxIndependentSetSize(cells);
+}
+
+/**
+ * Group cells by their cross-axis index.
+ */
+function groupByCrossAxis(
+  cells: Coord[],
+  axis: "row" | "col",
+): Map<number, Coord[]> {
+  const groups = new Map<number, Coord[]>();
+  for (const [row, col] of cells) {
+    const crossIdx = axis === "row" ? col : row;
+    if (!groups.has(crossIdx)) {
+      groups.set(crossIdx, []);
+    }
+    groups.get(crossIdx)!.push([row, col]);
+  }
+  return groups;
 }
 
 function processRowPair(
+  board: Board,
   row: number,
   size: number,
   starsPerPair: number,
@@ -64,11 +96,66 @@ function processRowPair(
   const neededStars = starsPerPair - existingStars;
   if (neededStars <= 0) return false;
 
+  // Try tiling approach first
   const tiling = findAllMinimalTilings(pairCells, cells, size);
 
-  // Only proceed if tiles exactly match needed stars
-  if (tiling.minTileCount !== neededStars) return false;
+  if (tiling.minTileCount === neededStars) {
+    // Tiling approach: exact match
+    const result = applyTilingDeductions(tiling, pairCells, cells, size);
+    if (result) return true;
+  }
 
+  // Try capacity approach (cross-line analysis)
+  return applyCapacityDeductions(board, pairCells, row, row + 1, "row", cells, size, neededStars);
+}
+
+function processColPair(
+  board: Board,
+  col: number,
+  size: number,
+  starsPerPair: number,
+  cells: CellState[][],
+): boolean {
+  // Collect unknown cells in this column pair
+  const pairCells: Coord[] = [];
+  for (let row = 0; row < size; row++) {
+    if (cells[row][col] === "unknown") pairCells.push([row, col]);
+    if (cells[row][col + 1] === "unknown") pairCells.push([row, col + 1]);
+  }
+
+  if (pairCells.length === 0) return false;
+
+  // Count existing stars in the pair
+  let existingStars = 0;
+  for (let row = 0; row < size; row++) {
+    if (cells[row][col] === "star") existingStars++;
+    if (cells[row][col + 1] === "star") existingStars++;
+  }
+
+  const neededStars = starsPerPair - existingStars;
+  if (neededStars <= 0) return false;
+
+  // Try tiling approach first
+  const tiling = findAllMinimalTilings(pairCells, cells, size);
+
+  if (tiling.minTileCount === neededStars) {
+    const result = applyTilingDeductions(tiling, pairCells, cells, size);
+    if (result) return true;
+  }
+
+  // Try capacity approach
+  return applyCapacityDeductions(board, pairCells, col, col + 1, "col", cells, size, neededStars);
+}
+
+/**
+ * Apply deductions from tiling analysis.
+ */
+function applyTilingDeductions(
+  tiling: { minTileCount: number; allMinimalTilings: Tile[][]; forcedCells: Coord[] },
+  pairCells: Coord[],
+  cells: CellState[][],
+  size: number,
+): boolean {
   let changed = false;
 
   // Place stars on forced cells (single-coverage in all tilings)
@@ -106,64 +193,147 @@ function processRowPair(
   return changed;
 }
 
-function processColPair(
-  col: number,
-  size: number,
-  starsPerPair: number,
+/**
+ * Apply deductions from capacity-based cross-line analysis.
+ *
+ * When total capacity across cross-lines equals stars needed,
+ * each cross-line must contribute exactly its max capacity.
+ * Combined with region constraints, we can mark cells that
+ * can't possibly be stars.
+ */
+function applyCapacityDeductions(
+  board: Board,
+  pairCells: Coord[],
+  line1: number,
+  line2: number,
+  axis: "row" | "col",
   cells: CellState[][],
+  size: number,
+  neededStars: number,
 ): boolean {
-  // Collect unknown cells in this column pair
-  const pairCells: Coord[] = [];
-  for (let row = 0; row < size; row++) {
-    if (cells[row][col] === "unknown") pairCells.push([row, col]);
-    if (cells[row][col + 1] === "unknown") pairCells.push([row, col + 1]);
+  const regions = buildRegions(board.grid);
+
+  // Group by cross-axis and calculate capacity per cross-line
+  const byCrossLine = groupByCrossAxis(pairCells, axis);
+  let totalCapacity = 0;
+  const crossLineCapacities = new Map<number, number>();
+
+  for (const [crossIdx, crossCells] of byCrossLine) {
+    const cap = capacity(crossCells);
+    crossLineCapacities.set(crossIdx, cap);
+    totalCapacity += cap;
   }
 
-  if (pairCells.length === 0) return false;
-
-  // Count existing stars in the pair
-  let existingStars = 0;
-  for (let row = 0; row < size; row++) {
-    if (cells[row][col] === "star") existingStars++;
-    if (cells[row][col + 1] === "star") existingStars++;
-  }
-
-  const neededStars = starsPerPair - existingStars;
-  if (neededStars <= 0) return false;
-
-  const tiling = findAllMinimalTilings(pairCells, cells, size);
-
-  if (tiling.minTileCount !== neededStars) return false;
+  // Only proceed if tight: total capacity = stars needed
+  if (totalCapacity !== neededStars) return false;
 
   let changed = false;
 
-  for (const [frow, fcol] of tiling.forcedCells) {
-    if (cells[frow][fcol] === "unknown") {
-      cells[frow][fcol] = "star";
-      changed = true;
-    }
-  }
+  // Each cross-line must contribute exactly its capacity
+  // Now check if we can combine with region constraints to mark cells
 
-  const forcedOutside = findForcedOutsideCells(tiling.allMinimalTilings);
-  for (const [orow, ocol] of forcedOutside) {
-    if (cells[orow][ocol] === "unknown") {
-      cells[orow][ocol] = "marked";
-      changed = true;
-    }
-  }
+  for (const [crossIdx, mustContribute] of crossLineCapacities) {
+    // Find regions that have their ONLY unknowns in this cross-line (outside the pair)
+    // These regions force stars in this cross-line
+    let forcedByRegions = 0;
 
-  // Mark cells that would block all star candidates via adjacency
-  const pairCellSet = new Set(pairCells.map(coordKey));
-  const adjacencyBlocked = findAdjacencyBlockedCells(
-    tiling.allMinimalTilings,
-    pairCellSet,
-    cells,
-    size,
-  );
-  for (const [brow, bcol] of adjacencyBlocked) {
-    if (cells[brow][bcol] === "unknown") {
-      cells[brow][bcol] = "marked";
-      changed = true;
+    for (const [, regionCoords] of regions) {
+      let regionStars = 0;
+      const regionUnknowns: Coord[] = [];
+
+      for (const [r, c] of regionCoords) {
+        if (cells[r][c] === "star") regionStars++;
+        else if (cells[r][c] === "unknown") regionUnknowns.push([r, c]);
+      }
+
+      const regionNeeds = board.stars - regionStars;
+      if (regionNeeds <= 0) continue;
+
+      // Check if region's only unknowns are in this cross-line
+      const inCrossLine = regionUnknowns.filter(([r, c]) =>
+        axis === "row" ? c === crossIdx : r === crossIdx,
+      );
+      const outsideCrossLine = regionUnknowns.filter(([r, c]) =>
+        axis === "row" ? c !== crossIdx : r !== crossIdx,
+      );
+
+      // If region is confined to this cross-line
+      if (outsideCrossLine.length === 0 && inCrossLine.length > 0) {
+        // Separate into "in pair" and "outside pair"
+        const inPair = inCrossLine.filter(([r, c]) => {
+          const lineIdx = axis === "row" ? r : c;
+          return lineIdx === line1 || lineIdx === line2;
+        });
+        // How many must go outside the pair?
+        const pairCap = capacity(inPair);
+        const mustGoOutside = Math.max(0, regionNeeds - pairCap);
+
+        if (mustGoOutside > 0) {
+          forcedByRegions += mustGoOutside;
+        }
+      }
+    }
+
+    // Cross-line gets: mustContribute from pair + forcedByRegions from outside
+    // Count stars and unknowns in this cross-line
+    let crossLineStars = 0;
+    const crossLineUnknowns: Coord[] = [];
+
+    for (let i = 0; i < size; i++) {
+      const [r, c] = axis === "row" ? [i, crossIdx] : [crossIdx, i];
+      if (cells[r][c] === "star") crossLineStars++;
+      else if (cells[r][c] === "unknown") crossLineUnknowns.push([r, c]);
+    }
+
+    const crossLineNeeds = board.stars - crossLineStars;
+    if (crossLineNeeds <= 0) continue;
+
+    const accountedFor = mustContribute + forcedByRegions;
+
+    // If accounted for >= cross-line needs, mark unaccounted cells
+    if (accountedFor >= crossLineNeeds) {
+      const accountedCells = new Set<string>();
+
+      // Cells in pair
+      for (const [r, c] of pairCells) {
+        const idx = axis === "row" ? c : r;
+        if (idx === crossIdx) accountedCells.add(`${r},${c}`);
+      }
+
+      // Cells forced by regions (confined to this cross-line)
+      for (const [, regionCoords] of regions) {
+        let regionStars = 0;
+        const regionUnknowns: Coord[] = [];
+
+        for (const [r, c] of regionCoords) {
+          if (cells[r][c] === "star") regionStars++;
+          else if (cells[r][c] === "unknown") regionUnknowns.push([r, c]);
+        }
+
+        const regionNeeds = board.stars - regionStars;
+        if (regionNeeds <= 0) continue;
+
+        const outsideCrossLine = regionUnknowns.filter(([r, c]) =>
+          axis === "row" ? c !== crossIdx : r !== crossIdx,
+        );
+
+        if (outsideCrossLine.length === 0) {
+          // Region confined to this cross-line - all unknowns are accounted
+          for (const [r, c] of regionUnknowns) {
+            const idx = axis === "row" ? c : r;
+            if (idx === crossIdx) accountedCells.add(`${r},${c}`);
+          }
+        }
+      }
+
+      // Mark unaccounted cells in this cross-line
+      for (const [r, c] of crossLineUnknowns) {
+        const key = `${r},${c}`;
+        if (!accountedCells.has(key) && cells[r][c] === "unknown") {
+          cells[r][c] = "marked";
+          changed = true;
+        }
+      }
     }
   }
 
@@ -172,12 +342,10 @@ function processColPair(
 
 /**
  * Find cells outside the target area that are covered by ALL minimal tilings.
- * These cells can't have stars because each tile's star must be in the target area.
  */
 function findForcedOutsideCells(allMinimalTilings: Tile[][]): Coord[] {
   if (allMinimalTilings.length === 0) return [];
 
-  // For each tiling, collect cells outside the target (cells - coveredCells)
   const outsideSets: Set<string>[] = allMinimalTilings.map((tiling) => {
     const outside = new Set<string>();
     for (const tile of tiling) {
@@ -192,7 +360,6 @@ function findForcedOutsideCells(allMinimalTilings: Tile[][]): Coord[] {
     return outside;
   });
 
-  // Intersection: cells that appear in ALL tilings
   const intersection = [...outsideSets[0]].filter((key) =>
     outsideSets.every((set) => set.has(key)),
   );
@@ -216,10 +383,6 @@ function isAdjacent(cell1: Coord, cell2: Coord): boolean {
 
 /**
  * Find cells that would block all star candidates for some tile via adjacency.
- *
- * If a cell C is adjacent to ALL coveredCells of some tile in EVERY minimal tiling,
- * then starring C would mark all possible star locations for that tile - contradiction.
- * Therefore C can be marked.
  */
 function findAdjacencyBlockedCells(
   allMinimalTilings: Tile[][],
@@ -229,7 +392,6 @@ function findAdjacencyBlockedCells(
 ): Coord[] {
   if (allMinimalTilings.length === 0) return [];
 
-  // Collect unknown cells adjacent to the pair but not in the pair
   const adjacentCells = new Set<string>();
   for (const key of pairCellSet) {
     const [row, col] = parseKey(key);
@@ -253,10 +415,8 @@ function findAdjacencyBlockedCells(
   for (const candidateKey of adjacentCells) {
     const candidate = parseKey(candidateKey);
 
-    // Check if in EVERY tiling, this candidate blocks at least one tile completely
     const blocksInAllTilings = allMinimalTilings.every((tiling) =>
       tiling.some((tile) =>
-        // Candidate must be adjacent to ALL coveredCells of this tile
         tile.coveredCells.every((covered) => isAdjacent(candidate, covered)),
       ),
     );
