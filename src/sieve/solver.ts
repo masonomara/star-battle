@@ -12,12 +12,10 @@ import undercounting from "./rules/06-undercounting/undercounting";
 import overcounting from "./rules/07-overcounting/overcounting";
 import twoByTwoTiling from "./rules/08-twoByTwoTiling/twoByTwoTiling";
 import oneByNConfinement from "./rules/09-oneByNConfinement/oneByNConfinement";
-import exclusion from "./rules/10-exclusion/exclusion";
 import pressuredExclusion from "./rules/11-pressuredExclusion/pressuredExclusion";
 import finnedCounts from "./rules/12-finnedCounts/finnedCounts";
 import squeeze from "./rules/13-squeeze/squeeze";
 import compositeRegions from "./rules/14-compositeRegions/compositeRegions";
-import deepExclusion from "./rules/15-deepExclusion/deepExclusion";
 
 /**
  * Check if a board layout is valid before attempting to solve.
@@ -68,21 +66,14 @@ const allRules: RuleEntry[] = [
   { rule: columnComplete, level: 0, name: "Column Complete", needsAnalysis: false },
   { rule: regionComplete, level: 0, name: "Region Complete", needsAnalysis: false },
   { rule: forcedPlacement, level: 0, name: "Forced Placement", needsAnalysis: false },
-  { rule: exclusion, level: 1, name: "Exclusion", needsAnalysis: false },
-  { rule: undercounting, level: 2, name: "Undercounting", needsAnalysis: true },
-  { rule: overcounting, level: 2, name: "Overcounting", needsAnalysis: true },
-  { rule: twoByTwoTiling, level: 3, name: "2×2 Tiling", needsAnalysis: false },
-  { rule: oneByNConfinement, level: 3, name: "1×n Confinement", needsAnalysis: true },
+  { rule: twoByTwoTiling, level: 2, name: "2×2 Tiling", needsAnalysis: false },
+  { rule: oneByNConfinement, level: 2, name: "1×n Confinement", needsAnalysis: true },
+   { rule: undercounting, level: 3, name: "Undercounting", needsAnalysis: true },
+  { rule: overcounting, level: 3, name: "Overcounting", needsAnalysis: true },
   { rule: squeeze, level: 4, name: "The Squeeze", needsAnalysis: false },
   { rule: pressuredExclusion, level: 5, name: "Pressured Exclusion", needsAnalysis: true },
   { rule: finnedCounts, level: 5, name: "Finned Counts", needsAnalysis: true },
   { rule: compositeRegions, level: 6, name: "Composite Regions", needsAnalysis: true },
-  {
-    rule: (b: Board, c: CellState[][]) => deepExclusion(b, c, { maxDepth: 2 }),
-    level: 7,
-    name: "Deep Exclusion",
-    needsAnalysis: false,
-  },
 ];
 
 const MAX_CYCLES = 1000;
