@@ -7,6 +7,7 @@
  * - N rows would need more stars than their shared regions can provide
  *
  * Uses delta computation from BoardAnalysis instead of rebuilding metadata.
+ * Optimized with precomputation and MIS caching for better performance on larger puzzles.
  */
 
 import { Board, CellState, Coord } from "../../helpers/types";
@@ -22,8 +23,34 @@ type AdjustedRegion = {
   unknownCoords: Coord[]; // Track actual coordinates for capacity calculation
 };
 
+// Precomputed structures passed to checkViolation
+type PrecomputedData = {
+  baseAdjusted: AdjustedRegion[];
+  baseAdjustedById: Map<number, AdjustedRegion>;
+  baseRowToRegions: Map<number, Set<number>>;
+  baseColToRegions: Map<number, Set<number>>;
+  misCache: Map<string, number>;
+};
+
+/**
+ * Cached maxIndependentSetSize computation.
+ */
+function cachedMIS(cells: Coord[], cache: Map<string, number>): number {
+  if (cells.length === 0) return 0;
+  const key = cells
+    .map(([r, c]) => `${r},${c}`)
+    .sort()
+    .join("|");
+  const cached = cache.get(key);
+  if (cached !== undefined) return cached;
+  const result = maxIndependentSetSize(cells);
+  cache.set(key, result);
+  return result;
+}
+
 /**
  * Check if placing a hypothetical star creates a counting violation.
+ * Uses precomputed data structures for efficiency.
  */
 function checkViolation(
   board: Board,
@@ -31,8 +58,10 @@ function checkViolation(
   starRow: number,
   starCol: number,
   cells: CellState[][],
+  precomputed: PrecomputedData,
 ): boolean {
   const { size, regions, rowStars, colStars } = analysis;
+  const { baseAdjusted, baseAdjustedById, misCache } = precomputed;
   const starRegion = board.grid[starRow][starCol];
 
   // Build set of cells that would be marked (star + 8 neighbors)
@@ -53,9 +82,20 @@ function checkViolation(
   adjRowStars[starRow]++;
   adjColStars[starCol]++;
 
-  // Build adjusted region data
+  // Build adjusted region data using precomputed base as starting point
   const adjusted: AdjustedRegion[] = [];
+  const adjustedById = new Map<number, AdjustedRegion>();
   const adjRegionStars = new Map<number, number>();
+
+  // Track which regions are affected by the marked cells
+  const affectedRegions = new Set<number>();
+  affectedRegions.add(starRegion); // Star region always affected
+  for (const key of marked) {
+    const [rStr, cStr] = key.split(",");
+    const r = parseInt(rStr, 10);
+    const c = parseInt(cStr, 10);
+    affectedRegions.add(board.grid[r][c]);
+  }
 
   for (const [id, meta] of regions) {
     const starsPlaced = meta.starsPlaced + (id === starRegion ? 1 : 0);
@@ -64,20 +104,50 @@ function checkViolation(
 
     if (starsNeeded <= 0) continue;
 
-    // Filter unknowns, excluding marked cells
-    const remainingUnknowns = meta.unknownCoords.filter(
-      ([r, c]) => !marked.has(cellKey(r, c)),
-    );
+    // Check if we can reuse base data or need to recompute
+    const baseRegion = baseAdjustedById.get(id);
 
-    // Region needs stars but has no unknowns - immediate violation
-    if (remainingUnknowns.length === 0) {
-      return true;
+    if (baseRegion && !affectedRegions.has(id)) {
+      // Region not affected by marked cells - reuse base data with adjusted starsNeeded
+      if (id === starRegion) {
+        // Star region - starsNeeded changed
+        const adjRegion: AdjustedRegion = {
+          id,
+          starsNeeded,
+          unknownRows: baseRegion.unknownRows,
+          unknownCols: baseRegion.unknownCols,
+          unknownCoords: baseRegion.unknownCoords,
+        };
+        adjusted.push(adjRegion);
+        adjustedById.set(id, adjRegion);
+      } else {
+        adjusted.push(baseRegion);
+        adjustedById.set(id, baseRegion);
+      }
+    } else {
+      // Region affected by marked cells - need to filter unknowns
+      const remainingUnknowns = meta.unknownCoords.filter(
+        ([r, c]) => !marked.has(cellKey(r, c)),
+      );
+
+      // Region needs stars but has no unknowns - immediate violation
+      if (remainingUnknowns.length === 0) {
+        return true;
+      }
+
+      const unknownRows = new Set(remainingUnknowns.map(([r]) => r));
+      const unknownCols = new Set(remainingUnknowns.map(([, c]) => c));
+
+      const adjRegion: AdjustedRegion = {
+        id,
+        starsNeeded,
+        unknownRows,
+        unknownCols,
+        unknownCoords: remainingUnknowns,
+      };
+      adjusted.push(adjRegion);
+      adjustedById.set(id, adjRegion);
     }
-
-    const unknownRows = new Set(remainingUnknowns.map(([r]) => r));
-    const unknownCols = new Set(remainingUnknowns.map(([, c]) => c));
-
-    adjusted.push({ id, starsNeeded, unknownRows, unknownCols, unknownCoords: remainingUnknowns });
   }
 
   // --- Undercounting check ---
@@ -191,7 +261,7 @@ function checkViolation(
         // Compute actual max contribution per region, considering column constraints
         let starsAvailable = 0;
         for (const rid of regSet) {
-          const region = adjusted.find((r) => r.id === rid);
+          const region = adjustedById.get(rid);
           if (!region) {
             starsAvailable += board.stars - adjRegionStars.get(rid)!;
             continue;
@@ -205,7 +275,7 @@ function checkViolation(
           // Max contribution = min(region's remaining stars, capacity in range)
           const maxContribution = Math.min(
             region.starsNeeded,
-            cellsInRange.length > 0 ? maxIndependentSetSize(cellsInRange) : 0,
+            cachedMIS(cellsInRange, misCache),
           );
           starsAvailable += maxContribution;
         }
@@ -250,7 +320,7 @@ function checkViolation(
         // Compute actual max contribution per region, considering row constraints
         let starsAvailable = 0;
         for (const rid of regSet) {
-          const region = adjusted.find((r) => r.id === rid);
+          const region = adjustedById.get(rid);
           if (!region) {
             starsAvailable += board.stars - adjRegionStars.get(rid)!;
             continue;
@@ -264,7 +334,7 @@ function checkViolation(
           // Max contribution = min(region's remaining stars, capacity in range)
           const maxContribution = Math.min(
             region.starsNeeded,
-            cellsInRange.length > 0 ? maxIndependentSetSize(cellsInRange) : 0,
+            cachedMIS(cellsInRange, misCache),
           );
           starsAvailable += maxContribution;
         }
@@ -284,16 +354,68 @@ export default function finnedCounts(
   cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
-  const { size } = analysis;
+  const { size, regions } = analysis;
   if (size === 0) return false;
 
+  // === PRECOMPUTATION PHASE ===
+  // Build base adjusted regions (without any hypothetical star)
+  const baseAdjusted: AdjustedRegion[] = [];
+  const baseAdjustedById = new Map<number, AdjustedRegion>();
+
+  for (const [id, meta] of regions) {
+    const starsNeeded = board.stars - meta.starsPlaced;
+    if (starsNeeded <= 0) continue;
+
+    const unknownRows = new Set(meta.unknownCoords.map(([r]) => r));
+    const unknownCols = new Set(meta.unknownCoords.map(([, c]) => c));
+
+    const region: AdjustedRegion = {
+      id,
+      starsNeeded,
+      unknownRows,
+      unknownCols,
+      unknownCoords: meta.unknownCoords,
+    };
+    baseAdjusted.push(region);
+    baseAdjustedById.set(id, region);
+  }
+
+  // Build row/col to region mappings
+  const baseRowToRegions = new Map<number, Set<number>>();
+  const baseColToRegions = new Map<number, Set<number>>();
+  for (let i = 0; i < size; i++) {
+    baseRowToRegions.set(i, new Set());
+    baseColToRegions.set(i, new Set());
+  }
+
+  for (const region of baseAdjusted) {
+    for (const row of region.unknownRows) {
+      baseRowToRegions.get(row)!.add(region.id);
+    }
+    for (const col of region.unknownCols) {
+      baseColToRegions.get(col)!.add(region.id);
+    }
+  }
+
+  // MIS cache shared across all checkViolation calls
+  const misCache = new Map<string, number>();
+
+  const precomputed: PrecomputedData = {
+    baseAdjusted,
+    baseAdjustedById,
+    baseRowToRegions,
+    baseColToRegions,
+    misCache,
+  };
+
+  // === MAIN LOOP ===
   let changed = false;
 
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
       if (cells[row][col] !== "unknown") continue;
 
-      if (checkViolation(board, analysis, row, col, cells)) {
+      if (checkViolation(board, analysis, row, col, cells, precomputed)) {
         cells[row][col] = "marked";
         changed = true;
       }
