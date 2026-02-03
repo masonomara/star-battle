@@ -73,4 +73,3 @@ npx tsx src/sieve/cli.ts --sbf unsolved_clean.sbf --trace > trace_all.txt 2>&1
 ```bash
 npx tsx src/sieve/cli.ts --sbf puzzles.sbf --verbose
 ```
-

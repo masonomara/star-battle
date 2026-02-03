@@ -1,7 +1,7 @@
 here is the puzzle to be solved:
 
 ```
-10x2.0000111111023333133102322333330222243333522244433355266663375526889977566688977766998999976669999999
+10x2.0111122222011222222300111144330111144433001554443306655577330666577788066656778866666666886666999998
 ```
 
 Here is the view source from crazy dad's sovler:
@@ -145,128 +145,188 @@ Here is the view source from crazy dad's sovler:
           gh: 10,
           stars: 2,
           layout:
-            "AAAAABBBCCAAAABBBDCCEAABBBDDDCEEFFFBDCCCEEFFFFCCCCGGFFFFFCHHGGGGIICCCHGGGGICCHHHGJJGIJJJJHGGJJJJJJJJ",
+            "ABBBBCCCCCABBCCCCCCDAABBBBEEDDABBBBEEEDDAABFFEEEDDAGGFFFHHDDAGGGFHHHIIAGGGFGHHIIGGGGGGGGIIGGGGJJJJJI",
           answer:
-            "0101000000000001010010010000000000001010100010000000100000010000010100001000000100001010000100000010",
+            "0100010000000100000110000001000010010000100000001000010010000100000010000010100000100000010000100100",
           puzzleID: "Literal",
         },
         steps: [
           {
             step: 1,
-            dots: "B4,A2,B2,B3,A4",
-            stars: "A3",
-            his: "A4,B4,A5,B5",
-            rhi: "Cage-5",
-            hi4s: "B4,A2,B2,B3,A4,A3",
+            dots: "J10,A10,B10,C10,D10",
+            his: "E10,F10,G10,H10,I10",
+            rhi: "Cage-10",
+            hi4s: "J10,A10,B10,C10,D10",
             reasons: [
-              "STAR A3: Cage-5 contains a trivial shape [18]",
-              "CLEAR A2: adjacent to star",
-              "CLEAR B2: adjacent to star",
-              "CLEAR B3: adjacent to star",
-              "CLEAR A4: adjacent to star",
-              "CLEAR B4: adjacent to star",
+              "CLEAR A10: not in a container cabal formed by Cage-10 and Row-10",
+              "CLEAR B10: not in a container cabal formed by Cage-10 and Row-10",
+              "CLEAR C10: not in a container cabal formed by Cage-10 and Row-10",
+              "CLEAR D10: not in a container cabal formed by Cage-10 and Row-10",
+              "CLEAR J10: not in a container cabal formed by Cage-10 and Row-10",
             ],
             caption:
-              "This star only fits here in the highlighted region. We can also eliminate some adjacent squares.",
+              "The remaining open squares in the highlighted region fit within one row. The row contains all the stars for the region, so the remaining squares in the row can be cleared.",
           },
           {
             step: 2,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10",
-            stars: "A3,E9",
-            his: "E7,F7,E8",
-            rhi: "Cage-9",
-            hi4s: "F10,D8,E8,F8,D9,F9,D10,E10,E9",
-            reasons: [
-              "STAR E9: Cage-9 contains a trivial shape [16]",
-              "CLEAR D8: adjacent to star",
-              "CLEAR E8: adjacent to star",
-              "CLEAR F8: adjacent to star",
-              "CLEAR D9: adjacent to star",
-              "CLEAR F9: adjacent to star",
-              "CLEAR D10: adjacent to star",
-              "CLEAR E10: adjacent to star",
-              "CLEAR F10: adjacent to star",
-            ],
+            dots: "J10,A10,B10,C10,D10,G4",
+            his: "G3,H3,F4,H4,F5,G5,H5",
+            rhi: "Cage-5",
+            hi4s: "G4",
+            reasons: ["CLEAR G4:  it crowds Cage-5 (None)"],
             caption:
-              "This star only fits here in the highlighted region. We can also eliminate some adjacent squares.",
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
           },
           {
             step: 3,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3",
-            stars: "A3,E9",
-            his: "H2,G3,I3,G4",
-            rhi: "Cage-4",
-            hi4s: "H3",
-            reasons: ["CLEAR H3:  it crowds Cage-4 (None)"],
+            dots: "J10,A10,B10,C10,D10,G4,G7",
+            his: "G6,H6,F7,H7,G8,H8",
+            rhi: "Cage-8",
+            hi4s: "G7",
+            reasons: ["CLEAR G7:  it crowds Cage-8 (None)"],
             caption:
               "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
           },
           {
             step: 4,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4",
-            stars: "A3,E9",
-            his: "G3,I3,G4",
-            rhi: "Cage-4",
-            hi4s: "H4",
-            reasons: ["CLEAR H4:  it crowds Cage-4 (None)"],
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8",
+            his: "I7,J7,J8,I9,J9",
+            rhi: "Cage-9",
+            hi4s: "I8",
+            reasons: ["CLEAR I8:  it crowds Cage-9 (None)"],
             caption:
               "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
           },
           {
             step: 5,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6",
-            stars: "A3,E9",
-            his: "A5,B5",
-            rhi: "Cage-5",
-            hi4s: "B6,A6",
-            reasons: [
-              "CLEAR A6:  it crowds Cage-5 (None)",
-              "CLEAR B6:  it crowds Cage-5 (None)",
-            ],
-            caption:
-              "We can eliminate these cells that would otherwise prevent us from placing both stars in the highlighted region.",
-          },
-          {
-            step: 6,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7",
-            stars: "A3,E9",
-            his: "I6,J6,J7,H8,I8,J8",
-            rhi: "Cage-8",
-            hi4s: "I7",
-            reasons: ["CLEAR I7:  it crowds Cage-8 (None)"],
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8",
+            his: "I7,J7,I9,J9",
+            rhi: "Cage-9",
+            hi4s: "J8",
+            reasons: ["CLEAR J8:  it crowds Cage-9 (None)"],
             caption:
               "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
           },
           {
-            step: 7,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6",
-            stars: "A3,E9",
-            his: "E7,F7",
-            rhi: "Cage-9",
-            hi4s: "F6,E6",
-            reasons: [
-              "CLEAR E6:  it crowds Cage-9 (None)",
-              "CLEAR F6:  it crowds Cage-9 (None)",
-            ],
+            step: 6,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9",
+            his: "G10,H10,I10",
+            rhi: "Row-10",
+            hi4s: "H9",
+            reasons: ["CLEAR H9:  it crowds Row-10 (subclump)"],
             caption:
-              "We can eliminate these cells that would otherwise prevent us from placing both stars in the highlighted region.",
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted row.",
+          },
+          {
+            step: 7,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9",
+            his: "E10,F10,G10",
+            rhi: "Row-10",
+            hi4s: "F9",
+            reasons: ["CLEAR F9:  it crowds Row-10 (subclump)"],
+            caption:
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted row.",
           },
           {
             step: 8,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3",
-            stars: "A3,E9",
-            his: "G3,G4",
-            rhi: "Cage-4",
-            hi4s: "F3",
-            reasons: ["CLEAR F3:  it crowds Cage-4 (subclump)"],
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7",
+            his: "F6,E7,E8",
+            rhi: "Cage-6",
+            hi4s: "F7",
+            reasons: ["CLEAR F7:  it crowds Cage-6 (subclump)"],
             caption:
               "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
           },
           {
             step: 9,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2",
-            stars: "A3,E9",
-            his: "H2,I3",
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7",
+            his: "G6,H6,G8,H8",
+            rhi: "Cage-8",
+            hi4s: "H7",
+            reasons: ["CLEAR H7:  it crowds Cage-8 (None)"],
+            caption:
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
+          },
+          {
+            step: 10,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9",
+            his: "G8,H8",
+            rhi: "Cage-8",
+            hi4s: "G9",
+            reasons: ["CLEAR G9:  it crowds Cage-8 (subclump)"],
+            caption:
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
+          },
+          {
+            step: 11,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5",
+            his: "G6,H6",
+            rhi: "Cage-8",
+            hi4s: "H5,G5",
+            reasons: [
+              "CLEAR G5:  it crowds Cage-8 (subclump)",
+              "CLEAR H5:  it crowds Cage-8 (subclump)",
+            ],
+            caption:
+              "We can eliminate these cells that would otherwise prevent us from placing both stars in the highlighted region.",
+          },
+          {
+            step: 12,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4",
+            his: "F4,F5",
+            rhi: "Cage-5",
+            hi4s: "E5,E4",
+            reasons: [
+              "CLEAR E4:  it crowds Cage-5 (subclump)",
+              "CLEAR E5:  it crowds Cage-5 (subclump)",
+            ],
+            caption:
+              "We can eliminate these cells that would otherwise prevent us from placing both stars in the highlighted region.",
+          },
+          {
+            step: 13,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10",
+            his: "I9,J9",
+            rhi: "Cage-9",
+            hi4s: "I10",
+            reasons: ["CLEAR I10:  it crowds Cage-9 (subclump)"],
+            caption:
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
+          },
+          {
+            step: 14,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6",
+            his: "I7,J7",
+            rhi: "Cage-9",
+            hi4s: "I6",
+            reasons: ["CLEAR I6:  it crowds Cage-9 (subclump)"],
+            caption:
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
+          },
+          {
+            step: 15,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9",
+            his: "E10,F10",
+            rhi: "Row-10",
+            hi4s: "E9",
+            reasons: ["CLEAR E9:  it crowds Row-10 (subclump)"],
+            caption:
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted row.",
+          },
+          {
+            step: 16,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6",
+            his: "I7,J7",
+            rhi: "Cage-9",
+            hi4s: "J6",
+            reasons: ["CLEAR J6:  it crowds Cage-9 (subclump)"],
+            caption:
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
+          },
+          {
+            step: 17,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2",
+            his: "J2,I3,J3",
             rhi: "Cage-4",
             hi4s: "I2",
             reasons: ["CLEAR I2:  it crowds Cage-4 (subclump)"],
@@ -274,523 +334,507 @@ Here is the view source from crazy dad's sovler:
               "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
           },
           {
-            step: 10,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4",
-            stars: "A3,E9",
-            his: "G3,G4",
-            rhi: "Cage-4",
-            hi4s: "F4",
-            reasons: ["CLEAR F4:  it crowds Cage-4 (subclump)"],
+            step: 18,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1",
+            his: "J2,I3,J3,I4,J4,I5,J5,I7,J7,I9,J9",
+            rhi: "Cage-4,Cage-9",
+            hi4s: "I1,J1",
+            reasons: [
+              "CLEAR J1: not in a container cabal formed by Cage-4,Cage-9 and Col-j,Col-i",
+              "CLEAR I1: not in a container cabal formed by Cage-4,Cage-9 and Col-j,Col-i",
+            ],
+            caption:
+              "The remaining open squares in the two highlighted regions fit within two columns. These form a container-cabal that must contain all the stars for those columns. The remaining squares in the columns can be cleared.",
+          },
+          {
+            step: 19,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1",
+            his: "F1,D2,E2,F2",
+            rhi: "Cage-3",
+            hi4s: "E1",
+            reasons: ["CLEAR E1:  it crowds Cage-3 (subclump)"],
             caption:
               "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
           },
           {
-            step: 11,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6",
-            stars: "A3,E9",
-            his: "F5,F7",
-            rhi: "Col-f",
-            hi4s: "G6",
-            reasons: ["CLEAR G6:  it crowds Col-f (subclump)"],
-            caption:
-              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted column.",
-          },
-          {
-            step: 12,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5",
-            stars: "A3,E9",
-            his: "H6,I6,J6",
-            rhi: "Row-6",
-            hi4s: "I5",
-            reasons: ["CLEAR I5:  it crowds Row-6 (subclump)"],
-            caption:
-              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted row.",
-          },
-          {
-            step: 13,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9",
-            stars: "A3,E9",
-            his: "H8,I8,J8,J9",
-            rhi: "Cage-8",
-            hi4s: "I9",
-            reasons: ["CLEAR I9:  it crowds Cage-8 (subclump)"],
-            caption:
-              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
-          },
-          {
-            step: 14,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2",
-            stars: "A3,E9",
-            his: "A1,B1,C1,D1,E1,C2,D2,C3,F1,G1,H1,E2,F2,G2,D3,E3,H2,G3,I3",
-            rhi: "Row-1,Row-2,Row-3",
-            hi4s: "J3,I1,J1,J2",
+            step: 20,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3",
+            his: "A1,A2,A3,A4,A5,A6,A7,A8,A9,B1,B2,B3,B4,B5,B6,B7,B8,B9,C1,C2,C3,C4,C5,C6,C7,C8,C9",
+            rhi: "Cage-1,Cage-7,Cage-2",
+            hi4s: "D4,D7,D8,F8,D9,D1,D3,E3,F3",
             reasons: [
-              "CLEAR I1: not in a reserved area formed by (A1,B1,C1,D1,E1,C2,D2,C3,F1,G1,H1,E2,F2,G2,D3,E3,H2,G3,I3)",
-              "CLEAR J1: not in a reserved area formed by (A1,B1,C1,D1,E1,C2,D2,C3,F1,G1,H1,E2,F2,G2,D3,E3,H2,G3,I3)",
-              "CLEAR J2: not in a reserved area formed by (A1,B1,C1,D1,E1,C2,D2,C3,F1,G1,H1,E2,F2,G2,D3,E3,H2,G3,I3)",
-              "CLEAR J3: not in a reserved area formed by (A1,B1,C1,D1,E1,C2,D2,C3,F1,G1,H1,E2,F2,G2,D3,E3,H2,G3,I3)",
+              "CLEAR D7: not in a container cabal formed by Col-a,Col-b,Col-c and Cage-1,Cage-7,Cage-2",
+              "CLEAR D8: not in a container cabal formed by Col-a,Col-b,Col-c and Cage-1,Cage-7,Cage-2",
+              "CLEAR F8: not in a container cabal formed by Col-a,Col-b,Col-c and Cage-1,Cage-7,Cage-2",
+              "CLEAR D9: not in a container cabal formed by Col-a,Col-b,Col-c and Cage-1,Cage-7,Cage-2",
+              "CLEAR D1: not in a container cabal formed by Col-a,Col-b,Col-c and Cage-1,Cage-7,Cage-2",
+              "CLEAR D3: not in a container cabal formed by Col-a,Col-b,Col-c and Cage-1,Cage-7,Cage-2",
+              "CLEAR E3: not in a container cabal formed by Col-a,Col-b,Col-c and Cage-1,Cage-7,Cage-2",
+              "CLEAR F3: not in a container cabal formed by Col-a,Col-b,Col-c and Cage-1,Cage-7,Cage-2",
+              "CLEAR D4: not in a container cabal formed by Col-a,Col-b,Col-c and Cage-1,Cage-7,Cage-2",
             ],
             caption:
-              "The reserved green squares must contain the remaining star(s) for the rows. All other cells can be cleared.",
+              "The remaining open squares in three columns fit within the three highlighted regions. These form a container-cabal that must contain all the stars for those regions. The remaining squares in the regions can be cleared.",
           },
           {
-            step: 15,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5",
-            stars: "A3,E9,G4",
-            his: "A4,B4,C4,D4,E4,F4,G4,H4,I4,J4",
-            rhi: "Row-1,Row-2,Row-3,Row-4,Row-4",
-            hi4s: "H5,G3,F5,G5,G4",
+            step: 21,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2",
+            stars: "D2",
+            his: "D1,D2,D3,D4,D5,D6,D7,D8,D9,D10",
+            rhi: "Col-d",
+            hi4s: "C3,C1,C2,E2,D2",
             reasons: [
-              "STAR G4: because it makes a singleton subclump in Row-4",
-              "CLEAR G3: adjacent to star",
-              "CLEAR F5: adjacent to star",
-              "CLEAR G5: adjacent to star",
-              "CLEAR H5: adjacent to star",
-            ],
-            caption:
-              "We must place a star here; otherwise there would be insufficient room for both stars in the highlighted row. We can also eliminate some adjacent squares.",
-          },
-          {
-            step: 16,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7",
-            stars: "A3,E9,G4,F7",
-            his: "F1,F2,F3,F4,F5,F6,F7,F8,F9,F10",
-            rhi: "Col-f",
-            hi4s: "G8,E7,G7,F7",
-            reasons: [
-              "STAR F7: because it makes a singleton subclump in Col-f",
-              "CLEAR E7: adjacent to star",
-              "CLEAR G7: adjacent to star",
-              "CLEAR G8: adjacent to star",
+              "STAR D2: because it makes a singleton subclump in Col-d",
+              "CLEAR C1: adjacent to star",
+              "CLEAR C2: adjacent to star",
+              "CLEAR E2: adjacent to star",
+              "CLEAR C3: adjacent to star",
             ],
             caption:
               "We must place a star here; otherwise there would be insufficient room for both stars in the highlighted column. We can also eliminate some adjacent squares.",
           },
           {
-            step: 17,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1",
-            stars: "A3,E9,G4,F7",
-            his: "F1,F2",
-            rhi: "Col-f",
-            hi4s: "E2,E1,G1",
-            reasons: [
-              "CLEAR E1:  it crowds Col-f (None)",
-              "CLEAR G1:  it crowds Col-f (None)",
-              "CLEAR E2:  it crowds Col-f (None)",
-            ],
-            caption:
-              "We can eliminate these cells that would otherwise prevent us from placing both stars in the highlighted column.",
-          },
-          {
-            step: 18,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4",
-            stars: "A3,E9,G4,F7",
-            his: "E3,E4,E5",
-            rhi: "Col-e",
-            hi4s: "D4",
-            reasons: ["CLEAR D4:  it crowds Col-e (None)"],
-            caption:
-              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted column.",
-          },
-          {
-            step: 19,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2",
-            stars: "A3,E9,G4,F7",
-            his: "F1,F2",
-            rhi: "Col-f",
-            hi4s: "G2",
-            reasons: ["CLEAR G2:  it crowds Col-f (None)"],
-            caption:
-              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted column.",
-          },
-          {
-            step: 20,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9",
-            stars: "A3,E9,G4,F7",
-            his: "G9,G10",
-            rhi: "Col-g",
-            hi4s: "H10,H9",
-            reasons: [
-              "CLEAR H9:  it crowds Col-g (None)",
-              "CLEAR H10:  it crowds Col-g (None)",
-            ],
-            caption:
-              "We can eliminate these cells that would otherwise prevent us from placing both stars in the highlighted column.",
-          },
-          {
-            step: 21,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5",
-            stars: "A3,E9,G4,F7",
-            his: "C4,E4,C5,E5,C6,D6",
-            rhi: "Cage-6",
-            hi4s: "D5",
-            reasons: ["CLEAR D5:  it crowds Cage-6 (None)"],
-            caption:
-              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
-          },
-          {
             step: 22,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2",
-            stars: "A3,E9,G4,F7",
-            his: "D1,D2,D3",
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5",
+            stars: "D2",
+            his: "D5,D6",
             rhi: "Col-d",
-            hi4s: "C2",
-            reasons: ["CLEAR C2:  it crowds Col-d (subclump)"],
+            hi4s: "C6,C5",
+            reasons: [
+              "CLEAR C5:  it crowds Col-d (None)",
+              "CLEAR C6:  it crowds Col-d (None)",
+            ],
             caption:
-              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted column.",
+              "We can eliminate these cells that would otherwise prevent us from placing both stars in the highlighted column.",
           },
           {
             step: 23,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3",
-            stars: "A3,E9,G4,F7",
-            his: "D2,F2",
-            rhi: "Row-2",
-            hi4s: "E3",
-            reasons: ["CLEAR E3:  it crowds Row-2 (None)"],
-            caption:
-              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted row.",
-          },
-          {
-            step: 24,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6",
-            stars: "A3,E9,G4,F7",
-            his: "H6,H7",
-            rhi: "Cage-3",
-            hi4s: "I6",
-            reasons: ["CLEAR I6:  it crowds Cage-3 (subclump)"],
-            caption:
-              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
-          },
-          {
-            step: 25,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9",
-            stars: "A3,E9,G4,F7",
-            his: "I8,I10",
-            rhi: "Col-i",
-            hi4s: "J9",
-            reasons: ["CLEAR J9:  it crowds Col-i (subclump)"],
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8",
+            stars: "D2",
+            his: "C7,C8,C9",
+            rhi: "Col-c",
+            hi4s: "B8",
+            reasons: ["CLEAR B8:  it crowds Col-c (None)"],
             caption:
               "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted column.",
           },
           {
-            step: 26,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1",
-            stars: "A3,E9,G4,F7,F2",
-            his: "A2,B2,C2,D2,E2,F2,G2,H2,I2,J2",
-            rhi: "Row-2",
-            hi4s: "F1,F2",
-            reasons: [
-              "STAR F2: Row-2 contains an at-most-1 tuplet",
-              "CLEAR F1: adjacent to star",
-            ],
+            step: 24,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6",
+            stars: "D2",
+            his: "D5,D6",
+            rhi: "Col-d",
+            hi4s: "E6",
+            reasons: ["CLEAR E6:  it crowds Col-d (None)"],
             caption:
-              "The highlighted row contains two squares that can contain at most one star, leaving a cell that must contain the second star in the row. We can also eliminate an adjacent square.",
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted column.",
           },
           {
-            step: 27,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9",
-            stars: "A3,E9,G4,F7,F2",
-            his: "A9,A10,B10",
-            rhi: "Row-9,Row-10",
-            hi4s: "B9",
-            reasons: ["CLEAR B9:  it crowds Row-9,Row-10 (subclump)"],
-            caption:
-              "The green cells must contain a star, otherwise the hilighted rows can't hold enough stars. We can eliminate a cell that would otherwise crowd the green cells.",
-          },
-          {
-            step: 28,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8",
-            stars: "A3,E9,G4,F7,F2",
-            his: "H7,J7,H8,J8",
-            rhi: "Row-7,Row-8,Row-9,Row-10",
-            hi4s: "I8",
+            step: 25,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10",
+            stars: "D2,E10",
+            his: "E1,E2,E3,E4,E5,E6,E7,E8,E9,E10",
+            rhi: "Col-e",
+            hi4s: "F10,E10",
             reasons: [
-              "CLEAR I8:  it crowds Row-7,Row-8,Row-9,Row-10 (subclump)",
-            ],
-            caption:
-              "The green cells must contain a star, otherwise the hilighted rows can't hold enough stars. We can eliminate a cell that would otherwise crowd the green cells.",
-          },
-          {
-            step: 29,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10",
-            stars: "A3,E9,G4,F7,F2,I10",
-            his: "I1,I2,I3,I4,I5,I6,I7,I8,I9,I10",
-            rhi: "Col-i",
-            hi4s: "J10,I10",
-            reasons: [
-              "STAR I10: because it makes a singleton subclump in Col-i",
-              "CLEAR J10: adjacent to star",
+              "STAR E10: because it makes a singleton subclump in Col-e",
+              "CLEAR F10: adjacent to star",
             ],
             caption:
               "We must place a star here; otherwise there would be insufficient room for both stars in the highlighted column. We can also eliminate an adjacent square.",
           },
           {
-            step: 30,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4",
-            stars: "A3,E9,G4,F7,F2,I10",
-            his: "I3,I4",
-            rhi: "Col-i",
-            hi4s: "J4",
-            reasons: ["CLEAR J4:  it crowds Col-i (None)"],
+            step: 26,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3",
+            stars: "D2,E10",
+            his: "B2,B4,C4",
+            rhi: "Cage-2",
+            hi4s: "B3",
+            reasons: ["CLEAR B3:  it crowds Cage-2 (None)"],
             caption:
-              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted column.",
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
+          },
+          {
+            step: 27,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2",
+            stars: "D2,E10",
+            his: "F1,G1,H1",
+            rhi: "Row-1",
+            hi4s: "G2",
+            reasons: ["CLEAR G2:  it crowds Row-1 (subclump)"],
+            caption:
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted row.",
+          },
+          {
+            step: 28,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5",
+            stars: "D2,E10",
+            his: "B4,C4",
+            rhi: "Cage-2",
+            hi4s: "B5",
+            reasons: ["CLEAR B5:  it crowds Cage-2 (subclump)"],
+            caption:
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
+          },
+          {
+            step: 29,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1",
+            stars: "D2,E10",
+            his: "B1,B2",
+            rhi: "Cage-2",
+            hi4s: "A1",
+            reasons: ["CLEAR A1:  it crowds Cage-2 (subclump)"],
+            caption:
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
+          },
+          {
+            step: 30,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9",
+            stars: "D2,E10",
+            his: "A2,A3,A4,A5,A6,A7,A8",
+            rhi: "Cage-1",
+            hi4s: "A9",
+            reasons: [
+              "CLEAR A9: not in a container cabal formed by Cage-1 and Col-a",
+            ],
+            caption:
+              "The remaining open squares in the highlighted region fit within one column. The column contains all the stars for the region, so the remaining square in the column can be cleared.",
           },
           {
             step: 31,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7",
-            stars: "A3,E9,G4,F7,F2,I10",
-            his: "C6,D6",
-            rhi: "Cage-6",
-            hi4s: "D7,C5,C7",
-            reasons: [
-              "CLEAR C5:  it crowds Cage-6 (subclump)",
-              "CLEAR C7:  it crowds Cage-6 (subclump)",
-              "CLEAR D7:  it crowds Cage-6 (subclump)",
-            ],
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8",
+            stars: "D2,E10",
+            his: "B9,C9",
+            rhi: "Row-9",
+            hi4s: "C8",
+            reasons: ["CLEAR C8:  it crowds Row-9 (subclump)"],
             caption:
-              "We can eliminate these cells that would otherwise prevent us from placing both stars in the highlighted region.",
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted row.",
           },
           {
             step: 32,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7,H1",
-            stars: "A3,E9,G4,F7,F2,I10",
-            his: "H2,I3,H6,H7,I4,J5,H8,J6,J7,J8",
-            rhi: "Col-h,Col-i,Col-j",
-            hi4s: "H1",
-            reasons: [
-              "CLEAR H1: not in a reserved area formed by (H2,I3,H6,H7,I4,J5,H8,J6,J7,J8)",
-            ],
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2",
+            stars: "D2,E10",
+            his: "B1,B2",
+            rhi: "Cage-2",
+            hi4s: "A2",
+            reasons: ["CLEAR A2:  it crowds Cage-2 (subclump)"],
             caption:
-              "The reserved green squares must contain the remaining star(s) for the columns. The other cell can be cleared.",
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted region.",
           },
           {
             step: 33,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7,H1,E4,D2,C3,C4",
-            stars: "A3,E9,G4,F7,F2,I10,D3",
-            his: "F1,G1,H1,E2,F2,G2,D3,E3,F3,F4",
-            rhi: "Cage-2",
-            hi4s: "E4,D2,C3,C4,D3",
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9",
+            stars: "D2,E10,C9",
+            his: "C1,C2,C3,C4,C5,C6,C7,C8,C9,C10",
+            rhi: "Col-c",
+            hi4s: "B9,C9",
             reasons: [
-              "STAR D3: Cage-2 is otherwise cleared",
-              "CLEAR D2: adjacent to star",
-              "CLEAR C3: adjacent to star",
-              "CLEAR C4: adjacent to star",
-              "CLEAR E4: adjacent to star",
+              "STAR C9: Col-c contains an at-most-1 tuplet",
+              "CLEAR B9: adjacent to star",
             ],
             caption:
-              "The highlighted region has one cell remaining where we can place its second star. So we place the star and eliminate the adjacent squares.",
+              "The highlighted column contains two squares that can contain at most one star, leaving a cell that must contain the second star in the column. We can also eliminate an adjacent square.",
           },
           {
             step: 34,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7,H1,E4,D2,C3,C4,I3",
-            stars: "A3,E9,G4,F7,F2,I10,D3,H2",
-            his: "A2,B2,C2,D2,E2,F2,G2,H2,I2,J2",
-            rhi: "Row-2",
-            hi4s: "I3,H2",
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1",
+            stars: "D2,E10,C9",
+            his: "G3,H3,H4,G6,G8,H6,H8,G10,H10",
+            rhi: "Col-g,Col-h",
+            hi4s: "H2,G1,H1",
             reasons: [
-              "STAR H2: Row-2 is otherwise cleared",
-              "CLEAR I3: adjacent to star",
+              "CLEAR G1: not in a reserved area formed by (G3,H3,H4,G6,G8,H6,H8,G10,H10)",
+              "CLEAR H1: not in a reserved area formed by (G3,H3,H4,G6,G8,H6,H8,G10,H10)",
+              "CLEAR H2: not in a reserved area formed by (G3,H3,H4,G6,G8,H6,H8,G10,H10)",
             ],
             caption:
-              "The highlighted row has one cell remaining where we can place its second star. So we place the star and eliminate an adjacent square.",
+              "The reserved green squares must contain the remaining star(s) for the columns. All other cells can be cleared.",
           },
           {
             step: 35,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7,H1,E4,D2,C3,C4,I3,J5",
-            stars: "A3,E9,G4,F7,F2,I10,D3,H2,I4",
-            his: "A4,B4,C4,D4,E4,F4,G4,H4,I4,J4",
-            rhi: "Row-4",
-            hi4s: "J5,I4",
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2",
+            stars: "D2,E10,C9,F1,B1",
+            his: "A1,B1,C1,D1,E1,F1,G1,H1,I1,J1",
+            rhi: "Row-1",
+            hi4s: "F2,B2,F1,B1",
             reasons: [
-              "STAR I4: Row-4 is otherwise cleared",
-              "CLEAR J5: adjacent to star",
+              "STAR B1: Row-1 is otherwise cleared",
+              "CLEAR B2: adjacent to star",
+              "STAR F1: Row-1 is otherwise cleared",
+              "CLEAR F2: adjacent to star",
             ],
             caption:
-              "The highlighted row has one cell remaining where we can place its second star. So we place the star and eliminate an adjacent square.",
+              "The highlighted row has two cells remaining where we can place its stars. So we place those stars and eliminate the adjacent squares.",
           },
           {
             step: 36,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7,H1,E4,D2,C3,C4,I3,J5,D6",
-            stars: "A3,E9,G4,F7,F2,I10,D3,H2,I4,E5",
-            his: "E1,E2,E3,E4,E5,E6,E7,E8,E9,E10",
-            rhi: "Col-e",
-            hi4s: "D6,E5",
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3",
+            stars: "D2,E10,C9,F1,B1,J2",
+            his: "A2,B2,C2,D2,E2,F2,G2,H2,I2,J2",
+            rhi: "Row-2",
+            hi4s: "J3,I3,J2",
             reasons: [
-              "STAR E5: Col-e is otherwise cleared",
-              "CLEAR D6: adjacent to star",
+              "STAR J2: Row-2 is otherwise cleared",
+              "CLEAR I3: adjacent to star",
+              "CLEAR J3: adjacent to star",
             ],
             caption:
-              "The highlighted column has one cell remaining where we can place its second star. So we place the star and eliminate an adjacent square.",
+              "The highlighted row has one cell remaining where we can place its second star. So we place the star and eliminate the adjacent squares.",
           },
           {
             step: 37,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7,H1,E4,D2,C3,C4,I3,J5,D6,B7,B5",
-            stars: "A3,E9,G4,F7,F2,I10,D3,H2,I4,E5,C6",
-            his: "C4,D4,E4,C5,D5,E5,F5,C6,D6,E6,F6,G6",
-            rhi: "Cage-6",
-            hi4s: "B7,B5,C6",
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4",
+            stars: "D2,E10,C9,F1,B1,J2,A3",
+            his: "A3,B3,C3,D3,E3,F3,G3,H3,I3,J3",
+            rhi: "Row-3",
+            hi4s: "B4,A4,A3",
             reasons: [
-              "STAR C6: Cage-6 is otherwise cleared",
-              "CLEAR B5: adjacent to star",
-              "CLEAR B7: adjacent to star",
+              "STAR A3: because it makes a singleton subclump in Row-3",
+              "CLEAR A4: adjacent to star",
+              "CLEAR B4: adjacent to star",
             ],
             caption:
-              "The highlighted region has one cell remaining where we can place its second star. So we place the star and eliminate the adjacent squares.",
+              "We must place a star here; otherwise there would be insufficient room for both stars in the highlighted row. We can also eliminate some adjacent squares.",
           },
           {
             step: 38,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7,H1,E4,D2,C3,C4,I3,J5,D6,B7,B5",
-            stars: "A3,E9,G4,F7,F2,I10,D3,H2,I4,E5,C6,A5",
-            his: "A5,B5,C5,D5,E5,F5,G5,H5,I5,J5",
-            rhi: "Row-5",
-            hi4s: "A5",
-            reasons: ["STAR A5: Row-5 is otherwise cleared"],
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5",
+            stars: "D2,E10,C9,F1,B1,J2,A3,C4",
+            his: "B1,C1,D1,E1,B2,C2,C3,D3,E3,F3,B4,C4,D4,E4,C5",
+            rhi: "Cage-2",
+            hi4s: "D5,C4",
+            reasons: [
+              "STAR C4: Cage-2 is otherwise cleared",
+              "CLEAR D5: adjacent to star",
+            ],
             caption:
-              "The highlighted row has one cell remaining where we can place its second star. So we place the star there.",
+              "The highlighted region has one cell remaining where we can place its second star. So we place the star and eliminate an adjacent square.",
           },
           {
             step: 39,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7,H1,E4,D2,C3,C4,I3,J5,D6,B7,B5,A10,A1,A7,A8,A9",
-            stars: "A3,E9,G4,F7,F2,I10,D3,H2,I4,E5,C6,A5",
-            his: "A1,A2,A3,A4,A5,A6,A7,A8,A9,A10",
-            rhi: "Col-a",
-            hi4s: "A10,A1,A7,A8,A9",
-            reasons: [
-              "CLEAR A1: Col-a is already full of stars",
-              "CLEAR A7: Col-a is already full of stars",
-              "CLEAR A8: Col-a is already full of stars",
-              "CLEAR A9: Col-a is already full of stars",
-              "CLEAR A10: Col-a is already full of stars",
-            ],
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5,C7",
+            stars: "D2,E10,C9,F1,B1,J2,A3,C4",
+            his: "C1,C2,C3,C4,C5,C6,C7,C8,C9,C10",
+            rhi: "Col-c",
+            hi4s: "C7",
+            reasons: ["CLEAR C7: Col-c is already full of stars"],
             caption:
-              "The highlighted column has all its stars. We can eliminate its remaining squares.",
+              "The highlighted column has all its stars. We can eliminate its remaining square.",
           },
           {
             step: 40,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7,H1,E4,D2,C3,C4,I3,J5,D6,B7,B5,A10,A1,A7,A8,A9,C1",
-            stars: "A3,E9,G4,F7,F2,I10,D3,H2,I4,E5,C6,A5,D1",
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5,C7,E7",
+            stars: "D2,E10,C9,F1,B1,J2,A3,C4,D6",
             his: "D1,D2,D3,D4,D5,D6,D7,D8,D9,D10",
             rhi: "Col-d",
-            hi4s: "C1,D1",
+            hi4s: "E7,D6",
             reasons: [
-              "STAR D1: Col-d is otherwise cleared",
-              "CLEAR C1: adjacent to star",
+              "STAR D6: Col-d is otherwise cleared",
+              "CLEAR E7: adjacent to star",
             ],
             caption:
               "The highlighted column has one cell remaining where we can place its second star. So we place the star and eliminate an adjacent square.",
           },
           {
             step: 41,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7,H1,E4,D2,C3,C4,I3,J5,D6,B7,B5,A10,A1,A7,A8,A9,C1",
-            stars: "A3,E9,G4,F7,F2,I10,D3,H2,I4,E5,C6,A5,D1,B1",
-            his: "A1,B1,C1,D1,E1,A2,B2,C2,D2,B3,C3",
-            rhi: "Cage-1",
-            hi4s: "B1",
-            reasons: ["STAR B1: Cage-1 is otherwise cleared"],
-            caption:
-              "The highlighted region has one cell remaining where we can place its second star. So we place the star there.",
-          },
-          {
-            step: 42,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7,H1,E4,D2,C3,C4,I3,J5,D6,B7,B5,A10,A1,A7,A8,A9,C1,J7",
-            stars: "A3,E9,G4,F7,F2,I10,D3,H2,I4,E5,C6,A5,D1,B1,J8,J6",
-            his: "J7",
-            rhi: "Col-j",
-            hi4s: "J7,J8,J6",
-            reasons: [
-              "STAR J6: Col-j contains a trivial shape [0]",
-              "CLEAR J7: adjacent to star",
-              "STAR J8: Col-j contains a trivial shape [0]",
-            ],
-            caption:
-              "These stars can only go in these locations in the highlighted column. We can also eliminate an adjacent square.",
-          },
-          {
-            step: 43,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7,H1,E4,D2,C3,C4,I3,J5,D6,B7,B5,A10,A1,A7,A8,A9,C1,J7,H6",
-            stars: "A3,E9,G4,F7,F2,I10,D3,H2,I4,E5,C6,A5,D1,B1,J8,J6",
-            his: "A6,B6,C6,D6,E6,F6,G6,H6,I6,J6",
-            rhi: "Row-6",
-            hi4s: "H6",
-            reasons: ["CLEAR H6: Row-6 is already full of stars"],
-            caption:
-              "The highlighted row has all its stars. We can eliminate its remaining square.",
-          },
-          {
-            step: 44,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7,H1,E4,D2,C3,C4,I3,J5,D6,B7,B5,A10,A1,A7,A8,A9,C1,J7,H6,H8",
-            stars: "A3,E9,G4,F7,F2,I10,D3,H2,I4,E5,C6,A5,D1,B1,J8,J6,H7",
-            his: "A7,B7,C7,D7,E7,F7,G7,H7,I7,J7",
-            rhi: "Row-7",
-            hi4s: "H8,H7",
-            reasons: [
-              "STAR H7: Row-7 is otherwise cleared",
-              "CLEAR H8: adjacent to star",
-            ],
-            caption:
-              "The highlighted row has one cell remaining where we can place its second star. So we place the star and eliminate an adjacent square.",
-          },
-          {
-            step: 45,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7,H1,E4,D2,C3,C4,I3,J5,D6,B7,B5,A10,A1,A7,A8,A9,C1,J7,H6,H8,C10,C9",
-            stars: "A3,E9,G4,F7,F2,I10,D3,H2,I4,E5,C6,A5,D1,B1,J8,J6,H7,B10",
-            his: "A6,B6,A7,B7,C7,D7,A8,B8,C8,D8,A9,D9,A10,B10",
-            rhi: "Cage-7",
-            hi4s: "C10,C9,B10",
-            reasons: [
-              "STAR B10: because it makes a singleton subclump in Cage-7",
-              "CLEAR C9: adjacent to star",
-              "CLEAR C10: adjacent to star",
-            ],
-            caption:
-              "We must place a star here; otherwise there would be insufficient room for both stars in the highlighted region. We can also eliminate some adjacent squares.",
-          },
-          {
-            step: 46,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7,H1,E4,D2,C3,C4,I3,J5,D6,B7,B5,A10,A1,A7,A8,A9,C1,J7,H6,H8,C10,C9,G10",
-            stars: "A3,E9,G4,F7,F2,I10,D3,H2,I4,E5,C6,A5,D1,B1,J8,J6,H7,B10,G9",
-            his: "A9,B9,C9,D9,E9,F9,G9,H9,I9,J9",
-            rhi: "Row-9",
-            hi4s: "G10,G9",
-            reasons: [
-              "STAR G9: Row-9 is otherwise cleared",
-              "CLEAR G10: adjacent to star",
-            ],
-            caption:
-              "The highlighted row has one cell remaining where we can place its second star. So we place the star and eliminate an adjacent square.",
-          },
-          {
-            step: 47,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7,H1,E4,D2,C3,C4,I3,J5,D6,B7,B5,A10,A1,A7,A8,A9,C1,J7,H6,H8,C10,C9,G10,B8",
-            stars: "A3,E9,G4,F7,F2,I10,D3,H2,I4,E5,C6,A5,D1,B1,J8,J6,H7,B10,G9",
-            his: "B1,B2,B3,B4,B5,B6,B7,B8,B9,B10",
-            rhi: "Col-b",
-            hi4s: "B8",
-            reasons: ["CLEAR B8: Col-b is already full of stars"],
-            caption:
-              "The highlighted column has all its stars. We can eliminate its remaining square.",
-          },
-          {
-            step: 48,
-            dots: "B4,A2,B2,B3,A4,F10,D8,E8,F8,D9,F9,D10,E10,H3,H4,B6,A6,I7,F6,E6,F3,I2,F4,G6,I5,I9,J3,I1,J1,J2,H5,G3,F5,G5,G8,E7,G7,E2,E1,G1,D4,G2,H10,H9,D5,C2,E3,I6,J9,F1,B9,I8,J10,J4,D7,C5,C7,H1,E4,D2,C3,C4,I3,J5,D6,B7,B5,A10,A1,A7,A8,A9,C1,J7,H6,H8,C10,C9,G10,B8",
-            stars:
-              "A3,E9,G4,F7,F2,I10,D3,H2,I4,E5,C6,A5,D1,B1,J8,J6,H7,B10,G9,C8",
-            his: "C1,C2,C3,C4,C5,C6,C7,C8,C9,C10",
-            rhi: "Col-c",
-            hi4s: "C8",
-            reasons: ["STAR C8: Col-c is otherwise cleared"],
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5,C7,E7",
+            stars: "D2,E10,C9,F1,B1,J2,A3,C4,D6,E8",
+            his: "E1,E2,E3,E4,E5,E6,E7,E8,E9,E10",
+            rhi: "Col-e",
+            hi4s: "E8",
+            reasons: ["STAR E8: Col-e is otherwise cleared"],
             caption:
               "The highlighted column has one cell remaining where we can place its second star. So we place the star there.",
           },
           {
+            step: 42,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5,C7,E7,F6",
+            stars: "D2,E10,C9,F1,B1,J2,A3,C4,D6,E8",
+            his: "D5,E5,D6,E6,F6,E7,E8",
+            rhi: "Cage-6",
+            hi4s: "F6",
+            reasons: ["CLEAR F6: Cage-6 is already full of stars"],
+            caption:
+              "The highlighted region has all its stars. We can eliminate its remaining square.",
+          },
+          {
+            step: 43,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5,C7,E7,F6,H4",
+            stars: "D2,E10,C9,F1,B1,J2,A3,C4,D6,E8",
+            his: "G3,H3",
+            rhi: "Row-3",
+            hi4s: "H4",
+            reasons: ["CLEAR H4:  it crowds Row-3 (None)"],
+            caption:
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted row.",
+          },
+          {
+            step: 44,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5,C7,E7,F6,H4,A7,A6",
+            stars: "D2,E10,C9,F1,B1,J2,A3,C4,D6,E8",
+            his: "B6,B7",
+            rhi: "Col-b",
+            hi4s: "A7,A6",
+            reasons: [
+              "CLEAR A6:  it crowds Col-b (None)",
+              "CLEAR A7:  it crowds Col-b (None)",
+            ],
+            caption:
+              "We can eliminate these cells that would otherwise prevent us from placing both stars in the highlighted column.",
+          },
+          {
+            step: 45,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5,C7,E7,F6,H4,A7,A6,A8,B6",
+            stars: "D2,E10,C9,F1,B1,J2,A3,C4,D6,E8,B7",
+            his: "A7,B7,C7,D7,E7,F7,G7,H7,I7,J7",
+            rhi: "Row-7",
+            hi4s: "A8,B6,B7",
+            reasons: [
+              "STAR B7: because it makes a singleton subclump in Row-7",
+              "CLEAR B6: adjacent to star",
+              "CLEAR A8: adjacent to star",
+            ],
+            caption:
+              "We must place a star here; otherwise there would be insufficient room for both stars in the highlighted row. We can also eliminate some adjacent squares.",
+          },
+          {
+            step: 46,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5,C7,E7,F6,H4,A7,A6,A8,B6",
+            stars: "D2,E10,C9,F1,B1,J2,A3,C4,D6,E8,B7,A5",
+            his: "A1,A2,A3,A4,A5,A6,A7,A8,A9,A10",
+            rhi: "Col-a",
+            hi4s: "A5",
+            reasons: ["STAR A5: Col-a is otherwise cleared"],
+            caption:
+              "The highlighted column has one cell remaining where we can place its second star. So we place the star there.",
+          },
+          {
+            step: 47,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5,C7,E7,F6,H4,A7,A6,A8,B6,H8",
+            stars: "D2,E10,C9,F1,B1,J2,A3,C4,D6,E8,B7,A5",
+            his: "I7,I9",
+            rhi: "Col-i",
+            hi4s: "H8",
+            reasons: ["CLEAR H8:  it crowds Col-i (subclump)"],
+            caption:
+              "We can eliminate a cell that would otherwise prevent us from placing both stars in the highlighted column.",
+          },
+          {
+            step: 48,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5,C7,E7,F6,H4,A7,A6,A8,B6,H8",
+            stars: "D2,E10,C9,F1,B1,J2,A3,C4,D6,E8,B7,A5,G8",
+            his: "A8,B8,C8,D8,E8,F8,G8,H8,I8,J8",
+            rhi: "Row-8",
+            hi4s: "G8",
+            reasons: ["STAR G8: Row-8 is otherwise cleared"],
+            caption:
+              "The highlighted row has one cell remaining where we can place its second star. So we place the star there.",
+          },
+          {
             step: 49,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5,C7,E7,F6,H4,A7,A6,A8,B6,H8,I4,G3",
+            stars: "D2,E10,C9,F1,B1,J2,A3,C4,D6,E8,B7,A5,G8,H3",
+            his: "H1,H2,H3,H4,H5,H6,H7,H8,H9,H10",
+            rhi: "Col-h",
+            hi4s: "I4,G3,H3",
+            reasons: [
+              "STAR H3: Col-h contains an at-most-1 tuplet",
+              "CLEAR G3: adjacent to star",
+              "CLEAR I4: adjacent to star",
+            ],
+            caption:
+              "The highlighted column contains two squares that can contain at most one star, leaving a cell that must contain the second star in the column. We can also eliminate some adjacent squares.",
+          },
+          {
+            step: 50,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5,C7,E7,F6,H4,A7,A6,A8,B6,H8,I4,G3,J5,J4,J7,H6",
+            stars: "D2,E10,C9,F1,B1,J2,A3,C4,D6,E8,B7,A5,G8,H3,I5,I7",
+            his: "I1,I2,I3,I4,I5,I6,I7,I8,I9,I10",
+            rhi: "Col-i",
+            hi4s: "J5,J4,J7,H6,I5,I7",
+            reasons: [
+              "STAR I7: Col-i contains an at-most-1 tuplet",
+              "CLEAR H6: adjacent to star",
+              "CLEAR J7: adjacent to star",
+              "STAR I5: Col-i contains an at-most-1 tuplet",
+              "CLEAR J4: adjacent to star",
+              "CLEAR J5: adjacent to star",
+            ],
+            caption:
+              "The highlighted column contains two squares that can contain at most one star, leaving a cell that must contain the second star in the column. We can also eliminate some adjacent squares.",
+          },
+          {
+            step: 51,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5,C7,E7,F6,H4,A7,A6,A8,B6,H8,I4,G3,J5,J4,J7,H6,F5",
+            stars: "D2,E10,C9,F1,B1,J2,A3,C4,D6,E8,B7,A5,G8,H3,I5,I7,F4",
+            his: "A4,B4,C4,D4,E4,F4,G4,H4,I4,J4",
+            rhi: "Row-4",
+            hi4s: "F5,F4",
+            reasons: [
+              "STAR F4: Row-4 is otherwise cleared",
+              "CLEAR F5: adjacent to star",
+            ],
+            caption:
+              "The highlighted row has one cell remaining where we can place its second star. So we place the star and eliminate an adjacent square.",
+          },
+          {
+            step: 52,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5,C7,E7,F6,H4,A7,A6,A8,B6,H8,I4,G3,J5,J4,J7,H6,F5",
+            stars: "D2,E10,C9,F1,B1,J2,A3,C4,D6,E8,B7,A5,G8,H3,I5,I7,F4,G6",
+            his: "A6,B6,C6,D6,E6,F6,G6,H6,I6,J6",
+            rhi: "Row-6",
+            hi4s: "G6",
+            reasons: ["STAR G6: Row-6 is otherwise cleared"],
+            caption:
+              "The highlighted row has one cell remaining where we can place its second star. So we place the star there.",
+          },
+          {
+            step: 53,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5,C7,E7,F6,H4,A7,A6,A8,B6,H8,I4,G3,J5,J4,J7,H6,F5,G10",
+            stars: "D2,E10,C9,F1,B1,J2,A3,C4,D6,E8,B7,A5,G8,H3,I5,I7,F4,G6",
+            his: "G1,G2,G3,G4,G5,G6,G7,G8,G9,G10",
+            rhi: "Col-g",
+            hi4s: "G10",
+            reasons: ["CLEAR G10: Col-g is already full of stars"],
+            caption:
+              "The highlighted column has all its stars. We can eliminate its remaining square.",
+          },
+          {
+            step: 54,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5,C7,E7,F6,H4,A7,A6,A8,B6,H8,I4,G3,J5,J4,J7,H6,F5,G10,I9",
+            stars: "D2,E10,C9,F1,B1,J2,A3,C4,D6,E8,B7,A5,G8,H3,I5,I7,F4,G6,H10",
+            his: "H1,H2,H3,H4,H5,H6,H7,H8,H9,H10",
+            rhi: "Col-h",
+            hi4s: "I9,H10",
+            reasons: [
+              "STAR H10: Col-h is otherwise cleared",
+              "CLEAR I9: adjacent to star",
+            ],
+            caption:
+              "The highlighted column has one cell remaining where we can place its second star. So we place the star and eliminate an adjacent square.",
+          },
+          {
+            step: 55,
+            dots: "J10,A10,B10,C10,D10,G4,G7,I8,J8,H9,F9,F7,H7,G9,H5,G5,E5,E4,I10,I6,E9,J6,I2,I1,J1,E1,D4,D7,D8,F8,D9,D1,D3,E3,F3,C3,C1,C2,E2,C6,C5,B8,E6,F10,B3,G2,B5,A1,A9,C8,A2,B9,H2,G1,H1,F2,B2,J3,I3,B4,A4,D5,C7,E7,F6,H4,A7,A6,A8,B6,H8,I4,G3,J5,J4,J7,H6,F5,G10,I9",
             stars:
-              "A3,E9,G4,F7,F2,I10,D3,H2,I4,E5,C6,A5,D1,B1,J8,J6,H7,B10,G9,C8",
+              "D2,E10,C9,F1,B1,J2,A3,C4,D6,E8,B7,A5,G8,H3,I5,I7,F4,G6,H10,J9",
+            his: "J1,J2,J3,J4,J5,J6,J7,J8,J9,J10",
+            rhi: "Col-j",
+            hi4s: "J9",
+            reasons: ["STAR J9: Col-j is otherwise cleared"],
+            caption:
+              "The highlighted column has one cell remaining where we can place its second star. So we place the star there.",
+          },
+          {
+            step: 56,
+            stars:
+              "D2,E10,C9,F1,B1,J2,A3,C4,D6,E8,B7,A5,G8,H3,I5,I7,F4,G6,H10,J9",
             caption: "Ta-da!",
           },
         ],
       };
-      var puzzleID = "KD_TNT_10x10M_V2026-B02-P02";
+      var puzzleID = "KD_TNT_10x10M_V2026-B02-P03";
     </script>
   </head>
   <body>
@@ -920,208 +964,361 @@ Here is the view source from crazy dad's sovler:
 Here is the results when we try to solve the puzzle:
 
 ```bash
+masonomara@Masons-MacBook-Pro starbattle % head -1 unsolved_clean.sbf | npx tsx src/sieve/cli.ts --sbf /dev/stdin --trace
+
+
 ============================================================
-Puzzle 1: 10x2.0000011122000011132240011133324455513222445555222266555552776666882227666682277769968999976699999999
+Puzzle 1: 10x2.0111122222011222222300111144330111144433001554443306655577330666577788066656778866666666886666999998
 ============================================================
 Region grid:
-0 0 0 0 0 1 1 1 2 2
-0 0 0 0 1 1 1 3 2 2
-4 0 0 1 1 1 3 3 3 2
-4 4 5 5 5 1 3 2 2 2
-4 4 5 5 5 5 2 2 2 2
-6 6 5 5 5 5 5 2 7 7
-6 6 6 6 8 8 2 2 2 7
-6 6 6 6 8 2 2 7 7 7
-6 9 9 6 8 9 9 9 9 7
-6 6 9 9 9 9 9 9 9 9
+0 1 1 1 1 2 2 2 2 2
+0 1 1 2 2 2 2 2 2 3
+0 0 1 1 1 1 4 4 3 3
+0 1 1 1 1 4 4 4 3 3
+0 0 1 5 5 4 4 4 3 3
+0 6 6 5 5 5 7 7 3 3
+0 6 6 6 5 7 7 7 8 8
+0 6 6 6 5 6 7 7 8 8
+6 6 6 6 6 6 6 6 8 8
+6 6 6 6 9 9 9 9 9 8
 
 --- Cycle 1: 2×2 Tiling (level 1) ---
 . . . . . . . . . .
+. . . . . . . . . .
+. . . . . . . . . .
+. . . . . . . . . .
+. . . . . . . . . .
+. . . . . . . . . .
+. . . . . . . . . .
+. . . . . . . . . .
+. . . . X X X X . .
 . . . . . . . . X .
-. X . . . X . X . .
-X X . . . X . . . .
-. . . . . . . . . .
-. . . . . . . . . .
-. . . . . . . . . .
-. . . . X . . . . .
-. . . . . . . . . .
-. . . . . . . . . .
 
---- Cycle 2: 2×2 Tiling (level 1) ---
-. . . . . . . . . .
-. . . . . . . . X .
-★ X . . . X . X . .
-X X . . . X . . . .
+--- Cycle 2: 1×n Confinement (level 1) ---
 . . . . . . . . . .
 . . . . . . . . . .
 . . . . . . . . . .
-. . . . X . . . . .
-. . . . ★ . . . . .
 . . . . . . . . . .
+. . . . . . . . . .
+. . . . . . . . . .
+. . . . . . . . . .
+. . . . . . . . . .
+. . . . X X X X . .
+X X X X . . . . X X
 
---- Cycle 3: Star Neighbors (level 0) ---
-. . . . . . . . . .
-X X . . . . . . X .
-★ X . . . X . X . .
-X X . . . X . . . .
+--- Cycle 3: 2×2 Tiling (level 1) ---
 . . . . . . . . . .
 . . . . . . . . . .
 . . . . . . . . . .
-. . . X X X . . . .
-. . . X ★ X . . . .
-. . . X X X . . . .
-
---- Cycle 4: Pressured Exclusion (level 2) ---
 . . . . . . . . . .
-X X . . . . . . X .
-★ X . . . X . X . .
-X X . . . X . . . .
 . . . . . . . . . .
-X X . . X X . . . .
 . . . . . . . . . .
-. . . X X X . . . .
-. . . X ★ X . . . .
-. . . X X X . . . .
-
---- Cycle 5: Finned Counts (level 5) ---
+. . . . . . . . . .
 . . . . . . . . X X
-X X . . . . . . X X
-★ X . . . X X X . X
-X X . . . X . X . .
-. . . . . X X X . .
-X X . . X X X . . .
-. . . . X . X . X .
-. . . X X X X . . .
-. X . X ★ X . . X .
-. . . X X X . . . .
+. . . . X X X X . .
+X X X X . . . . X X
+
+--- Cycle 4: Finned Counts (level 5) ---
+. . X X X . . . X X
+. . X . X . X . X .
+. . X X X X . . . .
+. . . X X . X . . .
+. . X . X . . . . .
+. . X . X X . . X X
+. . . X . X X . . .
+. X . X . X . . X X
+. . . X X X X X . .
+X X X X . X . . X X
+
+--- Cycle 5: Forced Placement (level 0) ---
+. . X X X . . . X X
+. . X . X . X . X .
+. . X X X X . . . .
+. . . X X . X . . .
+. . X . X . . . . .
+. . X . X X . . X X
+. . . X . X X . . .
+. X . X . X . . X X
+. . . X X X X X . .
+X X X X ★ X . . X X
 
 --- Cycle 6: Forced Placement (level 0) ---
-. . . . . . . . X X
-X X . . . . . . X X
-★ X . . . X X X . X
-X X . . . X . X . .
-. . . . . X X X . .
-X X . . X X X . . .
-. . . . X ★ X . X .
-. . . X X X X . . .
-. X . X ★ X . . X .
-. . . X X X . . . .
+. . X X X . . . X X
+. . X ★ X . X . X .
+. . X X X X . . . .
+. . . X X . X . . .
+. . X . X . . . . .
+. . X . X X . . X X
+. . . X . X X . . .
+. X . X . X . . X X
+. . . X X X X X . .
+X X X X ★ X . . X X
 
 --- Cycle 7: 2×2 Tiling (level 1) ---
-. . . . . . . . X X
-X X . . . . . . X X
-★ X . . . X X X . X
-X X . . . X ★ X . .
-. . . . . X X X . .
-X X . . X X X . . .
-. . . . X ★ X . X .
-. . . X X X X . . .
-. X . X ★ X . . X .
-. . . X X X . . . .
+. . X X X . . . X X
+. . X ★ X . X . X .
+. . X X X X . . . .
+. . . X X . X . . .
+. . X . X . . . . .
+. . X . X X . . X X
+. . . X . X X X . .
+. X . X . X . . X X
+. . . X X X X X . .
+X X X X ★ X . . X X
 
---- Cycle 8: Pressured Exclusion (level 2) ---
-. . . . . . . . X X
-X X . . . . . . X X
-★ X . . . X X X . X
-X X . . . X ★ X . .
-. . . . . X X X . .
-X X . . X X X . . .
-. . . . X ★ X . X .
-. . . X X X X . . .
-. X . X ★ X . X X .
-. . . X X X . X . .
+--- Cycle 8: Finned Counts (level 5) ---
+X . X X X . X . X X
+X X X ★ X . X . X .
+. X X X X X . . . .
+. . . X X . X . . .
+. X X . X . X X . .
+. . X . X X . . X X
+X . . X . X X X . .
+. X . X . X . . X X
+. X . X X X X X . .
+X X X X ★ X . . X X
 
---- Cycle 9: Finned Counts (level 5) ---
-. . . . X . X . X X
-X X . . X . X . X X
-★ X . . . X X X . X
-X X . X . X ★ X . .
-. . X X . X X X X .
-X X . . X X X . X .
-. . X X X ★ X . X .
-. . . X X X X . X .
-. X . X ★ X . X X X
-. . . X X X . X . X
+--- Cycle 9: Forced Placement (level 0) ---
+X ★ X X X . X . X X
+X X X ★ X . X . X .
+. X X X X X . . . .
+. . . X X . X . . .
+. X X . X . X X . .
+. . X . X X . . X X
+X . . X . X X X . .
+. X . X . X . . X X
+. X . X X X X X . .
+X X X X ★ X . . X X
 
---- Cycle 10: Pressured Exclusion (level 2) ---
-. . X . X . X . X X
-X X X . X . X . X X
-★ X . . . X X X . X
-X X . X . X ★ X . .
-. . X X . X X X X .
-X X . . X X X . X .
-. . X X X ★ X . X .
-. . . X X X X . X .
-. X . X ★ X . X X X
-. . . X X X . X . X
+--- Cycle 10: 1×n Confinement (level 1) ---
+X ★ X X X . X . X X
+X X X ★ X . X . X .
+. X X X X X . . . .
+. . . X X . X . . .
+. X X . X . X X . .
+. . X . X X . . X X
+X . . X . X X X . .
+. X . X . X . . X X
+X X . X X X X X . .
+X X X X ★ X . . X X
 
---- Cycle 11: Finned Counts (level 5) ---
-. . X . X . X . X X
-X X X . X . X . X X
-★ X . . X X X X . X
-X X . X . X ★ X . X
-. . X X . X X X X .
-X X . . X X X . X .
-. . X X X ★ X . X .
-. . . X X X X . X .
-. X . X ★ X . X X X
-. . . X X X . X . X
+--- Cycle 11: Forced Placement (level 0) ---
+X ★ X X X . X . X X
+X X X ★ X . X . X .
+. X X X X X . . . .
+. . . X X . X . . .
+. X X . X . X X . .
+. . X . X X . . X X
+X . . X . X X X . .
+. X . X . X . . X X
+X X ★ X X X X X . .
+X X X X ★ X . . X X
 
---- Cycle 12: Pressured Exclusion (level 2) ---
-. . X . X X X . X X
-X X X . X . X . X X
-★ X . . X X X X . X
-X X . X . X ★ X . X
-. . X X . X X X X .
-X X . . X X X . X .
-. . X X X ★ X . X .
-. . . X X X X . X .
-. X . X ★ X . X X X
-. . . X X X . X . X
+--- Cycle 12: Star Neighbors (level 0) ---
+X ★ X X X . X . X X
+X X X ★ X . X . X .
+. X X X X X . . . .
+. . . X X . X . . .
+. X X . X . X X . .
+. . X . X X . . X X
+X . . X . X X X . .
+. X X X . X . . X X
+X X ★ X X X X X . .
+X X X X ★ X . . X X
 
---- Cycle 13: Forced Placement (level 0) ---
-. . X . X X X . X X
-X X X . X ★ X . X X
-★ X . . X X X X . X
-X X . X . X ★ X . X
-. . X X . X X X X .
-X X . . X X X . X .
-. . X X X ★ X . X .
-. . . X X X X . X .
-. X . X ★ X . X X X
-. . . X X X . X . X
+--- Cycle 13: Finned Counts (level 5) ---
+X ★ X X X . X . X X
+X X X ★ X . X . X .
+. X X X X X . . X X
+X X . X X . X X . .
+. X X . X . X X . .
+X . X . X X . . X X
+X . X X . X X X . .
+. X X X . X . X X X
+X X ★ X X X X X . .
+X X X X ★ X . . X X
 
---- Cycle 14: Finned Counts (level 5) ---
-. . X . X X X . X X
-X X X . X ★ X . X X
-★ X . . X X X X . X
-X X X X . X ★ X . X
-. . X X . X X X X .
-X X . . X X X . X .
-. . X X X ★ X . X .
-. . . X X X X . X .
-. X . X ★ X . X X X
-. . . X X X . X . X
+--- Cycle 14: Forced Placement (level 0) ---
+X ★ X X X . X . X X
+X X X ★ X . X . X .
+. X X X X X . . X X
+X X ★ X X . X X . .
+. X X . X . X X . .
+X . X . X X . . X X
+X . X X . X X X . .
+. X X X . X . X X X
+X X ★ X X X X X . .
+X X X X ★ X . . X X
+
+--- Cycle 15: Star Neighbors (level 0) ---
+X ★ X X X . X . X X
+X X X ★ X . X . X .
+. X X X X X . . X X
+X X ★ X X . X X . .
+. X X X X . X X . .
+X . X . X X . . X X
+X . X X . X X X . .
+. X X X . X . X X X
+X X ★ X X X X X . .
+X X X X ★ X . . X X
+
+--- Cycle 16: Forced Placement (level 0) ---
+X ★ X X X . X . X X
+X X X ★ X . X . X .
+. X X X X X . . X X
+X X ★ X X . X X . .
+. X X X X . X X . .
+X . X ★ X X . . X X
+X . X X . X X X . .
+. X X X . X . X X X
+X X ★ X X X X X . .
+X X X X ★ X . . X X
+
+--- Cycle 17: Star Neighbors (level 0) ---
+X ★ X X X . X . X X
+X X X ★ X . X . X .
+. X X X X X . . X X
+X X ★ X X . X X . .
+. X X X X . X X . .
+X . X ★ X X . . X X
+X . X X X X X X . .
+. X X X . X . X X X
+X X ★ X X X X X . .
+X X X X ★ X . . X X
+
+--- Cycle 18: Forced Placement (level 0) ---
+X ★ X X X . X . X X
+X X X ★ X . X . X .
+. X X X X X . . X X
+X X ★ X X . X X . .
+. X X X X . X X . .
+X . X ★ X X . . X X
+X . X X X X X X . .
+. X X X ★ X . X X X
+X X ★ X X X X X . .
+X X X X ★ X . . X X
+
+--- Cycle 19: Forced Placement (level 0) ---
+X ★ X X X . X . X X
+X X X ★ X . X . X .
+★ X X X X X . . X X
+X X ★ X X . X X . .
+. X X X X . X X . .
+X . X ★ X X . . X X
+X . X X X X X X . .
+. X X X ★ X . X X X
+X X ★ X X X X X . .
+X X X X ★ X . . X X
+
+--- Cycle 20: Forced Placement (level 0) ---
+X ★ X X X . X . X X
+X X X ★ X . X . X .
+★ X X X X X . . X X
+X X ★ X X . X X . .
+. X X X X . X X . .
+X . X ★ X X . . X X
+X ★ X X X X X X . .
+. X X X ★ X . X X X
+X X ★ X X X X X . .
+X X X X ★ X . . X X
+
+--- Cycle 21: Star Neighbors (level 0) ---
+X ★ X X X . X . X X
+X X X ★ X . X . X .
+★ X X X X X . . X X
+X X ★ X X . X X . .
+. X X X X . X X . .
+X X X ★ X X . . X X
+X ★ X X X X X X . .
+X X X X ★ X . X X X
+X X ★ X X X X X . .
+X X X X ★ X . . X X
+
+--- Cycle 22: Forced Placement (level 0) ---
+X ★ X X X . X . X X
+X X X ★ X . X . X .
+★ X X X X X . . X X
+X X ★ X X . X X . .
+. X X X X . X X . .
+X X X ★ X X . . X X
+X ★ X X X X X X . .
+X X X X ★ X ★ X X X
+X X ★ X X X X X . .
+X X X X ★ X . . X X
+
+--- Cycle 23: Forced Placement (level 0) ---
+X ★ X X X . X . X X
+X X X ★ X . X . X .
+★ X X X X X . . X X
+X X ★ X X . X X . .
+★ X X X X . X X . .
+X X X ★ X X . . X X
+X ★ X X X X X X . .
+X X X X ★ X ★ X X X
+X X ★ X X X X X . .
+X X X X ★ X . . X X
+
+--- Cycle 24: Forced Placement (level 0) ---
+X ★ X X X . X . X X
+X X X ★ X . X . X ★
+★ X X X X X . . X X
+X X ★ X X . X X . .
+★ X X X X . X X . .
+X X X ★ X X . . X X
+X ★ X X X X X X . .
+X X X X ★ X ★ X X X
+X X ★ X X X X X . .
+X X X X ★ X . . X X
+
+--- Cycle 25: Row Complete (level 0) ---
+X ★ X X X . X . X X
+X X X ★ X X X X X ★
+★ X X X X X . . X X
+X X ★ X X . X X . .
+★ X X X X . X X . .
+X X X ★ X X . . X X
+X ★ X X X X X X . .
+X X X X ★ X ★ X X X
+X X ★ X X X X X . .
+X X X X ★ X . . X X
+
+--- Cycle 26: Forced Placement (level 0) ---
+X ★ X X X ★ X . X X
+X X X ★ X X X X X ★
+★ X X X X X . . X X
+X X ★ X X . X X . .
+★ X X X X . X X . .
+X X X ★ X X . . X X
+X ★ X X X X X X . .
+X X X X ★ X ★ X X X
+X X ★ X X X X X . .
+X X X X ★ X . . X X
+
+--- Cycle 27: Row Complete (level 0) ---
+X ★ X X X ★ X X X X
+X X X ★ X X X X X ★
+★ X X X X X . . X X
+X X ★ X X . X X . .
+★ X X X X . X X . .
+X X X ★ X X . . X X
+X ★ X X X X X X . .
+X X X X ★ X ★ X X X
+X X ★ X X X X X . .
+X X X X ★ X . . X X
 
 === STUCK ===
-Processed 1 puzzles in 0.45s
+Processed 1 puzzles in 0.35s
 
 Rule Usage Summary:
-  Forced Placement      (L0): 2 times (100% of puzzles)
-  Star Neighbors        (L0): 1 times (100% of puzzles)
-  Row Complete          (L0): 0 times (0% of puzzles)
+  Forced Placement      (L0): 13 times (100% of puzzles)
+  Star Neighbors        (L0): 4 times (100% of puzzles)
+  Row Complete          (L0): 2 times (100% of puzzles)
   Column Complete       (L0): 0 times (0% of puzzles)
   Region Complete       (L0): 0 times (0% of puzzles)
-  Exclusion             (L1): 0 times (0% of puzzles)
-  Undercounting         (L2): 0 times (0% of puzzles)
-  Overcounting          (L2): 0 times (0% of puzzles)
   2×2 Tiling            (L3): 3 times (100% of puzzles)
-  1×n Confinement       (L3): 0 times (0% of puzzles)
-  The Squeeze           (L4): 0 times (0% of puzzles)
-  Pressured Exclusion   (L5): 4 times (100% of puzzles)
-  Finned Counts         (L5): 4 times (100% of puzzles)
+  1×n Confinement       (L3): 2 times (100% of puzzles)
+  Finned Counts         (L5): 3 times (100% of puzzles)
   Composite Regions     (L6): 0 times (0% of puzzles)
-  Deep Exclusion        (L7): 0 times (0% of puzzles)
 
 Difficulty distribution:
   Easy (1-20):    0 puzzles
@@ -1131,4 +1328,4 @@ Difficulty distribution:
 Solve rate: 0/1 (0%)
 ```
 
-Investigate which functions from our production rules coudl possibly be failing, specifically look at KrazyDad's step 29, the star placement at column 8 row 9 (0-indexed) is the key deviation from our solver. Shouldnt some forced exclusion or 1xn strips help solve this? we can see in column 8 that there are two stars needed, and two areas with 2 unknowns and 1 unknown. we know that we cant fit two stars in the double unknown region (column 8 row 2 and column 8 row 3) so we must be able to place a star in colunm 8 row 9
+Investigate which functions from our production rules coudl possibly be failing, specifically look at KrazyDad's step 49 the key deviation from our solver. i think forcedPlacement or another rule shoudl eb able to handle this mark at step 49

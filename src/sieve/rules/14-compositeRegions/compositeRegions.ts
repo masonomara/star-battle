@@ -899,6 +899,68 @@ function analyzeComposite(
   return changed;
 }
 
+/**
+ * Find composites from adjacent columns.
+ * When multiple adjacent columns have cells that interact via adjacency,
+ * analyzing them together can reveal forced placements.
+ *
+ * This handles the KrazyDad step 49 scenario where columns G, H, I together
+ * constrain each other such that H3 must be a star.
+ */
+function findAdjacentLineComposites(
+  board: Board,
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+  axis: "row" | "col",
+): Composite[] {
+  const composites: Composite[] = [];
+  const size = board.grid.length;
+  const { rowStars, colStars } = analysis;
+
+  // Try combining 2-4 adjacent lines
+  for (let start = 0; start < size; start++) {
+    for (let span = 2; span <= Math.min(4, size - start); span++) {
+      const end = start + span - 1;
+
+      // Collect unknown cells and compute stars needed
+      const unknownCells: Coord[] = [];
+      let starsNeeded = 0;
+
+      for (let lineIdx = start; lineIdx <= end; lineIdx++) {
+        const lineStars = axis === "col" ? colStars[lineIdx] : rowStars[lineIdx];
+        starsNeeded += board.stars - lineStars;
+
+        for (let i = 0; i < size; i++) {
+          const [row, col] =
+            axis === "col" ? [i, lineIdx] : [lineIdx, i];
+          if (cells[row][col] === "unknown") {
+            unknownCells.push([row, col]);
+          }
+        }
+      }
+
+      if (starsNeeded <= 0) continue;
+      if (unknownCells.length < starsNeeded) continue;
+
+      // Pre-filter for tight ratios - use tighter ratio for line composites
+      // as they tend to be more productive when tight
+      const maxSlackMultiplier = Math.max(3, board.stars);
+      if (unknownCells.length > starsNeeded * maxSlackMultiplier) continue;
+
+      composites.push({
+        id: `${axis}-combo-${start}-${end}`,
+        source: "combination",
+        cells: unknownCells,
+        unknownCells,
+        starsNeeded,
+        regionIds: new Set(),
+      });
+    }
+  }
+
+  return composites;
+}
+
 export default function compositeRegions(
   board: Board,
   cells: CellState[][],
@@ -917,6 +979,8 @@ export default function compositeRegions(
     ...findOvercountingComposites(board, cells, regions, "col"),
     ...findCombinationComposites(board, cells, regions, adjacency),
     ...findPartitionedRegionComposites(board, cells, regions),
+    ...findAdjacentLineComposites(board, cells, analysis, "col"),
+    ...findAdjacentLineComposites(board, cells, analysis, "row"),
   ];
 
   if (composites.length === 0) return false;
