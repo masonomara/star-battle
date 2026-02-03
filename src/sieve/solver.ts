@@ -10,7 +10,6 @@ import regionComplete from "./rules/04-regionComplete/regionComplete";
 import forcedPlacement from "./rules/05-forcedPlacement/forcedPlacement";
 import twoByTwoTiling from "./rules/08-twoByTwoTiling/twoByTwoTiling";
 import oneByNConfinement from "./rules/09-oneByNConfinement/oneByNConfinement";
-import pressuredExclusion from "./rules/11-pressuredExclusion/pressuredExclusion";
 import finnedCounts from "./rules/12-finnedCounts/finnedCounts";
 import compositeRegions from "./rules/14-compositeRegions/compositeRegions";
 
@@ -65,7 +64,6 @@ const allRules: RuleEntry[] = [
   { rule: forcedPlacement, level: 0, name: "Forced Placement", needsAnalysis: false },
   { rule: twoByTwoTiling, level: 1, name: "2×2 Tiling", needsAnalysis: false },
   { rule: oneByNConfinement, level: 1, name: "1×n Confinement", needsAnalysis: true },
-  { rule: pressuredExclusion, level: 2, name: "Pressured Exclusion", needsAnalysis: true },
   { rule: finnedCounts, level: 5, name: "Finned Counts", needsAnalysis: true },
   { rule: compositeRegions, level: 6, name: "Composite Regions", needsAnalysis: true },
 ];

@@ -244,7 +244,6 @@ const RULE_METADATA: { name: string; level: number }[] = [
   { name: "Forced Placement", level: 0 },
   { name: "2×2 Tiling", level: 3 },
   { name: "1×n Confinement", level: 3 },
-  { name: "Pressured Exclusion", level: 5 },
   { name: "Finned Counts", level: 5 },
   { name: "Composite Regions", level: 6 },
 ];
