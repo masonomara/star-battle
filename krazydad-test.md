@@ -39,7 +39,7 @@ Testing solver against 1000 puzzles from Krazydad's 10x10 2-star collection.
 ### Find first three unsolved puzzles
 
 ```bash
-head -3 unsolved_clean.sbf | npx tsx src/sieve/cli.ts --sbf /dev/stdin --trace
+head -1 unsolved_clean.sbf | npx tsx src/sieve/cli.ts --sbf /dev/stdin --trace
 ```
 
 ### Run solver and get rule usage stats

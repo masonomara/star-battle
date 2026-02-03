@@ -4,6 +4,8 @@
  * Like exclusion, but accounting for:
  * 1. 1×n constraints (regions confined to single row/col)
  * 2. Star-containing 2×2s (from squeeze analysis)
+ * 3. Region crowding (placing a star outside a region may exclude
+ *    enough adjacent cells to leave the region unable to fit its stars)
  *
  * Both types of constraints guarantee stars in specific cells.
  * This rule marks cells where placing a star would make it impossible
@@ -22,7 +24,7 @@ import {
 } from "../../helpers/starContaining2x2";
 import { canTileWithMinCount } from "../../helpers/tiling";
 import { Board, CellState, Coord } from "../../helpers/types";
-import { BoardAnalysis } from "../../helpers/boardAnalysis";
+import { BoardAnalysis, RegionMeta } from "../../helpers/boardAnalysis";
 
 /**
  * A unified constraint type that represents either a 1×n or a star-containing 2×2.
@@ -374,6 +376,71 @@ function wouldBreakRowOrColumn(
   return false;
 }
 
+/**
+ * Check if placing a star would break any adjacent region's capacity.
+ *
+ * For each region adjacent to the candidate cell (but not containing it):
+ * 1. Simulate placing a star at the candidate
+ * 2. Mark all cells adjacent to the star as unavailable
+ * 3. Check if the region can still fit its required stars
+ */
+function wouldBreakRegion(
+  starRow: number,
+  starCol: number,
+  board: Board,
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+): boolean {
+  const size = board.grid.length;
+  const starRegionId = board.grid[starRow][starCol];
+  const starKey = cellKey(starRow, starCol);
+
+  // Find all regions that have cells adjacent to the star position
+  const affectedRegions = new Set<number>();
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      if (dr === 0 && dc === 0) continue;
+      const nr = starRow + dr;
+      const nc = starCol + dc;
+      if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
+        const regionId = board.grid[nr][nc];
+        if (regionId !== starRegionId) {
+          affectedRegions.add(regionId);
+        }
+      }
+    }
+  }
+
+  // Check each affected region
+  for (const regionId of affectedRegions) {
+    const region = analysis.regions.get(regionId);
+    if (!region || region.starsNeeded <= 0) continue;
+
+    // Collect remaining cells after placing star at (starRow, starCol)
+    const remainingCells: Coord[] = [];
+    for (const [r, c] of region.unknownCoords) {
+      const key = cellKey(r, c);
+      // Skip if this cell is adjacent to the hypothetical star
+      const isAdjacent =
+        Math.abs(r - starRow) <= 1 && Math.abs(c - starCol) <= 1;
+      if (!isAdjacent && key !== starKey) {
+        remainingCells.push([r, c]);
+      }
+    }
+
+    // Check if region can still fit its stars
+    if (remainingCells.length < region.starsNeeded) {
+      return true;
+    }
+
+    if (!canTileWithMinCount(remainingCells, size, region.starsNeeded)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export default function pressuredExclusion(
   board: Board,
   cells: CellState[][],
@@ -425,6 +492,14 @@ export default function pressuredExclusion(
           twoByTwoConstraints,
         )
       ) {
+        cells[row][col] = "marked";
+        changed = true;
+        continue;
+      }
+
+      // Check region crowding - would this star reduce an adjacent region
+      // below its required capacity?
+      if (wouldBreakRegion(row, col, board, cells, analysis)) {
         cells[row][col] = "marked";
         changed = true;
       }
