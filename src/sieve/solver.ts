@@ -66,7 +66,7 @@ const allRules: RuleEntry[] = [
   { rule: forcedPlacement, level: 0, name: "Forced Placement", needsAnalysis: false },
   { rule: twoByTwoTiling, level: 1, name: "2×2 Tiling", needsAnalysis: false },
   { rule: oneByNConfinement, level: 1, name: "1×n Confinement", needsAnalysis: true },
-  { rule: squeeze, level: 4, name: "The Squeeze", needsAnalysis: false },
+  // { rule: squeeze, level: 4, name: "The Squeeze", needsAnalysis: false },
   { rule: pressuredExclusion, level: 2, name: "Pressured Exclusion", needsAnalysis: true },
   { rule: finnedCounts, level: 5, name: "Finned Counts", needsAnalysis: true },
   { rule: compositeRegions, level: 6, name: "Composite Regions", needsAnalysis: true },
