@@ -802,8 +802,6 @@ Here is the view source from crazy dad's sovler:
 Here is the results when we try to solve the puzzle:
 
 ```bash
-masonomara@MacBookPro starbattle % head -1 unsolved_clean.sbf | npx tsx src/sieve/cli.ts --sbf /dev/stdin --trace
-
 ============================================================
 Puzzle 1: 10x2.0000111111023333133102322333330222243333522244433355266663375526889977566688977766998999976669999999
 ============================================================
@@ -819,7 +817,7 @@ Region grid:
 6 6 9 9 8 9 9 9 9 7
 6 6 6 9 9 9 9 9 9 9
 
---- Cycle 1: 2×2 Tiling (level 2) ---
+--- Cycle 1: 2×2 Tiling (level 1) ---
 . . . . . . . . . .
 . . . . . . . . . .
 . . . . . . . . . .
@@ -891,7 +889,7 @@ X X X X ★ X ★ X X X
 . . . . . . . . . .
 . . . . . . . . . .
 
---- Cycle 7: 2×2 Tiling (level 2) ---
+--- Cycle 7: 2×2 Tiling (level 1) ---
 . . . . . . . . . .
 . . . . . . . . . .
 . . . . . . . . . .
@@ -951,7 +949,7 @@ X X . . X ★ X . . .
 . . . X ★ X . . . .
 . . . X X X . . . .
 
---- Cycle 12: 2×2 Tiling (level 2) ---
+--- Cycle 12: 2×2 Tiling (level 1) ---
 . . . . X . . . . .
 . . . . X . . . . .
 . . . . X . . . . .
@@ -975,95 +973,107 @@ X X . . X ★ X . . .
 X X . X ★ X . . . .
 . . . X X X . . . .
 
---- Cycle 14: Pressured Exclusion (level 5) ---
+--- Cycle 14: Pressured Exclusion (level 2) ---
 . . . . X . . . . .
-. . X . X . X . . .
-. X . . X . . . . .
+. . X . X . X . X .
+. X X . X . . . . .
 . . . X X X X X . .
 X X X X ★ X ★ X X X
 . . . X X X X X . .
 X X . . X ★ X . . .
 ★ X . X X X X . . .
-X X . X ★ X . . . .
+X X . X ★ X . . X .
 . . . X X X . . . .
 
 --- Cycle 15: Finned Counts (level 5) ---
-. . . . X . . . . .
-. . X X X . X . . .
-. X X . X . . . . .
+X . . . X . . . . .
+. . X X X . X . X .
+X X X . X . . . . .
 . . . X X X X X . .
 X X X X ★ X ★ X X X
-. . X X X X X X X .
+X . X X X X X X X .
 X X X . X ★ X . X X
 ★ X . X X X X . . .
-X X X X ★ X . . . .
-. . . X X X . . . .
+X X X X ★ X . . X .
+X . . X X X . . . .
 
---- Cycle 16: Overcounting (level 3) ---
-. . . . X . . . . .
-. . X X X . X . . .
-. X X . X . . . . .
+--- Cycle 16: Forced Placement (level 0) ---
+X . . . X . . . . .
+. . X X X . X . X .
+X X X . X . . . . .
 . . . X X X X X . .
 X X X X ★ X ★ X X X
-. . X X X X X X X .
+X ★ X X X X X X X .
 X X X . X ★ X . X X
 ★ X . X X X X . . .
-X X X X ★ X . . . .
+X X X X ★ X . . X .
+X . . X X X . . . .
+
+--- Cycle 17: Forced Placement (level 0) ---
+X . . . X . . . . .
+. . X X X . X . X .
+X X X . X . . . . .
+. . . X X X X X . .
+X X X X ★ X ★ X X X
+X ★ X X X X X X X ★
+X X X . X ★ X . X X
+★ X . X X X X . . .
+X X X X ★ X . . X .
+X . . X X X . . . .
+
+--- Cycle 18: Pressured Exclusion (level 2) ---
+X . . . X . . . . .
+. . X X X . X . X .
+X X X . X . . . . .
+. . . X X X X X . .
+X X X X ★ X ★ X X X
+X ★ X X X X X X X ★
+X X X . X ★ X . X X
+★ X . X X X X . . .
+X X X X ★ X . . X .
 X X . X X X . . . .
 
---- Cycle 17: 2×2 Tiling (level 2) ---
-. . . . X . . . . .
-. . X X X . X . . .
-. X X . X . . . . .
+--- Cycle 19: 2×2 Tiling (level 1) ---
+X . . . X . . . . .
+. . X X X . X . X .
+X X X . X . . . . .
 . . . X X X X X . .
 X X X X ★ X ★ X X X
-. . X X X X X X X .
+X ★ X X X X X X X ★
 X X X . X ★ X . X X
 ★ X . X X X X . . .
-X X X X ★ X . . . .
+X X X X ★ X . . X .
 X X ★ X X X . . . .
 
---- Cycle 18: The Squeeze (level 4) ---
-. . . . X . . . . .
-. . X X X . X . . .
-. X X . X . . . . .
+--- Cycle 20: Finned Counts (level 5) ---
+X X . . X . . . . .
+. . X X X . X . X .
+X X X . X . . . . .
 . . . X X X X X . .
 X X X X ★ X ★ X X X
-. . X X X X X X X ★
-X X X . X ★ X . X X
-★ X . X X X X . . .
-X X X X ★ X . . . .
-X X ★ X X X . . . .
-
---- Cycle 19: Finned Counts (level 5) ---
-. . . . X . . . . .
-. . X X X . X . . .
-. X X . X . . . . .
-. . . X X X X X . .
-X X X X ★ X ★ X X X
-. . X X X X X X X ★
+X ★ X X X X X X X ★
 X X X . X ★ X . X X
 ★ X . X X X X X . .
 X X X X ★ X . . X .
 X X ★ X X X . . . .
 
 === STUCK ===
-Processed 1 puzzles in 0.26s
+Processed 1 puzzles in 0.38s
 
 Rule Usage Summary:
   Star Neighbors        (L0): 5 times (100% of puzzles)
-  Forced Placement      (L0): 3 times (100% of puzzles)
+  Forced Placement      (L0): 5 times (100% of puzzles)
   Row Complete          (L0): 1 times (100% of puzzles)
   Column Complete       (L0): 1 times (100% of puzzles)
   Region Complete       (L0): 0 times (0% of puzzles)
   Exclusion             (L1): 0 times (0% of puzzles)
-  Overcounting          (L2): 1 times (100% of puzzles)
   Undercounting         (L2): 0 times (0% of puzzles)
+  Overcounting          (L2): 0 times (0% of puzzles)
   2×2 Tiling            (L3): 4 times (100% of puzzles)
   1×n Confinement       (L3): 0 times (0% of puzzles)
-  The Squeeze           (L4): 1 times (100% of puzzles)
+  The Squeeze           (L4): 0 times (0% of puzzles)
+  Pressured Exclusion   (L5): 2 times (100% of puzzles)
   Finned Counts         (L5): 2 times (100% of puzzles)
-  Pressured Exclusion   (L5): 1 times (100% of puzzles)
   Composite Regions     (L6): 0 times (0% of puzzles)
   Deep Exclusion        (L7): 0 times (0% of puzzles)
 
@@ -1075,4 +1085,4 @@ Difficulty distribution:
 Solve rate: 0/1 (0%)
 ```
 
-Investigate which functions from our production rules coudl possibly be failing, specifically look at KrazyDad's step 10, the key deviation from our rules. SHouldnt 2x2 tiling be able to produt the ":exclusion" that occurs in step 10?
+Investigate which functions from our production rules coudl possibly be failing, specifically look at KrazyDad's step 23, the key deviation from our solver. Shouldnt 1xn strips or soem existing rule be able to catch that one star must be placed in col 0 region 0, therefore a star must also be placed somehwere in row 0 region 0 to satisfy the two star per region rule - therefore only 1 star can be placed in region 1 row 0, forcing a star to another row in region 1?

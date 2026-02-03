@@ -73,7 +73,7 @@ const allRules: RuleEntry[] = [
   // { rule: squeeze, level: 4, name: "The Squeeze", needsAnalysis: false },
   { rule: pressuredExclusion, level: 2, name: "Pressured Exclusion", needsAnalysis: true },
   { rule: finnedCounts, level: 5, name: "Finned Counts", needsAnalysis: true },
-  // { rule: compositeRegions, level: 6, name: "Composite Regions", needsAnalysis: true },
+  { rule: compositeRegions, level: 6, name: "Composite Regions", needsAnalysis: true },
 ];
 
 const MAX_CYCLES = 1000;
