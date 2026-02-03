@@ -83,9 +83,10 @@ async function main() {
     process.exit(1);
   }
 
-  const diffRange = minDiff !== undefined || maxDiff !== undefined
-    ? `, difficulty ${minDiff ?? 0}-${maxDiff ?? "∞"}`
-    : "";
+  const diffRange =
+    minDiff !== undefined || maxDiff !== undefined
+      ? `, difficulty ${minDiff ?? 0}-${maxDiff ?? "∞"}`
+      : "";
   console.log(
     `${size}×${size}, ${stars} stars${seed !== undefined ? `, seed ${seed}` : ""}${diffRange}\n`,
   );
@@ -106,8 +107,14 @@ async function main() {
       },
     });
     const traceTime = ((Date.now() - traceStart) / 1000).toFixed(2);
-    const difficulty = result ? Math.round(result.maxLevel * 4 + result.cycles / 4) : null;
-    console.log(result ? `\n=== SOLVED === ${traceTime}s | difficulty: ${difficulty}` : `\n=== STUCK === ${traceTime}s`);
+    const difficulty = result
+      ? Math.round(result.maxLevel * 4 + result.cycles / 4)
+      : null;
+    console.log(
+      result
+        ? `\n=== SOLVED === ${traceTime}s | difficulty: ${difficulty}`
+        : `\n=== STUCK === ${traceTime}s`,
+    );
     return;
   }
 
@@ -183,8 +190,14 @@ function solveFromInput(input: string, stars: number) {
   });
 
   const solveTime = ((Date.now() - solveStart) / 1000).toFixed(2);
-  const difficulty = result ? Math.round(result.maxLevel * 4 + result.cycles / 4) : null;
-  console.log(result ? `\n=== SOLVED === ${solveTime}s | difficulty: ${difficulty}` : `\n=== STUCK === ${solveTime}s`);
+  const difficulty = result
+    ? Math.round(result.maxLevel * 4 + result.cycles / 4)
+    : null;
+  console.log(
+    result
+      ? `\n=== SOLVED === ${solveTime}s | difficulty: ${difficulty}`
+      : `\n=== STUCK === ${solveTime}s`,
+  );
 }
 
 /**
@@ -229,16 +242,11 @@ const RULE_METADATA: { name: string; level: number }[] = [
   { name: "Column Complete", level: 0 },
   { name: "Region Complete", level: 0 },
   { name: "Forced Placement", level: 0 },
-  { name: "Exclusion", level: 1 },
-  { name: "Undercounting", level: 2 },
-  { name: "Overcounting", level: 2 },
   { name: "2×2 Tiling", level: 3 },
   { name: "1×n Confinement", level: 3 },
-  { name: "The Squeeze", level: 4 },
   { name: "Pressured Exclusion", level: 5 },
   { name: "Finned Counts", level: 5 },
   { name: "Composite Regions", level: 6 },
-  { name: "Deep Exclusion", level: 7 },
 ];
 
 interface RuleStats {
@@ -246,7 +254,12 @@ interface RuleStats {
   puzzlesUsed: Set<number>;
 }
 
-async function solveSbfFile(filePath: string, verbose: boolean, filterUnsolved: boolean = false, trace: boolean = false) {
+async function solveSbfFile(
+  filePath: string,
+  verbose: boolean,
+  filterUnsolved: boolean = false,
+  trace: boolean = false,
+) {
   // Read SBF file (support /dev/stdin)
   let content: string;
   if (filePath === "/dev/stdin") {
@@ -284,7 +297,11 @@ async function solveSbfFile(filePath: string, verbose: boolean, filterUnsolved: 
     try {
       board = parseSbf(sbf);
     } catch (e) {
-      unsolvedPuzzles.push({ index: i + 1, sbf, reason: `PARSE ERROR: ${(e as Error).message}` });
+      unsolvedPuzzles.push({
+        index: i + 1,
+        sbf,
+        reason: `PARSE ERROR: ${(e as Error).message}`,
+      });
       if (verbose && !filterUnsolved) {
         console.log(`Puzzle ${i + 1}: PARSE ERROR - ${(e as Error).message}`);
       }
@@ -357,7 +374,9 @@ async function solveSbfFile(filePath: string, verbose: boolean, filterUnsolved: 
 
   // If filtering unsolved, output them and exit
   if (filterUnsolved) {
-    console.error(`# ${unsolvedPuzzles.length} unsolved puzzles out of ${lines.length}`);
+    console.error(
+      `# ${unsolvedPuzzles.length} unsolved puzzles out of ${lines.length}`,
+    );
     for (const { index, sbf, reason } of unsolvedPuzzles) {
       console.log(`${sbf} # puzzle ${index}: ${reason}`);
     }
