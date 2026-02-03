@@ -515,14 +515,19 @@ function findPartitionedRegionComposites(
 
 /**
  * Enumerate all valid star placements for a set of unknown cells.
- * Returns all subsets of size `starsNeeded` where no two stars are adjacent.
+ * Returns all subsets of size `starsNeeded` where no two stars are adjacent
+ * and row/column quotas are not exceeded.
  */
 function enumerateValidPlacements(
   unknowns: Coord[],
   starsNeeded: number,
+  board: Board,
+  analysis: BoardAnalysis,
 ): Coord[][] {
   if (unknowns.length < starsNeeded) return [];
   if (starsNeeded === 0) return [[]];
+
+  const { size, rowStars, colStars } = analysis;
 
   // Build adjacency between unknown cells
   const coordToIdx = new Map<string, number>();
@@ -550,6 +555,10 @@ function enumerateValidPlacements(
   const results: Coord[][] = [];
   const MAX_RESULTS = 1000; // Limit enumeration
 
+  // Track accumulated row/column star counts during backtracking
+  const rowCounts = new Array(size).fill(0);
+  const colCounts = new Array(size).fill(0);
+
   function backtrack(start: number, current: number[], forbidden: Set<number>) {
     if (results.length >= MAX_RESULTS) return;
 
@@ -570,14 +579,28 @@ function enumerateValidPlacements(
     ) {
       if (forbidden.has(i)) continue;
 
+      const [row, col] = unknowns[i];
+
+      // Check row/column quotas before selecting this cell
+      if (rowStars[row] + rowCounts[row] + 1 > board.stars) continue;
+      if (colStars[col] + colCounts[col] + 1 > board.stars) continue;
+
       const newForbidden = new Set(forbidden);
       for (const adj of adjacent[i]) {
         newForbidden.add(adj);
       }
 
+      // Update counts for recursive call
+      rowCounts[row]++;
+      colCounts[col]++;
+
       current.push(i);
       backtrack(i + 1, current, newForbidden);
       current.pop();
+
+      // Restore counts
+      rowCounts[row]--;
+      colCounts[col]--;
     }
   }
 
@@ -636,11 +659,14 @@ function analyzeViaDirectEnumeration(
   currentStarsNeeded: number,
   board: Board,
   cells: CellState[][],
-  size: number,
+  analysis: BoardAnalysis,
 ): boolean {
+  const { size } = analysis;
   const validPlacements = enumerateValidPlacements(
     currentUnknowns,
     currentStarsNeeded,
+    board,
+    analysis,
   );
 
   // No valid placements or too many to analyze
@@ -750,8 +776,9 @@ function analyzeComposite(
   composite: Composite,
   board: Board,
   cells: CellState[][],
-  size: number,
+  analysis: BoardAnalysis,
 ): boolean {
+  const { size } = analysis;
   // Refresh unknownCells to current state (in case of stale composite)
   const currentUnknowns = composite.unknownCells.filter(
     ([row, col]) => cells[row][col] === "unknown",
@@ -781,7 +808,7 @@ function analyzeComposite(
         currentStarsNeeded,
         board,
         cells,
-        size,
+        analysis,
       );
       if (result) return true;
     }
@@ -907,7 +934,7 @@ export default function compositeRegions(
     if (sig === "" || seen.has(sig)) continue;
     seen.add(sig);
 
-    if (analyzeComposite(composite, board, cells, size)) {
+    if (analyzeComposite(composite, board, cells, analysis)) {
       return true;
     }
   }
