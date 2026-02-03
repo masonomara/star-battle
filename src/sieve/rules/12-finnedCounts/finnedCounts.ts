@@ -12,12 +12,14 @@
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { cellKey } from "../../helpers/cellKey";
+import { maxIndependentSetSize } from "../../helpers/tiling";
 
 type AdjustedRegion = {
   id: number;
   starsNeeded: number;
   unknownRows: Set<number>;
   unknownCols: Set<number>;
+  unknownCoords: Coord[]; // Track actual coordinates for capacity calculation
 };
 
 /**
@@ -75,7 +77,7 @@ function checkViolation(
     const unknownRows = new Set(remainingUnknowns.map(([r]) => r));
     const unknownCols = new Set(remainingUnknowns.map(([, c]) => c));
 
-    adjusted.push({ id, starsNeeded, unknownRows, unknownCols });
+    adjusted.push({ id, starsNeeded, unknownRows, unknownCols, unknownCoords: remainingUnknowns });
   }
 
   // --- Undercounting check ---
@@ -186,9 +188,26 @@ function checkViolation(
           starsNeeded += board.stars - adjRowStars[row];
         }
 
+        // Compute actual max contribution per region, considering column constraints
         let starsAvailable = 0;
         for (const rid of regSet) {
-          starsAvailable += board.stars - adjRegionStars.get(rid)!;
+          const region = adjusted.find((r) => r.id === rid);
+          if (!region) {
+            starsAvailable += board.stars - adjRegionStars.get(rid)!;
+            continue;
+          }
+
+          // Find cells in the row range where the column isn't full
+          const cellsInRange: Coord[] = region.unknownCoords.filter(
+            ([r, c]) => rowSet.has(r) && adjColStars[c] < board.stars,
+          );
+
+          // Max contribution = min(region's remaining stars, capacity in range)
+          const maxContribution = Math.min(
+            region.starsNeeded,
+            cellsInRange.length > 0 ? maxIndependentSetSize(cellsInRange) : 0,
+          );
+          starsAvailable += maxContribution;
         }
 
         if (starsNeeded > starsAvailable) {
@@ -228,9 +247,26 @@ function checkViolation(
           starsNeeded += board.stars - adjColStars[col];
         }
 
+        // Compute actual max contribution per region, considering row constraints
         let starsAvailable = 0;
         for (const rid of regSet) {
-          starsAvailable += board.stars - adjRegionStars.get(rid)!;
+          const region = adjusted.find((r) => r.id === rid);
+          if (!region) {
+            starsAvailable += board.stars - adjRegionStars.get(rid)!;
+            continue;
+          }
+
+          // Find cells in the column range where the row isn't full
+          const cellsInRange: Coord[] = region.unknownCoords.filter(
+            ([r, c]) => colSet.has(c) && adjRowStars[r] < board.stars,
+          );
+
+          // Max contribution = min(region's remaining stars, capacity in range)
+          const maxContribution = Math.min(
+            region.starsNeeded,
+            cellsInRange.length > 0 ? maxIndependentSetSize(cellsInRange) : 0,
+          );
+          starsAvailable += maxContribution;
         }
 
         if (starsNeeded > starsAvailable) {
