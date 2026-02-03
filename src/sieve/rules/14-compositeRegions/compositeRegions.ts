@@ -12,6 +12,7 @@
 import {
   findAllMinimalTilings,
   canTileWithMinCount,
+  maxIndependentSetSize,
 } from "../../helpers/tiling";
 import { Board, CellState, Coord, Tile } from "../../helpers/types";
 import { coordKey } from "../../helpers/cellKey";
@@ -70,6 +71,44 @@ function buildAdjacencyGraph(
   }
 
   return adjacency;
+}
+
+/**
+ * Find connected components of coordinates (8-connected).
+ */
+function findConnectedComponents(coords: Coord[]): Coord[][] {
+  if (coords.length === 0) return [];
+
+  const coordSet = new Set(coords.map(coordKey));
+  const visited = new Set<string>();
+  const components: Coord[][] = [];
+
+  for (const coord of coords) {
+    const key = coordKey(coord);
+    if (visited.has(key)) continue;
+
+    const component: Coord[] = [];
+    const queue: Coord[] = [coord];
+    visited.add(key);
+
+    while (queue.length > 0) {
+      const [row, col] = queue.shift()!;
+      component.push([row, col]);
+
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          const nKey = coordKey([row + dr, col + dc]);
+          if (coordSet.has(nKey) && !visited.has(nKey)) {
+            visited.add(nKey);
+            queue.push([row + dr, col + dc]);
+          }
+        }
+      }
+    }
+    components.push(component);
+  }
+  return components;
 }
 
 /**
@@ -430,6 +469,47 @@ function findCombinationComposites(
     }
   }
 
+  return composites;
+}
+
+/**
+ * Find composites from partitioned regions.
+ * When marked cells split a region into disconnected components,
+ * each component may have a minimum star requirement.
+ */
+function findPartitionedRegionComposites(
+  board: Board,
+  cells: CellState[][],
+  regions: Map<number, RegionMeta>,
+): Composite[] {
+  const composites: Composite[] = [];
+
+  for (const [regionId, region] of regions) {
+    if (region.starsNeeded <= 0) continue;
+    if (region.unknownCoords.length < 2) continue;
+
+    const components = findConnectedComponents(region.unknownCoords);
+    if (components.length <= 1) continue;
+
+    for (let i = 0; i < components.length; i++) {
+      const component = components[i];
+      const otherCells = components.filter((_, j) => j !== i).flat();
+
+      const maxFromOthers = maxIndependentSetSize(otherCells);
+      const minFromThis = Math.max(0, region.starsNeeded - maxFromOthers);
+
+      if (minFromThis > 0) {
+        composites.push({
+          id: `partition-${regionId}-comp${i}`,
+          source: "counting",
+          cells: component,
+          unknownCells: component,
+          starsNeeded: minFromThis,
+          regionIds: new Set([regionId]),
+        });
+      }
+    }
+  }
   return composites;
 }
 
@@ -809,6 +889,7 @@ export default function compositeRegions(
     ...findOvercountingComposites(board, cells, regions, "row"),
     ...findOvercountingComposites(board, cells, regions, "col"),
     ...findCombinationComposites(board, cells, regions, adjacency),
+    ...findPartitionedRegionComposites(board, cells, regions),
   ];
 
   if (composites.length === 0) return false;
