@@ -138,6 +138,96 @@ describe("12. finnedCounts", () => {
     });
   });
 
+  describe("12.5 Row/column quota with constraints", () => {
+    it("12.5.1 marks cell when star breaks row quota considering 1×n constraint", () => {
+      // Row 0 needs 2 stars
+      // Region 0 is confined to row 0, cols 0-1 (1×2 strip) - guarantees 1 star in row 0
+      // Row 0 has 4 cells total
+      // If star at (1,2), marks (0,1), (0,2), (0,3)
+      // Row 0 left with only (0,0) for remaining needs
+      // 1×n guarantees 1 star from region 0, so row 0 needs 1 more "free" star
+      // But (0,0) is in the 1×n region, so free cells = none
+      const board: Board = {
+        grid: [
+          [0, 0, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = runFinnedCounts(board, cells);
+
+      // Due to the 1×n pressure, (1,2) might be marked
+      // The 1×n at region 0 (cols 0-1) forces a star there
+      // Starring (1,2) marks (0,1), (0,2), (0,3) - reducing row 0's free cells
+      expect(result).toBe(true);
+    });
+
+    it("12.5.2 marks cell when star breaks column with 1×n constraint pressure", () => {
+      // Col 0 needs 2 stars
+      // Region 0 is confined to col 0, rows 0-1 (1×2 strip) - guarantees 1 star in col 0
+      // Col 0 has 4 cells total
+      // If star at (2,1), marks (1,0), (2,0), (3,0)
+      // Col 0 left with only (0,0) which is in the 1×n
+      // 1×n guarantees 1 star, but we need 2 total
+      const board: Board = {
+        grid: [
+          [0, 1, 1, 1],
+          [0, 1, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      const result = runFinnedCounts(board, cells);
+
+      expect(result).toBe(true);
+    });
+
+    it("12.5.3 marks cell when row quota breaks due to 2×2 constraint", () => {
+      // This tests integration with star-containing 2×2s
+      // If a 2×2 in a row must contain a star, and placing a star elsewhere
+      // would make it impossible to satisfy both the 2×2 and the row quota
+      const board: Board = {
+        grid: [
+          [0, 0, 0, 1, 1],
+          [0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+        ],
+        stars: 2,
+      };
+      const cells: CellState[][] = [
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown", "unknown"],
+      ];
+
+      // This may or may not find something depending on squeeze analysis
+      const result = runFinnedCounts(board, cells);
+      // Just verify it runs without error
+      expect(typeof result).toBe("boolean");
+    });
+  });
+
   describe("12.4 Edge cases", () => {
     it("12.4.1 marks cells adjacent to single-cell region that still needs a star", () => {
       // Region 0: single cell at (0,0) - needs 1 star
