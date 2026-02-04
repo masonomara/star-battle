@@ -1,4 +1,5 @@
 import { Board, CellState } from "../../helpers/types";
+import { neighbors } from "../../helpers/neighbors";
 
 export default function starNeighbors(
   board: Board,
@@ -9,21 +10,10 @@ export default function starNeighbors(
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
       if (cells[row][col] !== "star") continue;
-      for (let drow = -1; drow <= 1; drow++) {
-        for (let dcol = -1; dcol <= 1; dcol++) {
-          if (drow === 0 && dcol === 0) continue;
-          const nrow = row + drow;
-          const ncol = col + dcol;
-          if (
-            nrow >= 0 &&
-            nrow < size &&
-            ncol >= 0 &&
-            ncol < size &&
-            cells[nrow][ncol] === "unknown"
-          ) {
-            cells[nrow][ncol] = "marked";
-            changed = true;
-          }
+      for (const [nr, nc] of neighbors(row, col, size)) {
+        if (cells[nr][nc] === "unknown") {
+          cells[nr][nc] = "marked";
+          changed = true;
         }
       }
     }

@@ -37,9 +37,6 @@ export function computeConfinement(analysis: BoardAnalysis): ConfinementResult {
     if (meta.starsNeeded <= 0) continue;
 
     const unknowns = meta.unknownCoords;
-    if (unknowns.length === 0) continue;
-
-    // Check row confinement: all unknowns share same row?
     const rows = new Set(unknowns.map(([r]) => r));
     if (rows.size === 1) {
       const rowIndex = rows.values().next().value as number;
@@ -49,7 +46,6 @@ export function computeConfinement(analysis: BoardAnalysis): ConfinementResult {
         .push({ regionId, starsNeeded: meta.starsNeeded, cells: unknowns });
     }
 
-    // Check column confinement: all unknowns share same col?
     const cols = new Set(unknowns.map(([, c]) => c));
     if (cols.size === 1) {
       const colIndex = cols.values().next().value as number;
@@ -62,3 +58,4 @@ export function computeConfinement(analysis: BoardAnalysis): ConfinementResult {
 
   return result;
 }
+

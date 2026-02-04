@@ -12,6 +12,7 @@
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis, capacity } from "../../helpers/boardAnalysis";
 import { Composite } from "../../helpers/compositeAnalysis";
+import { neighbors } from "../../helpers/neighbors";
 
 /**
  * Extended composite type for adjacent line analysis with per-line quotas.
@@ -66,14 +67,10 @@ function enumerateWithExactLineQuotas(
   const adjacent: Set<number>[] = unknowns.map(() => new Set());
   for (let i = 0; i < unknowns.length; i++) {
     const [row, col] = unknowns[i];
-    for (let drow = -1; drow <= 1; drow++) {
-      for (let dcol = -1; dcol <= 1; dcol++) {
-        if (drow === 0 && dcol === 0) continue;
-        const key = `${row + drow},${col + dcol}`;
-        const j = coordToIdx.get(key);
-        if (j !== undefined && j !== i) {
-          adjacent[i].add(j);
-        }
+    for (const [nr, nc] of neighbors(row, col, size)) {
+      const j = coordToIdx.get(`${nr},${nc}`);
+      if (j !== undefined && j !== i) {
+        adjacent[i].add(j);
       }
     }
   }
@@ -365,14 +362,10 @@ function analyzeAdjacentLineComposite(
 
     // Validate no adjacent star exists
     let hasAdjacentStar = false;
-    for (let dr = -1; dr <= 1 && !hasAdjacentStar; dr++) {
-      for (let dc = -1; dc <= 1 && !hasAdjacentStar; dc++) {
-        if (dr === 0 && dc === 0) continue;
-        const nr = row + dr;
-        const nc = col + dc;
-        if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
-          if (cells[nr][nc] === "star") hasAdjacentStar = true;
-        }
+    for (const [nr, nc] of neighbors(row, col, size)) {
+      if (cells[nr][nc] === "star") {
+        hasAdjacentStar = true;
+        break;
       }
     }
     if (hasAdjacentStar) continue;

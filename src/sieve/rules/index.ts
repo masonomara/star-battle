@@ -18,7 +18,12 @@ import regionConfinementRow from "./05-regionConfinementRow/regionConfinementRow
 import regionConfinementColumn from "./05-regionConfinementColumn/regionConfinementColumn";
 import lineConfinementRow from "./05-lineConfinementRow/lineConfinementRow";
 import lineConfinementColumn from "./05-lineConfinementColumn/lineConfinementColumn";
-import constrainedQuota from "./12e-constrainedQuota/constrainedQuota";
+import hypotheticalRowCapacity from "./12a-hypotheticalRowCapacity/hypotheticalRowCapacity";
+import hypotheticalColumnCapacity from "./12b-hypotheticalColumnCapacity/hypotheticalColumnCapacity";
+import hypotheticalRegionCapacity from "./12c-hypotheticalRegionCapacity/hypotheticalRegionCapacity";
+import hypotheticalOneByNBreak from "./12d-hypotheticalOneByNBreak/hypotheticalOneByNBreak";
+import hypotheticalTwoByTwoBreak from "./12e-hypotheticalTwoByTwoBreak/hypotheticalTwoByTwoBreak";
+import hypotheticalFreeOverflow from "./12g-hypotheticalFreeOverflow/hypotheticalFreeOverflow";
 import adjacentRegionCapacity from "./12f-adjacentRegionCapacity/adjacentRegionCapacity";
 import reservedAreaExclusions from "./14-reservedAreaExclusions/reservedAreaExclusions";
 import adjacentLineAnalysis from "./15-adjacentLineAnalysis/adjacentLineAnalysis";
@@ -75,7 +80,36 @@ export const allRules: RuleEntry[] = [
   },
   { rule: lineConfinementRow, level: 4, name: "Line Confinement (Row)" },
   { rule: lineConfinementColumn, level: 4, name: "Line Confinement (Column)" },
-  { rule: constrainedQuota, level: 6, name: "Constrained Quota" },
+  {
+    rule: hypotheticalRowCapacity,
+    level: 5,
+    name: "Hypothetical Row Capacity",
+  },
+  {
+    rule: hypotheticalColumnCapacity,
+    level: 5,
+    name: "Hypothetical Column Capacity",
+  },
+  {
+    rule: hypotheticalRegionCapacity,
+    level: 5,
+    name: "Hypothetical Region Capacity",
+  },
+  {
+    rule: hypotheticalOneByNBreak,
+    level: 5,
+    name: "Hypothetical 1×N Break",
+  },
+  {
+    rule: hypotheticalTwoByTwoBreak,
+    level: 5,
+    name: "Hypothetical 2×2 Break",
+  },
+  {
+    rule: hypotheticalFreeOverflow,
+    level: 5,
+    name: "Hypothetical Free Overflow",
+  },
   { rule: adjacentRegionCapacity, level: 6, name: "Adjacent Region Capacity" },
   { rule: reservedAreaExclusions, level: 6, name: "Reserved Area Exclusions" },
   { rule: adjacentLineAnalysis, level: 6, name: "Adjacent Line Analysis" },

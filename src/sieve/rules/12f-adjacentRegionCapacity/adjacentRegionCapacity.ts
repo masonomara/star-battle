@@ -13,6 +13,7 @@
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { computeTiling } from "../../helpers/tiling";
+import { neighbors } from "../../helpers/neighbors";
 
 function checkAdjacentRegionViolation(
   starRow: number,
@@ -26,17 +27,10 @@ function checkAdjacentRegionViolation(
 
   // Find all regions that have cells adjacent to the star position
   const affectedRegions = new Set<number>();
-  for (let dr = -1; dr <= 1; dr++) {
-    for (let dc = -1; dc <= 1; dc++) {
-      if (dr === 0 && dc === 0) continue;
-      const nr = starRow + dr;
-      const nc = starCol + dc;
-      if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
-        const regionId = board.grid[nr][nc];
-        if (regionId !== starRegionId) {
-          affectedRegions.add(regionId);
-        }
-      }
+  for (const [nr, nc] of neighbors(starRow, starCol, size)) {
+    const regionId = board.grid[nr][nc];
+    if (regionId !== starRegionId) {
+      affectedRegions.add(regionId);
     }
   }
 

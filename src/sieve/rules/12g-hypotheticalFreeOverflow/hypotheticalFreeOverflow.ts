@@ -1,55 +1,42 @@
 /**
- * Rule 12b: Constrained Quota
+ * Rule 12g: Hypothetical Free Overflow
  *
- * Marks cells where placing a hypothetical star would break a row or column's
- * ability to meet its star quota, considering 1×N and 2×2 constraints.
+ * Marks cells where placing a star would leave insufficient "free" cells
+ * in a row/column to absorb the remaining quota after constraints claim their share.
  *
- * For each affected row/column:
- * 1. Check if it can still fit its required stars
- * 2. Check if constraints (1×N, 2×2) within that row/col can still be satisfied
- * 3. Check if "free" stars (non-constraint) can fit in remaining non-constraint cells
+ * "Free" cells are cells not part of any 1×N or 2×2 constraint.
+ * After constraints take their guaranteed stars, the remaining quota
+ * must fit in the free cells.
+ *
+ * For each unknown cell, asks: "If I place a star here,
+ * can the free cells in affected rows/cols handle what's left?"
  */
 
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { computeTiling } from "../../helpers/tiling";
 import {
-  findOneByNConstraints,
-  buildMarkedCellSet,
-  OneByNConstraint,
-} from "../../helpers/oneByN";
+  computeConfinement,
+  ConfinementResult,
+} from "../../helpers/confinement";
+import { buildMarkedCellSet } from "../../helpers/oneByN";
 import {
   findStarContaining2x2s,
   StarContaining2x2,
 } from "../../helpers/starContaining2x2";
 
-function checkRowOrColumnViolation(
+function checkFreeOverflow(
   starRow: number,
   starCol: number,
   board: Board,
   cells: CellState[][],
   markedCells: Set<string>,
-  oneByNConstraints: OneByNConstraint[],
+  confinement: ConfinementResult,
   twoByTwoConstraints: StarContaining2x2[],
 ): boolean {
   const size = board.grid.length;
   const starKey = `${starRow},${starCol}`;
 
-  // Group 1×N constraints by row/column
-  const oneByNByRow = new Map<number, OneByNConstraint[]>();
-  const oneByNByCol = new Map<number, OneByNConstraint[]>();
-
-  for (const c of oneByNConstraints) {
-    if (c.axis === "row") {
-      if (!oneByNByRow.has(c.index)) oneByNByRow.set(c.index, []);
-      oneByNByRow.get(c.index)!.push(c);
-    } else {
-      if (!oneByNByCol.has(c.index)) oneByNByCol.set(c.index, []);
-      oneByNByCol.get(c.index)!.push(c);
-    }
-  }
-
-  // Group 2×2 constraints by the rows/cols they touch
   const twoByTwoByRow = new Map<number, StarContaining2x2[]>();
   const twoByTwoByCol = new Map<number, StarContaining2x2[]>();
 
@@ -77,7 +64,7 @@ function checkRowOrColumnViolation(
     const constraintCells = new Set<string>();
 
     // Collect constraint cells for this row
-    for (const c of oneByNByRow.get(row) || []) {
+    for (const c of confinement.row.get(row) || []) {
       for (const [cr, cc] of c.cells) {
         constraintCells.add(`${cr},${cc}`);
       }
@@ -106,59 +93,28 @@ function checkRowOrColumnViolation(
     const needed = board.stars - existingStars;
     if (needed <= 0) continue;
 
-    if (remainingCells.length < needed) {
-      return true;
-    }
-
-    if (computeTiling(remainingCells, size).capacity < needed) {
-      return true;
-    }
-
-    // Check each constraint in this row
-    const rowOneByN = oneByNByRow.get(row) || [];
-    const rowTwoByTwo = twoByTwoByRow.get(row) || [];
-
+    // Calculate constraint contribution
     let constraintContribution = 0;
 
-    for (const c of rowOneByN) {
+    for (const c of confinement.row.get(row) || []) {
       const starInConstraint = c.cells.some(
         ([r, col]) => r === starRow && col === starCol,
       );
-      let remainingInConstraint = 0;
-      for (const [cr, cc] of c.cells) {
-        const key = `${cr},${cc}`;
-        if (key !== starKey && !markedCells.has(key)) {
-          remainingInConstraint++;
-        }
-      }
       const adjustedNeed = starInConstraint ? c.starsNeeded - 1 : c.starsNeeded;
-      if (adjustedNeed > 0 && remainingInConstraint < adjustedNeed) {
-        return true;
-      }
       constraintContribution += adjustedNeed;
     }
 
-    for (const c of rowTwoByTwo) {
+    for (const c of twoByTwoByRow.get(row) || []) {
       const starInConstraint = c.cells.some(
         ([r, col]) => r === starRow && col === starCol,
       );
-      let remainingInConstraint = 0;
-      for (const [cr, cc] of c.cells) {
-        const key = `${cr},${cc}`;
-        if (key !== starKey && !markedCells.has(key)) {
-          remainingInConstraint++;
-        }
-      }
       const adjustedNeed = starInConstraint ? 0 : 1;
-      if (adjustedNeed > 0 && remainingInConstraint === 0) {
-        return true;
-      }
       if (c.cells.some(([r]) => r === row)) {
         constraintContribution += adjustedNeed;
       }
     }
 
-    // Check if free cells can accommodate non-constraint stars
+    // Check if free cells can handle the remainder
     const freeNeeded = needed - constraintContribution;
     if (freeNeeded > 0) {
       const freeCells = remainingCells.filter(
@@ -185,7 +141,7 @@ function checkRowOrColumnViolation(
     const remainingCells: Coord[] = [];
     const constraintCells = new Set<string>();
 
-    for (const c of oneByNByCol.get(col) || []) {
+    for (const c of confinement.col.get(col) || []) {
       for (const [cr, cc] of c.cells) {
         constraintCells.add(`${cr},${cc}`);
       }
@@ -214,52 +170,21 @@ function checkRowOrColumnViolation(
     const needed = board.stars - existingStars;
     if (needed <= 0) continue;
 
-    if (remainingCells.length < needed) {
-      return true;
-    }
-
-    if (computeTiling(remainingCells, size).capacity < needed) {
-      return true;
-    }
-
-    const colOneByN = oneByNByCol.get(col) || [];
-    const colTwoByTwo = twoByTwoByCol.get(col) || [];
-
     let constraintContribution = 0;
 
-    for (const c of colOneByN) {
+    for (const c of confinement.col.get(col) || []) {
       const starInConstraint = c.cells.some(
         ([r, cc]) => r === starRow && cc === starCol,
       );
-      let remainingInConstraint = 0;
-      for (const [cr, cc] of c.cells) {
-        const key = `${cr},${cc}`;
-        if (key !== starKey && !markedCells.has(key)) {
-          remainingInConstraint++;
-        }
-      }
       const adjustedNeed = starInConstraint ? c.starsNeeded - 1 : c.starsNeeded;
-      if (adjustedNeed > 0 && remainingInConstraint < adjustedNeed) {
-        return true;
-      }
       constraintContribution += adjustedNeed;
     }
 
-    for (const c of colTwoByTwo) {
+    for (const c of twoByTwoByCol.get(col) || []) {
       const starInConstraint = c.cells.some(
         ([r, cc]) => r === starRow && cc === starCol,
       );
-      let remainingInConstraint = 0;
-      for (const [cr, cc] of c.cells) {
-        const key = `${cr},${cc}`;
-        if (key !== starKey && !markedCells.has(key)) {
-          remainingInConstraint++;
-        }
-      }
       const adjustedNeed = starInConstraint ? 0 : 1;
-      if (adjustedNeed > 0 && remainingInConstraint === 0) {
-        return true;
-      }
       if (c.cells.some(([, cc]) => cc === col)) {
         constraintContribution += adjustedNeed;
       }
@@ -284,7 +209,7 @@ function checkRowOrColumnViolation(
   return false;
 }
 
-export default function constrainedQuota(
+export default function hypotheticalFreeOverflow(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
@@ -293,8 +218,17 @@ export default function constrainedQuota(
   if (size === 0) return false;
 
   // Precompute constraints once
-  const oneByNConstraints = findOneByNConstraints(board, cells, analysis);
+  const confinement = computeConfinement(analysis);
   const twoByTwoConstraints = findStarContaining2x2s(board, cells);
+
+  // No constraints means no free overflow possible
+  if (
+    confinement.row.size === 0 &&
+    confinement.col.size === 0 &&
+    twoByTwoConstraints.length === 0
+  ) {
+    return false;
+  }
 
   let changed = false;
 
@@ -305,13 +239,13 @@ export default function constrainedQuota(
       const markedCells = buildMarkedCellSet(row, col, size);
 
       if (
-        checkRowOrColumnViolation(
+        checkFreeOverflow(
           row,
           col,
           board,
           cells,
           markedCells,
-          oneByNConstraints,
+          confinement,
           twoByTwoConstraints,
         )
       ) {

@@ -8,6 +8,7 @@
 import { computeTiling } from "./tiling";
 import { Board, CellState, Coord, Tile } from "./types";
 import { BoardAnalysis, RegionMeta } from "./boardAnalysis";
+import { neighbors } from "./neighbors";
 
 export type Composite = {
   id: string;
@@ -32,30 +33,15 @@ export function buildAdjacencyGraph(
     adjacency.set(id, new Set());
   }
 
-  const deltas: [number, number][] = [
-    [0, 1],
-    [1, 0],
-    [1, 1],
-    [1, -1],
-    [0, -1],
-    [-1, 0],
-    [-1, -1],
-    [-1, 1],
-  ];
-
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
       const id = board.grid[row][col];
       if (!regions.has(id)) continue;
 
-      for (const [drow, dcol] of deltas) {
-        const nrow = row + drow;
-        const ncol = col + dcol;
-        if (nrow >= 0 && nrow < size && ncol >= 0 && ncol < size) {
-          const neighborId = board.grid[nrow][ncol];
-          if (neighborId !== id && regions.has(neighborId)) {
-            adjacency.get(id)!.add(neighborId);
-          }
+      for (const [nrow, ncol] of neighbors(row, col, size)) {
+        const neighborId = board.grid[nrow][ncol];
+        if (neighborId !== id && regions.has(neighborId)) {
+          adjacency.get(id)!.add(neighborId);
         }
       }
     }
@@ -129,14 +115,10 @@ export function enumerateValidPlacements(
 
   for (let i = 0; i < unknowns.length; i++) {
     const [row, col] = unknowns[i];
-    for (let drow = -1; drow <= 1; drow++) {
-      for (let dcol = -1; dcol <= 1; dcol++) {
-        if (drow === 0 && dcol === 0) continue;
-        const key = `${row + drow},${col + dcol}`;
-        const j = coordToIdx.get(key);
-        if (j !== undefined && j !== i) {
-          adjacent[i].add(j);
-        }
+    for (const [nr, nc] of neighbors(row, col, size)) {
+      const j = coordToIdx.get(`${nr},${nc}`);
+      if (j !== undefined && j !== i) {
+        adjacent[i].add(j);
       }
     }
   }
@@ -310,16 +292,10 @@ export function analyzeViaDirectEnumeration(
 
     // Check no adjacent star exists
     let hasAdjacentStar = false;
-    for (let drow = -1; drow <= 1 && !hasAdjacentStar; drow++) {
-      for (let dcol = -1; dcol <= 1 && !hasAdjacentStar; dcol++) {
-        if (drow === 0 && dcol === 0) continue;
-        const nrow = row + drow;
-        const ncol = col + dcol;
-        if (nrow >= 0 && nrow < size && ncol >= 0 && ncol < size) {
-          if (cells[nrow][ncol] === "star") {
-            hasAdjacentStar = true;
-          }
-        }
+    for (const [nr, nc] of neighbors(row, col, size)) {
+      if (cells[nr][nc] === "star") {
+        hasAdjacentStar = true;
+        break;
       }
     }
     if (hasAdjacentStar) continue;
@@ -422,21 +398,10 @@ export function analyzeComposite(
 
     // Check no adjacent star exists AND no adjacent forced cell
     let hasAdjacentConflict = false;
-    for (let drow = -1; drow <= 1 && !hasAdjacentConflict; drow++) {
-      for (let dcol = -1; dcol <= 1 && !hasAdjacentConflict; dcol++) {
-        if (drow === 0 && dcol === 0) continue;
-        const nrow = frow + drow;
-        const ncol = fcol + dcol;
-        if (nrow >= 0 && nrow < size && ncol >= 0 && ncol < size) {
-          // Adjacent to existing star
-          if (cells[nrow][ncol] === "star") {
-            hasAdjacentConflict = true;
-          }
-          // Adjacent to another forced cell (would create adjacent stars)
-          if (forcedSet.has(`${nrow},${ncol}`)) {
-            hasAdjacentConflict = true;
-          }
-        }
+    for (const [nr, nc] of neighbors(frow, fcol, size)) {
+      if (cells[nr][nc] === "star" || forcedSet.has(`${nr},${nc}`)) {
+        hasAdjacentConflict = true;
+        break;
       }
     }
 

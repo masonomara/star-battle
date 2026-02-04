@@ -14,7 +14,3 @@ export default function buildRegions(grid: number[][]) {
   }
   return map;
 }
-
-export function getRegionCoords(grid: number[][]): Coord[][] {
-  return [...buildRegions(grid).values()];
-}
