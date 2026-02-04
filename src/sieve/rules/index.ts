@@ -14,7 +14,10 @@ import tilingOverhangMarks from "./08d-tilingOverhangMarks/tilingOverhangMarks";
 import tilingAdjacencyMarks from "./08e-tilingAdjacencyMarks/tilingAdjacencyMarks";
 import confinementMarkRemainderRow from "./09a-confinementMarkRemainderRow/confinementMarkRemainderRow";
 import confinementMarkRemainderColumn from "./09b-confinementMarkRemainderColumn/confinementMarkRemainderColumn";
-import finnedCounts from "./12-finnedCounts/finnedCounts";
+import regionConfinement from "./12a-regionConfinement/regionConfinement";
+import lineConfinement from "./12b-lineConfinement/lineConfinement";
+import constrainedQuota from "./12c-constrainedQuota/constrainedQuota";
+import adjacentRegionCapacity from "./12d-adjacentRegionCapacity/adjacentRegionCapacity";
 import reservedAreaExclusions from "./14-reservedAreaExclusions/reservedAreaExclusions";
 import adjacentLineAnalysis from "./15-adjacentLineAnalysis/adjacentLineAnalysis";
 
@@ -38,22 +41,34 @@ export const allRules: RuleEntry[] = [
   { rule: forcedPlacementRow, level: 1, name: "Forced Placement (Row)" },
   { rule: forcedPlacementColumn, level: 1, name: "Forced Placement (Column)" },
   { rule: forcedPlacementRegion, level: 1, name: "Forced Placement (Region)" },
-  { rule: tilingForcedStarsRow, level: 2, name: "Tiling Forced Stars (Row)" },
+  {
+    rule: confinementMarkRemainderRow,
+    level: 2,
+    name: "Confinement Mark Remainder (Row)",
+  },
+  {
+    rule: confinementMarkRemainderColumn,
+    level: 2,
+    name: "Confinement Mark Remainder (Column)",
+  },
+  { rule: tilingForcedStarsRow, level: 3, name: "Tiling Forced Stars (Row)" },
   {
     rule: tilingForcedStarsColumn,
-    level: 2,
+    level: 3,
     name: "Tiling Forced Stars (Column)",
   },
   {
     rule: tilingForcedStarsRegion,
-    level: 2,
+    level: 3,
     name: "Tiling Forced Stars (Region)",
   },
-  { rule: tilingOverhangMarks, level: 2, name: "Tiling Overhang Marks" },
-  { rule: tilingAdjacencyMarks, level: 2, name: "Tiling Adjacency Marks" },
-  { rule: confinementMarkRemainderRow, level: 3, name: "Confinement Mark Remainder (Row)" },
-  { rule: confinementMarkRemainderColumn, level: 3, name: "Confinement Mark Remainder (Column)" },
-  // { rule: finnedCounts, level: 3, name: "Finned Counts" },
+  { rule: tilingAdjacencyMarks, level: 3, name: "Tiling Adjacency Marks" },
+  { rule: tilingOverhangMarks, level: 3, name: "Tiling Overhang Marks" },
+
+  { rule: regionConfinement, level: 4, name: "Region Confinement" },
+  { rule: lineConfinement, level: 4, name: "Line Confinement" },
+  { rule: constrainedQuota, level: 4, name: "Constrained Quota" },
+  { rule: adjacentRegionCapacity, level: 4, name: "Adjacent Region Capacity" },
   { rule: reservedAreaExclusions, level: 4, name: "Reserved Area Exclusions" },
   { rule: adjacentLineAnalysis, level: 4, name: "Adjacent Line Analysis" },
 ];
