@@ -1,5 +1,6 @@
 import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
+import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
 import tilingAdjacencyMarks from "./tilingAdjacencyMarks";
 
 describe("08c. Tiling Adjacency Marks", () => {
@@ -24,7 +25,7 @@ describe("08c. Tiling Adjacency Marks", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingAdjacencyMarks(board, cells);
+      const result = tilingAdjacencyMarks(board, cells, buildBoardAnalysis(board, cells));
 
       // The rule detects some adjacency violations
       expect(result).toBe(true);
@@ -56,7 +57,7 @@ describe("08c. Tiling Adjacency Marks", () => {
         ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingAdjacencyMarks(board, cells);
+      const result = tilingAdjacencyMarks(board, cells, buildBoardAnalysis(board, cells));
 
       // These cells are well-separated, no adjacency violations
       expect(result).toBe(false);
@@ -80,7 +81,7 @@ describe("08c. Tiling Adjacency Marks", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingAdjacencyMarks(board, cells);
+      const result = tilingAdjacencyMarks(board, cells, buildBoardAnalysis(board, cells));
 
       expect(result).toBe(false);
     });
@@ -103,7 +104,7 @@ describe("08c. Tiling Adjacency Marks", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingAdjacencyMarks(board, cells);
+      const result = tilingAdjacencyMarks(board, cells, buildBoardAnalysis(board, cells));
 
       expect(result).toBe(false);
     });
@@ -126,7 +127,7 @@ describe("08c. Tiling Adjacency Marks", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingAdjacencyMarks(board, cells);
+      const result = tilingAdjacencyMarks(board, cells, buildBoardAnalysis(board, cells));
 
       expect(result).toBe(false);
     });
