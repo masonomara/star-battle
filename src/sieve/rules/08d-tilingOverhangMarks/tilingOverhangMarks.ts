@@ -1,10 +1,9 @@
-import buildRegions from "../../helpers/regions";
-import { computeTiling } from "../../helpers/tiling";
+import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { Board, CellState, Coord, Tile } from "../../helpers/types";
 import { coordKey } from "../../helpers/cellKey";
 
 /**
- * Rule 8b: Tiling Overhang Marks
+ * Rule 8d: Tiling Overhang Marks
  *
  * When capacity === starsNeeded, each tile contains exactly one star.
  * Non-region cells covered by tiles in ALL minimal tilings cannot have stars
@@ -13,24 +12,15 @@ import { coordKey } from "../../helpers/cellKey";
 export default function tilingOverhangMarks(
   board: Board,
   cells: CellState[][],
+  analysis: BoardAnalysis,
 ): boolean {
-  const size = board.grid.length;
-  const regions = buildRegions(board.grid);
   let changed = false;
 
-  for (const [, coords] of regions) {
-    let stars = 0;
-    const unknowns: Coord[] = [];
-    for (const [row, col] of coords) {
-      if (cells[row][col] === "star") stars++;
-      else if (cells[row][col] === "unknown") unknowns.push([row, col]);
-    }
+  for (const [, meta] of analysis.regions) {
+    if (meta.starsNeeded <= 0) continue;
 
-    const needed = board.stars - stars;
-    if (needed <= 0) continue;
-
-    const tiling = computeTiling(unknowns, size);
-    if (tiling.capacity !== needed) continue;
+    const tiling = analysis.getTiling(meta.unknownCoords);
+    if (tiling.capacity !== meta.starsNeeded) continue;
 
     const forcedNonRegion = findForcedNonRegionCells(tiling.tilings);
     for (const [row, col] of forcedNonRegion) {
