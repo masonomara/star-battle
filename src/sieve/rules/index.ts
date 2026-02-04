@@ -50,82 +50,28 @@ export const allRules: RuleEntry[] = [
   { rule: forcedPlacementRow, level: 2, name: "Forced Placement (Row)" },
   { rule: forcedPlacementColumn, level: 2, name: "Forced Placement (Column)" },
   { rule: forcedPlacementRegion, level: 2, name: "Forced Placement (Region)" },
-  {
-    rule: confinementMarkRemainderRow,
-    level: 3,
-    name: "Confinement Squeeze(Row)",
-  },
-  {
-    rule: confinementMarkRemainderColumn,
-    level: 3,
-    name: "Confinement Squeeze (Column)",
-  },
-  {
-    rule: regionLineOverflowRow,
-    level: 3,
-    name: "Confinement Overflow (Row)",
-  },
-  {
-    rule: regionLineOverflowColumn,
-    level: 3,
-    name: "Confinement Overflow (Column)",
-  },
+  { rule: confinementMarkRemainderRow, level: 3, name: "Confinement Squeeze(Row)" },
+  { rule: confinementMarkRemainderColumn, level: 3, name: "Confinement Squeeze (Column)" },
+  { rule: regionLineOverflowRow, level: 3, name: "Confinement Overflow (Row)" },
+  { rule: regionLineOverflowColumn, level: 3, name: "Confinement Overflow (Column)" },
   { rule: tilingForcedStarsRow, level: 4, name: "Tiling Forced Stars (Row)" },
-  {
-    rule: tilingForcedStarsColumn,
-    level: 4,
-    name: "Tiling Forced Stars (Column)",
-  },
-  {
-    rule: tilingForcedStarsRegion,
-    level: 4,
-    name: "Tiling Forced Stars (Region)",
-  },
+  { rule: tilingForcedStarsColumn, level: 4, name: "Tiling Forced Stars (Column)" },
+  { rule: tilingForcedStarsRegion, level: 4, name: "Tiling Forced Stars (Region)" },
   { rule: tilingAdjacencyMarks, level: 4, name: "Tiling Adjacency Marks" },
   { rule: tilingOverhangMarks, level: 4, name: "Tiling Overhang Marks" },
-
   { rule: regionConfinementRow, level: 5, name: "Region Confinement (Row)" },
-  {
-    rule: regionConfinementColumn,
-    level: 5,
-    name: "Region Confinement (Column)",
-  },
+  { rule: regionConfinementColumn, level: 5, name: "Region Confinement (Column)" },
   { rule: lineConfinementRow, level: 5, name: "Line Confinement (Row)" },
   { rule: lineConfinementColumn, level: 5, name: "Line Confinement (Column)" },
-
-  {
-    rule: hypotheticalRowCapacity,
-    level: 12,
-    name: "Hypothetical Row Capacity",
-  },
-  {
-    rule: hypotheticalColumnCapacity,
-    level: 12,
-    name: "Hypothetical Column Capacity",
-  },
-  {
-    rule: hypotheticalRegionCapacity,
-    level: 12,
-    name: "Hypothetical Region Capacity",
-  },
-  {
-    rule: hypotheticalOneByNBreak,
-    level: 12,
-    name: "Hypothetical 1×N Break",
-  },
-  {
-    rule: hypotheticalTwoByTwoBreak,
-    level: 12,
-    name: "Hypothetical 2×2 Break",
-  },
-  {
-    rule: hypotheticalFreeOverflow,
-    level: 12,
-    name: "Hypothetical Free Overflow",
-  },
   { rule: adjacentRegionCapacity, level: 12, name: "Adjacent Region Capacity" },
   { rule: reservedAreaExclusions, level: 12, name: "Reserved Area Exclusions" },
   { rule: adjacentLineAnalysis, level: 12, name: "Adjacent Line Analysis" },
+  { rule: hypotheticalRowCapacity, level: 20, name: "Hypothetical Row Capacity" },
+  { rule: hypotheticalColumnCapacity, level: 20, name: "Hypothetical Column Capacity" },
+  { rule: hypotheticalRegionCapacity, level: 20, name: "Hypothetical Region Capacity" },
+  { rule: hypotheticalOneByNBreak, level: 20, name: "Hypothetical 1×N Break" },
+  { rule: hypotheticalTwoByTwoBreak, level: 20, name: "Hypothetical 2×2 Break" },
+  { rule: hypotheticalFreeOverflow, level: 20, name: "Hypothetical Free Overflow" },
 ];
 
 /** Rule metadata for external use (e.g., CLI reporting) */
