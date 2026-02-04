@@ -14,10 +14,12 @@ import tilingOverhangMarks from "./04-tilingOverhangMarks/tilingOverhangMarks";
 import tilingAdjacencyMarks from "./04-tilingAdjacencyMarks/tilingAdjacencyMarks";
 import confinementMarkRemainderRow from "./03-confinementMarkRemainderRow/confinementMarkRemainderRow";
 import confinementMarkRemainderColumn from "./03-confinementMarkRemainderColumn/confinementMarkRemainderColumn";
-import regionConfinement from "./12a-regionConfinement/regionConfinement";
-import lineConfinement from "./12b-lineConfinement/lineConfinement";
-import constrainedQuota from "./12c-constrainedQuota/constrainedQuota";
-import adjacentRegionCapacity from "./12d-adjacentRegionCapacity/adjacentRegionCapacity";
+import regionConfinementRow from "./12a-regionConfinementRow/regionConfinementRow";
+import regionConfinementColumn from "./12b-regionConfinementColumn/regionConfinementColumn";
+import lineConfinementRow from "./12c-lineConfinementRow/lineConfinementRow";
+import lineConfinementColumn from "./12d-lineConfinementColumn/lineConfinementColumn";
+import constrainedQuota from "./12e-constrainedQuota/constrainedQuota";
+import adjacentRegionCapacity from "./12f-adjacentRegionCapacity/adjacentRegionCapacity";
 import reservedAreaExclusions from "./14-reservedAreaExclusions/reservedAreaExclusions";
 import adjacentLineAnalysis from "./15-adjacentLineAnalysis/adjacentLineAnalysis";
 
@@ -65,8 +67,10 @@ export const allRules: RuleEntry[] = [
   { rule: tilingAdjacencyMarks, level: 3, name: "Tiling Adjacency Marks" },
   { rule: tilingOverhangMarks, level: 3, name: "Tiling Overhang Marks" },
 
-  { rule: regionConfinement, level: 4, name: "Region Confinement" },
-  { rule: lineConfinement, level: 4, name: "Line Confinement" },
+  { rule: regionConfinementRow, level: 4, name: "Region Confinement (Row)" },
+  { rule: regionConfinementColumn, level: 4, name: "Region Confinement (Column)" },
+  { rule: lineConfinementRow, level: 4, name: "Line Confinement (Row)" },
+  { rule: lineConfinementColumn, level: 4, name: "Line Confinement (Column)" },
   { rule: constrainedQuota, level: 4, name: "Constrained Quota" },
   { rule: adjacentRegionCapacity, level: 4, name: "Adjacent Region Capacity" },
   { rule: reservedAreaExclusions, level: 4, name: "Reserved Area Exclusions" },

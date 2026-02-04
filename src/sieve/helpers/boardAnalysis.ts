@@ -22,6 +22,8 @@ export type BoardAnalysis = {
   regions: Map<number, RegionMeta>;
   rowStars: number[];
   colStars: number[];
+  rowToRegions: Map<number, Set<number>>;
+  colToRegions: Map<number, Set<number>>;
   tilingCache: Map<string, TilingResult>;
   getTiling: (cells: Coord[]) => TilingResult;
 };
@@ -133,6 +135,26 @@ export function buildBoardAnalysis(
     }
   }
 
+  // Build row -> regions and col -> regions mappings
+  const rowToRegions = new Map<number, Set<number>>();
+  const colToRegions = new Map<number, Set<number>>();
+
+  for (let i = 0; i < size; i++) {
+    rowToRegions.set(i, new Set());
+  }
+  for (let i = 0; i < numCols; i++) {
+    colToRegions.set(i, new Set());
+  }
+
+  for (const [id, meta] of regions) {
+    for (const row of meta.unknownRows) {
+      rowToRegions.get(row)!.add(id);
+    }
+    for (const col of meta.unknownCols) {
+      colToRegions.get(col)!.add(id);
+    }
+  }
+
   const tilingCache = new Map<string, TilingResult>();
 
   const getTiling = (coords: Coord[]): TilingResult => {
@@ -159,6 +181,8 @@ export function buildBoardAnalysis(
     regions,
     rowStars,
     colStars,
+    rowToRegions,
+    colToRegions,
     tilingCache,
     getTiling,
   };
