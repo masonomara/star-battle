@@ -7,7 +7,6 @@
 
 import { computeTiling } from "./tiling";
 import { Board, CellState, Coord, Tile } from "./types";
-import { coordKey } from "./cellKey";
 import { BoardAnalysis, RegionMeta } from "./boardAnalysis";
 
 export type Composite = {
@@ -71,12 +70,12 @@ export function buildAdjacencyGraph(
 export function findConnectedComponents(coords: Coord[]): Coord[][] {
   if (coords.length === 0) return [];
 
-  const coordSet = new Set(coords.map(coordKey));
+  const coordSet = new Set(coords.map((c) => `${c[0]},${c[1]}`));
   const visited = new Set<string>();
   const components: Coord[][] = [];
 
   for (const coord of coords) {
-    const key = coordKey(coord);
+    const key = `${coord[0]},${coord[1]}`;
     if (visited.has(key)) continue;
 
     const component: Coord[] = [];
@@ -90,7 +89,7 @@ export function findConnectedComponents(coords: Coord[]): Coord[][] {
       for (let dr = -1; dr <= 1; dr++) {
         for (let dc = -1; dc <= 1; dc++) {
           if (dr === 0 && dc === 0) continue;
-          const nKey = coordKey([row + dr, col + dc]);
+          const nKey = `${row + dr},${col + dc}`;
           if (coordSet.has(nKey) && !visited.has(nKey)) {
             visited.add(nKey);
             queue.push([row + dr, col + dc]);
@@ -122,7 +121,7 @@ export function enumerateValidPlacements(
   // Build adjacency between unknown cells
   const coordToIdx = new Map<string, number>();
   for (let i = 0; i < unknowns.length; i++) {
-    coordToIdx.set(coordKey(unknowns[i]), i);
+    coordToIdx.set(`${unknowns[i][0]},${unknowns[i][1]}`, i);
   }
 
   // For each unknown, which other unknowns are adjacent (can't both be stars)
@@ -133,7 +132,7 @@ export function enumerateValidPlacements(
     for (let drow = -1; drow <= 1; drow++) {
       for (let dcol = -1; dcol <= 1; dcol++) {
         if (drow === 0 && dcol === 0) continue;
-        const key = coordKey([row + drow, col + dcol] as Coord);
+        const key = `${row + drow},${col + dcol}`;
         const j = coordToIdx.get(key);
         if (j !== undefined && j !== i) {
           adjacent[i].add(j);
@@ -213,7 +212,7 @@ export function findExternalForcedCells(
     const outside = new Set<string>();
     for (const tile of tiling) {
       for (const [row, col] of tile.cells) {
-        const key = coordKey([row, col]);
+        const key = `${row},${col}`;
         if (!compositeSet.has(key)) {
           outside.add(key);
         }
@@ -265,12 +264,14 @@ export function analyzeViaDirectEnumeration(
   }
 
   // Find cells in ALL placements (forced stars) and cells in NO placements (forced marks)
-  const allKeys = new Set(currentUnknowns.map(coordKey));
+  const allKeys = new Set(currentUnknowns.map((c) => `${c[0]},${c[1]}`));
   const inAllPlacements = new Set<string>();
   const inAnyPlacement = new Set<string>();
 
   for (let p = 0; p < validPlacements.length; p++) {
-    const placementKeys = new Set(validPlacements[p].map(coordKey));
+    const placementKeys = new Set(
+      validPlacements[p].map((c) => `${c[0]},${c[1]}`),
+    );
 
     if (p === 0) {
       // First placement initializes inAllPlacements
@@ -413,7 +414,7 @@ export function analyzeComposite(
   // Must verify adjacency - composite cells may be disconnected
   // Also check that forced cells aren't adjacent to each other (invalid analysis)
   const forcedSet = new Set(
-    tiling.forcedCells.map(([row, col]) => coordKey([row, col])),
+    tiling.forcedCells.map(([row, col]) => `${row},${col}`),
   );
 
   for (const [frow, fcol] of tiling.forcedCells) {
@@ -432,7 +433,7 @@ export function analyzeComposite(
             hasAdjacentConflict = true;
           }
           // Adjacent to another forced cell (would create adjacent stars)
-          if (forcedSet.has(coordKey([nrow, ncol]))) {
+          if (forcedSet.has(`${nrow},${ncol}`)) {
             hasAdjacentConflict = true;
           }
         }
@@ -469,7 +470,9 @@ export function analyzeComposite(
   }
 
   // External exclusions
-  const compositeSet = new Set(composite.cells.map((coord) => coordKey(coord)));
+  const compositeSet = new Set(
+    composite.cells.map((coord) => `${coord[0]},${coord[1]}`),
+  );
   const externalForced = findExternalForcedCells(tiling.tilings, compositeSet);
 
   for (const [erow, ecol] of externalForced) {

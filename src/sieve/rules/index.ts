@@ -68,13 +68,17 @@ export const allRules: RuleEntry[] = [
   { rule: tilingOverhangMarks, level: 3, name: "Tiling Overhang Marks" },
 
   { rule: regionConfinementRow, level: 4, name: "Region Confinement (Row)" },
-  { rule: regionConfinementColumn, level: 4, name: "Region Confinement (Column)" },
+  {
+    rule: regionConfinementColumn,
+    level: 4,
+    name: "Region Confinement (Column)",
+  },
   { rule: lineConfinementRow, level: 4, name: "Line Confinement (Row)" },
   { rule: lineConfinementColumn, level: 4, name: "Line Confinement (Column)" },
-  { rule: constrainedQuota, level: 4, name: "Constrained Quota" },
-  { rule: adjacentRegionCapacity, level: 4, name: "Adjacent Region Capacity" },
-  { rule: reservedAreaExclusions, level: 4, name: "Reserved Area Exclusions" },
-  { rule: adjacentLineAnalysis, level: 4, name: "Adjacent Line Analysis" },
+  { rule: constrainedQuota, level: 6, name: "Constrained Quota" },
+  { rule: adjacentRegionCapacity, level: 6, name: "Adjacent Region Capacity" },
+  { rule: reservedAreaExclusions, level: 6, name: "Reserved Area Exclusions" },
+  { rule: adjacentLineAnalysis, level: 6, name: "Adjacent Line Analysis" },
 ];
 
 /** Rule metadata for external use (e.g., CLI reporting) */

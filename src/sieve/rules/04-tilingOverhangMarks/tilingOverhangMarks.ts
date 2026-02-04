@@ -1,6 +1,5 @@
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { Board, CellState, Coord, Tile } from "../../helpers/types";
-import { coordKey } from "../../helpers/cellKey";
 
 /**
  * Rule 8d: Tiling Overhang Marks
@@ -52,9 +51,11 @@ function filterActiveTilings(
   return allTilings.filter((tiling) => {
     // Get all overhang cells for this tiling
     for (const tile of tiling) {
-      const coveredKeys = new Set(tile.coveredCells.map(coordKey));
+      const coveredKeys = new Set(
+        tile.coveredCells.map((c) => `${c[0]},${c[1]}`),
+      );
       for (const cell of tile.cells) {
-        if (!coveredKeys.has(coordKey(cell))) {
+        if (!coveredKeys.has(`${cell[0]},${cell[1]}`)) {
           const [row, col] = cell;
           // If any overhang cell is unknown, this tiling is active
           if (cells[row][col] === "unknown") {
@@ -77,9 +78,11 @@ function findForcedNonRegionCells(allMinimalTilings: Tile[][]): Coord[] {
   const nonRegionSets: Set<string>[] = allMinimalTilings.map((tiling) => {
     const nonRegion = new Set<string>();
     for (const tile of tiling) {
-      const coveredKeys = new Set(tile.coveredCells.map(coordKey));
+      const coveredKeys = new Set(
+        tile.coveredCells.map((c) => `${c[0]},${c[1]}`),
+      );
       for (const cell of tile.cells) {
-        const key = coordKey(cell);
+        const key = `${cell[0]},${cell[1]}`;
         if (!coveredKeys.has(key)) {
           nonRegion.add(key);
         }

@@ -1,5 +1,4 @@
-import { Board, GeneratorError } from "./helpers/types";
-import { cellKey, parseKey } from "./helpers/cellKey";
+import { Board, Coord, GeneratorError } from "./helpers/types";
 import buildRegions from "./helpers/regions";
 import { computeTiling } from "./helpers/tiling";
 
@@ -124,7 +123,7 @@ function growRegionsBalanced(
       if (regionSizes[regionId] < minRegionSize) {
         const frontier = frontiers.get(regionId)!;
         for (const key of [...frontier]) {
-          const [r, c] = parseKey(key);
+          const [r, c] = key.split(",").map(Number) as Coord;
           if (grid[r][c] !== -1) frontier.delete(key);
         }
         if (frontier.size > 0) needsGrowth.push(regionId);
@@ -139,14 +138,14 @@ function growRegionsBalanced(
     const key = keys[Math.floor(rng() * keys.length)];
     frontier.delete(key);
 
-    const [row, col] = parseKey(key);
+    const [row, col] = key.split(",").map(Number) as Coord;
     if (grid[row][col] !== -1) continue;
 
     grid[row][col] = regionId;
     regionSizes[regionId]++;
 
     for (const [nr, nc] of getUnfilledNeighbors(grid, size, row, col)) {
-      frontier.add(cellKey(nr, nc));
+      frontier.add(`${nr},${nc}`);
     }
   }
 }
@@ -217,7 +216,7 @@ function layoutWithSeed(size: number, stars: number, seed: number): Board {
       if (grid[row][col] !== -1) {
         const regionId = grid[row][col];
         for (const [nr, nc] of getUnfilledNeighbors(grid, size, row, col)) {
-          frontiers.get(regionId)!.add(cellKey(nr, nc));
+          frontiers.get(regionId)!.add(`${nr},${nc}`);
         }
       }
     }

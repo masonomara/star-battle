@@ -6,7 +6,6 @@
  * that row/column will receive at least N stars from that region.
  */
 
-import { cellKey } from "./cellKey";
 import { Board, CellState, Coord } from "./types";
 import { BoardAnalysis } from "./boardAnalysis";
 
@@ -134,7 +133,7 @@ export function buildMarkedCellSet(
   size: number,
 ): Set<string> {
   const marked = new Set<string>();
-  marked.add(cellKey(row, col));
+  marked.add(`${row},${col}`);
 
   for (let dr = -1; dr <= 1; dr++) {
     for (let dc = -1; dc <= 1; dc++) {
@@ -142,7 +141,7 @@ export function buildMarkedCellSet(
       const nr = row + dr;
       const nc = col + dc;
       if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
-        marked.add(cellKey(nr, nc));
+        marked.add(`${nr},${nc}`);
       }
     }
   }

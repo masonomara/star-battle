@@ -12,7 +12,6 @@
 
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { cellKey } from "../../helpers/cellKey";
 import { computeTiling } from "../../helpers/tiling";
 import {
   findOneByNConstraints,
@@ -34,7 +33,7 @@ function checkRowOrColumnViolation(
   twoByTwoConstraints: StarContaining2x2[],
 ): boolean {
   const size = board.grid.length;
-  const starKey = cellKey(starRow, starCol);
+  const starKey = `${starRow},${starCol}`;
 
   // Group 1×N constraints by row/column
   const oneByNByRow = new Map<number, OneByNConstraint[]>();
@@ -80,13 +79,13 @@ function checkRowOrColumnViolation(
     // Collect constraint cells for this row
     for (const c of oneByNByRow.get(row) || []) {
       for (const [cr, cc] of c.cells) {
-        constraintCells.add(cellKey(cr, cc));
+        constraintCells.add(`${cr},${cc}`);
       }
     }
     for (const c of twoByTwoByRow.get(row) || []) {
       for (const [cr, cc] of c.cells) {
         if (cr === row) {
-          constraintCells.add(cellKey(cr, cc));
+          constraintCells.add(`${cr},${cc}`);
         }
       }
     }
@@ -95,7 +94,7 @@ function checkRowOrColumnViolation(
       if (cells[row][col] === "star") {
         existingStars++;
       } else if (cells[row][col] === "unknown") {
-        const key = cellKey(row, col);
+        const key = `${row},${col}`;
         if (key === starKey && row === starRow) {
           existingStars++;
         } else if (!markedCells.has(key)) {
@@ -127,7 +126,7 @@ function checkRowOrColumnViolation(
       );
       let remainingInConstraint = 0;
       for (const [cr, cc] of c.cells) {
-        const key = cellKey(cr, cc);
+        const key = `${cr},${cc}`;
         if (key !== starKey && !markedCells.has(key)) {
           remainingInConstraint++;
         }
@@ -145,7 +144,7 @@ function checkRowOrColumnViolation(
       );
       let remainingInConstraint = 0;
       for (const [cr, cc] of c.cells) {
-        const key = cellKey(cr, cc);
+        const key = `${cr},${cc}`;
         if (key !== starKey && !markedCells.has(key)) {
           remainingInConstraint++;
         }
@@ -163,7 +162,7 @@ function checkRowOrColumnViolation(
     const freeNeeded = needed - constraintContribution;
     if (freeNeeded > 0) {
       const freeCells = remainingCells.filter(
-        ([r, c]) => !constraintCells.has(cellKey(r, c)),
+        ([r, c]) => !constraintCells.has(`${r},${c}`),
       );
 
       if (freeCells.length < freeNeeded) {
@@ -188,13 +187,13 @@ function checkRowOrColumnViolation(
 
     for (const c of oneByNByCol.get(col) || []) {
       for (const [cr, cc] of c.cells) {
-        constraintCells.add(cellKey(cr, cc));
+        constraintCells.add(`${cr},${cc}`);
       }
     }
     for (const c of twoByTwoByCol.get(col) || []) {
       for (const [cr, cc] of c.cells) {
         if (cc === col) {
-          constraintCells.add(cellKey(cr, cc));
+          constraintCells.add(`${cr},${cc}`);
         }
       }
     }
@@ -203,7 +202,7 @@ function checkRowOrColumnViolation(
       if (cells[row][col] === "star") {
         existingStars++;
       } else if (cells[row][col] === "unknown") {
-        const key = cellKey(row, col);
+        const key = `${row},${col}`;
         if (key === starKey && col === starCol) {
           existingStars++;
         } else if (!markedCells.has(key)) {
@@ -234,7 +233,7 @@ function checkRowOrColumnViolation(
       );
       let remainingInConstraint = 0;
       for (const [cr, cc] of c.cells) {
-        const key = cellKey(cr, cc);
+        const key = `${cr},${cc}`;
         if (key !== starKey && !markedCells.has(key)) {
           remainingInConstraint++;
         }
@@ -252,7 +251,7 @@ function checkRowOrColumnViolation(
       );
       let remainingInConstraint = 0;
       for (const [cr, cc] of c.cells) {
-        const key = cellKey(cr, cc);
+        const key = `${cr},${cc}`;
         if (key !== starKey && !markedCells.has(key)) {
           remainingInConstraint++;
         }
@@ -269,7 +268,7 @@ function checkRowOrColumnViolation(
     const freeNeeded = needed - constraintContribution;
     if (freeNeeded > 0) {
       const freeCells = remainingCells.filter(
-        ([r, c]) => !constraintCells.has(cellKey(r, c)),
+        ([r, c]) => !constraintCells.has(`${r},${c}`),
       );
 
       if (freeCells.length < freeNeeded) {

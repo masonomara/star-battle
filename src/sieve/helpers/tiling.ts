@@ -7,7 +7,6 @@
 
 import { Coord, Tile, TilingResult } from "./types";
 import { dlxSolve } from "./dlx";
-import { coordKey, parseKey } from "./cellKey";
 
 /**
  * Compute tiling for a set of cells.
@@ -24,9 +23,9 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
     return { capacity: 1, tilings: [], forcedCells: [cells[0]] };
   }
 
-  const cellSet = new Set(cells.map(coordKey));
+  const cellSet = new Set(cells.map((c) => `${c[0]},${c[1]}`));
   const cellToIndex = new Map<string, number>();
-  cells.forEach((c, i) => cellToIndex.set(coordKey(c), i));
+  cells.forEach((c, i) => cellToIndex.set(`${c[0]},${c[1]}`, i));
 
   // Generate all 2x2 tiles touching these cells
   const tiles: Tile[] = [];
@@ -40,7 +39,7 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
         const ac = c + dc;
         if (ar < 0 || ac < 0 || ar > maxAnchor || ac > maxAnchor) continue;
 
-        const anchorKey = coordKey([ar, ac]);
+        const anchorKey = `${ar},${ac}`;
         if (seenAnchors.has(anchorKey)) continue;
         seenAnchors.add(anchorKey);
 
@@ -50,7 +49,9 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
           [ar + 1, ac],
           [ar + 1, ac + 1],
         ];
-        const coveredCells = allCells.filter((tc) => cellSet.has(coordKey(tc)));
+        const coveredCells = allCells.filter((tc) =>
+          cellSet.has(`${tc[0]},${tc[1]}`),
+        );
 
         if (coveredCells.length > 0) {
           tiles.push({ anchor: [ar, ac], cells: allCells, coveredCells });
@@ -67,7 +68,7 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
   const secondaryToIndex = new Map<string, number>();
   for (const tile of tiles) {
     for (const c of tile.cells) {
-      const key = coordKey(c);
+      const key = `${c[0]},${c[1]}`;
       if (!cellToIndex.has(key) && !secondaryToIndex.has(key)) {
         secondaryToIndex.set(key, secondaryToIndex.size);
       }
@@ -80,10 +81,10 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
   const dlxRows: number[][] = tiles.map((tile) => {
     const row: number[] = [];
     for (const c of tile.coveredCells) {
-      row.push(cellToIndex.get(coordKey(c))!);
+      row.push(cellToIndex.get(`${c[0]},${c[1]}`)!);
     }
     for (const c of tile.cells) {
-      const key = coordKey(c);
+      const key = `${c[0]},${c[1]}`;
       if (!cellToIndex.has(key) && secondaryToIndex.has(key)) {
         row.push(numPrimary + secondaryToIndex.get(key)!);
       }
@@ -110,10 +111,10 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
   // Find forced cells: single-coverage in ALL tilings
   const forcedCells: Coord[] = [];
   for (const cell of cells) {
-    const key = coordKey(cell);
+    const key = `${cell[0]},${cell[1]}`;
     const forcedInAll = tilings.every((tiling) => {
       const tile = tiling.find((t) =>
-        t.coveredCells.some((c) => coordKey(c) === key),
+        t.coveredCells.some((c) => `${c[0]},${c[1]}` === key),
       );
       return tile && tile.coveredCells.length === 1;
     });

@@ -1,6 +1,5 @@
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { Board, CellState, Coord, Tile } from "../../helpers/types";
-import { coordKey } from "../../helpers/cellKey";
 
 /**
  * Check if two cells are adjacent (including diagonals).
@@ -57,15 +56,15 @@ function findInvalidCellsDueToAdjacency(
   if (allMinimalTilings.length === 0 || unknownCells.length === 0) return [];
 
   const invalidCells: Coord[] = [];
-  const unknownSet = new Set(unknownCells.map(coordKey));
+  const unknownSet = new Set(unknownCells.map((c) => `${c[0]},${c[1]}`));
 
   for (const cell of unknownCells) {
-    const cellKey = coordKey(cell);
+    const key = `${cell[0]},${cell[1]}`;
     let canBeStarInSomeTiling = false;
 
     for (const tiling of allMinimalTilings) {
       const containingTile = tiling.find((tile) =>
-        tile.coveredCells.some((c) => coordKey(c) === cellKey),
+        tile.coveredCells.some((c) => `${c[0]},${c[1]}` === key),
       );
 
       if (!containingTile) continue;
@@ -111,7 +110,8 @@ function canPlaceStarsInTiles(
       placed.push(existingStar);
     } else {
       const valid = tile.coveredCells.filter(
-        (c) => unknownSet.has(coordKey(c)) && !cellsAreAdjacent(c, assumedStar),
+        (c) =>
+          unknownSet.has(`${c[0]},${c[1]}`) && !cellsAreAdjacent(c, assumedStar),
       );
       if (valid.length === 0) return false;
       tilesNeedingStars.push(valid);

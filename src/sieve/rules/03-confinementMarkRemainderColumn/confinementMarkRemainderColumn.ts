@@ -8,7 +8,6 @@
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { computeConfinement } from "../../helpers/confinement";
-import { cellKey } from "../../helpers/cellKey";
 
 export default function confinementMarkRemainderColumn(
   board: Board,
@@ -32,14 +31,14 @@ export default function confinementMarkRemainderColumn(
     const contributing = new Set<string>();
     for (const region of regions) {
       for (const [r, c] of region.cells) {
-        contributing.add(cellKey(r, c));
+        contributing.add(`${r},${c}`);
       }
     }
 
     for (let row = 0; row < numRows; row++) {
       if (
         cells[row][colIndex] === "unknown" &&
-        !contributing.has(cellKey(row, colIndex))
+        !contributing.has(`${row},${colIndex}`)
       ) {
         cells[row][colIndex] = "marked";
         changed = true;

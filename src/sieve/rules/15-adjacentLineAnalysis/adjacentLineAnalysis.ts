@@ -10,7 +10,6 @@
  */
 
 import { Board, CellState, Coord } from "../../helpers/types";
-import { coordKey } from "../../helpers/cellKey";
 import { BoardAnalysis, capacity } from "../../helpers/boardAnalysis";
 import { Composite } from "../../helpers/compositeAnalysis";
 
@@ -52,7 +51,7 @@ function enumerateWithExactLineQuotas(
 
   for (const [row, col] of unknowns) {
     const lineIdx = axis === "row" ? row : col;
-    cellToLine.set(coordKey([row, col]), lineIdx);
+    cellToLine.set(`${row},${col}`, lineIdx);
 
     if (!lineToCells.has(lineIdx)) lineToCells.set(lineIdx, []);
     lineToCells.get(lineIdx)!.push([row, col]);
@@ -61,7 +60,7 @@ function enumerateWithExactLineQuotas(
   // Build adjacency between unknown cells
   const coordToIdx = new Map<string, number>();
   for (let i = 0; i < unknowns.length; i++) {
-    coordToIdx.set(coordKey(unknowns[i]), i);
+    coordToIdx.set(`${unknowns[i][0]},${unknowns[i][1]}`, i);
   }
 
   const adjacent: Set<number>[] = unknowns.map(() => new Set());
@@ -70,7 +69,7 @@ function enumerateWithExactLineQuotas(
     for (let drow = -1; drow <= 1; drow++) {
       for (let dcol = -1; dcol <= 1; dcol++) {
         if (drow === 0 && dcol === 0) continue;
-        const key = coordKey([row + drow, col + dcol] as Coord);
+        const key = `${row + drow},${col + dcol}`;
         const j = coordToIdx.get(key);
         if (j !== undefined && j !== i) {
           adjacent[i].add(j);
@@ -90,7 +89,7 @@ function enumerateWithExactLineQuotas(
 
   // Compute minimum contribution required from inside the composite for each region.
   // This handles regions whose cells are entirely or mostly inside the composite.
-  const unknownSet = new Set(unknowns.map(coordKey));
+  const unknownSet = new Set(unknowns.map((c) => `${c[0]},${c[1]}`));
   const regionMinContrib = new Map<number, number>();
   const regionCellsInside = new Map<number, Coord[]>();
 
@@ -101,7 +100,7 @@ function enumerateWithExactLineQuotas(
     const inside: Coord[] = [];
     const outside: Coord[] = [];
     for (const coord of meta.unknownCoords) {
-      if (unknownSet.has(coordKey(coord))) {
+      if (unknownSet.has(`${coord[0]},${coord[1]}`)) {
         inside.push(coord);
       } else {
         outside.push(coord);
@@ -180,7 +179,7 @@ function enumerateWithExactLineQuotas(
       const cellsInLine = lineToCells.get(lineIdx) || [];
       let availableInLine = 0;
       for (const cell of cellsInLine) {
-        const idx = coordToIdx.get(coordKey(cell))!;
+        const idx = coordToIdx.get(`${cell[0]},${cell[1]}`)!;
         if (idx >= start && !forbidden.has(idx)) {
           // Also check if cell's region is already full
           const regionId = cellToRegion[idx];
@@ -204,7 +203,7 @@ function enumerateWithExactLineQuotas(
       const cellsInside = regionCellsInside.get(regionId) || [];
       let availableForRegion = 0;
       for (const cell of cellsInside) {
-        const idx = coordToIdx.get(coordKey(cell));
+        const idx = coordToIdx.get(`${cell[0]},${cell[1]}`);
         if (idx !== undefined && idx >= start && !forbidden.has(idx)) {
           availableForRegion++;
         }
@@ -323,12 +322,14 @@ function analyzeAdjacentLineComposite(
   }
 
   // Find cells in ALL placements (forced) and cells in ANY placement
-  const allKeys = new Set(unknowns.map(coordKey));
+  const allKeys = new Set(unknowns.map((c) => `${c[0]},${c[1]}`));
   const inAllPlacements = new Set<string>();
   const inAnyPlacement = new Set<string>();
 
   for (let p = 0; p < validPlacements.length; p++) {
-    const placementKeys = new Set(validPlacements[p].map(coordKey));
+    const placementKeys = new Set(
+      validPlacements[p].map((c) => `${c[0]},${c[1]}`),
+    );
 
     if (p === 0) {
       for (const key of placementKeys) {
@@ -497,7 +498,7 @@ export default function adjacentLineAnalysis(
     const currentUnknowns = alc.unknownCells.filter(
       ([row, col]) => cells[row][col] === "unknown",
     );
-    const sig = currentUnknowns.map(coordKey).sort().join("|");
+    const sig = currentUnknowns.map((c) => `${c[0]},${c[1]}`).sort().join("|");
 
     if (sig === "" || seenSigs.has(sig)) continue;
     seenSigs.add(sig);

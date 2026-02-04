@@ -12,19 +12,17 @@
 
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { cellKey } from "../../helpers/cellKey";
 import { computeTiling } from "../../helpers/tiling";
 
 function checkAdjacentRegionViolation(
   starRow: number,
   starCol: number,
   board: Board,
-  cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
   const size = board.grid.length;
   const starRegionId = board.grid[starRow][starCol];
-  const starKey = cellKey(starRow, starCol);
+  const starKey = `${starRow},${starCol}`;
 
   // Find all regions that have cells adjacent to the star position
   const affectedRegions = new Set<number>();
@@ -50,11 +48,10 @@ function checkAdjacentRegionViolation(
     // Collect remaining cells after placing star at (starRow, starCol)
     const remainingCells: Coord[] = [];
     for (const [r, c] of region.unknownCoords) {
-      const key = cellKey(r, c);
       // Skip if this cell is adjacent to the hypothetical star
       const isAdjacent =
         Math.abs(r - starRow) <= 1 && Math.abs(c - starCol) <= 1;
-      if (!isAdjacent && key !== starKey) {
+      if (!isAdjacent && `${r},${c}` !== starKey) {
         remainingCells.push([r, c]);
       }
     }
@@ -86,7 +83,7 @@ export default function adjacentRegionCapacity(
     for (let col = 0; col < size; col++) {
       if (cells[row][col] !== "unknown") continue;
 
-      if (checkAdjacentRegionViolation(row, col, board, cells, analysis)) {
+      if (checkAdjacentRegionViolation(row, col, board, analysis)) {
         cells[row][col] = "marked";
         changed = true;
       }
