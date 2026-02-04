@@ -78,6 +78,9 @@ const allRules: RuleEntry[] = [
   { rule: partitionedRegions, level: 6, name: "Partitioned Regions", needsAnalysis: true },
 ];
 
+/** Rule metadata for external use (e.g., CLI reporting) */
+export const RULE_METADATA = allRules.map(({ name, level }) => ({ name, level }));
+
 const MAX_CYCLES = 1000;
 
 export type BoardStatus = "solved" | "valid" | "invalid";

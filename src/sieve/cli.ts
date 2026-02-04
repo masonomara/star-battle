@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { sieve } from "./sieve";
 import { layout } from "./generator";
-import { solve, isValidLayout, StepInfo } from "./solver";
+import { solve, isValidLayout, StepInfo, RULE_METADATA } from "./solver";
 import { Board, CellState } from "./helpers/types";
 import { parsePuzzle } from "./helpers/parsePuzzle";
 
@@ -234,24 +234,6 @@ function parseSbf(sbf: string): Board {
 
   return { grid, stars };
 }
-
-// Rule metadata for reporting (must match solver.ts allRules)
-const RULE_METADATA: { name: string; level: number }[] = [
-  { name: "Star Neighbors", level: 0 },
-  { name: "Row Complete", level: 0 },
-  { name: "Column Complete", level: 0 },
-  { name: "Region Complete", level: 0 },
-  { name: "Forced Placement", level: 0 },
-  { name: "2×2 Tiling", level: 1 },
-  { name: "1×n Confinement", level: 1 },
-  { name: "Finned Counts", level: 5 },
-  { name: "Reserved Area Exclusions", level: 6 },
-  { name: "Adjacent Line Analysis", level: 6 },
-  { name: "Undercounting Surplus", level: 6 },
-  { name: "Overcounting Surplus", level: 6 },
-  { name: "Region Combinations", level: 6 },
-  { name: "Partitioned Regions", level: 6 },
-];
 
 interface RuleStats {
   count: number;
