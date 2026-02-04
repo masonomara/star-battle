@@ -1,12 +1,12 @@
 import { Board, CellState } from "../helpers/types";
 import { BoardAnalysis } from "../helpers/boardAnalysis";
-import starNeighbors from "./01-starNeighbors/starNeighbors";
-import rowComplete from "./02-rowComplete/rowComplete";
-import columnComplete from "./03-columnComplete/columnComplete";
-import regionComplete from "./04-regionComplete/regionComplete";
-import forcedPlacementRow from "./05a-forcedPlacementRow/forcedPlacementRow";
-import forcedPlacementColumn from "./05b-forcedPlacementColumn/forcedPlacementColumn";
-import forcedPlacementRegion from "./05c-forcedPlacementRegion/forcedPlacementRegion";
+import starNeighbors from "./00-starNeighbors/starNeighbors";
+import rowComplete from "./01-rowComplete/rowComplete";
+import columnComplete from "./01-columnComplete/columnComplete";
+import regionComplete from "./01-regionComplete/regionComplete";
+import forcedPlacementRow from "./02-forcedPlacementRow/forcedPlacementRow";
+import forcedPlacementColumn from "./02-forcedPlacementColumn/forcedPlacementColumn";
+import forcedPlacementRegion from "./02-forcedPlacementRegion/forcedPlacementRegion";
 import tilingForcedStarsRow from "./08a-tilingForcedStarsRow/tilingForcedStarsRow";
 import tilingForcedStarsColumn from "./08b-tilingForcedStarsColumn/tilingForcedStarsColumn";
 import tilingForcedStarsRegion from "./08c-tilingForcedStarsRegion/tilingForcedStarsRegion";
@@ -38,8 +38,16 @@ export const allRules: RuleEntry[] = [
   { rule: forcedPlacementColumn, level: 1, name: "Forced Placement (Column)" },
   { rule: forcedPlacementRegion, level: 1, name: "Forced Placement (Region)" },
   { rule: tilingForcedStarsRow, level: 2, name: "Tiling Forced Stars (Row)" },
-  { rule: tilingForcedStarsColumn, level: 2, name: "Tiling Forced Stars (Column)" },
-  { rule: tilingForcedStarsRegion, level: 2, name: "Tiling Forced Stars (Region)" },
+  {
+    rule: tilingForcedStarsColumn,
+    level: 2,
+    name: "Tiling Forced Stars (Column)",
+  },
+  {
+    rule: tilingForcedStarsRegion,
+    level: 2,
+    name: "Tiling Forced Stars (Region)",
+  },
   { rule: tilingOverhangMarks, level: 2, name: "Tiling Overhang Marks" },
   { rule: tilingAdjacencyMarks, level: 2, name: "Tiling Adjacency Marks" },
   { rule: oneByNConfinement, level: 3, name: "1×n Confinement" },
