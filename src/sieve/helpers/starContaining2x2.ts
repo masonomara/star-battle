@@ -9,7 +9,7 @@
  * in a specific set of cells.
  */
 
-import { findAllMinimalTilings } from "./tiling";
+import { computeTiling } from "./tiling";
 import { Board, CellState, Coord, Tile } from "./types";
 
 export type StarContaining2x2 = {
@@ -47,19 +47,19 @@ function findFromRowPairs(
     const neededStars = starsPerPair - existingStars;
     if (neededStars <= 0) continue;
 
-    const tiling = findAllMinimalTilings(pairCells, cells, size);
+    const tiling = computeTiling(pairCells, size);
 
     // Only proceed if tiles exactly match needed stars
-    if (tiling.minTileCount !== neededStars) continue;
+    if (tiling.capacity !== neededStars) continue;
 
     // Each tile in the minimal tiling is a star-containing 2×2
     // We need tiles that appear in ALL minimal tilings
-    if (tiling.allMinimalTilings.length === 0) continue;
+    if (tiling.tilings.length === 0) continue;
 
     // Find tiles that are common to all tilings
     // For simplicity, if there's only one tiling, all its tiles are star-containing
-    if (tiling.allMinimalTilings.length === 1) {
-      for (const tile of tiling.allMinimalTilings[0]) {
+    if (tiling.tilings.length === 1) {
+      for (const tile of tiling.tilings[0]) {
         results.push({
           cells: tile.coveredCells,
           allCells: tile.cells,
@@ -71,14 +71,14 @@ function findFromRowPairs(
     } else {
       // Multiple tilings - find tiles that appear in all of them
       // A tile "appears" if its covered cells match
-      const firstTiling = tiling.allMinimalTilings[0];
+      const firstTiling = tiling.tilings[0];
       for (const tile of firstTiling) {
         const coveredKey = tile.coveredCells
           .map(([r, c]) => `${r},${c}`)
           .sort()
           .join("|");
 
-        const inAllTilings = tiling.allMinimalTilings.every((t) =>
+        const inAllTilings = tiling.tilings.every((t) =>
           t.some((otherTile) => {
             const otherKey = otherTile.coveredCells
               .map(([r, c]) => `${r},${c}`)
@@ -131,13 +131,13 @@ function findFromColPairs(
     const neededStars = starsPerPair - existingStars;
     if (neededStars <= 0) continue;
 
-    const tiling = findAllMinimalTilings(pairCells, cells, size);
+    const tiling = computeTiling(pairCells, size);
 
-    if (tiling.minTileCount !== neededStars) continue;
-    if (tiling.allMinimalTilings.length === 0) continue;
+    if (tiling.capacity !== neededStars) continue;
+    if (tiling.tilings.length === 0) continue;
 
-    if (tiling.allMinimalTilings.length === 1) {
-      for (const tile of tiling.allMinimalTilings[0]) {
+    if (tiling.tilings.length === 1) {
+      for (const tile of tiling.tilings[0]) {
         results.push({
           cells: tile.coveredCells,
           allCells: tile.cells,
@@ -147,14 +147,14 @@ function findFromColPairs(
         });
       }
     } else {
-      const firstTiling = tiling.allMinimalTilings[0];
+      const firstTiling = tiling.tilings[0];
       for (const tile of firstTiling) {
         const coveredKey = tile.coveredCells
           .map(([r, c]) => `${r},${c}`)
           .sort()
           .join("|");
 
-        const inAllTilings = tiling.allMinimalTilings.every((t) =>
+        const inAllTilings = tiling.tilings.every((t) =>
           t.some((otherTile) => {
             const otherKey = otherTile.coveredCells
               .map(([r, c]) => `${r},${c}`)

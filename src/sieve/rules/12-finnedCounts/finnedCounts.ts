@@ -13,7 +13,7 @@
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis, capacity } from "../../helpers/boardAnalysis";
 import { cellKey } from "../../helpers/cellKey";
-import { canTileWithMinCount } from "../../helpers/tiling";
+import { computeTiling } from "../../helpers/tiling";
 import {
   findOneByNConstraints,
   buildMarkedCellSet,
@@ -438,7 +438,7 @@ function checkRowOrColumnViolation(
       return true;
     }
 
-    if (!canTileWithMinCount(remainingCells, size, needed)) {
+    if (computeTiling(remainingCells, size).capacity < needed) {
       return true;
     }
 
@@ -499,7 +499,7 @@ function checkRowOrColumnViolation(
         return true;
       }
 
-      if (!canTileWithMinCount(freeCells, size, freeNeeded)) {
+      if (computeTiling(freeCells, size).capacity < freeNeeded) {
         return true;
       }
     }
@@ -548,7 +548,7 @@ function checkRowOrColumnViolation(
       return true;
     }
 
-    if (!canTileWithMinCount(remainingCells, size, needed)) {
+    if (computeTiling(remainingCells, size).capacity < needed) {
       return true;
     }
 
@@ -605,7 +605,7 @@ function checkRowOrColumnViolation(
         return true;
       }
 
-      if (!canTileWithMinCount(freeCells, size, freeNeeded)) {
+      if (computeTiling(freeCells, size).capacity < freeNeeded) {
         return true;
       }
     }
@@ -671,7 +671,7 @@ function checkAdjacentRegionViolation(
       return true;
     }
 
-    if (!canTileWithMinCount(remainingCells, size, region.starsNeeded)) {
+    if (computeTiling(remainingCells, size).capacity < region.starsNeeded) {
       return true;
     }
   }

@@ -1,5 +1,5 @@
 import buildRegions from "../../helpers/regions";
-import { findAllMinimalTilings } from "../../helpers/tiling";
+import { computeTiling } from "../../helpers/tiling";
 import { Board, CellState, Coord, Tile } from "../../helpers/types";
 import { coordKey } from "../../helpers/cellKey";
 
@@ -13,7 +13,7 @@ function cellsAreAdjacent(c1: Coord, c2: Coord): boolean {
 /**
  * Rule 8c: Tiling Adjacency Marks
  *
- * When minTiles === starsNeeded, each tile contains exactly one star.
+ * When capacity === starsNeeded, each tile contains exactly one star.
  * Cells that would force adjacent stars in ALL tilings cannot be stars.
  */
 export default function tilingAdjacencyMarks(
@@ -26,18 +26,21 @@ export default function tilingAdjacencyMarks(
 
   for (const [, coords] of regions) {
     let stars = 0;
-    for (const [row, col] of coords) if (cells[row][col] === "star") stars++;
+    const unknowns: Coord[] = [];
+    for (const [row, col] of coords) {
+      if (cells[row][col] === "star") stars++;
+      else if (cells[row][col] === "unknown") unknowns.push([row, col]);
+    }
 
     const needed = board.stars - stars;
     if (needed <= 0) continue;
 
-    const tiling = findAllMinimalTilings(coords, cells, size);
-    if (tiling.minTileCount !== needed) continue;
+    const tiling = computeTiling(unknowns, size);
+    if (tiling.capacity !== needed) continue;
 
-    const unknownCells = coords.filter(([r, c]) => cells[r][c] === "unknown");
     const invalidCells = findInvalidCellsDueToAdjacency(
-      unknownCells,
-      tiling.allMinimalTilings,
+      unknowns,
+      tiling.tilings,
       cells,
     );
 

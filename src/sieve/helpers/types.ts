@@ -37,20 +37,9 @@ export type Tile = {
 
 // Pure algorithm output from tiling computation
 export type TilingResult = {
-  minTileCount: number; // minimum tiles needed to cover
-  allMinimalTilings: Tile[][]; // every tiling achieving minimum
+  capacity: number; // max stars that fit (= min tiles needed)
+  tilings: Tile[][]; // all minimal tilings
   forcedCells: Coord[]; // cells that are single-coverage in ALL tilings
-};
-
-// Cached tiling with metadata for a specific region
-export type RegionTiling = TilingResult & {
-  regionId: number;
-  cells: Coord[];
-};
-
-// Cache of all region tilings for the current board state
-export type TilingCache = {
-  byRegion: Map<number, RegionTiling>;
 };
 
 // A 1×n (horizontal) or n×1 (vertical) strip of unknown cells within a single region

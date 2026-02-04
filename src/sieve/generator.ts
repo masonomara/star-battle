@@ -1,7 +1,7 @@
 import { Board, GeneratorError } from "./helpers/types";
 import { cellKey, parseKey } from "./helpers/cellKey";
 import buildRegions from "./helpers/regions";
-import { canTileWithMinCount } from "./helpers/tiling";
+import { computeTiling } from "./helpers/tiling";
 
 const DIRECTIONS: [number, number][] = [
   [-1, 0],
@@ -241,7 +241,7 @@ function layoutWithSeed(size: number, stars: number, seed: number): Board {
 
 /**
  * Check if all regions can fit the required stars using 2×2 tiling.
- * Each 2×2 tile holds at most 1 star, so minTileCount must be >= stars.
+ * Each 2×2 tile holds at most 1 star, so capacity must be >= stars.
  */
 function isValidTiling(
   regions: Map<number, [number, number][]>,
@@ -249,7 +249,7 @@ function isValidTiling(
   size: number,
 ): boolean {
   for (const [, coords] of regions) {
-    if (!canTileWithMinCount(coords, size, stars)) {
+    if (computeTiling(coords, size).capacity < stars) {
       return false;
     }
   }

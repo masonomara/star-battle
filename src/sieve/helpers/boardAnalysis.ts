@@ -1,7 +1,7 @@
-import { Board, CellState, Coord } from "./types";
+import { Board, CellState, Coord, TilingResult } from "./types";
 import buildRegions from "./regions";
 import { coordKey } from "./cellKey";
-import { starCapacity } from "./tiling";
+import { computeTiling } from "./tiling";
 
 /** Pre-computed region metadata for solver rules */
 export type RegionMeta = {
@@ -23,23 +23,12 @@ export type BoardAnalysis = {
   rowStars: number[];
   colStars: number[];
   forcedLoneCells: Coord[];
-  tilingCache: Map<string, number>;
+  tilingCache: Map<string, TilingResult>;
+  getTiling: (cells: Coord[]) => TilingResult;
 };
 
 export function capacity(cells: Coord[], analysis: BoardAnalysis): number {
-  if (cells.length === 0) return 0;
-
-  const key = cells
-    .map(([r, c]) => `${r},${c}`)
-    .sort()
-    .join("|");
-
-  const cached = analysis.tilingCache.get(key);
-  if (cached !== undefined) return cached;
-
-  const result = starCapacity(cells);
-  analysis.tilingCache.set(key, result);
-  return result;
+  return analysis.getTiling(cells).capacity;
 }
 
 /**
@@ -229,7 +218,33 @@ export function buildBoardAnalysis(
     }
   }
 
-  const tilingCache = new Map<string, number>();
+  const tilingCache = new Map<string, TilingResult>();
 
-  return { size, regions, rowStars, colStars, forcedLoneCells, tilingCache };
+  const getTiling = (coords: Coord[]): TilingResult => {
+    if (coords.length === 0) {
+      return { capacity: 0, tilings: [[]], forcedCells: [] };
+    }
+
+    const key = coords
+      .map(([r, c]) => `${r},${c}`)
+      .sort()
+      .join("|");
+
+    let result = tilingCache.get(key);
+    if (!result) {
+      result = computeTiling(coords, size);
+      tilingCache.set(key, result);
+    }
+    return result;
+  };
+
+  return {
+    size,
+    regions,
+    rowStars,
+    colStars,
+    forcedLoneCells,
+    tilingCache,
+    getTiling,
+  };
 }

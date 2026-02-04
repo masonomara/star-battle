@@ -5,10 +5,7 @@
  * Used by multiple composite-related rules.
  */
 
-import {
-  findAllMinimalTilings,
-  canTileWithMinCount,
-} from "./tiling";
+import { computeTiling } from "./tiling";
 import { Board, CellState, Coord, Tile } from "./types";
 import { coordKey } from "./cellKey";
 import { BoardAnalysis, RegionMeta } from "./boardAnalysis";
@@ -387,13 +384,15 @@ export function analyzeComposite(
   if (currentUnknowns.length === 0) return false;
   if (currentStarsNeeded <= 0) return false;
 
+  const tiling = computeTiling(currentUnknowns, size);
+
   // Quick feasibility check
-  if (!canTileWithMinCount(currentUnknowns, size, currentStarsNeeded)) {
+  if (tiling.capacity < currentStarsNeeded) {
     return false;
   }
 
   // Quick non-tight check via 2×2 tiling
-  if (canTileWithMinCount(currentUnknowns, size, currentStarsNeeded + 1)) {
+  if (tiling.capacity > currentStarsNeeded) {
     // Has slack via 2×2 tiling, but try direct enumeration for tight ratios
     if (currentUnknowns.length < currentStarsNeeded * 8) {
       const result = analyzeViaDirectEnumeration(
@@ -406,12 +405,6 @@ export function analyzeComposite(
       if (result) return true;
     }
     return false; // Has slack, not tight
-  }
-
-  const tiling = findAllMinimalTilings(currentUnknowns, cells, size);
-
-  if (tiling.minTileCount !== currentStarsNeeded) {
-    return false;
   }
 
   let changed = false;
@@ -477,10 +470,7 @@ export function analyzeComposite(
 
   // External exclusions
   const compositeSet = new Set(composite.cells.map((coord) => coordKey(coord)));
-  const externalForced = findExternalForcedCells(
-    tiling.allMinimalTilings,
-    compositeSet,
-  );
+  const externalForced = findExternalForcedCells(tiling.tilings, compositeSet);
 
   for (const [erow, ecol] of externalForced) {
     if (cells[erow][ecol] === "unknown") {
