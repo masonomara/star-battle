@@ -8,7 +8,7 @@ export default function regionComplete(
 ): boolean {
   let changed = false;
   for (const [, meta] of analysis.regions) {
-    if (meta.starCount === board.stars) {
+    if (meta.starsPlaced === board.stars) {
       for (const [row, col] of meta.unknownCoords) {
         cells[row][col] = "marked";
         changed = true;
