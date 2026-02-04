@@ -8,6 +8,7 @@ import rowComplete from "./rules/02-rowComplete/rowComplete";
 import columnComplete from "./rules/03-columnComplete/columnComplete";
 import regionComplete from "./rules/04-regionComplete/regionComplete";
 import forcedPlacement from "./rules/05-forcedPlacement/forcedPlacement";
+import forcedLoneCellPlacement from "./rules/06-forcedLoneCellPlacement/forcedLoneCellPlacement";
 import twoByTwoTiling from "./rules/08-twoByTwoTiling/twoByTwoTiling";
 import oneByNConfinement from "./rules/09-oneByNConfinement/oneByNConfinement";
 import finnedCounts from "./rules/12-finnedCounts/finnedCounts";
@@ -43,32 +44,31 @@ export function isValidLayout(board: Board): boolean {
   return true;
 }
 
-type Rule = (board: Board, cells: CellState[][]) => boolean;
-type AnalysisRule = (
+type Rule = (
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
 ) => boolean;
 
 type RuleEntry = {
-  rule: Rule | AnalysisRule;
+  rule: Rule;
   level: number;
   name: string;
-  needsAnalysis: boolean;
 };
 
 const allRules: RuleEntry[] = [
-  { rule: starNeighbors, level: 0, name: "Star Neighbors", needsAnalysis: false },
-  { rule: rowComplete, level: 0, name: "Row Complete", needsAnalysis: false },
-  { rule: columnComplete, level: 0, name: "Column Complete", needsAnalysis: false },
-  { rule: regionComplete, level: 0, name: "Region Complete", needsAnalysis: false },
-  { rule: forcedPlacement, level: 0, name: "Forced Placement", needsAnalysis: false },
-  { rule: twoByTwoTiling, level: 1, name: "2×2 Tiling", needsAnalysis: false },
-  { rule: oneByNConfinement, level: 1, name: "1×n Confinement", needsAnalysis: true },
-  { rule: finnedCounts, level: 5, name: "Finned Counts", needsAnalysis: true },
-  { rule: reservedAreaExclusions, level: 6, name: "Reserved Area Exclusions", needsAnalysis: true },
-  { rule: adjacentLineAnalysis, level: 6, name: "Adjacent Line Analysis", needsAnalysis: true },
-]
+  { rule: starNeighbors, level: 1, name: "Star Neighbors" },
+  { rule: rowComplete, level: 1, name: "Row Complete" },
+  { rule: columnComplete, level: 1, name: "Column Complete" },
+  { rule: regionComplete, level: 1, name: "Region Complete" },
+  { rule: forcedPlacement, level: 1, name: "Forced Placement" },
+  { rule: forcedLoneCellPlacement, level: 2, name: "Forced Lone Cell" },
+  { rule: twoByTwoTiling, level: 2, name: "2×2 Tiling" },
+  { rule: oneByNConfinement, level: 2, name: "1×n Confinement" },
+  { rule: finnedCounts, level: 2, name: "Finned Counts" },
+  { rule: reservedAreaExclusions, level: 2, name: "Reserved Area Exclusions" },
+  { rule: adjacentLineAnalysis, level: 2, name: "Adjacent Line Analysis" },
+];
 
 /** Rule metadata for external use (e.g., CLI reporting) */
 export const RULE_METADATA = allRules.map(({ name, level }) => ({ name, level }));
@@ -188,20 +188,13 @@ export function solve(
     if (status === "solved") return { cells, cycles, maxLevel };
     if (status === "invalid") return null;
 
+    // Build analysis once per cycle
+    const analysis = buildBoardAnalysis(board, cells);
+
     let progress = false;
-    let analysis: BoardAnalysis | null = null;
 
-    for (const { rule, level, name, needsAnalysis } of allRules) {
-      let result: boolean;
-
-      if (needsAnalysis) {
-        if (analysis === null) {
-          analysis = buildBoardAnalysis(board, cells);
-        }
-        result = (rule as AnalysisRule)(board, cells, analysis);
-      } else {
-        result = (rule as Rule)(board, cells);
-      }
+    for (const { rule, level, name } of allRules) {
+      const result = rule(board, cells, analysis);
 
       if (result) {
         maxLevel = Math.max(maxLevel, level);

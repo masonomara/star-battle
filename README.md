@@ -97,13 +97,13 @@ npm test
 
 ### Level 1: Trivial Marks
 
-1. **Star Neighbors** – All cells neighboring a star must be marked
+1. **Star Neighbors** – When a star is placed, mark all unknown neighbors as eliminated.
 
-2. **Row Complete** – When all stars in a row are placed, mark the remaining cells
+2. **Row Complete** – When a row has all its stars, mark the remaining unknown cells
 
-3. **Column Complete** – When all stars in a column are placed, mark the remaining cells
+3. **Column Complete** – When a column has all its stars, mark the remaining unknown cells
 
-4. **Region Complete** – When all stars in a region are placed, mark the remaining cells
+4. **Region Complete** – When a column has all its stars, mark the remaining unknown cells
 
 5. **Forced Placement** – When the number of unknown cells in each row/column/region equals the number of stars needed to complete the row/column/region, place the stars in the unknown cells
 
@@ -138,3 +138,9 @@ npm test
 ## Future Plans
 
 React Native mobile app with puzzle libraries and daily/weekly/monthly challenges.
+
+
+Wht was the big problem: 
+
+I attatcked the production rules as "simulations of what the human mind does" when they shoudl really be "programs that validate and replicate human intuition"
+

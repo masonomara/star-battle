@@ -45,97 +45,118 @@ function cellsAreAdjacent(c1: Coord, c2: Coord): boolean {
 }
 
 /**
- * Find maximum independent set size using branch and bound.
- * For small cell counts, this is fast enough. For larger counts,
- * we use greedy heuristics with pruning.
+ * Calculate maximum stars using 2x2 tiling logic.
  *
- * This equals the maximum number of non-adjacent stars that can be placed.
+ * Uses DLX to find minimum 2x2 tiles needed to cover cells.
+ * Each 2x2 tile holds at most 1 star, so minTileCount = capacity.
+ */
+function capacityVia2x2Tiling(cells: Coord[]): number {
+  if (cells.length === 0) return 0;
+
+  const cellSet = new Set(cells.map(coordKey));
+
+  // Find bounding box
+  const rows = cells.map((c) => c[0]);
+  const cols = cells.map((c) => c[1]);
+  const minRow = Math.min(...rows);
+  const maxRow = Math.max(...rows);
+  const minCol = Math.min(...cols);
+  const maxCol = Math.max(...cols);
+
+  // Generate all 2x2 tiles that cover at least one cell
+  const tiles: { anchor: Coord; covered: Coord[] }[] = [];
+
+  for (let r = minRow - 1; r <= maxRow; r++) {
+    for (let c = minCol - 1; c <= maxCol; c++) {
+      const tileCells: Coord[] = [
+        [r, c],
+        [r, c + 1],
+        [r + 1, c],
+        [r + 1, c + 1],
+      ];
+      const covered = tileCells.filter((tc) => cellSet.has(coordKey(tc)));
+      if (covered.length > 0) {
+        tiles.push({ anchor: [r, c], covered });
+      }
+    }
+  }
+
+  if (tiles.length === 0) return 0;
+
+  // Build DLX problem: cover all cells with tiles (each cell covered exactly once)
+  const cellToIndex = new Map<string, number>();
+  cells.forEach((cell, i) => cellToIndex.set(coordKey(cell), i));
+
+  const dlxRows: number[][] = [];
+  for (const tile of tiles) {
+    const row = tile.covered
+      .map((c) => cellToIndex.get(coordKey(c)))
+      .filter((i) => i !== undefined) as number[];
+    if (row.length > 0) {
+      dlxRows.push(row);
+    }
+  }
+
+  // Solve exact cover
+  const solutions = dlxSolve(cells.length, 0, dlxRows);
+
+  if (solutions.length === 0) {
+    // No exact cover exists - fall back to greedy estimate
+    // Each tile covers some cells, capacity is at most number of tiles needed
+    return Math.ceil(cells.length / 4) || 1;
+  }
+
+  // Minimum tiles needed = maximum stars possible
+  let minTiles = Infinity;
+  for (const solution of solutions) {
+    minTiles = Math.min(minTiles, solution.length);
+  }
+
+  return minTiles;
+}
+
+/**
+ * Calculate maximum stars that can fit in a set of cells.
+ * Uses 2x2 tiling logic: each 2x2 block holds at most 1 star.
+ *
+ * - Single cell: 1
+ * - Cells in 2x2 bounding box: 1 (all touch)
+ * - Linear arrangement: greedy placement
+ * - 2D arrangement: minimum 2x2 tiles needed
  */
 export function maxIndependentSetSize(cells: Coord[]): number {
   const n = cells.length;
   if (n === 0) return 0;
   if (n === 1) return 1;
 
-  // Build adjacency list
-  const adj: number[][] = Array.from({ length: n }, () => []);
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      if (cellsAreAdjacent(cells[i], cells[j])) {
-        adj[i].push(j);
-        adj[j].push(i);
-      }
-    }
+  // Check bounding box
+  const rows = cells.map((c) => c[0]);
+  const cols = cells.map((c) => c[1]);
+  const height = Math.max(...rows) - Math.min(...rows) + 1;
+  const width = Math.max(...cols) - Math.min(...cols) + 1;
+
+  // Fits in 2x2: all cells touch, capacity = 1
+  if (height <= 2 && width <= 2) return 1;
+
+  // Single row: use line calculation
+  if (height === 1) {
+    return maxStarsInLine(cols);
   }
 
-  // For small graphs, use exact branch and bound
-  if (n <= 30) {
-    let best = 0;
-
-    function search(idx: number, count: number, excluded: Set<number>) {
-      // Pruning: can't beat best even if we take all remaining
-      if (count + (n - idx) <= best) return;
-
-      if (idx >= n) {
-        best = Math.max(best, count);
-        return;
-      }
-
-      if (excluded.has(idx)) {
-        search(idx + 1, count, excluded);
-        return;
-      }
-
-      // Try including this cell
-      const newExcluded = new Set(excluded);
-      newExcluded.add(idx);
-      for (const neighbor of adj[idx]) {
-        newExcluded.add(neighbor);
-      }
-      search(idx + 1, count + 1, newExcluded);
-
-      // Try excluding this cell
-      search(idx + 1, count, excluded);
-    }
-
-    search(0, 0, new Set());
-    return best;
+  // Single column: use line calculation
+  if (width === 1) {
+    return maxStarsInLine(rows);
   }
 
-  // For larger graphs, use greedy approximation with degree ordering
-  const remaining = new Set<number>();
-  for (let i = 0; i < n; i++) remaining.add(i);
-
-  let count = 0;
-  while (remaining.size > 0) {
-    // Pick vertex with minimum degree among remaining
-    let minDegree = Infinity;
-    let pick = -1;
-    for (const v of remaining) {
-      const degree = adj[v].filter((u) => remaining.has(u)).length;
-      if (degree < minDegree) {
-        minDegree = degree;
-        pick = v;
-      }
-    }
-
-    // Add to independent set
-    count++;
-    remaining.delete(pick);
-
-    // Remove neighbors
-    for (const neighbor of adj[pick]) {
-      remaining.delete(neighbor);
-    }
-  }
-
-  return count;
+  // 2D arrangement: use 2x2 tiling
+  return capacityVia2x2Tiling(cells);
 }
 
 /**
  * Check if n non-adjacent stars can be placed in the given cells.
  *
  * For cells in a single row or column, uses closed-form calculation.
- * For general 2D arrangements, computes maximum independent set.
+ * For general 2D arrangements, uses 2x2 tiling capacity.
  */
 function canPlaceNonAdjacentStars(
   cells: Coord[],
@@ -145,21 +166,6 @@ function canPlaceNonAdjacentStars(
   if (cells.length < n) return false;
   if (n === 0) return true;
 
-  // Check if all cells are in a single row
-  const rows = new Set(cells.map(([r]) => r));
-  if (rows.size === 1) {
-    const cols = cells.map(([, c]) => c);
-    return maxStarsInLine(cols) >= n;
-  }
-
-  // Check if all cells are in a single column
-  const cols = new Set(cells.map(([, c]) => c));
-  if (cols.size === 1) {
-    const rowPositions = cells.map(([r]) => r);
-    return maxStarsInLine(rowPositions) >= n;
-  }
-
-  // For 2D arrangements, compute exact maximum independent set
   return maxIndependentSetSize(cells) >= n;
 }
 
@@ -167,7 +173,7 @@ function canPlaceNonAdjacentStars(
  * Fast check if a region can fit at least minTiles non-adjacent stars.
  *
  * For linear arrangements (single row or column), uses exact calculation.
- * For 2D arrangements, uses 2×2 tiling heuristic (conservative approximation).
+ * For 2D arrangements, uses 2×2 tiling capacity.
  */
 export function canTileWithMinCount(
   regionCells: Coord[],
