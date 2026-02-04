@@ -11,7 +11,12 @@ import forcedPlacement from "./rules/05-forcedPlacement/forcedPlacement";
 import twoByTwoTiling from "./rules/08-twoByTwoTiling/twoByTwoTiling";
 import oneByNConfinement from "./rules/09-oneByNConfinement/oneByNConfinement";
 import finnedCounts from "./rules/12-finnedCounts/finnedCounts";
-import compositeRegions from "./rules/14-compositeRegions/compositeRegions";
+import reservedAreaExclusions from "./rules/14-reservedAreaExclusions/reservedAreaExclusions";
+import adjacentLineAnalysis from "./rules/15-adjacentLineAnalysis/adjacentLineAnalysis";
+import undercountingSurplus from "./rules/16-undercountingSurplus/undercountingSurplus";
+import overcountingSurplus from "./rules/17-overcountingSurplus/overcountingSurplus";
+import regionCombinations from "./rules/18-regionCombinations/regionCombinations";
+import partitionedRegions from "./rules/19-partitionedRegions/partitionedRegions";
 
 /**
  * Check if a board layout is valid before attempting to solve.
@@ -65,7 +70,12 @@ const allRules: RuleEntry[] = [
   { rule: twoByTwoTiling, level: 1, name: "2×2 Tiling", needsAnalysis: false },
   { rule: oneByNConfinement, level: 1, name: "1×n Confinement", needsAnalysis: true },
   { rule: finnedCounts, level: 5, name: "Finned Counts", needsAnalysis: true },
-  { rule: compositeRegions, level: 6, name: "Composite Regions", needsAnalysis: true },
+  { rule: reservedAreaExclusions, level: 6, name: "Reserved Area Exclusions", needsAnalysis: true },
+  { rule: adjacentLineAnalysis, level: 6, name: "Adjacent Line Analysis", needsAnalysis: true },
+  { rule: undercountingSurplus, level: 6, name: "Undercounting Surplus", needsAnalysis: true },
+  { rule: overcountingSurplus, level: 6, name: "Overcounting Surplus", needsAnalysis: true },
+  { rule: regionCombinations, level: 6, name: "Region Combinations", needsAnalysis: true },
+  { rule: partitionedRegions, level: 6, name: "Partitioned Regions", needsAnalysis: true },
 ];
 
 const MAX_CYCLES = 1000;

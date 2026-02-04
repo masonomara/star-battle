@@ -242,10 +242,15 @@ const RULE_METADATA: { name: string; level: number }[] = [
   { name: "Column Complete", level: 0 },
   { name: "Region Complete", level: 0 },
   { name: "Forced Placement", level: 0 },
-  { name: "2×2 Tiling", level: 3 },
-  { name: "1×n Confinement", level: 3 },
+  { name: "2×2 Tiling", level: 1 },
+  { name: "1×n Confinement", level: 1 },
   { name: "Finned Counts", level: 5 },
-  { name: "Composite Regions", level: 6 },
+  { name: "Reserved Area Exclusions", level: 6 },
+  { name: "Adjacent Line Analysis", level: 6 },
+  { name: "Undercounting Surplus", level: 6 },
+  { name: "Overcounting Surplus", level: 6 },
+  { name: "Region Combinations", level: 6 },
+  { name: "Partitioned Regions", level: 6 },
 ];
 
 interface RuleStats {
@@ -402,7 +407,7 @@ async function solveSbfFile(
   for (const [name, stats] of sortedRules) {
     const level = RULE_METADATA.find((r) => r.name === name)?.level ?? 0;
     const pct = ((stats.puzzlesUsed.size / lines.length) * 100).toFixed(0);
-    const padding = " ".repeat(Math.max(0, 22 - name.length));
+    const padding = " ".repeat(Math.max(0, 26 - name.length));
     console.log(
       `  ${name}${padding}(L${level}): ${stats.count} times (${pct}% of puzzles)`,
     );
