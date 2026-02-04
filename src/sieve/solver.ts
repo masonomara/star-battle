@@ -9,7 +9,9 @@ import columnComplete from "./rules/03-columnComplete/columnComplete";
 import regionComplete from "./rules/04-regionComplete/regionComplete";
 import forcedPlacement from "./rules/05-forcedPlacement/forcedPlacement";
 import forcedLoneCellPlacement from "./rules/06-forcedLoneCellPlacement/forcedLoneCellPlacement";
-import twoByTwoTiling from "./rules/08-twoByTwoTiling/twoByTwoTiling";
+import tilingForcedStars from "./rules/08a-tilingForcedStars/tilingForcedStars";
+import tilingOverhangMarks from "./rules/08b-tilingOverhangMarks/tilingOverhangMarks";
+import tilingAdjacencyMarks from "./rules/08c-tilingAdjacencyMarks/tilingAdjacencyMarks";
 import oneByNConfinement from "./rules/09-oneByNConfinement/oneByNConfinement";
 import finnedCounts from "./rules/12-finnedCounts/finnedCounts";
 import reservedAreaExclusions from "./rules/14-reservedAreaExclusions/reservedAreaExclusions";
@@ -63,7 +65,9 @@ const allRules: RuleEntry[] = [
   { rule: regionComplete, level: 1, name: "Region Complete" },
   { rule: forcedPlacement, level: 1, name: "Forced Placement" },
   { rule: forcedLoneCellPlacement, level: 2, name: "Forced Lone Cell" },
-  { rule: twoByTwoTiling, level: 2, name: "2×2 Tiling" },
+  { rule: tilingForcedStars, level: 2, name: "Tiling Forced Stars" },
+  { rule: tilingOverhangMarks, level: 2, name: "Tiling Overhang Marks" },
+  { rule: tilingAdjacencyMarks, level: 2, name: "Tiling Adjacency Marks" },
   { rule: oneByNConfinement, level: 2, name: "1×n Confinement" },
   { rule: finnedCounts, level: 2, name: "Finned Counts" },
   { rule: reservedAreaExclusions, level: 2, name: "Reserved Area Exclusions" },
