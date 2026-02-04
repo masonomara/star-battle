@@ -623,6 +623,9 @@ function enumerateValidPlacements(
  * exactly its required number of stars.
  *
  * Also enforces region quotas to ensure valid placements.
+ * Critically, this also enforces MINIMUM region contributions for regions
+ * that have all their cells inside the composite (they must receive their
+ * full quota from within the composite).
  */
 function enumerateWithExactLineQuotas(
   unknowns: Coord[],
@@ -679,6 +682,40 @@ function enumerateWithExactLineQuotas(
     }
   }
 
+  // Compute minimum contribution required from inside the composite for each region.
+  // This handles regions whose cells are entirely or mostly inside the composite.
+  const unknownSet = new Set(unknowns.map(coordKey));
+  const regionMinContrib = new Map<number, number>();
+  const regionCellsInside = new Map<number, Coord[]>();
+
+  for (const [regionId, meta] of regions) {
+    if (meta.starsNeeded <= 0) continue;
+
+    // Partition region's unknown cells into inside/outside composite
+    const inside: Coord[] = [];
+    const outside: Coord[] = [];
+    for (const coord of meta.unknownCoords) {
+      if (unknownSet.has(coordKey(coord))) {
+        inside.push(coord);
+      } else {
+        outside.push(coord);
+      }
+    }
+
+    if (inside.length === 0) continue;
+
+    regionCellsInside.set(regionId, inside);
+
+    // Max stars region can get from outside the composite
+    const maxFromOutside = maxIndependentSetSize(outside);
+    // Min stars region must get from inside the composite
+    const minFromInside = Math.max(0, meta.starsNeeded - maxFromOutside);
+
+    if (minFromInside > 0) {
+      regionMinContrib.set(regionId, minFromInside);
+    }
+  }
+
   const results: Coord[][] = [];
   const MAX_RESULTS = 1000;
 
@@ -709,9 +746,17 @@ function enumerateWithExactLineQuotas(
           break;
         }
       }
-      if (allMet) {
-        results.push(current.map((i) => unknowns[i]));
+      if (!allMet) return;
+
+      // Verify all region minimum contributions are met
+      for (const [regionId, minContrib] of regionMinContrib) {
+        const placed = regionCounts.get(regionId) || 0;
+        if (placed < minContrib) {
+          return; // Region can't be satisfied
+        }
       }
+
+      results.push(current.map((i) => unknowns[i]));
       return;
     }
 
@@ -741,6 +786,25 @@ function enumerateWithExactLineQuotas(
       }
 
       if (placed + availableInLine < quota) return; // Can't reach quota
+    }
+
+    // Early termination: check if region minimums can still be satisfied
+    for (const [regionId, minContrib] of regionMinContrib) {
+      const placed = regionCounts.get(regionId) || 0;
+      const stillNeeded = minContrib - placed;
+      if (stillNeeded <= 0) continue;
+
+      // Count remaining available cells for this region inside the composite
+      const cellsInside = regionCellsInside.get(regionId) || [];
+      let availableForRegion = 0;
+      for (const cell of cellsInside) {
+        const idx = coordToIdx.get(coordKey(cell));
+        if (idx !== undefined && idx >= start && !forbidden.has(idx)) {
+          availableForRegion++;
+        }
+      }
+
+      if (availableForRegion < stillNeeded) return; // Can't meet region minimum
     }
 
     for (
