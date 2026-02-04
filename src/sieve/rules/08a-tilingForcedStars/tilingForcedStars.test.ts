@@ -1,6 +1,12 @@
 import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
+import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
 import tilingForcedStars from "./tilingForcedStars";
+
+function run(board: Board, cells: CellState[][]): boolean {
+  const analysis = buildBoardAnalysis(board, cells);
+  return tilingForcedStars(board, cells, analysis);
+}
 
 describe("08a. Tiling Forced Stars", () => {
   describe("Single-cell tile forces star", () => {
@@ -24,7 +30,7 @@ describe("08a. Tiling Forced Stars", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingForcedStars(board, cells);
+      const result = run(board, cells);
 
       expect(result).toBe(true);
       expect(cells[0][2]).toBe("star");
@@ -46,7 +52,7 @@ describe("08a. Tiling Forced Stars", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingForcedStars(board, cells);
+      const result = run(board, cells);
 
       expect(result).toBe(false);
       expect(cells.flat().filter((c) => c === "star").length).toBe(0);
@@ -70,7 +76,7 @@ describe("08a. Tiling Forced Stars", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingForcedStars(board, cells);
+      const result = run(board, cells);
 
       expect(result).toBe(true);
       expect(cells[0][2]).toBe("star");
@@ -96,7 +102,7 @@ describe("08a. Tiling Forced Stars", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      tilingForcedStars(board, cells);
+      run(board, cells);
 
       const stars = cells.flat().filter((c) => c === "star").length;
       expect(stars).toBe(0);
@@ -122,7 +128,7 @@ describe("08a. Tiling Forced Stars", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingForcedStars(board, cells);
+      const result = run(board, cells);
 
       expect(result).toBe(true);
       expect(cells[0][0]).toBe("star");
@@ -148,32 +154,34 @@ describe("08a. Tiling Forced Stars", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingForcedStars(board, cells);
+      const result = run(board, cells);
 
       expect(result).toBe(false);
       expect(cells[0][0]).toBe("unknown");
       expect(cells[0][1]).toBe("unknown");
     });
 
-    it("returns false when minTiles === Infinity (no valid tiling)", () => {
+    it("returns false when no container has capacity === starsNeeded", () => {
+      // Region 0 has no unknowns (all marked)
+      // Rows and columns have slack (capacity > needed)
       const board: Board = {
         grid: [
           [0, 0, 1, 1],
-          [1, 1, 1, 1],
+          [0, 0, 1, 1],
           [1, 1, 1, 1],
           [1, 1, 1, 1],
         ],
-        stars: 2,
+        stars: 1,
       };
 
       const cells: CellState[][] = [
         ["marked", "marked", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown", "unknown"],
+        ["marked", "marked", "unknown", "unknown"],
         ["unknown", "unknown", "unknown", "unknown"],
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingForcedStars(board, cells);
+      const result = run(board, cells);
 
       expect(result).toBe(false);
     });
@@ -196,7 +204,7 @@ describe("08a. Tiling Forced Stars", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingForcedStars(board, cells);
+      const result = run(board, cells);
 
       expect(result).toBe(false);
     });
@@ -219,7 +227,7 @@ describe("08a. Tiling Forced Stars", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingForcedStars(board, cells);
+      const result = run(board, cells);
 
       expect(result).toBe(false);
     });
@@ -246,13 +254,13 @@ describe("08a. Tiling Forced Stars", () => {
         ["unknown", "unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingForcedStars(board, cells);
+      const result = run(board, cells);
 
       expect(result).toBe(false);
       expect(cells.flat().every((c) => c === "unknown")).toBe(true);
     });
 
-    it("places all stars for 3-star puzzle with isolated cells", () => {
+    it("places one star per call for isolated cells", () => {
       const board: Board = {
         grid: [
           [0, 1, 1, 0, 1, 1],
@@ -274,17 +282,14 @@ describe("08a. Tiling Forced Stars", () => {
         ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingForcedStars(board, cells);
+      const result = run(board, cells);
 
       expect(result).toBe(true);
       const starCount = cells.flat().filter((c) => c === "star").length;
-      expect(starCount).toBe(3);
-      expect(cells[0][0]).toBe("star");
-      expect(cells[0][3]).toBe("star");
-      expect(cells[3][0]).toBe("star");
+      expect(starCount).toBe(1);
     });
 
-    it("places all forced stars in one call", () => {
+    it("places one forced star per call", () => {
       const board: Board = {
         grid: [
           [0, 1, 0, 1],
@@ -302,13 +307,12 @@ describe("08a. Tiling Forced Stars", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingForcedStars(board, cells);
+      const result = run(board, cells);
 
       expect(result).toBe(true);
       const starCount = cells.flat().filter((c) => c === "star").length;
-      expect(starCount).toBe(2);
+      expect(starCount).toBe(1);
       expect(cells[0][0]).toBe("star");
-      expect(cells[0][2]).toBe("star");
     });
 
     it("processes first eligible region when multiple have forcing opportunities", () => {
@@ -329,7 +333,7 @@ describe("08a. Tiling Forced Stars", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingForcedStars(board, cells);
+      const result = run(board, cells);
 
       expect(result).toBe(true);
       expect(cells[0][2]).toBe("star");

@@ -8,7 +8,6 @@ import rowComplete from "./rules/02-rowComplete/rowComplete";
 import columnComplete from "./rules/03-columnComplete/columnComplete";
 import regionComplete from "./rules/04-regionComplete/regionComplete";
 import forcedPlacement from "./rules/05-forcedPlacement/forcedPlacement";
-import forcedLoneCellPlacement from "./rules/06-forcedLoneCellPlacement/forcedLoneCellPlacement";
 import tilingForcedStars from "./rules/08a-tilingForcedStars/tilingForcedStars";
 import tilingOverhangMarks from "./rules/08b-tilingOverhangMarks/tilingOverhangMarks";
 import tilingAdjacencyMarks from "./rules/08c-tilingAdjacencyMarks/tilingAdjacencyMarks";
@@ -64,7 +63,6 @@ const allRules: RuleEntry[] = [
   { rule: columnComplete, level: 1, name: "Column Complete" },
   { rule: regionComplete, level: 1, name: "Region Complete" },
   { rule: forcedPlacement, level: 1, name: "Forced Placement" },
-  { rule: forcedLoneCellPlacement, level: 2, name: "Forced Lone Cell" },
   { rule: tilingForcedStars, level: 2, name: "Tiling Forced Stars" },
   { rule: tilingOverhangMarks, level: 2, name: "Tiling Overhang Marks" },
   { rule: tilingAdjacencyMarks, level: 2, name: "Tiling Adjacency Marks" },
