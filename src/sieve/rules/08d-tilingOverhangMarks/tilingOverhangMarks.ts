@@ -8,6 +8,9 @@ import { coordKey } from "../../helpers/cellKey";
  * When capacity === starsNeeded, each tile contains exactly one star.
  * Non-region cells covered by tiles in ALL minimal tilings cannot have stars
  * (the tile's star must be in the region portion).
+ *
+ * Tilings whose overhang is already fully marked are filtered out -
+ * they impose no new constraint.
  */
 export default function tilingOverhangMarks(
   board: Board,
@@ -22,7 +25,11 @@ export default function tilingOverhangMarks(
     const tiling = analysis.getTiling(meta.unknownCoords);
     if (tiling.capacity !== meta.starsNeeded) continue;
 
-    const forcedNonRegion = findForcedNonRegionCells(tiling.tilings);
+    // Filter out tilings whose overhang is already fully marked
+    const activeTilings = filterActiveTilings(tiling.tilings, cells);
+    if (activeTilings.length === 0) continue;
+
+    const forcedNonRegion = findForcedNonRegionCells(activeTilings);
     for (const [row, col] of forcedNonRegion) {
       if (cells[row][col] === "unknown") {
         cells[row][col] = "marked";
@@ -32,6 +39,33 @@ export default function tilingOverhangMarks(
   }
 
   return changed;
+}
+
+/**
+ * Filter out tilings whose overhang cells are all already marked.
+ * These tilings are "free" - they impose no new constraint.
+ */
+function filterActiveTilings(
+  allTilings: Tile[][],
+  cells: CellState[][],
+): Tile[][] {
+  return allTilings.filter((tiling) => {
+    // Get all overhang cells for this tiling
+    for (const tile of tiling) {
+      const coveredKeys = new Set(tile.coveredCells.map(coordKey));
+      for (const cell of tile.cells) {
+        if (!coveredKeys.has(coordKey(cell))) {
+          const [row, col] = cell;
+          // If any overhang cell is unknown, this tiling is active
+          if (cells[row][col] === "unknown") {
+            return true;
+          }
+        }
+      }
+    }
+    // All overhang cells are marked - this tiling is free
+    return false;
+  });
 }
 
 /**
