@@ -20,15 +20,15 @@ import lineConfinementRow from "./05-lineConfinementRow/lineConfinementRow";
 import lineConfinementColumn from "./05-lineConfinementColumn/lineConfinementColumn";
 import regionLineOverflowRow from "./03-confinementOverflowRow/regionLineOverflowRow";
 import regionLineOverflowColumn from "./03-confinementOverflowColumn/regionLineOverflowColumn";
-import hypotheticalRowCapacity from "./12a-hypotheticalRowCapacity/hypotheticalRowCapacity";
-import hypotheticalColumnCapacity from "./12b-hypotheticalColumnCapacity/hypotheticalColumnCapacity";
-import hypotheticalRegionCapacity from "./12c-hypotheticalRegionCapacity/hypotheticalRegionCapacity";
-import hypotheticalOneByNBreak from "./12d-hypotheticalOneByNBreak/hypotheticalOneByNBreak";
-import hypotheticalTwoByTwoBreak from "./12e-hypotheticalTwoByTwoBreak/hypotheticalTwoByTwoBreak";
-import hypotheticalFreeOverflow from "./12g-hypotheticalFreeOverflow/hypotheticalFreeOverflow";
-import adjacentRegionCapacity from "./12f-adjacentRegionCapacity/adjacentRegionCapacity";
-import reservedAreaExclusions from "./14-reservedAreaExclusions/reservedAreaExclusions";
-import adjacentLineAnalysis from "./15-adjacentLineAnalysis/adjacentLineAnalysis";
+import hypotheticalRowCapacity from "./99-hypotheticalRowCapacity/hypotheticalRowCapacity";
+import hypotheticalColumnCapacity from "./99-hypotheticalColumnCapacity/hypotheticalColumnCapacity";
+import hypotheticalRegionCapacity from "./99-hypotheticalRegionCapacity/hypotheticalRegionCapacity";
+import hypotheticalOneByNBreak from "./99-hypotheticalOneByNBreak/hypotheticalOneByNBreak";
+import hypotheticalTwoByTwoBreak from "./99-hypotheticalTwoByTwoBreak/hypotheticalTwoByTwoBreak";
+import hypotheticalFreeOverflow from "./99-hypotheticalFreeOverflow/hypotheticalFreeOverflow";
+import adjacentRegionCapacity from "./99-adjacentRegionCapacity/adjacentRegionCapacity";
+import reservedAreaExclusions from "./99-reservedAreaExclusions/reservedAreaExclusions";
+import adjacentLineAnalysis from "./99-adjacentLineAnalysis/adjacentLineAnalysis";
 
 export type Rule = (
   board: Board,
@@ -63,15 +63,15 @@ export const allRules: RuleEntry[] = [
   { rule: regionConfinementColumn, level: 5, name: "Region Confinement (Column)" },
   { rule: lineConfinementRow, level: 5, name: "Line Confinement (Row)" },
   { rule: lineConfinementColumn, level: 5, name: "Line Confinement (Column)" },
-  { rule: adjacentRegionCapacity, level: 12, name: "Adjacent Region Capacity" },
-  { rule: reservedAreaExclusions, level: 12, name: "Reserved Area Exclusions" },
-  { rule: adjacentLineAnalysis, level: 12, name: "Adjacent Line Analysis" },
-  { rule: hypotheticalRowCapacity, level: 20, name: "Hypothetical Row Capacity" },
-  { rule: hypotheticalColumnCapacity, level: 20, name: "Hypothetical Column Capacity" },
-  { rule: hypotheticalRegionCapacity, level: 20, name: "Hypothetical Region Capacity" },
-  { rule: hypotheticalOneByNBreak, level: 20, name: "Hypothetical 1×N Break" },
-  { rule: hypotheticalTwoByTwoBreak, level: 20, name: "Hypothetical 2×2 Break" },
-  { rule: hypotheticalFreeOverflow, level: 20, name: "Hypothetical Free Overflow" },
+  // { rule: adjacentRegionCapacity, level: 12, name: "Adjacent Region Capacity" },
+  // { rule: reservedAreaExclusions, level: 12, name: "Reserved Area Exclusions" },
+  // { rule: adjacentLineAnalysis, level: 12, name: "Adjacent Line Analysis" },
+  // { rule: hypotheticalRowCapacity, level: 20, name: "Hypothetical Row Capacity" },
+  // { rule: hypotheticalColumnCapacity, level: 20, name: "Hypothetical Column Capacity" },
+  // { rule: hypotheticalRegionCapacity, level: 20, name: "Hypothetical Region Capacity" },
+  // { rule: hypotheticalOneByNBreak, level: 20, name: "Hypothetical 1×N Break" },
+  // { rule: hypotheticalTwoByTwoBreak, level: 20, name: "Hypothetical 2×2 Break" },
+  // { rule: hypotheticalFreeOverflow, level: 20, name: "Hypothetical Free Overflow" },
 ];
 
 /** Rule metadata for external use (e.g., CLI reporting) */
