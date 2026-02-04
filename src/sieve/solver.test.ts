@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { checkBoardState, isValidLayout, solve } from "./solver";
-import { layout } from "./generator";
+import { solve, board } from "./solver";
+import { buildBoardAnalysis } from "./helpers/boardAnalysis";
 import { Board, CellState } from "./helpers/types";
 
-describe("isValidLayout", () => {
+describe("board.isValid", () => {
   describe("returns true", () => {
     it("accepts regions meeting minimum size", () => {
-      const board: Board = {
+      const b: Board = {
         grid: [
           [0, 0, 0, 1, 1],
           [0, 0, 1, 1, 1],
@@ -17,13 +17,13 @@ describe("isValidLayout", () => {
         stars: 2,
       };
 
-      expect(isValidLayout(board)).toBe(true);
+      expect(board.isValid(b)).toBe(true);
     });
   });
 
   describe("returns false", () => {
     it("rejects region smaller than minimum", () => {
-      const board: Board = {
+      const b: Board = {
         grid: [
           [0, 0, 1, 1, 1],
           [1, 1, 1, 1, 1],
@@ -34,15 +34,15 @@ describe("isValidLayout", () => {
         stars: 2,
       };
 
-      expect(isValidLayout(board)).toBe(false);
+      expect(board.isValid(b)).toBe(false);
     });
   });
 });
 
-describe("checkBoardState", () => {
+describe("buildBoardAnalysis status", () => {
   describe("returns solved", () => {
     it("when all star counts match target", () => {
-      const board: Board = {
+      const b: Board = {
         grid: [
           [0, 0, 1, 1],
           [0, 0, 1, 1],
@@ -58,13 +58,13 @@ describe("checkBoardState", () => {
         ["marked", "marked", "star", "marked"],
       ];
 
-      expect(checkBoardState(board, cells)).toBe("solved");
+      expect(buildBoardAnalysis(b, cells).status).toBe("solved");
     });
   });
 
   describe("returns invalid", () => {
     it("when stars are horizontally adjacent", () => {
-      const board: Board = {
+      const b: Board = {
         grid: [
           [0, 0, 1, 1],
           [0, 0, 1, 1],
@@ -80,11 +80,11 @@ describe("checkBoardState", () => {
         ["marked", "marked", "marked", "marked"],
       ];
 
-      expect(checkBoardState(board, cells)).toBe("invalid");
+      expect(buildBoardAnalysis(b, cells).status).toBe("invalid");
     });
 
     it("when stars are vertically adjacent", () => {
-      const board: Board = {
+      const b: Board = {
         grid: [
           [0, 0, 1, 1],
           [0, 0, 1, 1],
@@ -100,11 +100,11 @@ describe("checkBoardState", () => {
         ["marked", "marked", "marked", "marked"],
       ];
 
-      expect(checkBoardState(board, cells)).toBe("invalid");
+      expect(buildBoardAnalysis(b, cells).status).toBe("invalid");
     });
 
     it("when stars are diagonally adjacent", () => {
-      const board: Board = {
+      const b: Board = {
         grid: [
           [0, 0, 1, 1],
           [0, 0, 1, 1],
@@ -120,11 +120,11 @@ describe("checkBoardState", () => {
         ["marked", "marked", "marked", "marked"],
       ];
 
-      expect(checkBoardState(board, cells)).toBe("invalid");
+      expect(buildBoardAnalysis(b, cells).status).toBe("invalid");
     });
 
     it("when row has insufficient capacity", () => {
-      const board: Board = {
+      const b: Board = {
         grid: [
           [0, 0, 1, 1],
           [0, 0, 1, 1],
@@ -140,11 +140,11 @@ describe("checkBoardState", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      expect(checkBoardState(board, cells)).toBe("invalid");
+      expect(buildBoardAnalysis(b, cells).status).toBe("invalid");
     });
 
     it("when column has insufficient capacity", () => {
-      const board: Board = {
+      const b: Board = {
         grid: [
           [0, 0, 1, 1],
           [0, 0, 1, 1],
@@ -160,11 +160,11 @@ describe("checkBoardState", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      expect(checkBoardState(board, cells)).toBe("invalid");
+      expect(buildBoardAnalysis(b, cells).status).toBe("invalid");
     });
 
     it("when region has insufficient capacity", () => {
-      const board: Board = {
+      const b: Board = {
         grid: [
           [0, 0, 1, 1],
           [0, 0, 1, 1],
@@ -180,13 +180,13 @@ describe("checkBoardState", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      expect(checkBoardState(board, cells)).toBe("invalid");
+      expect(buildBoardAnalysis(b, cells).status).toBe("invalid");
     });
   });
 
   describe("returns valid", () => {
     it("for empty board", () => {
-      const board: Board = {
+      const b: Board = {
         grid: [
           [0, 0, 1, 1],
           [0, 0, 1, 1],
@@ -202,11 +202,11 @@ describe("checkBoardState", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      expect(checkBoardState(board, cells)).toBe("valid");
+      expect(buildBoardAnalysis(b, cells).status).toBe("valid");
     });
 
     it("for partially solved board", () => {
-      const board: Board = {
+      const b: Board = {
         grid: [
           [0, 0, 1, 1],
           [0, 0, 1, 1],
@@ -222,7 +222,7 @@ describe("checkBoardState", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      expect(checkBoardState(board, cells)).toBe("valid");
+      expect(buildBoardAnalysis(b, cells).status).toBe("valid");
     });
   });
 });
@@ -230,7 +230,7 @@ describe("checkBoardState", () => {
 describe("solve", () => {
   describe("returns null", () => {
     it("on unsolvable layout", () => {
-      const board: Board = {
+      const b: Board = {
         grid: [
           [0, 1, 1, 1],
           [1, 1, 1, 1],
@@ -240,19 +240,17 @@ describe("solve", () => {
         stars: 2,
       };
 
-      expect(solve(board)).toBeNull();
+      expect(solve(b)).toBeNull();
     });
 
     it("on impossible board", () => {
-      const board: Board = { grid: [[0]], stars: 5 };
+      const b: Board = { grid: [[0]], stars: 5 };
 
-      expect(solve(board)).toBeNull();
+      expect(solve(b)).toBeNull();
     });
 
     it("when puzzle would require adjacent stars", () => {
-      // This grid forces adjacent stars in region 9 (columns 0-1, rows 5-7)
-      // Bug fix: forced placement must not create adjacent stars
-      const board: Board = {
+      const b: Board = {
         grid: [
           [3, 3, 3, 2, 2, 2, 1, 1, 1, 1],
           [3, 3, 3, 2, 2, 2, 2, 1, 1, 1],
@@ -268,13 +266,13 @@ describe("solve", () => {
         stars: 2,
       };
 
-      expect(solve(board)).toBeNull();
+      expect(solve(b)).toBeNull();
     });
   });
 
   describe("behavior", () => {
     it("does not mutate input board", () => {
-      const board: Board = {
+      const b: Board = {
         grid: [
           [4, 0, 4, 4],
           [4, 4, 4, 1],
@@ -283,11 +281,11 @@ describe("solve", () => {
         ],
         stars: 1,
       };
-      const originalGrid = JSON.stringify(board.grid);
+      const originalGrid = JSON.stringify(b.grid);
 
-      solve(board);
+      solve(b);
 
-      expect(JSON.stringify(board.grid)).toBe(originalGrid);
+      expect(JSON.stringify(b.grid)).toBe(originalGrid);
     });
   });
 });

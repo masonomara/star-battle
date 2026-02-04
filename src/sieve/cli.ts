@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { sieve } from "./sieve";
 import { layout } from "./generator";
-import { solve, isValidLayout, StepInfo, RULE_METADATA } from "./solver";
+import { solve, board, StepInfo, RULE_METADATA } from "./solver";
 import { Board, CellState } from "./helpers/types";
 import { parsePuzzle } from "./helpers/parsePuzzle";
 
@@ -92,12 +92,12 @@ async function main() {
   );
 
   if (args.trace === "true" && seed !== undefined) {
-    const board = layout(size, stars, seed);
+    const puzzle = layout(size, stars, seed);
     console.log("Region grid:");
-    printBoard(board.grid);
+    printBoard(puzzle.grid);
     let prevCells: CellState[][] | null = null;
     const traceStart = Date.now();
-    const result = solve(board, {
+    const result = solve(puzzle, {
       onStep: (step: StepInfo) => {
         console.log(
           `\n--- Cycle ${step.cycle}: ${step.rule} (level ${step.level}) ---`,
@@ -165,21 +165,21 @@ function printCellStateWithDiff(
 }
 
 function solveFromInput(input: string, stars: number) {
-  const board = parsePuzzle(input, stars);
+  const puzzle = parsePuzzle(input, stars);
 
-  if (!isValidLayout(board)) {
+  if (!board.isValid(puzzle)) {
     console.log("Invalid layout");
     process.exit(1);
   }
 
-  console.log(`${board.grid.length}x${board.grid.length}, ${stars} star(s)`);
+  console.log(`${puzzle.grid.length}x${puzzle.grid.length}, ${stars} star(s)`);
   console.log("\nRegion grid:");
-  printBoard(board.grid);
+  printBoard(puzzle.grid);
 
   let prevCells: CellState[][] | null = null;
   const solveStart = Date.now();
 
-  const result = solve(board, {
+  const result = solve(puzzle, {
     onStep: (step: StepInfo) => {
       console.log(
         `\n--- Cycle ${step.cycle}: ${step.rule} (level ${step.level}) ---`,
@@ -279,9 +279,9 @@ async function solveSbfFile(
   for (let i = 0; i < lines.length; i++) {
     const sbf = lines[i];
 
-    let board: Board;
+    let puzzle: Board;
     try {
-      board = parseSbf(sbf);
+      puzzle = parseSbf(sbf);
     } catch (e) {
       unsolvedPuzzles.push({
         index: i + 1,
@@ -294,7 +294,7 @@ async function solveSbfFile(
       continue;
     }
 
-    if (!isValidLayout(board)) {
+    if (!board.isValid(puzzle)) {
       unsolvedPuzzles.push({ index: i + 1, sbf, reason: "INVALID LAYOUT" });
       if (verbose && !filterUnsolved) {
         console.log(`Puzzle ${i + 1}: INVALID LAYOUT`);
@@ -308,12 +308,12 @@ async function solveSbfFile(
       console.log(`Puzzle ${i + 1}: ${sbf}`);
       console.log(`${"=".repeat(60)}`);
       console.log("Region grid:");
-      printBoard(board.grid);
+      printBoard(puzzle.grid);
     }
 
     const puzzleRules: string[] = [];
     let prevCells: CellState[][] | null = null;
-    const result = solve(board, {
+    const result = solve(puzzle, {
       onStep: (step: StepInfo) => {
         puzzleRules.push(step.rule);
         const stats = ruleStats.get(step.rule);

@@ -7,7 +7,7 @@ import { Board } from "./types";
  * - For multi-star puzzles (stars > 1), each region has at least
  *   (stars * 2) - 1 cells to fit the required stars without touching.
  */
-export function isValidLayout(board: Board): boolean {
+export function isValid(board: Board): boolean {
   const size = board.grid.length;
   const minRegionSize = board.stars > 1 ? board.stars * 2 - 1 : 1;
   const regionSizes = new Map<number, number>();

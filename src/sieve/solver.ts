@@ -1,15 +1,10 @@
 import { Board, CellState, SolverResult } from "./helpers/types";
 import { buildBoardAnalysis } from "./helpers/boardAnalysis";
-import { checkBoardState } from "./helpers/boardState";
-import { isValidLayout } from "./helpers/boardValidation";
-import { allRules, RULE_METADATA } from "./rules";
+import * as board from "./helpers/board";
+import { allRules } from "./rules";
 
-// Re-export for backwards compatibility
-export { checkBoardState, BoardStatus } from "./helpers/boardState";
-export { isValidLayout } from "./helpers/boardValidation";
+export { board };
 export { RULE_METADATA } from "./rules";
-
-const MAX_CYCLES = 1000;
 
 /** Step info passed to trace callback */
 export interface StepInfo {
@@ -28,56 +23,42 @@ export interface SolveOptions {
  * Flows rules through the board until it settles into a final state.
  */
 export function solve(
-  board: Board,
+  boardDef: Board,
   options: SolveOptions = {},
 ): SolverResult | null {
-  const size = board.grid.length;
+  const size = boardDef.grid.length;
   const cells: CellState[][] = Array.from({ length: size }, () =>
     Array.from({ length: size }, () => "unknown" as CellState),
   );
 
-  if (!isValidLayout(board)) {
+  if (!board.isValid(boardDef)) {
     return null;
   }
 
   let cycles = 0;
   let maxLevel = 0;
 
-  while (cycles < MAX_CYCLES) {
+  while (true) {
     cycles++;
 
-    const status = checkBoardState(board, cells);
-    if (status === "solved") return { cells, cycles, maxLevel };
-    if (status === "invalid") return null;
+    const analysis = buildBoardAnalysis(boardDef, cells);
 
-    const analysis = buildBoardAnalysis(board, cells);
+    if (analysis.status === "solved") return { cells, cycles, maxLevel };
+    if (analysis.status === "invalid") return null;
 
-    let progress = false;
+    const applied = allRules.find(({ rule }) => rule(boardDef, cells, analysis));
 
-    for (const { rule, level, name } of allRules) {
-      const result = rule(board, cells, analysis);
+    if (!applied) return null;
 
-      if (result) {
-        maxLevel = Math.max(maxLevel, level);
-        progress = true;
+    maxLevel = Math.max(maxLevel, applied.level);
 
-        if (options.onStep) {
-          options.onStep({
-            cycle: cycles,
-            rule: name,
-            level,
-            cells: cells.map((row) => [...row]),
-          });
-        }
-
-        break;
-      }
-    }
-
-    if (!progress) {
-      return null;
+    if (options.onStep) {
+      options.onStep({
+        cycle: cycles,
+        rule: applied.name,
+        level: applied.level,
+        cells: cells.map((row) => [...row]),
+      });
     }
   }
-
-  return null;
 }

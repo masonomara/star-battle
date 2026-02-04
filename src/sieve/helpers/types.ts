@@ -1,6 +1,9 @@
 // Cell state during solving
 export type CellState = "unknown" | "star" | "marked";
 
+// Solving progress status
+export type Progress = "solved" | "valid" | "invalid";
+
 // Board layout - output of generator, input to solver
 export type Board = {
   grid: number[][]; // grid[row][col] = regionId

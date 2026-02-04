@@ -4,7 +4,9 @@ import starNeighbors from "./01-starNeighbors/starNeighbors";
 import rowComplete from "./02-rowComplete/rowComplete";
 import columnComplete from "./03-columnComplete/columnComplete";
 import regionComplete from "./04-regionComplete/regionComplete";
-import forcedPlacement from "./05-forcedPlacement/forcedPlacement";
+import forcedPlacementRow from "./05a-forcedPlacementRow/forcedPlacementRow";
+import forcedPlacementColumn from "./05b-forcedPlacementColumn/forcedPlacementColumn";
+import forcedPlacementRegion from "./05c-forcedPlacementRegion/forcedPlacementRegion";
 import tilingForcedStarsRow from "./08a-tilingForcedStarsRow/tilingForcedStarsRow";
 import tilingForcedStarsColumn from "./08b-tilingForcedStarsColumn/tilingForcedStarsColumn";
 import tilingForcedStarsRegion from "./08c-tilingForcedStarsRegion/tilingForcedStarsRegion";
@@ -28,20 +30,22 @@ export type RuleEntry = {
 };
 
 export const allRules: RuleEntry[] = [
-  { rule: starNeighbors, level: 1, name: "Star Neighbors" },
-  { rule: rowComplete, level: 1, name: "Row Complete" },
-  { rule: columnComplete, level: 1, name: "Column Complete" },
-  { rule: regionComplete, level: 1, name: "Region Complete" },
-  { rule: forcedPlacement, level: 1, name: "Forced Placement" },
+  { rule: starNeighbors, level: 0, name: "Star Neighbors" },
+  { rule: rowComplete, level: 0, name: "Row Complete" },
+  { rule: columnComplete, level: 0, name: "Column Complete" },
+  { rule: regionComplete, level: 0, name: "Region Complete" },
+  { rule: forcedPlacementRow, level: 1, name: "Forced Placement (Row)" },
+  { rule: forcedPlacementColumn, level: 1, name: "Forced Placement (Column)" },
+  { rule: forcedPlacementRegion, level: 1, name: "Forced Placement (Region)" },
   { rule: tilingForcedStarsRow, level: 2, name: "Tiling Forced Stars (Row)" },
   { rule: tilingForcedStarsColumn, level: 2, name: "Tiling Forced Stars (Column)" },
   { rule: tilingForcedStarsRegion, level: 2, name: "Tiling Forced Stars (Region)" },
   { rule: tilingOverhangMarks, level: 2, name: "Tiling Overhang Marks" },
   { rule: tilingAdjacencyMarks, level: 2, name: "Tiling Adjacency Marks" },
-  { rule: oneByNConfinement, level: 2, name: "1×n Confinement" },
-  { rule: finnedCounts, level: 2, name: "Finned Counts" },
-  { rule: reservedAreaExclusions, level: 2, name: "Reserved Area Exclusions" },
-  { rule: adjacentLineAnalysis, level: 2, name: "Adjacent Line Analysis" },
+  { rule: oneByNConfinement, level: 3, name: "1×n Confinement" },
+  { rule: finnedCounts, level: 3, name: "Finned Counts" },
+  { rule: reservedAreaExclusions, level: 3, name: "Reserved Area Exclusions" },
+  { rule: adjacentLineAnalysis, level: 3, name: "Adjacent Line Analysis" },
 ];
 
 /** Rule metadata for external use (e.g., CLI reporting) */
