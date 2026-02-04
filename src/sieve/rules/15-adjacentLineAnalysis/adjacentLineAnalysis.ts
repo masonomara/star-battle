@@ -9,10 +9,9 @@
  * constrain each other such that H3 must be a star.
  */
 
-import { maxIndependentSetSize } from "../../helpers/tiling";
 import { Board, CellState, Coord } from "../../helpers/types";
 import { coordKey } from "../../helpers/cellKey";
-import { BoardAnalysis } from "../../helpers/boardAnalysis";
+import { BoardAnalysis, capacity } from "../../helpers/boardAnalysis";
 import { Composite } from "../../helpers/compositeAnalysis";
 
 /**
@@ -114,7 +113,7 @@ function enumerateWithExactLineQuotas(
     regionCellsInside.set(regionId, inside);
 
     // Max stars region can get from outside the composite
-    const maxFromOutside = maxIndependentSetSize(outside);
+    const maxFromOutside = capacity(outside, analysis);
     // Min stars region must get from inside the composite
     const minFromInside = Math.max(0, meta.starsNeeded - maxFromOutside);
 

@@ -12,39 +12,6 @@ import { dlxSolve } from "./dlx";
 import { coordKey, parseKey } from "./cellKey";
 
 /**
- * For cells arranged in a line (single row or column), calculate the
- * maximum number of non-adjacent stars that can be placed.
- *
- * This is equivalent to the maximum independent set on a path graph,
- * which has a simple greedy solution: place stars greedily from one end,
- * skipping adjacent cells.
- */
-function maxStarsInLine(positions: number[]): number {
-  if (positions.length === 0) return 0;
-
-  const sorted = [...positions].sort((a, b) => a - b);
-  let count = 0;
-  let lastPlaced = -2; // Position of last placed star (-2 so first is always valid)
-
-  for (const pos of sorted) {
-    // Can place here if not adjacent to last placed star
-    if (pos > lastPlaced + 1) {
-      count++;
-      lastPlaced = pos;
-    }
-  }
-
-  return count;
-}
-
-/**
- * Check if two cells are adjacent (including diagonals).
- */
-function cellsAreAdjacent(c1: Coord, c2: Coord): boolean {
-  return Math.abs(c1[0] - c2[0]) <= 1 && Math.abs(c1[1] - c2[1]) <= 1;
-}
-
-/**
  * Calculate maximum stars using 2x2 tiling logic.
  *
  * Uses DLX to find minimum 2x2 tiles needed to cover cells.
@@ -117,73 +84,25 @@ function capacityVia2x2Tiling(cells: Coord[]): number {
 
 /**
  * Calculate maximum stars that can fit in a set of cells.
- * Uses 2x2 tiling logic: each 2x2 block holds at most 1 star.
- *
- * - Single cell: 1
- * - Cells in 2x2 bounding box: 1 (all touch)
- * - Linear arrangement: greedy placement
- * - 2D arrangement: minimum 2x2 tiles needed
+ * Uses 2x2 tiling via DLX: each 2x2 block holds at most 1 star.
  */
-export function maxIndependentSetSize(cells: Coord[]): number {
-  const n = cells.length;
-  if (n === 0) return 0;
-  if (n === 1) return 1;
-
-  // Check bounding box
-  const rows = cells.map((c) => c[0]);
-  const cols = cells.map((c) => c[1]);
-  const height = Math.max(...rows) - Math.min(...rows) + 1;
-  const width = Math.max(...cols) - Math.min(...cols) + 1;
-
-  // Fits in 2x2: all cells touch, capacity = 1
-  if (height <= 2 && width <= 2) return 1;
-
-  // Single row: use line calculation
-  if (height === 1) {
-    return maxStarsInLine(cols);
-  }
-
-  // Single column: use line calculation
-  if (width === 1) {
-    return maxStarsInLine(rows);
-  }
-
-  // 2D arrangement: use 2x2 tiling
+export function starCapacity(cells: Coord[]): number {
+  if (cells.length === 0) return 0;
+  if (cells.length === 1) return 1;
   return capacityVia2x2Tiling(cells);
 }
 
 /**
- * Check if n non-adjacent stars can be placed in the given cells.
- *
- * For cells in a single row or column, uses closed-form calculation.
- * For general 2D arrangements, uses 2x2 tiling capacity.
+ * Check if cells can fit at least n non-adjacent stars.
  */
-function canPlaceNonAdjacentStars(
+export function canTileWithMinCount(
   cells: Coord[],
-  n: number,
   _gridSize: number,
+  n: number,
 ): boolean {
   if (cells.length < n) return false;
   if (n === 0) return true;
-
-  return maxIndependentSetSize(cells) >= n;
-}
-
-/**
- * Fast check if a region can fit at least minTiles non-adjacent stars.
- *
- * For linear arrangements (single row or column), uses exact calculation.
- * For 2D arrangements, uses 2×2 tiling capacity.
- */
-export function canTileWithMinCount(
-  regionCells: Coord[],
-  gridSize: number,
-  minTiles: number,
-): boolean {
-  if (regionCells.length === 0) return minTiles <= 0;
-  if (regionCells.length < minTiles) return false;
-
-  return canPlaceNonAdjacentStars(regionCells, minTiles, gridSize);
+  return starCapacity(cells) >= n;
 }
 
 /**

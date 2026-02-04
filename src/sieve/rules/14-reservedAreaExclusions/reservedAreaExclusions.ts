@@ -10,9 +10,8 @@
  * hold enough stars), cells from non-forced regions can be excluded.
  */
 
-import { maxIndependentSetSize } from "../../helpers/tiling";
 import { Board, CellState, Coord } from "../../helpers/types";
-import { BoardAnalysis, RegionMeta } from "../../helpers/boardAnalysis";
+import { BoardAnalysis, RegionMeta, capacity } from "../../helpers/boardAnalysis";
 
 function applyForAxis(
   board: Board,
@@ -54,7 +53,7 @@ function applyForAxis(
 
     for (const [regionId, { outside }] of regionData) {
       const meta = regions.get(regionId)!;
-      const maxOutside = maxIndependentSetSize(outside);
+      const maxOutside = capacity(outside, analysis);
       const minContrib = Math.max(0, meta.starsNeeded - maxOutside);
 
       totalMin += minContrib;

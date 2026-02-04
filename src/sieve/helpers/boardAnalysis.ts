@@ -1,6 +1,7 @@
 import { Board, CellState, Coord } from "./types";
 import buildRegions from "./regions";
 import { coordKey } from "./cellKey";
+import { starCapacity } from "./tiling";
 
 /** Pre-computed region metadata for solver rules */
 export type RegionMeta = {
@@ -21,9 +22,25 @@ export type BoardAnalysis = {
   regions: Map<number, RegionMeta>;
   rowStars: number[];
   colStars: number[];
-  /** Lone cells forced to be stars (from partitioned placement logic) */
   forcedLoneCells: Coord[];
+  tilingCache: Map<string, number>;
 };
+
+export function capacity(cells: Coord[], analysis: BoardAnalysis): number {
+  if (cells.length === 0) return 0;
+
+  const key = cells
+    .map(([r, c]) => `${r},${c}`)
+    .sort()
+    .join("|");
+
+  const cached = analysis.tilingCache.get(key);
+  if (cached !== undefined) return cached;
+
+  const result = starCapacity(cells);
+  analysis.tilingCache.set(key, result);
+  return result;
+}
 
 /**
  * Find connected components of coordinates using 8-connected adjacency.
@@ -212,5 +229,7 @@ export function buildBoardAnalysis(
     }
   }
 
-  return { size, regions, rowStars, colStars, forcedLoneCells };
+  const tilingCache = new Map<string, number>();
+
+  return { size, regions, rowStars, colStars, forcedLoneCells, tilingCache };
 }

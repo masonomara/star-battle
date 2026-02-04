@@ -7,13 +7,13 @@
  * - N rows would need more stars than their shared regions can provide
  *
  * Uses delta computation from BoardAnalysis instead of rebuilding metadata.
- * Optimized with precomputation and MIS caching for better performance on larger puzzles.
+ * Capacity calculations use the shared tilingCache from BoardAnalysis.
  */
 
 import { Board, CellState, Coord } from "../../helpers/types";
-import { BoardAnalysis } from "../../helpers/boardAnalysis";
+import { BoardAnalysis, capacity } from "../../helpers/boardAnalysis";
 import { cellKey } from "../../helpers/cellKey";
-import { maxIndependentSetSize, canTileWithMinCount } from "../../helpers/tiling";
+import { canTileWithMinCount } from "../../helpers/tiling";
 import {
   findOneByNConstraints,
   buildMarkedCellSet,
@@ -38,24 +38,7 @@ type PrecomputedData = {
   baseAdjustedById: Map<number, AdjustedRegion>;
   baseRowToRegions: Map<number, Set<number>>;
   baseColToRegions: Map<number, Set<number>>;
-  misCache: Map<string, number>;
 };
-
-/**
- * Cached maxIndependentSetSize computation.
- */
-function cachedMIS(cells: Coord[], cache: Map<string, number>): number {
-  if (cells.length === 0) return 0;
-  const key = cells
-    .map(([r, c]) => `${r},${c}`)
-    .sort()
-    .join("|");
-  const cached = cache.get(key);
-  if (cached !== undefined) return cached;
-  const result = maxIndependentSetSize(cells);
-  cache.set(key, result);
-  return result;
-}
 
 /**
  * Check if placing a hypothetical star creates a counting violation.
@@ -70,7 +53,7 @@ function checkViolation(
   precomputed: PrecomputedData,
 ): boolean {
   const { size, regions, rowStars, colStars } = analysis;
-  const { baseAdjusted, baseAdjustedById, misCache } = precomputed;
+  const { baseAdjusted, baseAdjustedById } = precomputed;
   const starRegion = board.grid[starRow][starCol];
 
   // Build set of cells that would be marked (star + 8 neighbors)
@@ -284,7 +267,7 @@ function checkViolation(
           // Max contribution = min(region's remaining stars, capacity in range)
           const maxContribution = Math.min(
             region.starsNeeded,
-            cachedMIS(cellsInRange, misCache),
+            capacity(cellsInRange, analysis),
           );
           starsAvailable += maxContribution;
         }
@@ -343,7 +326,7 @@ function checkViolation(
           // Max contribution = min(region's remaining stars, capacity in range)
           const maxContribution = Math.min(
             region.starsNeeded,
-            cachedMIS(cellsInRange, misCache),
+            capacity(cellsInRange, analysis),
           );
           starsAvailable += maxContribution;
         }
@@ -748,15 +731,11 @@ export default function finnedCounts(
     }
   }
 
-  // MIS cache shared across all checkViolation calls
-  const misCache = new Map<string, number>();
-
   const precomputed: PrecomputedData = {
     baseAdjusted,
     baseAdjustedById,
     baseRowToRegions,
     baseColToRegions,
-    misCache,
   };
 
   // === MAIN LOOP ===
