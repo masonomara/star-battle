@@ -20,6 +20,8 @@ export default function confinementMarkRemainderRow(
   const confinement = computeConfinement(analysis);
   const numCols = board.grid[0]?.length ?? 0;
 
+  let changed = false;
+
   for (const [rowIndex, regions] of confinement.row) {
     const quota = board.stars - analysis.rowStars[rowIndex];
     if (quota <= 0) continue;
@@ -40,10 +42,10 @@ export default function confinementMarkRemainderRow(
         !contributing.has(cellKey(rowIndex, col))
       ) {
         cells[rowIndex][col] = "marked";
-        return true;
+        changed = true;
       }
     }
   }
 
-  return false;
+  return changed;
 }
