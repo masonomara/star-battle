@@ -12,8 +12,8 @@ import tilingForcedStarsColumn from "./08b-tilingForcedStarsColumn/tilingForcedS
 import tilingForcedStarsRegion from "./08c-tilingForcedStarsRegion/tilingForcedStarsRegion";
 import tilingOverhangMarks from "./08d-tilingOverhangMarks/tilingOverhangMarks";
 import tilingAdjacencyMarks from "./08e-tilingAdjacencyMarks/tilingAdjacencyMarks";
-import confinementMarkRemainderRow from "./09a-confinementMarkRemainderRow/confinementMarkRemainderRow";
-import confinementMarkRemainderColumn from "./09b-confinementMarkRemainderColumn/confinementMarkRemainderColumn";
+import confinementMarkRemainderRow from "./03-confinementMarkRemainderRow/confinementMarkRemainderRow";
+import confinementMarkRemainderColumn from "./03-confinementMarkRemainderColumn/confinementMarkRemainderColumn";
 import regionConfinement from "./12a-regionConfinement/regionConfinement";
 import lineConfinement from "./12b-lineConfinement/lineConfinement";
 import constrainedQuota from "./12c-constrainedQuota/constrainedQuota";
