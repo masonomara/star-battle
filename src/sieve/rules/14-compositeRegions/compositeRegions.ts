@@ -344,22 +344,6 @@ function findCombinationComposites(
     (r) => r.starsNeeded > 0,
   );
 
-  // Generate single-region composites for tight ratios (for direct enumeration)
-  for (const r of activeRegions) {
-    if (r.unknownCoords.length < r.starsNeeded) continue;
-    // Only include if ratio is tight enough for direct enumeration
-    if (r.unknownCoords.length < r.starsNeeded * 8) {
-      composites.push({
-        id: `single-${r.id}`,
-        source: "combination",
-        cells: r.coords,
-        unknownCells: r.unknownCoords,
-        starsNeeded: r.starsNeeded,
-        regionIds: new Set([r.id]),
-      });
-    }
-  }
-
   // Generate pairs
   for (const r1 of activeRegions) {
     const neighbors1 = adjacency.get(r1.id);
