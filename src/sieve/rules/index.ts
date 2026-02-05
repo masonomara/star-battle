@@ -5,8 +5,8 @@ import regionConfinementRow from "./05-regionConfinementRow/regionConfinementRow
 import regionConfinementColumn from "./05-regionConfinementColumn/regionConfinementColumn";
 import lineConfinementRow from "./05-lineConfinementRow/lineConfinementRow";
 import lineConfinementColumn from "./05-lineConfinementColumn/lineConfinementColumn";
-import pressuredRow from "./04-pressuredPlacements/pressuredRow";
-import pressuredColumn from "./04-pressuredPlacements/pressuredColumn";
+import overflowRow from "./05-confinementOverflow/overflowRow";
+import overflowColumn from "./05-confinementOverflow/overflowColumn";
 import hypotheticalRowCapacity from "./99-hypotheticalRowCapacity/hypotheticalRowCapacity";
 import hypotheticalColumnCapacity from "./99-hypotheticalColumnCapacity/hypotheticalColumnCapacity";
 import hypotheticalRegionCapacity from "./99-hypotheticalRegionCapacity/hypotheticalRegionCapacity";
@@ -54,8 +54,8 @@ export const allRules: RuleEntry[] = [
   { rule: forcedRegion, level: 1, name: "Forced Regions" },
   { rule: excludedRow, level: 3, name: "Excluded Rows" },
   { rule: excludedColumn, level: 3, name: "Excluded Columns" },
-  { rule: pressuredRow, level: 4, name: "Pressured Rows" },
-  { rule: pressuredColumn, level: 4, name: "Pressured Columns" },
+  { rule: overflowRow, level: 4, name: "Confinement Overflow (Row)" },
+  { rule: overflowColumn, level: 4, name: "Confinement Overflow (Column)" },
   { rule: tilingForcedRow, level: 4, name: "Tiling Forced Rows" },
   { rule: tilingForcedColumn, level: 4, name: "Tiling Forced Columns" },
   { rule: tilingForcedRegion, level: 4, name: "Tiling Forced Regions" },

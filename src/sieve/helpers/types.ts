@@ -31,6 +31,12 @@ export type Puzzle = Solution & {
 // Coordinate tuple [row, col]
 export type Coord = [number, number];
 
+// A deduction produced by a rule: place a star or mark a cell
+export type Deduction = {
+  coord: Coord;
+  state: "star" | "marked";
+};
+
 // A 2×2 tile anchored at top-left corner
 export type Tile = {
   anchor: Coord; // top-left corner (row, col)

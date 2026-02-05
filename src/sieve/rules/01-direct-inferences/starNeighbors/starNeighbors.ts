@@ -1,5 +1,6 @@
-import { Board, CellState } from "../../helpers/types";
-import { neighbors } from "../../helpers/neighbors";
+import { neighbors } from "../../../helpers/neighbors";
+import { Board, CellState } from "../../../helpers/types";
+
 
 export default function starNeighbors(
   board: Board,

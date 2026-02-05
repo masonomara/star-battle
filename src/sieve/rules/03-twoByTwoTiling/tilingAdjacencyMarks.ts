@@ -12,7 +12,8 @@ function cellsAreAdjacent(c1: Coord, c2: Coord): boolean {
  * Rule 8e: Tiling Adjacency Marks
  *
  * When capacity === starsNeeded, each tile contains exactly one star.
- * Cells that would force adjacent stars in ALL tilings cannot be stars.
+ * Cells that don't appear in any valid star assignment across all tilings
+ * cannot be stars.
  */
 export default function tilingAdjacencyMarks(
   board: Board,
@@ -27,14 +28,17 @@ export default function tilingAdjacencyMarks(
     const tiling = analysis.getTiling(meta.unknownCoords);
     if (tiling.capacity !== meta.starsNeeded) continue;
 
-    const invalidCells = findInvalidCellsDueToAdjacency(
-      meta.unknownCoords,
+    const unknownSet = new Set(
+      meta.unknownCoords.map((c) => `${c[0]},${c[1]}`),
+    );
+    const validStarCells = collectValidStarCells(
       tiling.tilings,
+      unknownSet,
       cells,
     );
 
-    for (const [row, col] of invalidCells) {
-      if (cells[row][col] === "unknown") {
+    for (const [row, col] of meta.unknownCoords) {
+      if (!validStarCells.has(`${row},${col}`) && cells[row][col] === "unknown") {
         cells[row][col] = "marked";
         changed = true;
       }
@@ -45,91 +49,75 @@ export default function tilingAdjacencyMarks(
 }
 
 /**
- * Find cells that cannot be stars because placing a star there
- * would force adjacent stars in ALL minimal tilings.
+ * Collect all cells that appear as stars in any valid assignment
+ * across all minimal tilings.
  */
-function findInvalidCellsDueToAdjacency(
-  unknownCells: Coord[],
+function collectValidStarCells(
   allMinimalTilings: Tile[][],
+  unknownSet: Set<string>,
   cells: CellState[][],
-): Coord[] {
-  if (allMinimalTilings.length === 0 || unknownCells.length === 0) return [];
+): Set<string> {
+  const validCells = new Set<string>();
 
-  const invalidCells: Coord[] = [];
-  const unknownSet = new Set(unknownCells.map((c) => `${c[0]},${c[1]}`));
-
-  for (const cell of unknownCells) {
-    const key = `${cell[0]},${cell[1]}`;
-    let canBeStarInSomeTiling = false;
-
-    for (const tiling of allMinimalTilings) {
-      const containingTile = tiling.find((tile) =>
-        tile.coveredCells.some((c) => `${c[0]},${c[1]}` === key),
-      );
-
-      if (!containingTile) continue;
-
-      const otherTiles = tiling.filter((t) => t !== containingTile);
-
-      if (canPlaceStarsInTiles(cell, otherTiles, unknownSet, cells)) {
-        canBeStarInSomeTiling = true;
-        break;
+  for (const tiling of allMinimalTilings) {
+    const assignments = enumerateStarAssignments(tiling, unknownSet, cells);
+    for (const assignment of assignments) {
+      for (const [r, c] of assignment) {
+        validCells.add(`${r},${c}`);
       }
-    }
-
-    if (!canBeStarInSomeTiling) {
-      invalidCells.push(cell);
     }
   }
 
-  return invalidCells;
+  return validCells;
 }
 
 /**
- * Check if stars can be placed in the given tiles such that:
- * 1. No star is adjacent to the assumed star at `assumedStar`
- * 2. No two stars are adjacent to each other
+ * Enumerate all valid star assignments for a single tiling.
+ * Each tile gets exactly one star. No two stars are adjacent.
+ * Builds assignments iteratively, tile by tile.
  */
-function canPlaceStarsInTiles(
-  assumedStar: Coord,
-  tiles: Tile[],
+function enumerateStarAssignments(
+  tiling: Tile[],
   unknownSet: Set<string>,
   cells: CellState[][],
-): boolean {
-  const placed: Coord[] = [];
-  const tilesNeedingStars: Coord[][] = [];
+): Coord[][] {
+  const fixed: Coord[] = [];
+  const candidatesPerTile: Coord[][] = [];
 
-  for (const tile of tiles) {
+  for (const tile of tiling) {
     const existingStar = tile.coveredCells.find(
       ([r, c]) => cells[r][c] === "star",
     );
-
     if (existingStar) {
-      if (cellsAreAdjacent(existingStar, assumedStar)) return false;
-      if (placed.some((p) => cellsAreAdjacent(existingStar, p))) return false;
-      placed.push(existingStar);
+      fixed.push(existingStar);
     } else {
-      const valid = tile.coveredCells.filter(
-        (c) =>
-          unknownSet.has(`${c[0]},${c[1]}`) && !cellsAreAdjacent(c, assumedStar),
+      const candidates = tile.coveredCells.filter((c) =>
+        unknownSet.has(`${c[0]},${c[1]}`),
       );
-      if (valid.length === 0) return false;
-      tilesNeedingStars.push(valid);
+      if (candidates.length === 0) return [];
+      candidatesPerTile.push(candidates);
     }
   }
 
-  return assignStars(tilesNeedingStars, 0, placed);
-}
-
-/** Backtrack to find if a valid star assignment exists for remaining tiles. */
-function assignStars(tiles: Coord[][], idx: number, placed: Coord[]): boolean {
-  if (idx >= tiles.length) return true;
-
-  for (const pos of tiles[idx]) {
-    if (placed.some((p) => cellsAreAdjacent(pos, p))) continue;
-    placed.push(pos);
-    if (assignStars(tiles, idx + 1, placed)) return true;
-    placed.pop();
+  for (let i = 0; i < fixed.length; i++) {
+    for (let j = i + 1; j < fixed.length; j++) {
+      if (cellsAreAdjacent(fixed[i], fixed[j])) return [];
+    }
   }
-  return false;
+
+  let assignments: Coord[][] = [[...fixed]];
+
+  for (const candidates of candidatesPerTile) {
+    const extended: Coord[][] = [];
+    for (const partial of assignments) {
+      for (const cell of candidates) {
+        if (partial.some((p) => cellsAreAdjacent(cell, p))) continue;
+        extended.push([...partial, cell]);
+      }
+    }
+    if (extended.length === 0) return [];
+    assignments = extended;
+  }
+
+  return assignments;
 }
