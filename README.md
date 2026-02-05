@@ -144,3 +144,16 @@ Wht was the big problem:
 
 I attatcked the production rules as "simulations of what the human mind does" when they shoudl really be "programs that validate and replicate human intuition"
 
+## 01. Star Neighbors
+
+Mark all 8 neighboring cells for each star
+
+## 02. Trivial Marks
+
+Mark all unknown cells in each container when the stars are satisfied
+
+## 03. Complete Containers
+
+Fill in all stars when only x amount of unknowns reamin
+
+- 
