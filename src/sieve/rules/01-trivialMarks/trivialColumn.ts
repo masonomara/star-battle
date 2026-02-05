@@ -8,7 +8,8 @@ export default function trivialColumn(
   let changed = false;
   for (let col = 0; col < size; col++) {
     let stars = 0;
-    for (let row = 0; row < size; row++) if (cells[row][col] === "star") stars++;
+    for (let row = 0; row < size; row++)
+      if (cells[row][col] === "star") stars++;
     if (stars === board.stars) {
       for (let row = 0; row < size; row++) {
         if (cells[row][col] === "unknown") {

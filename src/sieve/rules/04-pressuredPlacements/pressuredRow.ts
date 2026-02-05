@@ -12,11 +12,11 @@
  * - Overflow: "line can't satisfy region → force stars outside line"
  */
 
-import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { computeTiling } from "../../helpers/tiling";
+import { Board, CellState, Coord } from "../../helpers/types";
 
-export default function regionLineOverflowRow(
+export default function pressuredRow(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

@@ -7,7 +7,7 @@ import { Board, CellState } from "../../helpers/types";
  * When a region's tiling capacity equals stars needed,
  * cells with single-coverage in all minimal tilings must be stars.
  */
-export default function tilingForcedStarsRegion(
+export default function tilingForcedRegion(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

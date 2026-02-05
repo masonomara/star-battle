@@ -7,7 +7,7 @@ import { Board, CellState, Coord } from "../../helpers/types";
  * When a row's tiling capacity equals stars needed,
  * cells with single-coverage in all minimal tilings must be stars.
  */
-export default function tilingForcedStarsRow(
+export default function tilingForcedRow(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

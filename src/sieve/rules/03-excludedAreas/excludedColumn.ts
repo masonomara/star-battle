@@ -25,7 +25,10 @@ export default function excludedColumn(
     const quota = board.stars - analysis.colStars[colIndex];
     if (quota <= 0) continue;
 
-    const totalContribution = regions.reduce((sum, r) => sum + r.starsNeeded, 0);
+    const totalContribution = regions.reduce(
+      (sum, r) => sum + r.starsNeeded,
+      0,
+    );
     if (totalContribution < quota) continue;
 
     const contributing = new Set<string>();

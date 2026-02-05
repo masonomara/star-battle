@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import rowComplete from "./trivialRow";
 import { Board, CellState } from "../../helpers/types";
+import trivialRow from "./trivialRow";
 
-describe("02. rowComplete", () => {
+describe("02. trivialRow", () => {
   describe("02.1 Marks remaining cells correctly", () => {
     it("02.1.1 marks remaining cells when row has required stars", () => {
       const board: Board = {
@@ -19,7 +19,7 @@ describe("02. rowComplete", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = rowComplete(board, cells);
+      const result = trivialRow(board, cells);
 
       expect(result).toBe(true);
       expect(cells).toEqual([
@@ -46,7 +46,7 @@ describe("02. rowComplete", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = rowComplete(board, cells);
+      const result = trivialRow(board, cells);
 
       expect(result).toBe(true);
       expect(cells).toEqual([
@@ -72,7 +72,7 @@ describe("02. rowComplete", () => {
         ["unknown", "star", "unknown"],
       ];
 
-      const result = rowComplete(board, cells);
+      const result = trivialRow(board, cells);
 
       expect(result).toBe(true);
       expect(cells).toEqual([
@@ -99,7 +99,7 @@ describe("02. rowComplete", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = rowComplete(board, cells);
+      const result = trivialRow(board, cells);
 
       expect(result).toBe(false);
       expect(cells).toEqual([
@@ -124,7 +124,7 @@ describe("02. rowComplete", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = rowComplete(board, cells);
+      const result = trivialRow(board, cells);
 
       expect(result).toBe(false);
     });
@@ -146,7 +146,7 @@ describe("02. rowComplete", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = rowComplete(board, cells);
+      const result = trivialRow(board, cells);
 
       expect(result).toBe(false);
     });
@@ -170,7 +170,7 @@ describe("02. rowComplete", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      rowComplete(board, cells);
+      trivialRow(board, cells);
 
       expect(cells[0]).toEqual(["star", "unknown", "unknown", "unknown"]);
     });
@@ -192,7 +192,7 @@ describe("02. rowComplete", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      rowComplete(board, cells);
+      trivialRow(board, cells);
 
       expect(cells[0][0]).toBe("star");
       expect(cells[0][1]).toBe("star");
@@ -215,7 +215,7 @@ describe("02. rowComplete", () => {
         ["star", "unknown", "unknown"],
       ];
 
-      rowComplete(board, cells);
+      trivialRow(board, cells);
 
       expect(cells).toEqual([
         ["star", "marked", "marked"],

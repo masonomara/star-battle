@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import regionComplete from "./trivialRegions";
 import { Board, CellState } from "../../helpers/types";
 import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
+import trivialRegion from "./trivialRegion";
 
 describe("04. regionComplete", () => {
   describe("04.1 Marks remaining cells correctly", () => {
@@ -22,7 +22,7 @@ describe("04. regionComplete", () => {
       ];
 
       const analysis = buildBoardAnalysis(board, cells);
-      const result = regionComplete(board, cells, analysis);
+      const result = trivialRegion(board, cells, analysis);
 
       expect(result).toBe(true);
       expect(cells).toEqual([

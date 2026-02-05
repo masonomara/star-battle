@@ -1,11 +1,11 @@
 import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
 import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
-import tilingForcedStarsRegion from "./tilingForcedStarsRegion";
+import tilingForcedRegion from "./tilingForcedRegion";
 
 function run(board: Board, cells: CellState[][]): boolean {
   const analysis = buildBoardAnalysis(board, cells);
-  return tilingForcedStarsRegion(board, cells, analysis);
+  return tilingForcedRegion(board, cells, analysis);
 }
 
 describe("08c. Tiling Forced Stars (Region)", () => {

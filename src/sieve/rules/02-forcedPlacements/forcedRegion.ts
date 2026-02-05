@@ -10,7 +10,10 @@ export default function forcedRegion(
   analysis: BoardAnalysis,
 ): boolean {
   for (const [, meta] of analysis.regions) {
-    if (meta.starsNeeded > 0 && meta.unknownCoords.length === meta.starsNeeded) {
+    if (
+      meta.starsNeeded > 0 &&
+      meta.unknownCoords.length === meta.starsNeeded
+    ) {
       const [r, c] = meta.unknownCoords[0];
       cells[r][c] = "star";
       return true;
