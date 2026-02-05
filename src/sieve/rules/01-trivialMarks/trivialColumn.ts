@@ -1,6 +1,6 @@
 import { Board, CellState } from "../../helpers/types";
 
-export default function columnComplete(
+export default function trivialColumn(
   board: Board,
   cells: CellState[][],
 ): boolean {

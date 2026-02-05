@@ -3,7 +3,7 @@ import { Board, CellState, Coord } from "../../helpers/types";
 /**
  * When unknowns in a row equal needed stars, place one star.
  */
-export default function forcedPlacementRow(
+export default function forcedRow(
   board: Board,
   cells: CellState[][],
 ): boolean {

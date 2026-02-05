@@ -1,7 +1,7 @@
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 
-export default function regionComplete(
+export default function trivialRegion(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

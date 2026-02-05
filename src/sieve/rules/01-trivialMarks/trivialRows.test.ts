@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import rowComplete from "./trivialRows";
+import rowComplete from "./trivialRow";
 import { Board, CellState } from "../../helpers/types";
 
 describe("02. rowComplete", () => {

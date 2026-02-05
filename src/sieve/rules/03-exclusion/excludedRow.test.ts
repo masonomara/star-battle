@@ -1,11 +1,11 @@
 import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
-import confinementMarkRemainderRow from "./confinementMarkRemainderRow";
 import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
+import excludedRow from "./excludedRow";
 
 function run(board: Board, cells: CellState[][]): boolean {
   const analysis = buildBoardAnalysis(board, cells);
-  return confinementMarkRemainderRow(board, cells, analysis);
+  return excludedRow(board, cells, analysis);
 }
 
 function makeCells(rows: string[]): CellState[][] {

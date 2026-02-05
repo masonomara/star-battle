@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import columnComplete from "./trivialColumns";
+import columnComplete from "./trivialColumn";
 import { Board, CellState } from "../../helpers/types";
 
 describe("03. columnComplete", () => {

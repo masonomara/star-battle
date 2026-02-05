@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import regionComplete from "./regionComplete";
+import regionComplete from "./trivialRegions";
 import { Board, CellState } from "../../helpers/types";
 import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
 
