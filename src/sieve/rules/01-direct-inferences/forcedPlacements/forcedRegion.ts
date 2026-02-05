@@ -1,5 +1,5 @@
-import { Board, CellState } from "../../helpers/types";
-import { BoardAnalysis } from "../../helpers/boardAnalysis";
+import { Board, CellState } from "../../../helpers/types";
+import { BoardAnalysis } from "../../../helpers/boardAnalysis";
 
 /**
  * When unknowns in a region equal needed stars, place one star.

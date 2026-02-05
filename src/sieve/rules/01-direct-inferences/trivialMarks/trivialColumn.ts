@@ -1,4 +1,4 @@
-import { Board, CellState } from "../../helpers/types";
+import { Board, CellState } from "../../../helpers/types";
 
 export default function trivialColumn(
   board: Board,
