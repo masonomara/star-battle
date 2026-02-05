@@ -1,9 +1,6 @@
 import { Board, CellState } from "../helpers/types";
 import { BoardAnalysis } from "../helpers/boardAnalysis";
-import starNeighbors from "./00-starNeighbors/starNeighbors";
-import tilingForcedRow from "./04-tilingForcedPlacements/tilingForcedRow";
-import tilingForcedColumn from "./04-tilingForcedPlacements/tilingForcedColumn";
-import tilingOverhangMarks from "./04-tilingOverhangMarks/tilingOverhangMarks";
+
 import regionConfinementRow from "./05-regionConfinementRow/regionConfinementRow";
 import regionConfinementColumn from "./05-regionConfinementColumn/regionConfinementColumn";
 import lineConfinementRow from "./05-lineConfinementRow/lineConfinementRow";
@@ -15,20 +12,24 @@ import hypotheticalColumnCapacity from "./99-hypotheticalColumnCapacity/hypothet
 import hypotheticalRegionCapacity from "./99-hypotheticalRegionCapacity/hypotheticalRegionCapacity";
 import hypotheticalOneByNBreak from "./99-hypotheticalOneByNBreak/hypotheticalOneByNBreak";
 import hypotheticalTwoByTwoBreak from "./99-hypotheticalTwoByTwoBreak/hypotheticalTwoByTwoBreak";
-import hypotheticalFreeOverflow from "./99-hypotheticalFreeOverflow/hypotheticalFreeOverflow";
 import adjacentRegionCapacity from "./99-adjacentRegionCapacity/adjacentRegionCapacity";
 import reservedAreaExclusions from "./99-reservedAreaExclusions/reservedAreaExclusions";
 import adjacentLineAnalysis from "./99-adjacentLineAnalysis/adjacentLineAnalysis";
-import trivialColumn from "./01-trivialMarks/trivialColumn";
-import trivialRow from "./01-trivialMarks/trivialRow";
-import trivialRegion from "./01-trivialMarks/trivialRegion";
-import forcedRow from "./02-forcedPlacements/forcedRow";
-import forcedColumn from "./02-forcedPlacements/forcedColumn";
-import forcedRegion from "./02-forcedPlacements/forcedRegion";
 import excludedRow from "./03-excludedAreas/excludedRow";
 import excludedColumn from "./03-excludedAreas/excludedColumn";
-import tilingForcedRegion from "./04-tilingForcedPlacements/tilingForcedRegion";
 import tilingAdjacencyMarks from "./03-twoByTwoTiling/tilingAdjacencyMarks";
+import starNeighbors from "./01-direct-inferences/starNeighbors/starNeighbors";
+import trivialRow from "./01-direct-inferences/trivialMarks/trivialRow";
+import trivialColumn from "./01-direct-inferences/trivialMarks/trivialColumn";
+import trivialRegion from "./01-direct-inferences/trivialMarks/trivialRegion";
+import forcedRow from "./01-direct-inferences/forcedPlacements/forcedRow";
+import forcedColumn from "./01-direct-inferences/forcedPlacements/forcedColumn";
+import forcedRegion from "./01-direct-inferences/forcedPlacements/forcedRegion";
+import tilingForcedRow from "./03-twoByTwoTiling/tilingForcedRow"
+import tilingForcedColumn from "./03-twoByTwoTiling/tilingForcedColumn"
+import tilingOverhangMarks from "./03-twoByTwoTiling/tilingOverhangMarks"
+
+import tilingForcedRegion from "./03-twoByTwoTiling/tilingForcedRegion"
 
 
 export type Rule = (
@@ -44,13 +45,13 @@ export type RuleEntry = {
 };
 
 export const allRules: RuleEntry[] = [
-  { rule: starNeighbors, level: 0, name: "Star Neighbors" },
+  { rule: starNeighbors, level: 1, name: "Trivial Rows" },
   { rule: trivialRow, level: 1, name: "Trivial Rows" },
   { rule: trivialColumn, level: 1, name: "Trivial Columns" },
   { rule: trivialRegion, level: 1, name: "Trivial Regions" },
-  { rule: forcedRow, level: 2, name: "Forced Rows" },
-  { rule: forcedColumn, level: 2, name: "Forced Columns" },
-  { rule: forcedRegion, level: 2, name: "Forced Regions" },
+  { rule: forcedRow, level: 1, name: "Forced Rows" },
+  { rule: forcedColumn, level: 1, name: "Forced Columns" },
+  { rule: forcedRegion, level: 1, name: "Forced Regions" },
   { rule: excludedRow, level: 3, name: "Excluded Rows" },
   { rule: excludedColumn, level: 3, name: "Excluded Columns" },
   { rule: pressuredRow, level: 4, name: "Pressured Rows" },
@@ -61,18 +62,38 @@ export const allRules: RuleEntry[] = [
   { rule: tilingAdjacencyMarks, level: 4, name: "Tiling Adjacency Marks" },
   { rule: tilingOverhangMarks, level: 4, name: "Tiling Overhang Marks" },
   { rule: regionConfinementRow, level: 5, name: "Region Confinement (Row)" },
-  { rule: regionConfinementColumn, level: 5, name: "Region Confinement (Column)" },
+  {
+    rule: regionConfinementColumn,
+    level: 5,
+    name: "Region Confinement (Column)",
+  },
   { rule: lineConfinementRow, level: 5, name: "Line Confinement (Row)" },
   { rule: lineConfinementColumn, level: 5, name: "Line Confinement (Column)" },
   { rule: adjacentRegionCapacity, level: 12, name: "Adjacent Region Capacity" },
   { rule: reservedAreaExclusions, level: 12, name: "Reserved Area Exclusions" },
   { rule: adjacentLineAnalysis, level: 12, name: "Adjacent Line Analysis" },
-  { rule: hypotheticalRowCapacity, level: 20, name: "Hypothetical Row Capacity" },
-  { rule: hypotheticalColumnCapacity, level: 20, name: "Hypothetical Column Capacity" },
-  { rule: hypotheticalRegionCapacity, level: 20, name: "Hypothetical Region Capacity" },
+  {
+    rule: hypotheticalRowCapacity,
+    level: 20,
+    name: "Hypothetical Row Capacity",
+  },
+  {
+    rule: hypotheticalColumnCapacity,
+    level: 20,
+    name: "Hypothetical Column Capacity",
+  },
+  {
+    rule: hypotheticalRegionCapacity,
+    level: 20,
+    name: "Hypothetical Region Capacity",
+  },
   { rule: hypotheticalOneByNBreak, level: 20, name: "Hypothetical 1×N Break" },
-  { rule: hypotheticalTwoByTwoBreak, level: 20, name: "Hypothetical 2×2 Break" },
-  { rule: hypotheticalFreeOverflow, level: 20, name: "Hypothetical Free Overflow" },
+  {
+    rule: hypotheticalTwoByTwoBreak,
+    level: 20,
+    name: "Hypothetical 2×2 Break",
+  },
+ 
 ];
 
 /** Rule metadata for external use (e.g., CLI reporting) */
