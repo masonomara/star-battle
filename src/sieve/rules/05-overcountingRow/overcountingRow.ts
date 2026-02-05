@@ -1,5 +1,5 @@
 /**
- * Rule 12c: Line Confinement (Row)
+ * Rule 12c: Overcounting (Row)
  *
  * When n rows are confined to n regions (only touch those regions) and need all the stars
  * those regions can provide, cells in those regions outside those rows can be marked.
@@ -10,7 +10,7 @@
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 
-export default function lineConfinementRow(
+export default function overcountingRow(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

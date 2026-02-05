@@ -1,5 +1,5 @@
 /**
- * Rule 12b: Region Confinement (Column)
+ * Rule 12b: Undercounting (Column)
  *
  * When n regions are confined to n columns and need all the stars those columns can provide,
  * cells in those columns outside those regions can be marked.
@@ -10,7 +10,7 @@
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 
-export default function regionConfinementColumn(
+export default function undercountingColumn(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

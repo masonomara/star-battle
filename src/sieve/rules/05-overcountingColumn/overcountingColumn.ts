@@ -1,5 +1,5 @@
 /**
- * Rule 12d: Line Confinement (Column)
+ * Rule 12d: Overcounting (Column)
  *
  * When n columns are confined to n regions (only touch those regions) and need all the stars
  * those regions can provide, cells in those regions outside those columns can be marked.
@@ -10,7 +10,7 @@
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 
-export default function lineConfinementColumn(
+export default function overcountingColumn(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

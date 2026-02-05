@@ -1,10 +1,10 @@
 import { Board, CellState } from "../helpers/types";
 import { BoardAnalysis } from "../helpers/boardAnalysis";
 
-import regionConfinementRow from "./05-regionConfinementRow/regionConfinementRow";
-import regionConfinementColumn from "./05-regionConfinementColumn/regionConfinementColumn";
-import lineConfinementRow from "./05-lineConfinementRow/lineConfinementRow";
-import lineConfinementColumn from "./05-lineConfinementColumn/lineConfinementColumn";
+import undercountingRow from "./05-undercountingRow/undercountingRow";
+import undercountingColumn from "./05-undercountingColumn/undercountingColumn";
+import overcountingRow from "./05-overcountingRow/overcountingRow";
+import overcountingColumn from "./05-overcountingColumn/overcountingColumn";
 import overflowRow from "./05-confinementOverflow/overflowRow";
 import overflowColumn from "./05-confinementOverflow/overflowColumn";
 import hypotheticalRowCapacity from "./99-hypotheticalRowCapacity/hypotheticalRowCapacity";
@@ -25,12 +25,11 @@ import trivialRegion from "./01-direct-inferences/trivialMarks/trivialRegion";
 import forcedRow from "./01-direct-inferences/forcedPlacements/forcedRow";
 import forcedColumn from "./01-direct-inferences/forcedPlacements/forcedColumn";
 import forcedRegion from "./01-direct-inferences/forcedPlacements/forcedRegion";
-import tilingForcedRow from "./03-twoByTwoTiling/tilingForcedRow"
-import tilingForcedColumn from "./03-twoByTwoTiling/tilingForcedColumn"
-import tilingOverhangMarks from "./03-twoByTwoTiling/tilingOverhangMarks"
+import tilingForcedRow from "./03-twoByTwoTiling/tilingForcedRow";
+import tilingForcedColumn from "./03-twoByTwoTiling/tilingForcedColumn";
+import tilingOverhangMarks from "./03-twoByTwoTiling/tilingOverhangMarks";
 
-import tilingForcedRegion from "./03-twoByTwoTiling/tilingForcedRegion"
-
+import tilingForcedRegion from "./03-twoByTwoTiling/tilingForcedRegion";
 
 export type Rule = (
   board: Board,
@@ -52,6 +51,10 @@ export const allRules: RuleEntry[] = [
   { rule: forcedRow, level: 1, name: "Forced Rows" },
   { rule: forcedColumn, level: 1, name: "Forced Columns" },
   { rule: forcedRegion, level: 1, name: "Forced Regions" },
+  { rule: undercountingRow, level: 2, name: "Undercounting (Row)" },
+  { rule: undercountingColumn, level: 2, name: "Undercounting (Column)" },
+  { rule: overcountingRow, level: 2, name: "Overcounting (Row)" },
+  { rule: overcountingColumn, level: 2, name: "Overcounting (Column)" },
   { rule: excludedRow, level: 3, name: "Excluded Rows" },
   { rule: excludedColumn, level: 3, name: "Excluded Columns" },
   { rule: overflowRow, level: 4, name: "Confinement Overflow (Row)" },
@@ -61,14 +64,7 @@ export const allRules: RuleEntry[] = [
   { rule: tilingForcedRegion, level: 4, name: "Tiling Forced Regions" },
   { rule: tilingAdjacencyMarks, level: 4, name: "Tiling Adjacency Marks" },
   { rule: tilingOverhangMarks, level: 4, name: "Tiling Overhang Marks" },
-  { rule: regionConfinementRow, level: 5, name: "Region Confinement (Row)" },
-  {
-    rule: regionConfinementColumn,
-    level: 5,
-    name: "Region Confinement (Column)",
-  },
-  { rule: lineConfinementRow, level: 5, name: "Line Confinement (Row)" },
-  { rule: lineConfinementColumn, level: 5, name: "Line Confinement (Column)" },
+
   { rule: adjacentRegionCapacity, level: 12, name: "Adjacent Region Capacity" },
   { rule: reservedAreaExclusions, level: 12, name: "Reserved Area Exclusions" },
   { rule: adjacentLineAnalysis, level: 12, name: "Adjacent Line Analysis" },
@@ -93,7 +89,6 @@ export const allRules: RuleEntry[] = [
     level: 20,
     name: "Hypothetical 2×2 Break",
   },
- 
 ];
 
 /** Rule metadata for external use (e.g., CLI reporting) */
