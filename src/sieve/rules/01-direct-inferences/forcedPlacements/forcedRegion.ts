@@ -14,8 +14,9 @@ export default function forcedRegion(
       meta.starsNeeded > 0 &&
       meta.unknownCoords.length === meta.starsNeeded
     ) {
-      const [r, c] = meta.unknownCoords[0];
-      cells[r][c] = "star";
+      for (const [r, c] of meta.unknownCoords) {
+        cells[r][c] = "star";
+      }
       return true;
     }
   }

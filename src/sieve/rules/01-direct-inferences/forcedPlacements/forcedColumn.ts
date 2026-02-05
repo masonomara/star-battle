@@ -18,8 +18,9 @@ export default function forcedColumn(
     }
     const needed = board.stars - stars;
     if (needed > 0 && unknowns.length === needed) {
-      const [r, c] = unknowns[0];
-      cells[r][c] = "star";
+      for (const [r, c] of unknowns) {
+        cells[r][c] = "star";
+      }
       return true;
     }
   }
