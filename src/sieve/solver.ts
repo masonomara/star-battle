@@ -1,5 +1,6 @@
 import { Board, CellState, SolverResult } from "./helpers/types";
 import { buildBoardAnalysis } from "./helpers/boardAnalysis";
+import { checkProgress } from "./helpers/checkProgress";
 import * as board from "./helpers/board";
 import { allRules } from "./rules";
 
@@ -42,9 +43,10 @@ export function solve(
     cycles++;
 
     const analysis = buildBoardAnalysis(boardDef, cells);
+    const status = checkProgress(boardDef, cells, analysis);
 
-    if (analysis.status === "solved") return { cells, cycles, maxLevel };
-    if (analysis.status === "invalid") return null;
+    if (status === "solved") return { cells, cycles, maxLevel };
+    if (status === "invalid") return null;
 
     const applied = allRules.find(({ rule }) => rule(boardDef, cells, analysis));
 

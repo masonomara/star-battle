@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { solve, board } from "./solver";
 import { buildBoardAnalysis } from "./helpers/boardAnalysis";
+import { checkProgress } from "./helpers/checkProgress";
 import { Board, CellState } from "./helpers/types";
 
 describe("board.isValid", () => {
@@ -58,7 +59,7 @@ describe("buildBoardAnalysis status", () => {
         ["marked", "marked", "star", "marked"],
       ];
 
-      expect(buildBoardAnalysis(b, cells).status).toBe("solved");
+      expect(checkProgress(b, cells, buildBoardAnalysis(b, cells))).toBe("solved");
     });
   });
 
@@ -80,7 +81,7 @@ describe("buildBoardAnalysis status", () => {
         ["marked", "marked", "marked", "marked"],
       ];
 
-      expect(buildBoardAnalysis(b, cells).status).toBe("invalid");
+      expect(checkProgress(b, cells, buildBoardAnalysis(b, cells))).toBe("invalid");
     });
 
     it("when stars are vertically adjacent", () => {
@@ -100,7 +101,7 @@ describe("buildBoardAnalysis status", () => {
         ["marked", "marked", "marked", "marked"],
       ];
 
-      expect(buildBoardAnalysis(b, cells).status).toBe("invalid");
+      expect(checkProgress(b, cells, buildBoardAnalysis(b, cells))).toBe("invalid");
     });
 
     it("when stars are diagonally adjacent", () => {
@@ -120,7 +121,7 @@ describe("buildBoardAnalysis status", () => {
         ["marked", "marked", "marked", "marked"],
       ];
 
-      expect(buildBoardAnalysis(b, cells).status).toBe("invalid");
+      expect(checkProgress(b, cells, buildBoardAnalysis(b, cells))).toBe("invalid");
     });
 
     it("when row has insufficient capacity", () => {
@@ -140,7 +141,7 @@ describe("buildBoardAnalysis status", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      expect(buildBoardAnalysis(b, cells).status).toBe("invalid");
+      expect(checkProgress(b, cells, buildBoardAnalysis(b, cells))).toBe("invalid");
     });
 
     it("when column has insufficient capacity", () => {
@@ -160,7 +161,7 @@ describe("buildBoardAnalysis status", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      expect(buildBoardAnalysis(b, cells).status).toBe("invalid");
+      expect(checkProgress(b, cells, buildBoardAnalysis(b, cells))).toBe("invalid");
     });
 
     it("when region has insufficient capacity", () => {
@@ -180,7 +181,7 @@ describe("buildBoardAnalysis status", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      expect(buildBoardAnalysis(b, cells).status).toBe("invalid");
+      expect(checkProgress(b, cells, buildBoardAnalysis(b, cells))).toBe("invalid");
     });
   });
 
@@ -202,7 +203,7 @@ describe("buildBoardAnalysis status", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      expect(buildBoardAnalysis(b, cells).status).toBe("valid");
+      expect(checkProgress(b, cells, buildBoardAnalysis(b, cells))).toBe("valid");
     });
 
     it("for partially solved board", () => {
@@ -222,7 +223,7 @@ describe("buildBoardAnalysis status", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      expect(buildBoardAnalysis(b, cells).status).toBe("valid");
+      expect(checkProgress(b, cells, buildBoardAnalysis(b, cells))).toBe("valid");
     });
   });
 });
