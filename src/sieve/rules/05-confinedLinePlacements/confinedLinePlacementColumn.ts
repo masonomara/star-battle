@@ -1,5 +1,5 @@
 /**
- * Rule: Confinement Overflow (Column)
+ * Rule: Confined Line Placements (Column)
  *
  * When a column's remaining quota can't satisfy a region's star need,
  * the region must place the overflow outside that column.
@@ -11,7 +11,7 @@ import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { applyDeductions } from "../../helpers/applyDeductions";
 import { detectQuotaOverflow } from "./detectQuotaOverflow";
 
-export default function overflowColumn(
+export default function confinedLinePlacementColumn(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

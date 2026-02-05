@@ -1,15 +1,15 @@
 /**
- * Rule 09a: Confinement Mark Remainder (Row)
+ * Rule: Confined Line Marks (Column)
  *
- * When confined regions account for all stars a row needs,
- * mark the remaining cells in that row.
+ * When confined regions account for all stars a column needs,
+ * mark the remaining cells in that column.
  */
 
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { computeConfinement } from "../../helpers/confinement";
 
-export default function excludedRow(
+export default function confinedLineMarkColumn(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
@@ -17,12 +17,12 @@ export default function excludedRow(
   if (board.grid.length === 0) return false;
 
   const confinement = computeConfinement(analysis);
-  const numCols = board.grid[0]?.length ?? 0;
+  const numRows = board.grid.length;
 
   let changed = false;
 
-  for (const [rowIndex, regions] of confinement.row) {
-    const quota = board.stars - analysis.rowStars[rowIndex];
+  for (const [colIndex, regions] of confinement.col) {
+    const quota = board.stars - analysis.colStars[colIndex];
     if (quota <= 0) continue;
 
     const totalContribution = regions.reduce(
@@ -38,12 +38,12 @@ export default function excludedRow(
       }
     }
 
-    for (let col = 0; col < numCols; col++) {
+    for (let row = 0; row < numRows; row++) {
       if (
-        cells[rowIndex][col] === "unknown" &&
-        !contributing.has(`${rowIndex},${col}`)
+        cells[row][colIndex] === "unknown" &&
+        !contributing.has(`${row},${colIndex}`)
       ) {
-        cells[rowIndex][col] = "marked";
+        cells[row][colIndex] = "marked";
         changed = true;
       }
     }

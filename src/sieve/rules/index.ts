@@ -5,8 +5,8 @@ import undercountingRow from "./05-undercountingRow/undercountingRow";
 import undercountingColumn from "./05-undercountingColumn/undercountingColumn";
 import overcountingRow from "./05-overcountingRow/overcountingRow";
 import overcountingColumn from "./05-overcountingColumn/overcountingColumn";
-import overflowRow from "./05-confinementOverflow/overflowRow";
-import overflowColumn from "./05-confinementOverflow/overflowColumn";
+import confinedLinePlacementRow from "./05-confinedLinePlacements/confinedLinePlacementRow";
+import confinedLinePlacementColumn from "./05-confinedLinePlacements/confinedLinePlacementColumn";
 import hypotheticalRowCapacity from "./99-hypotheticalRowCapacity/hypotheticalRowCapacity";
 import hypotheticalColumnCapacity from "./99-hypotheticalColumnCapacity/hypotheticalColumnCapacity";
 import hypotheticalRegionCapacity from "./99-hypotheticalRegionCapacity/hypotheticalRegionCapacity";
@@ -15,8 +15,8 @@ import hypotheticalTwoByTwoBreak from "./99-hypotheticalTwoByTwoBreak/hypothetic
 import adjacentRegionCapacity from "./99-adjacentRegionCapacity/adjacentRegionCapacity";
 import reservedAreaExclusions from "./99-reservedAreaExclusions/reservedAreaExclusions";
 import adjacentLineAnalysis from "./99-adjacentLineAnalysis/adjacentLineAnalysis";
-import excludedRow from "./03-excludedAreas/excludedRow";
-import excludedColumn from "./03-excludedAreas/excludedColumn";
+import confinedLineMarkRow from "./03-confinedLineMarks/confinedLineMarkRow";
+import confinedLineMarkColumn from "./03-confinedLineMarks/confinedLineMarkColumn";
 import tilingAdjacencyMarks from "./03-twoByTwoTiling/tilingAdjacencyMarks";
 import starNeighbors from "./01-direct-inferences/starNeighbors/starNeighbors";
 import trivialRow from "./01-direct-inferences/trivialMarks/trivialRow";
@@ -51,14 +51,14 @@ export const allRules: RuleEntry[] = [
   { rule: forcedRow, level: 1, name: "Forced Rows" },
   { rule: forcedColumn, level: 1, name: "Forced Columns" },
   { rule: forcedRegion, level: 1, name: "Forced Regions" },
-  { rule: undercountingRow, level: 2, name: "Undercounting (Row)" },
-  { rule: undercountingColumn, level: 2, name: "Undercounting (Column)" },
-  { rule: overcountingRow, level: 2, name: "Overcounting (Row)" },
-  { rule: overcountingColumn, level: 2, name: "Overcounting (Column)" },
-  { rule: excludedRow, level: 3, name: "Excluded Rows" },
-  { rule: excludedColumn, level: 3, name: "Excluded Columns" },
-  { rule: overflowRow, level: 4, name: "Confinement Overflow (Row)" },
-  { rule: overflowColumn, level: 4, name: "Confinement Overflow (Column)" },
+  { rule: undercountingRow, level: 2, name: "Undercounted Rows" },
+  { rule: undercountingColumn, level: 2, name: "Undercounted COlumns" },
+  { rule: overcountingRow, level: 2, name: "Overcounted Rows" },
+  { rule: overcountingColumn, level: 2, name: "Overcounted Columns" },
+  { rule: confinedLineMarkRow, level: 3, name: "Confined Line Marks (Row)" },
+  { rule: confinedLineMarkColumn, level: 3, name: "Confined Line Marks (Column)" },
+  { rule: confinedLinePlacementRow, level: 4, name: "Confined Line Placements (Row)" },
+  { rule: confinedLinePlacementColumn, level: 4, name: "Confined Line Placements (Column)" },
   { rule: tilingForcedRow, level: 4, name: "Tiling Forced Rows" },
   { rule: tilingForcedColumn, level: 4, name: "Tiling Forced Columns" },
   { rule: tilingForcedRegion, level: 4, name: "Tiling Forced Regions" },
