@@ -1,7 +1,7 @@
 import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
 import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
-import tilingAdjacencyMarks from "./tilingAdjacencyMarks";
+import tilingAdjacencyMarks from "./04-tilingAdjacencyMarks/tilingAdjacencyMarks";
 
 describe("08c. Tiling Adjacency Marks", () => {
   describe("Basic adjacency marking", () => {

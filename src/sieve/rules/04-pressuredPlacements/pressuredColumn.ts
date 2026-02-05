@@ -16,7 +16,7 @@ import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { computeTiling } from "../../helpers/tiling";
 
-export default function regionLineOverflowColumn(
+export default function pressuredColumn(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

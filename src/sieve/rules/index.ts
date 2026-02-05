@@ -4,13 +4,12 @@ import starNeighbors from "./00-starNeighbors/starNeighbors";
 import tilingForcedRow from "./04-tilingForcedPlacements/tilingForcedRow";
 import tilingForcedColumn from "./04-tilingForcedPlacements/tilingForcedColumn";
 import tilingOverhangMarks from "./04-tilingOverhangMarks/tilingOverhangMarks";
-import tilingAdjacencyMarks from "./04-tilingAdjacencyMarks/tilingAdjacencyMarks";
 import regionConfinementRow from "./05-regionConfinementRow/regionConfinementRow";
 import regionConfinementColumn from "./05-regionConfinementColumn/regionConfinementColumn";
 import lineConfinementRow from "./05-lineConfinementRow/lineConfinementRow";
 import lineConfinementColumn from "./05-lineConfinementColumn/lineConfinementColumn";
-import regionLineOverflowRow from "./03-confinementOverflowRow/regionLineOverflowRow";
-import regionLineOverflowColumn from "./03-confinementOverflowColumn/regionLineOverflowColumn";
+import pressuredRow from "./04-pressuredPlacements/pressuredRow";
+import pressuredColumn from "./04-pressuredPlacements/pressuredColumn";
 import hypotheticalRowCapacity from "./99-hypotheticalRowCapacity/hypotheticalRowCapacity";
 import hypotheticalColumnCapacity from "./99-hypotheticalColumnCapacity/hypotheticalColumnCapacity";
 import hypotheticalRegionCapacity from "./99-hypotheticalRegionCapacity/hypotheticalRegionCapacity";
@@ -29,6 +28,7 @@ import forcedRegion from "./02-forcedPlacements/forcedRegion";
 import excludedRow from "./03-excludedAreas/excludedRow";
 import excludedColumn from "./03-excludedAreas/excludedColumn";
 import tilingForcedRegion from "./04-tilingForcedPlacements/tilingForcedRegion";
+import tilingAdjacencyMarks from "./03-twoByTwoTiling/tilingAdjacencyMarks";
 
 
 export type Rule = (
@@ -53,8 +53,8 @@ export const allRules: RuleEntry[] = [
   { rule: forcedRegion, level: 2, name: "Forced Regions" },
   { rule: excludedRow, level: 3, name: "Excluded Rows" },
   { rule: excludedColumn, level: 3, name: "Excluded Columns" },
-  { rule: regionLineOverflowRow, level: 4, name: "Confinement Overflow (Row)" },
-  { rule: regionLineOverflowColumn, level: 4, name: "Confinement Overflow (Column)" },
+  { rule: pressuredRow, level: 4, name: "Pressured Rows" },
+  { rule: pressuredColumn, level: 4, name: "Pressured Columns" },
   { rule: tilingForcedRow, level: 4, name: "Tiling Forced Rows" },
   { rule: tilingForcedColumn, level: 4, name: "Tiling Forced Columns" },
   { rule: tilingForcedRegion, level: 4, name: "Tiling Forced Regions" },
