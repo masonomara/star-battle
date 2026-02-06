@@ -137,24 +137,23 @@ describe("Reserved Area Row", () => {
     expect(cells[1][2]).toBe("marked");
   });
 
-  it("returns false when no saturation exists", () => {
+  it("returns false when no row saturation exists", () => {
+    // Vertical stripe regions — no row set is saturated
     const board: Board = {
       grid: [
-        [0, 0, 1, 1, 1],
-        [0, 0, 1, 2, 2],
-        [3, 3, 3, 2, 2],
-        [3, 4, 4, 4, 4],
-        [3, 4, 4, 4, 4],
+        [0, 1, 2, 3],
+        [0, 1, 2, 3],
+        [0, 1, 2, 3],
+        [0, 1, 2, 3],
       ],
       stars: 1,
     };
 
     const cells: CellState[][] = [
-      ["unknown", "unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown", "unknown"],
-      ["unknown", "unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
     ];
 
     const result = run(board, cells);
