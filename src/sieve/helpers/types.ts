@@ -77,6 +77,11 @@ export type SieveStats = {
   failures: Record<FailureReason, number>;
 };
 
+// Compute difficulty score from solve metrics
+export function computeDifficulty(maxLevel: number, cycles: number): number {
+  return Math.round(maxLevel * 4 + cycles / 4);
+}
+
 // Typed error for generator failures
 export class GeneratorError extends Error {
   constructor(

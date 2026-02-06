@@ -2,7 +2,7 @@ import * as fs from "fs";
 import { sieve } from "./sieve";
 import { layout } from "./generator";
 import { solve, board, StepInfo, RULE_METADATA } from "./solver";
-import { Board, CellState } from "./helpers/types";
+import { Board, CellState, computeDifficulty } from "./helpers/types";
 import { parsePuzzle } from "./helpers/parsePuzzle";
 
 function parseArgs(): Record<string, string> {
@@ -108,7 +108,7 @@ async function main() {
     });
     const traceTime = ((Date.now() - traceStart) / 1000).toFixed(2);
     const difficulty = result
-      ? Math.round(result.maxLevel * 4 + result.cycles / 4)
+      ? computeDifficulty(result.maxLevel, result.cycles)
       : null;
     console.log(
       result
@@ -191,7 +191,7 @@ function solveFromInput(input: string, stars: number) {
 
   const solveTime = ((Date.now() - solveStart) / 1000).toFixed(2);
   const difficulty = result
-    ? Math.round(result.maxLevel * 4 + result.cycles / 4)
+    ? computeDifficulty(result.maxLevel, result.cycles)
     : null;
   console.log(
     result
@@ -333,7 +333,7 @@ async function solveSbfFile(
 
     if (result) {
       solved++;
-      const difficulty = Math.round(result.maxLevel * 4 + result.cycles / 4);
+      const difficulty = computeDifficulty(result.maxLevel, result.cycles);
       difficulties.push(difficulty);
 
       if (trace) {

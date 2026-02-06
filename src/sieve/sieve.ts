@@ -1,11 +1,9 @@
 import { generate, layout } from "./generator";
 import { solve } from "./solver";
-import { GeneratorError, Puzzle, SieveStats, Solution } from "./helpers/types";
+import { computeDifficulty, GeneratorError, Puzzle, SieveStats, Solution } from "./helpers/types";
 
-// Assign difficulty based on solve metrics
-// Formula: maxLevel * 4 + cycles / 4
 function assignDifficulty(solution: Solution): Puzzle {
-  const difficulty = Math.round(solution.maxLevel * 5 + solution.cycles / 5);
+  const difficulty = computeDifficulty(solution.maxLevel, solution.cycles);
   return { ...solution, difficulty };
 }
 
