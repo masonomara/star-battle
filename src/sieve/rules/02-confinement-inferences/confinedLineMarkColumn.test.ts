@@ -1,7 +1,7 @@
 import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
 import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
-import confinedLineMarkColumn from "./confinedLineMarkColumn";
+import confinedLineMarkColumn from "../03-confinedLineMarks/confinedLineMarkColumn";
 
 function run(board: Board, cells: CellState[][]): boolean {
   const analysis = buildBoardAnalysis(board, cells);

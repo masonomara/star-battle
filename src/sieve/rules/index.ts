@@ -1,12 +1,12 @@
 import { Board, CellState } from "../helpers/types";
 import { BoardAnalysis } from "../helpers/boardAnalysis";
 
-import undercountingRow from "./05-undercountingRow/undercountingRow";
-import undercountingColumn from "./05-undercountingColumn/undercountingColumn";
-import overcountingRow from "./05-overcountingRow/overcountingRow";
-import overcountingColumn from "./05-overcountingColumn/overcountingColumn";
-import confinedLinePlacementRow from "./05-confinedLinePlacements/confinedLinePlacementRow";
-import confinedLinePlacementColumn from "./05-confinedLinePlacements/confinedLinePlacementColumn";
+import undercountingRow from "./02-confinement-inferences/undercountingRow";
+import undercountingColumn from "./02-confinement-inferences/undercountingColumn";
+import overcountingRow from "./02-confinement-inferences/overcountingRow";
+import overcountingColumn from "./02-confinement-inferences/overcountingColumn";
+import confinedLinePlacementRow from "./02-confinement-inferences/confinedLinePlacementRow";
+import confinedLinePlacementColumn from "./02-confinement-inferences/confinedLinePlacementColumn";
 import hypotheticalRowCapacity from "./99-hypotheticalRowCapacity/hypotheticalRowCapacity";
 import hypotheticalColumnCapacity from "./99-hypotheticalColumnCapacity/hypotheticalColumnCapacity";
 import hypotheticalRegionCapacity from "./99-hypotheticalRegionCapacity/hypotheticalRegionCapacity";
@@ -15,8 +15,8 @@ import hypotheticalTwoByTwoBreak from "./99-hypotheticalTwoByTwoBreak/hypothetic
 import adjacentRegionCapacity from "./99-adjacentRegionCapacity/adjacentRegionCapacity";
 import reservedAreaExclusions from "./99-reservedAreaExclusions/reservedAreaExclusions";
 import adjacentLineAnalysis from "./99-adjacentLineAnalysis/adjacentLineAnalysis";
-import confinedLineMarkRow from "./03-confinedLineMarks/confinedLineMarkRow";
-import confinedLineMarkColumn from "./03-confinedLineMarks/confinedLineMarkColumn";
+import confinedLineMarkRow from "./02-confinement-inferences/confinedLineMarkRow";
+import confinedLineMarkColumn from "./02-confinement-inferences/confinedLineMarkColumn";
 import tilingAdjacencyMarks from "./03-twoByTwoTiling/tilingAdjacencyMarks";
 import starNeighbors from "./01-direct-inferences/starNeighbors/starNeighbors";
 import trivialRow from "./01-direct-inferences/trivialMarks/trivialRow";
