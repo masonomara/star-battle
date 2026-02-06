@@ -1,12 +1,10 @@
 import { Board, CellState } from "../helpers/types";
 import { BoardAnalysis } from "../helpers/boardAnalysis";
 
-import undercountingRow from "./02-confinement-inferences/undercountingRow";
-import undercountingColumn from "./02-confinement-inferences/undercountingColumn";
-import overcountingRow from "./02-confinement-inferences/overcountingRow";
-import overcountingColumn from "./02-confinement-inferences/overcountingColumn";
-import confinedLinePlacementRow from "./02-confinement-inferences/confinedLinePlacementRow";
-import confinedLinePlacementColumn from "./02-confinement-inferences/confinedLinePlacementColumn";
+import undercountingRow from "./02-confinement-inferences/undercounting/undercountingRow";
+import undercountingColumn from "./02-confinement-inferences/undercounting/undercountingColumn";
+import overcountingRow from "./02-confinement-inferences/overcounting/overcountingRow";
+import overcountingColumn from "./02-confinement-inferences/overcounting/overcountingColumn";
 import hypotheticalRowCapacity from "./99-hypotheticalRowCapacity/hypotheticalRowCapacity";
 import hypotheticalColumnCapacity from "./99-hypotheticalColumnCapacity/hypotheticalColumnCapacity";
 import hypotheticalRegionCapacity from "./99-hypotheticalRegionCapacity/hypotheticalRegionCapacity";
@@ -15,8 +13,6 @@ import hypotheticalTwoByTwoBreak from "./99-hypotheticalTwoByTwoBreak/hypothetic
 import adjacentRegionCapacity from "./99-adjacentRegionCapacity/adjacentRegionCapacity";
 import reservedAreaExclusions from "./99-reservedAreaExclusions/reservedAreaExclusions";
 import adjacentLineAnalysis from "./99-adjacentLineAnalysis/adjacentLineAnalysis";
-import confinedLineMarkRow from "./02-confinement-inferences/confinedLineMarkRow";
-import confinedLineMarkColumn from "./02-confinement-inferences/confinedLineMarkColumn";
 import tilingAdjacencyMarks from "./03-twoByTwoTiling/tilingAdjacencyMarks";
 import starNeighbors from "./01-direct-inferences/starNeighbors/starNeighbors";
 import trivialRow from "./01-direct-inferences/trivialMarks/trivialRow";
@@ -30,6 +26,8 @@ import tilingForcedColumn from "./03-twoByTwoTiling/tilingForcedColumn";
 import tilingOverhangMarks from "./03-twoByTwoTiling/tilingOverhangMarks";
 
 import tilingForcedRegion from "./03-twoByTwoTiling/tilingForcedRegion";
+import confinedPlacementRow from "./02-confinement-inferences/confinedPlacements/confinedPlacementRow";
+import confinedPlacementColumn from "./02-confinement-inferences/confinedPlacements/confinedPlacementColumn";
 
 export type Rule = (
   board: Board,
@@ -52,19 +50,16 @@ export const allRules: RuleEntry[] = [
   { rule: forcedColumn, level: 1, name: "Forced Columns" },
   { rule: forcedRegion, level: 1, name: "Forced Regions" },
   { rule: undercountingRow, level: 2, name: "Undercounted Rows" },
-  { rule: undercountingColumn, level: 2, name: "Undercounted COlumns" },
+  { rule: undercountingColumn, level: 2, name: "Undercounted Columns" },
   { rule: overcountingRow, level: 2, name: "Overcounted Rows" },
   { rule: overcountingColumn, level: 2, name: "Overcounted Columns" },
-  { rule: confinedLineMarkRow, level: 3, name: "Confined Line Marks (Row)" },
-  { rule: confinedLineMarkColumn, level: 3, name: "Confined Line Marks (Column)" },
-  { rule: confinedLinePlacementRow, level: 4, name: "Confined Line Placements (Row)" },
-  { rule: confinedLinePlacementColumn, level: 4, name: "Confined Line Placements (Column)" },
+  { rule: confinedPlacementColumn, level: 2, name: "Confined Row" },
+  { rule: confinedPlacementRow, level: 2, name: "Confined Column" },
   { rule: tilingForcedRow, level: 4, name: "Tiling Forced Rows" },
   { rule: tilingForcedColumn, level: 4, name: "Tiling Forced Columns" },
   { rule: tilingForcedRegion, level: 4, name: "Tiling Forced Regions" },
   { rule: tilingAdjacencyMarks, level: 4, name: "Tiling Adjacency Marks" },
   { rule: tilingOverhangMarks, level: 4, name: "Tiling Overhang Marks" },
-
   { rule: adjacentRegionCapacity, level: 12, name: "Adjacent Region Capacity" },
   { rule: reservedAreaExclusions, level: 12, name: "Reserved Area Exclusions" },
   { rule: adjacentLineAnalysis, level: 12, name: "Adjacent Line Analysis" },

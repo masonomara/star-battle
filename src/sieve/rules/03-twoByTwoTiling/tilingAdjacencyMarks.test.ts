@@ -1,7 +1,7 @@
 import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
 import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
-import tilingAdjacencyMarks from "./04-tilingAdjacencyMarks/tilingAdjacencyMarks";
+import tilingAdjacencyMarks from "./tilingAdjacencyMarks";
 
 describe("08c. Tiling Adjacency Marks", () => {
   describe("Basic adjacency marking", () => {
@@ -66,19 +66,22 @@ describe("08c. Tiling Adjacency Marks", () => {
 
   describe("Edge cases", () => {
     it("returns false when minTiles !== starsNeeded", () => {
+      // Two 4x2 regions each need capacity=2 tiles but only starsNeeded=1
       const board: Board = {
         grid: [
-          [0, 0, 0],
-          [0, 0, 1],
-          [1, 1, 1],
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
+          [0, 0, 1, 1],
         ],
         stars: 1,
       };
 
       const cells: CellState[][] = [
-        ["unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown"],
-        ["unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
+        ["unknown", "unknown", "unknown", "unknown"],
       ];
 
       const result = tilingAdjacencyMarks(board, cells, buildBoardAnalysis(board, cells));

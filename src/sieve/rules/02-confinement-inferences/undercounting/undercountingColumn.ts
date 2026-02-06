@@ -7,8 +7,8 @@
  * "These regions live only in these columns. The columns are saturated. Mark what's outside."
  */
 
-import { Board, CellState } from "../../helpers/types";
-import { BoardAnalysis } from "../../helpers/boardAnalysis";
+import { Board, CellState } from "../../../helpers/types";
+import { BoardAnalysis } from "../../../helpers/boardAnalysis";
 
 export default function undercountingColumn(
   board: Board,

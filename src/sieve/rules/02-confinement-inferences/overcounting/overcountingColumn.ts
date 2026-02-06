@@ -7,8 +7,8 @@
  * "These columns can only get stars from these regions. The regions are saturated. Mark what's outside."
  */
 
-import { Board, CellState } from "../../helpers/types";
-import { BoardAnalysis } from "../../helpers/boardAnalysis";
+import { Board, CellState } from "../../../helpers/types";
+import { BoardAnalysis } from "../../../helpers/boardAnalysis";
 
 export default function overcountingColumn(
   board: Board,
