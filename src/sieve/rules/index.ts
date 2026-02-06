@@ -39,8 +39,10 @@ import hypotheticalColumnCapacity from "./08-tiling-hypotheticals/hypotheticalCo
 import hypotheticalRegionCapacity from "./08-tiling-hypotheticals/hypotheticalRegionCapacity";
 import hypotheticalAdjacentRegionBreak from "./08-tiling-hypotheticals/hypotheticalAdjacentRegionBreak";
 
-import finnedUndercounting from "./09-confinement-hypotheticals/finnedUndercounting";
-import finnedOvercounting from "./09-confinement-hypotheticals/finnedOvercounting";
+import hypotheticalUndercountingRow from "./09-confinement-hypotheticals/hypotheticalUndercountingRow";
+import hypotheticalUndercountingColumn from "./09-confinement-hypotheticals/hypotheticalUndercountingColumn";
+import hypotheticalOvercountingRow from "./09-confinement-hypotheticals/hypotheticalOvercountingRow";
+import hypotheticalOvercountingColumn from "./09-confinement-hypotheticals/hypotheticalOvercountingColumn";
 
 export type Rule = (
   board: Board,
@@ -121,8 +123,10 @@ export const allRules: RuleEntry[] = [
 
 
   // Level 9: Confinement Hypotheticals
-  { rule: finnedUndercounting, level: 9, name: "Finned Undercounting" },
-  { rule: finnedOvercounting, level: 9, name: "Finned Overcounting" },
+  { rule: hypotheticalUndercountingRow, level: 9, name: "Hypothetical Undercounting Row" },
+  { rule: hypotheticalUndercountingColumn, level: 9, name: "Hypothetical Undercounting Column" },
+  { rule: hypotheticalOvercountingRow, level: 9, name: "Hypothetical Overcounting Row" },
+  { rule: hypotheticalOvercountingColumn, level: 9, name: "Hypothetical Overcounting Column" },
 ];
 
 /** Rule metadata for external use (e.g., CLI reporting) */
