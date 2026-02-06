@@ -35,8 +35,6 @@ import hypotheticalRegionCapacity from "./08-tiling-hypotheticals/hypotheticalRe
 import hypotheticalAdjacentRegionBreak from "./08-tiling-hypotheticals/hypotheticalAdjacentRegionBreak";
 import hypotheticalTwoByTwoBreak from "./08-tiling-hypotheticals/hypotheticalTwoByTwoBreak";
 
-import hypotheticalBindedPlacement from "./09-confinement-hypotheticals/hypotheticalBindedPlacement";
-
 export type Rule = (
   board: Board,
   cells: CellState[][],
@@ -114,11 +112,6 @@ export const allRules: RuleEntry[] = [
   },
 
   // Level 9: Confinement Hypotheticals
-  {
-    rule: hypotheticalBindedPlacement,
-    level: 9,
-    name: "Hypothetical Binded Placement",
-  },
 ];
 
 /** Rule metadata for external use (e.g., CLI reporting) */
