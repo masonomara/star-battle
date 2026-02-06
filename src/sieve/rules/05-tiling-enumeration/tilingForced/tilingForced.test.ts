@@ -1,18 +1,173 @@
 import { Board, CellState } from "../../../helpers/types";
 import { describe, it, expect } from "vitest";
 import { buildBoardAnalysis } from "../../../helpers/boardAnalysis";
-import tilingForcedRegion from "./tilingForcedRegion";
+import {
+  tilingForcedRow,
+  tilingForcedColumn,
+  tilingForcedRegion,
+} from "./tilingForced";
 
-function run(board: Board, cells: CellState[][]): boolean {
-  const analysis = buildBoardAnalysis(board, cells);
-  return tilingForcedRegion(board, cells, analysis);
-}
+describe("08a. Tiling Forced Stars (Row)", () => {
+  function run(board: Board, cells: CellState[][]): boolean {
+    const analysis = buildBoardAnalysis(board, cells);
+    return tilingForcedRow(board, cells, analysis);
+  }
+
+  it("places star when row tiling has forced cell", () => {
+    const board: Board = {
+      grid: [
+        [0, 0, 0, 0],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+      ],
+      stars: 2,
+    };
+
+    const cells: CellState[][] = [
+      ["unknown", "marked", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+    ];
+
+    const result = run(board, cells);
+
+    expect(result).toBe(true);
+    expect(cells[0][0]).toBe("star");
+  });
+
+  it("returns false when row has slack (capacity > needed)", () => {
+    const board: Board = {
+      grid: [
+        [0, 0, 0, 0],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+      ],
+      stars: 1,
+    };
+
+    const cells: CellState[][] = [
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+    ];
+
+    const result = run(board, cells);
+
+    expect(result).toBe(false);
+  });
+
+  it("skips row when stars already placed", () => {
+    const board: Board = {
+      grid: [
+        [0, 0, 0, 0],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+      ],
+      stars: 1,
+    };
+
+    const cells: CellState[][] = [
+      ["star", "marked", "marked", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+    ];
+
+    const result = run(board, cells);
+
+    expect(result).toBe(false);
+  });
+});
+
+describe("08b. Tiling Forced Stars (Column)", () => {
+  function run(board: Board, cells: CellState[][]): boolean {
+    const analysis = buildBoardAnalysis(board, cells);
+    return tilingForcedColumn(board, cells, analysis);
+  }
+
+  it("places star when column tiling has forced cell", () => {
+    const board: Board = {
+      grid: [
+        [0, 1, 1, 1],
+        [0, 1, 1, 1],
+        [0, 1, 1, 1],
+        [0, 1, 1, 1],
+      ],
+      stars: 2,
+    };
+
+    const cells: CellState[][] = [
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["marked", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+    ];
+
+    const result = run(board, cells);
+
+    expect(result).toBe(true);
+    expect(cells[0][0]).toBe("star");
+  });
+
+  it("returns false when column has slack (capacity > needed)", () => {
+    const board: Board = {
+      grid: [
+        [0, 1, 1, 1],
+        [0, 1, 1, 1],
+        [0, 1, 1, 1],
+        [0, 1, 1, 1],
+      ],
+      stars: 1,
+    };
+
+    const cells: CellState[][] = [
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+    ];
+
+    const result = run(board, cells);
+
+    expect(result).toBe(false);
+  });
+
+  it("skips column when stars already placed", () => {
+    const board: Board = {
+      grid: [
+        [0, 1, 1, 1],
+        [0, 1, 1, 1],
+        [0, 1, 1, 1],
+        [0, 1, 1, 1],
+      ],
+      stars: 1,
+    };
+
+    const cells: CellState[][] = [
+      ["star", "unknown", "unknown", "unknown"],
+      ["marked", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+      ["unknown", "unknown", "unknown", "unknown"],
+    ];
+
+    const result = run(board, cells);
+
+    expect(result).toBe(false);
+  });
+});
 
 describe("08c. Tiling Forced Stars (Region)", () => {
+  function run(board: Board, cells: CellState[][]): boolean {
+    const analysis = buildBoardAnalysis(board, cells);
+    return tilingForcedRegion(board, cells, analysis);
+  }
+
   it("places star when tile covers only one region cell", () => {
-    // L-shaped region 0: cells at [0,0], [0,1], [0,2], [1,0], [1,1]
-    // Cell [0,2] is isolated from neighbors within the region
-    // minTiles=2, stars=2 → forced
     const board: Board = {
       grid: [
         [0, 0, 0, 1],
@@ -82,7 +237,6 @@ describe("08c. Tiling Forced Stars (Region)", () => {
   });
 
   it("skips cell when only some tilings have single coverage", () => {
-    // Region 0 is a 2x4 block - multiple tiling options exist
     const board: Board = {
       grid: [
         [0, 0, 0, 0],

@@ -13,7 +13,7 @@ import hypotheticalTwoByTwoBreak from "./99-hypotheticalTwoByTwoBreak/hypothetic
 import adjacentRegionCapacity from "./99-adjacentRegionCapacity/adjacentRegionCapacity";
 import reservedAreaExclusions from "./99-reservedAreaExclusions/reservedAreaExclusions";
 import adjacentLineAnalysis from "./99-adjacentLineAnalysis/adjacentLineAnalysis";
-import tilingAdjacencyMarks from "./03-twoByTwoTiling/tilingAdjacent/tilingAdjacencyMarks";
+import tilingAdjacencyMarks from "./05-tiling-enumeration/tilingAdjacent/tilingAdjacencyMarks";
 import starNeighbors from "./01-direct-inferences/starNeighbors/starNeighbors";
 import trivialRow from "./01-direct-inferences/trivialMarks/trivialRow";
 import trivialColumn from "./01-direct-inferences/trivialMarks/trivialColumn";
@@ -21,11 +21,12 @@ import trivialRegion from "./01-direct-inferences/trivialMarks/trivialRegion";
 import forcedRow from "./01-direct-inferences/forcedPlacements/forcedRow";
 import forcedColumn from "./01-direct-inferences/forcedPlacements/forcedColumn";
 import forcedRegion from "./01-direct-inferences/forcedPlacements/forcedRegion";
-import tilingForcedRow from "./03-twoByTwoTiling/tilingForced/tilingForcedRow";
-import tilingForcedColumn from "./03-twoByTwoTiling/tilingForced/tilingForcedColumn";
-import tilingOverhangMarks from "./03-twoByTwoTiling/tilingOverhang/tilingOverhangMarks";
-
-import tilingForcedRegion from "./03-twoByTwoTiling/tilingForced/tilingForcedRegion";
+import {
+  tilingForcedRow,
+  tilingForcedColumn,
+  tilingForcedRegion,
+} from "./05-tiling-enumeration/tilingForced/tilingForced";
+import tilingOverhangMarks from "./05-tiling-enumeration/tilingOverhang/tilingOverhangMarks";
 import consumedLineRow from "./03-confinement-inferences/consumedLines/consumedLineRow";
 import consumedLineColumn from "./03-confinement-inferences/consumedLines/consumedLineColumn";
 import consumedRegionRow from "./03-confinement-inferences/consumedRegions/consumedRegionRow";
@@ -59,11 +60,11 @@ export const allRules: RuleEntry[] = [
   { rule: consumedLineColumn, level: 2, name: "Consumed Line Column" },
   { rule: consumedRegionRow, level: 2, name: "Consumed Region Row" },
   { rule: consumedRegionColumn, level: 2, name: "Consumed Region Column" },
-  { rule: tilingForcedRow, level: 4, name: "Tiling Forced Rows" },
-  { rule: tilingForcedColumn, level: 4, name: "Tiling Forced Columns" },
-  { rule: tilingForcedRegion, level: 4, name: "Tiling Forced Regions" },
-  { rule: tilingAdjacencyMarks, level: 4, name: "Tiling Adjacency Marks" },
-  { rule: tilingOverhangMarks, level: 4, name: "Tiling Overhang Marks" },
+  { rule: tilingForcedRow, level: 3, name: "Tiling Forced Rows" },
+  { rule: tilingForcedColumn, level: 3, name: "Tiling Forced Columns" },
+  { rule: tilingForcedRegion, level: 3, name: "Tiling Forced Regions" },
+  { rule: tilingAdjacencyMarks, level: 3, name: "Tiling Adjacency Marks" },
+  { rule: tilingOverhangMarks, level: 3, name: "Tiling Overhang Marks" },
   { rule: adjacentRegionCapacity, level: 12, name: "Adjacent Region Capacity" },
   { rule: reservedAreaExclusions, level: 12, name: "Reserved Area Exclusions" },
   { rule: adjacentLineAnalysis, level: 12, name: "Adjacent Line Analysis" },
