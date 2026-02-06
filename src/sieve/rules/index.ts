@@ -25,15 +25,21 @@ import {
 } from "./05-tiling-enumeration/tilingForced/tilingForced";
 import tilingAdjacencyMarks from "./05-tiling-enumeration/tilingAdjacent/tilingAdjacencyMarks";
 import tilingOverhangMarks from "./05-tiling-enumeration/tilingOverhang/tilingOverhangMarks";
+import squeezeForced from "./05-tiling-enumeration/squeeze/squeezeForced";
+import squeezeAdjacency from "./05-tiling-enumeration/squeeze/squeezeAdjacency";
+import squeezeOverhang from "./05-tiling-enumeration/squeeze/squeezeOverhang";
+
+// import compositeShapes from "./06-confinement-enumeration/compositeShapes";
 
 import hypotheticalRowCount from "./07-direct-hypotheticals/hypotheticalRowCount";
 import hypotheticalColumnCount from "./07-direct-hypotheticals/hypotheticalColumnCount";
+
 import hypotheticalRowCapacity from "./08-tiling-hypotheticals/hypotheticalRowCapacity";
 import hypotheticalColumnCapacity from "./08-tiling-hypotheticals/hypotheticalColumnCapacity";
-
 import hypotheticalRegionCapacity from "./08-tiling-hypotheticals/hypotheticalRegionCapacity";
 import hypotheticalAdjacentRegionBreak from "./08-tiling-hypotheticals/hypotheticalAdjacentRegionBreak";
-import hypotheticalTwoByTwoBreak from "./08-tiling-hypotheticals/hypotheticalTwoByTwoBreak";
+
+// import finnedCounts from "./09-confinement-hypotheticals/finnedCounts";
 
 export type Rule = (
   board: Board,
@@ -75,6 +81,12 @@ export const allRules: RuleEntry[] = [
   { rule: tilingForcedRegion, level: 5, name: "Tiling Forced Regions" },
   { rule: tilingAdjacencyMarks, level: 5, name: "Tiling Adjacency Marks" },
   { rule: tilingOverhangMarks, level: 5, name: "Tiling Overhang Marks" },
+  { rule: squeezeForced, level: 5, name: "Squeeze Forced" },
+  { rule: squeezeAdjacency, level: 5, name: "Squeeze Adjacency" },
+  { rule: squeezeOverhang, level: 5, name: "Squeeze Overhang" },
+
+  // Level 6: Confinement Enumerations
+  // { rule: compositeShapes, level: 6, name: "Composite Shapes" },
 
   // Level 7: Direct Hypotheticals
   { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },
@@ -105,13 +117,10 @@ export const allRules: RuleEntry[] = [
     level: 8,
     name: "Hypothetical Adjacent Region Break",
   },
-  {
-    rule: hypotheticalTwoByTwoBreak,
-    level: 8,
-    name: "Hypothetical 2×2 Break",
-  },
+
 
   // Level 9: Confinement Hypotheticals
+  // { rule: finnedCounts, level: 9, name: "Finned Counts" },
 ];
 
 /** Rule metadata for external use (e.g., CLI reporting) */
