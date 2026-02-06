@@ -15,6 +15,7 @@ import hypotheticalTwoByTwoBreak from "./99-hypotheticalTwoByTwoBreak/hypothetic
 import adjacentRegionCapacity from "./99-adjacentRegionCapacity/adjacentRegionCapacity";
 import reservedAreaExclusions from "./99-reservedAreaExclusions/reservedAreaExclusions";
 import adjacentLineAnalysis from "./99-adjacentLineAnalysis/adjacentLineAnalysis";
+import hypotheticalBindedPlacement from "./09-confinement-hypotheticals/hypotheticalBindedPlacement";
 import tilingAdjacencyMarks from "./05-tiling-enumeration/tilingAdjacent/tilingAdjacencyMarks";
 import starNeighbors from "./01-direct-inferences/starNeighbors/starNeighbors";
 import trivialRow from "./01-direct-inferences/trivialMarks/trivialRow";
@@ -68,30 +69,40 @@ export const allRules: RuleEntry[] = [
   { rule: tilingAdjacencyMarks, level: 3, name: "Tiling Adjacency Marks" },
   { rule: tilingOverhangMarks, level: 3, name: "Tiling Overhang Marks" },
   { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },
-  { rule: hypotheticalColumnCount, level: 7, name: "Hypothetical Column Count" },
-  { rule: adjacentRegionCapacity, level: 12, name: "Adjacent Region Capacity" },
-  { rule: reservedAreaExclusions, level: 12, name: "Reserved Area Exclusions" },
-  { rule: adjacentLineAnalysis, level: 12, name: "Adjacent Line Analysis" },
+  {
+    rule: hypotheticalColumnCount,
+    level: 7,
+    name: "Hypothetical Column Count",
+  },
+  { rule: adjacentRegionCapacity, level: 7, name: "Adjacent Region Capacity" },
+  { rule: reservedAreaExclusions, level: 7, name: "Reserved Area Exclusions" },
+  { rule: adjacentLineAnalysis, level: 7, name: "Adjacent Line Analysis" },
+
   {
     rule: hypotheticalRowCapacity,
-    level: 8,
+    level: 7,
     name: "Hypothetical Row Capacity",
   },
   {
     rule: hypotheticalColumnCapacity,
-    level: 8,
+    level: 7,
     name: "Hypothetical Column Capacity",
   },
   {
     rule: hypotheticalRegionCapacity,
-    level: 20,
+    level: 7,
     name: "Hypothetical Region Capacity",
   },
-  { rule: hypotheticalOneByNBreak, level: 20, name: "Hypothetical 1×N Break" },
+  { rule: hypotheticalOneByNBreak, level: 7, name: "Hypothetical 1×N Break" },
   {
     rule: hypotheticalTwoByTwoBreak,
-    level: 20,
+    level: 7,
     name: "Hypothetical 2×2 Break",
+  },
+  {
+    rule: hypotheticalBindedPlacement,
+    level: 9,
+    name: "Hypothetical Binded Placement",
   },
 ];
 

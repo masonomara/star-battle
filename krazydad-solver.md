@@ -849,7 +849,7 @@ Here is the view source from crazy dad's sovler:
           },
         ],
       };
-      var puzzleID = "KD_TNT_10x10M_V2026-B02-P04";
+      var puzzleID = "KD_TNT_10x10M_V2026-B02-P05";
     </script>
   </head>
   <body>
@@ -1015,19 +1015,19 @@ Region grid:
 . . . . . . . . . .
 . . . . . . . . . .
 
---- Cycle 3: Tiling Overhang Marks (level 3) ---
+--- Cycle 3: Undercounted Rows (level 2) ---
 . . . . . . . . . .
-. X X . . . . . . .
+. . . . . . . . . .
 . . . . . . . . . .
 . X . X . . . . . .
 . X . X . . . . . .
-. . . . . . . . . .
-. . . . . . . . . .
-. . . . . . . . . .
-. . . . . . . . . .
+. . . . . X . X . .
+. . . . . . . X . .
+. . . . . . . X . .
+. . . . . . . X . .
 . . . . . . . . . .
 
---- Cycle 4: Region Confinement (Row) (level 4) ---
+--- Cycle 4: Tiling Overhang Marks (level 3) ---
 . . . . . . . . . .
 . X X . . . . . . .
 . . . . . . . . . .
@@ -1039,7 +1039,7 @@ Region grid:
 . . . . . . . X . .
 . . . . . . . . . .
 
---- Cycle 5: Adjacent Region Capacity (level 6) ---
+--- Cycle 5: Adjacent Region Capacity (level 12) ---
 . . . . . . . . . .
 . X X . . . . . . .
 . . . . . . . . . .
@@ -1057,4 +1057,3 @@ Region grid:
 Look at where our puzzle gets stuck, (around krazydad step 13) we know that a star CANNOT be placed in row 8 row 6 (0-indexed) because a placed star there will block column 9 row 5, column 9 row 6, and column 9 row 7, and column 8 row 7. column 8 row 7 being blocked forces both stars in region 9 to be on row 9, making region 7 unsolvable.
 
 Which of our existing rules shoudl catch this? What is this called? this feels a little multichained/guessy to me
-
