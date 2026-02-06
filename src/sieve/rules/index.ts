@@ -28,8 +28,8 @@ import tilingOverhangMarks from "./05-tiling-enumeration/tilingOverhang/tilingOv
 
 import hypotheticalRowCount from "./07-direct-hypotheticals/hypotheticalRowCount";
 import hypotheticalColumnCount from "./07-direct-hypotheticals/hypotheticalColumnCount";
-import hypotheticalRowCapacity from "./07-direct-hypotheticals/hypotheticalRowCapacity";
-import hypotheticalColumnCapacity from "./07-direct-hypotheticals/hypotheticalColumnCapacity";
+import hypotheticalRowCapacity from "./08-tiling-hypotheticals/hypotheticalRowCapacity";
+import hypotheticalColumnCapacity from "./08-tiling-hypotheticals/hypotheticalColumnCapacity";
 
 import hypotheticalRegionCapacity from "./08-tiling-hypotheticals/hypotheticalRegionCapacity";
 import hypotheticalAdjacentRegionBreak from "./08-tiling-hypotheticals/hypotheticalAdjacentRegionBreak";
