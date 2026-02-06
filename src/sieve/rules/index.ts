@@ -29,7 +29,13 @@ import squeezeForced from "./05-tiling-enumeration/squeeze/squeezeForced";
 import squeezeAdjacency from "./05-tiling-enumeration/squeeze/squeezeAdjacency";
 import squeezeOverhang from "./05-tiling-enumeration/squeeze/squeezeOverhang";
 
-// import compositeShapes from "./06-confinement-enumeration/compositeShapes";
+import combinationComposites from "./06-confinement-enumeration/combinationComposites";
+import {
+  complementCompositesRow,
+  complementCompositesColumn,
+} from "./06-confinement-enumeration/complementComposites";
+import reservedAreaRow from "./06-confinement-enumeration/reservedArea/reservedAreaRow";
+import reservedAreaColumn from "./06-confinement-enumeration/reservedArea/reservedAreaColumn";
 
 import hypotheticalRowCount from "./07-direct-hypotheticals/hypotheticalRowCount";
 import hypotheticalColumnCount from "./07-direct-hypotheticals/hypotheticalColumnCount";
@@ -88,7 +94,12 @@ export const allRules: RuleEntry[] = [
   { rule: squeezeAdjacency, level: 5, name: "Squeeze Adjacency" },
   { rule: squeezeOverhang, level: 5, name: "Squeeze Overhang" },
 
-  // { rule: compositeShapes, level: 6, name: "Composite Shapes" },
+  // Level 6: Confinement Enumerations
+  { rule: combinationComposites, level: 6, name: "Combination Composites" },
+  { rule: complementCompositesRow, level: 6, name: "Complement Composites Row" },
+  { rule: complementCompositesColumn, level: 6, name: "Complement Composites Column" },
+  { rule: reservedAreaRow, level: 6, name: "Reserved Area Row" },
+  { rule: reservedAreaColumn, level: 6, name: "Reserved Area Column" },
 
   // Level 7: Direct Hypotheticals
   { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },

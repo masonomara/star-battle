@@ -104,7 +104,10 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
   }
 
   // Extract everything
-  const capacity = Math.min(...solutions.map((s) => s.length));
+  let capacity = Infinity;
+  for (const s of solutions) {
+    if (s.length < capacity) capacity = s.length;
+  }
   const minimalSolutions = solutions.filter((s) => s.length === capacity);
   const tilings = minimalSolutions.map((sol) => sol.map((i) => tiles[i]));
 

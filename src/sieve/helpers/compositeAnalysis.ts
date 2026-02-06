@@ -12,7 +12,7 @@ import { neighbors } from "./neighbors";
 
 export type Composite = {
   id: string;
-  source: "counting" | "combination";
+  source: "counting" | "combination" | "complement";
   cells: Coord[];
   unknownCells: Coord[];
   starsNeeded: number;
