@@ -44,7 +44,7 @@ export type RuleEntry = {
 };
 
 export const allRules: RuleEntry[] = [
-  { rule: starNeighbors, level: 1, name: "Trivial Rows" },
+  { rule: starNeighbors, level: 1, name: "Star Neighbors" },
   { rule: trivialRow, level: 1, name: "Trivial Rows" },
   { rule: trivialColumn, level: 1, name: "Trivial Columns" },
   { rule: trivialRegion, level: 1, name: "Trivial Regions" },
