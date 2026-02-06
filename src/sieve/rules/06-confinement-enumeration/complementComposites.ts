@@ -1,23 +1,30 @@
 /**
- * Rule: Complement Composites (Level 6 — Confinement + Enumeration)
+ * Rules: Complement Composites (Level 6)
  *
  * When regions are confined to a band of rows (or columns), the complement
- * cells in that band form a composite shape with a derived star count.
- * Tiling and enumeration on the complement can reveal deductions that
- * confinement alone (level 3) cannot.
- *
- * Extends the undercounting pattern: undercounting fires when the band is
- * saturated (complement stars = 0). This rule fires when the complement
- * has positive stars, then analyzes the complement as a composite.
+ * cells form a composite shape with a derived star count.
+ * Four atomic rules per axis: tiling/enumeration × marks/placements.
  */
 
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { Composite, analyzeComposite } from "../../helpers/compositeAnalysis";
+import {
+  Composite,
+  analyzeCompositeTilingMarks,
+  analyzeCompositeTilingPlacements,
+  analyzeCompositeEnumerationMarks,
+  analyzeCompositeEnumerationPlacements,
+} from "../../helpers/compositeAnalysis";
+
+type CompositeAnalyzer = (
+  composite: Composite,
+  board: Board,
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+) => boolean;
 
 /**
- * Shared logic: given a band of lines (rows or columns), find confined regions,
- * build the complement composite, and analyze it.
+ * Build the complement composite for a band, then analyze it.
  */
 function findComplementInBand(
   bandLines: number[],
@@ -25,11 +32,11 @@ function findComplementInBand(
   cells: CellState[][],
   analysis: BoardAnalysis,
   axis: "row" | "col",
+  analyze: CompositeAnalyzer,
 ): boolean {
   const { size, regions, rowStars, colStars } = analysis;
   const bandSet = new Set(bandLines);
 
-  // Find regions whose unknowns on this axis are all within the band
   const confined = [...regions.values()].filter((r) => {
     if (r.starsNeeded <= 0) return false;
     const lines = axis === "row" ? r.unknownRows : r.unknownCols;
@@ -39,25 +46,20 @@ function findComplementInBand(
 
   if (confined.length === 0) return false;
 
-  // Band's total star capacity
   const lineStars = axis === "row" ? rowStars : colStars;
   let bandStarsTotal = 0;
   for (const line of bandLines) {
     bandStarsTotal += board.stars - lineStars[line];
   }
 
-  // Confined regions' total star need
   let confinedStarsTotal = 0;
   for (const r of confined) {
     confinedStarsTotal += r.starsNeeded;
   }
 
   const complementStars = bandStarsTotal - confinedStarsTotal;
-
-  // complementStars <= 0 means saturated — handled by level 3 undercounting
   if (complementStars <= 0) return false;
 
-  // Build complement cells: unknowns in the band outside confined regions
   const confinedIds = new Set(confined.map((r) => r.id));
   const complementCells: Coord[] = [];
 
@@ -100,33 +102,34 @@ function findComplementInBand(
     regionIds,
   };
 
-  return analyzeComposite(composite, board, cells, analysis);
+  return analyze(composite, board, cells, analysis);
 }
 
-export function complementCompositesRow(
+function forEachComplementBand(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
+  axis: "row" | "col",
+  analyze: CompositeAnalyzer,
 ): boolean {
   const { size, regions } = analysis;
 
-  // Mode A: Consecutive row bands (width 2 to size-1)
   for (let start = 0; start < size; start++) {
     for (let width = 2; width < size; width++) {
       const end = start + width;
       if (end > size) break;
       const bandLines = Array.from({ length: width }, (_, i) => start + i);
-      if (findComplementInBand(bandLines, board, cells, analysis, "row")) {
+      if (findComplementInBand(bandLines, board, cells, analysis, axis, analyze)) {
         return true;
       }
     }
   }
 
-  // Mode B: Region-based bands (each region's unknownRows as candidate)
+  const unknownLines = axis === "row" ? "unknownRows" : "unknownCols";
   for (const region of regions.values()) {
-    if (region.starsNeeded <= 0 || region.unknownRows.size < 2) continue;
-    const bandLines = [...region.unknownRows];
-    if (findComplementInBand(bandLines, board, cells, analysis, "row")) {
+    if (region.starsNeeded <= 0 || region[unknownLines].size < 2) continue;
+    const bandLines = [...region[unknownLines]];
+    if (findComplementInBand(bandLines, board, cells, analysis, axis, analyze)) {
       return true;
     }
   }
@@ -134,33 +137,54 @@ export function complementCompositesRow(
   return false;
 }
 
-export function complementCompositesColumn(
-  board: Board,
-  cells: CellState[][],
-  analysis: BoardAnalysis,
+// Confinement + Inference → Marks
+export function complementCompositeTilingMarksRow(
+  board: Board, cells: CellState[][], analysis: BoardAnalysis,
 ): boolean {
-  const { size, regions } = analysis;
+  return forEachComplementBand(board, cells, analysis, "row", analyzeCompositeTilingMarks);
+}
 
-  // Mode A: Consecutive column bands (width 2 to size-1)
-  for (let start = 0; start < size; start++) {
-    for (let width = 2; width < size; width++) {
-      const end = start + width;
-      if (end > size) break;
-      const bandLines = Array.from({ length: width }, (_, i) => start + i);
-      if (findComplementInBand(bandLines, board, cells, analysis, "col")) {
-        return true;
-      }
-    }
-  }
+export function complementCompositeTilingMarksColumn(
+  board: Board, cells: CellState[][], analysis: BoardAnalysis,
+): boolean {
+  return forEachComplementBand(board, cells, analysis, "col", analyzeCompositeTilingMarks);
+}
 
-  // Mode B: Region-based bands (each region's unknownCols as candidate)
-  for (const region of regions.values()) {
-    if (region.starsNeeded <= 0 || region.unknownCols.size < 2) continue;
-    const bandLines = [...region.unknownCols];
-    if (findComplementInBand(bandLines, board, cells, analysis, "col")) {
-      return true;
-    }
-  }
+// Confinement + Inference → Placements
+export function complementCompositeTilingPlacementsRow(
+  board: Board, cells: CellState[][], analysis: BoardAnalysis,
+): boolean {
+  return forEachComplementBand(board, cells, analysis, "row", analyzeCompositeTilingPlacements);
+}
 
-  return false;
+export function complementCompositeTilingPlacementsColumn(
+  board: Board, cells: CellState[][], analysis: BoardAnalysis,
+): boolean {
+  return forEachComplementBand(board, cells, analysis, "col", analyzeCompositeTilingPlacements);
+}
+
+// Confinement + Enumeration → Marks
+export function complementCompositeEnumerationMarksRow(
+  board: Board, cells: CellState[][], analysis: BoardAnalysis,
+): boolean {
+  return forEachComplementBand(board, cells, analysis, "row", analyzeCompositeEnumerationMarks);
+}
+
+export function complementCompositeEnumerationMarksColumn(
+  board: Board, cells: CellState[][], analysis: BoardAnalysis,
+): boolean {
+  return forEachComplementBand(board, cells, analysis, "col", analyzeCompositeEnumerationMarks);
+}
+
+// Confinement + Enumeration → Placements
+export function complementCompositeEnumerationPlacementsRow(
+  board: Board, cells: CellState[][], analysis: BoardAnalysis,
+): boolean {
+  return forEachComplementBand(board, cells, analysis, "row", analyzeCompositeEnumerationPlacements);
+}
+
+export function complementCompositeEnumerationPlacementsColumn(
+  board: Board, cells: CellState[][], analysis: BoardAnalysis,
+): boolean {
+  return forEachComplementBand(board, cells, analysis, "col", analyzeCompositeEnumerationPlacements);
 }

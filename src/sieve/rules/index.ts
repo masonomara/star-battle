@@ -25,14 +25,28 @@ import {
 } from "./05-tiling-enumeration/tilingForced/tilingForced";
 import tilingAdjacencyMarks from "./05-tiling-enumeration/tilingAdjacent/tilingAdjacencyMarks";
 import tilingOverhangMarks from "./05-tiling-enumeration/tilingOverhang/tilingOverhangMarks";
-import squeezeForced from "./05-tiling-enumeration/squeeze/squeezeForced";
-import squeezeAdjacency from "./05-tiling-enumeration/squeeze/squeezeAdjacency";
-import squeezeOverhang from "./05-tiling-enumeration/squeeze/squeezeOverhang";
+import squeezeForcedRow from "./05-tiling-enumeration/squeeze/squeezeForcedRow";
+import squeezeForcedColumn from "./05-tiling-enumeration/squeeze/squeezeForcedColumn";
+import squeezeAdjacencyRow from "./05-tiling-enumeration/squeeze/squeezeAdjacencyRow";
+import squeezeAdjacencyColumn from "./05-tiling-enumeration/squeeze/squeezeAdjacencyColumn";
+import squeezeOverhangRow from "./05-tiling-enumeration/squeeze/squeezeOverhangRow";
+import squeezeOverhangColumn from "./05-tiling-enumeration/squeeze/squeezeOverhangColumn";
 
-import combinationComposites from "./06-confinement-enumeration/combinationComposites";
 import {
-  complementCompositesRow,
-  complementCompositesColumn,
+  combinationCompositeTilingMarks,
+  combinationCompositeTilingPlacements,
+  combinationCompositeEnumerationMarks,
+  combinationCompositeEnumerationPlacements,
+} from "./06-confinement-enumeration/combinationComposites";
+import {
+  complementCompositeTilingMarksRow,
+  complementCompositeTilingMarksColumn,
+  complementCompositeTilingPlacementsRow,
+  complementCompositeTilingPlacementsColumn,
+  complementCompositeEnumerationMarksRow,
+  complementCompositeEnumerationMarksColumn,
+  complementCompositeEnumerationPlacementsRow,
+  complementCompositeEnumerationPlacementsColumn,
 } from "./06-confinement-enumeration/complementComposites";
 import reservedAreaRow from "./06-confinement-enumeration/reservedArea/reservedAreaRow";
 import reservedAreaColumn from "./06-confinement-enumeration/reservedArea/reservedAreaColumn";
@@ -90,14 +104,26 @@ export const allRules: RuleEntry[] = [
   { rule: tilingForcedRegion, level: 5, name: "Tiling Forced Regions" },
   { rule: tilingAdjacencyMarks, level: 5, name: "Tiling Adjacency Marks" },
   { rule: tilingOverhangMarks, level: 5, name: "Tiling Overhang Marks" },
-  { rule: squeezeForced, level: 5, name: "Squeeze Forced" },
-  { rule: squeezeAdjacency, level: 5, name: "Squeeze Adjacency" },
-  { rule: squeezeOverhang, level: 5, name: "Squeeze Overhang" },
+  { rule: squeezeForcedRow, level: 5, name: "Squeeze Forced Rows" },
+  { rule: squeezeForcedColumn, level: 5, name: "Squeeze Forced Columns" },
+  { rule: squeezeAdjacencyRow, level: 5, name: "Squeeze Adjacency Rows" },
+  { rule: squeezeAdjacencyColumn, level: 5, name: "Squeeze Adjacency Columns" },
+  { rule: squeezeOverhangRow, level: 5, name: "Squeeze Overhang Rows" },
+  { rule: squeezeOverhangColumn, level: 5, name: "Squeeze Overhang Columns" },
 
   // Level 6: Confinement Enumerations
-  { rule: combinationComposites, level: 6, name: "Combination Composites" },
-  { rule: complementCompositesRow, level: 6, name: "Complement Composites Row" },
-  { rule: complementCompositesColumn, level: 6, name: "Complement Composites Column" },
+  { rule: combinationCompositeTilingMarks, level: 6, name: "Combination Composite Tiling Marks" },
+  { rule: combinationCompositeTilingPlacements, level: 6, name: "Combination Composite Tiling Placements" },
+  { rule: combinationCompositeEnumerationMarks, level: 6, name: "Combination Composite Enumeration Marks" },
+  { rule: combinationCompositeEnumerationPlacements, level: 6, name: "Combination Composite Enumeration Placements" },
+  { rule: complementCompositeTilingMarksRow, level: 6, name: "Complement Composite Tiling Marks Row" },
+  { rule: complementCompositeTilingMarksColumn, level: 6, name: "Complement Composite Tiling Marks Column" },
+  { rule: complementCompositeTilingPlacementsRow, level: 6, name: "Complement Composite Tiling Placements Row" },
+  { rule: complementCompositeTilingPlacementsColumn, level: 6, name: "Complement Composite Tiling Placements Column" },
+  { rule: complementCompositeEnumerationMarksRow, level: 6, name: "Complement Composite Enumeration Marks Row" },
+  { rule: complementCompositeEnumerationMarksColumn, level: 6, name: "Complement Composite Enumeration Marks Column" },
+  { rule: complementCompositeEnumerationPlacementsRow, level: 6, name: "Complement Composite Enumeration Placements Row" },
+  { rule: complementCompositeEnumerationPlacementsColumn, level: 6, name: "Complement Composite Enumeration Placements Column" },
   { rule: reservedAreaRow, level: 6, name: "Reserved Area Row" },
   { rule: reservedAreaColumn, level: 6, name: "Reserved Area Column" },
 

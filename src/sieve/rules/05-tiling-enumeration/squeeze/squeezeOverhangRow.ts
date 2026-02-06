@@ -1,13 +1,9 @@
 /**
- * Rule: Squeeze Overhang (Level 5 — Tiling + Enumeration)
+ * Rule: Squeeze Overhang Row (Level 5 — Tiling + Enumeration)
  *
- * O: Tiling of consecutive row/col pairs
- * T: Find non-pair cells consumed by all active tilings
- * D: Marks
- *
- * When a consecutive row pair or column pair has a tight tiling,
+ * When a consecutive row pair has a tight tiling,
  * cells OUTSIDE the pair that are covered by tiles in ALL active
- * tilings → mark. The pair's tiling always spills onto them.
+ * tilings get marked. The pair's tiling always spills onto them.
  */
 
 import { Board, CellState, Coord, Deduction } from "../../../helpers/types";
@@ -18,7 +14,7 @@ import {
   findForcedOverhangCells,
 } from "../../../helpers/tilingEnumeration";
 
-export default function squeezeOverhang(
+export default function squeezeOverhangRow(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
@@ -27,9 +23,7 @@ export default function squeezeOverhang(
   if (size === 0) return false;
 
   const starsPerPair = board.stars * 2;
-  let changed = false;
 
-  // Row pairs
   for (let row = 0; row < size - 1; row++) {
     const pairCells: Coord[] = [];
     let existingStars = 0;
@@ -59,43 +53,9 @@ export default function squeezeOverhang(
     }
 
     if (applyDeductions(cells, deductions)) {
-      changed = true;
+      return true;
     }
   }
 
-  // Column pairs
-  for (let col = 0; col < size - 1; col++) {
-    const pairCells: Coord[] = [];
-    let existingStars = 0;
-
-    for (let row = 0; row < size; row++) {
-      if (cells[row][col] === "unknown") pairCells.push([row, col]);
-      if (cells[row][col + 1] === "unknown") pairCells.push([row, col + 1]);
-      if (cells[row][col] === "star") existingStars++;
-      if (cells[row][col + 1] === "star") existingStars++;
-    }
-
-    if (pairCells.length === 0) continue;
-    const neededStars = starsPerPair - existingStars;
-    if (neededStars <= 0) continue;
-
-    const tiling = analysis.getTiling(pairCells);
-    if (tiling.capacity !== neededStars) continue;
-    if (tiling.tilings.length === 0) continue;
-
-    const pairSet = new Set(pairCells.map(([r, c]) => `${r},${c}`));
-    const activeTilings = filterActiveTilings(tiling.tilings, pairSet, cells);
-    const overhangCells = findForcedOverhangCells(activeTilings, pairSet);
-    const deductions: Deduction[] = [];
-
-    for (const [r, c] of overhangCells) {
-      deductions.push({ coord: [r, c], state: "marked" });
-    }
-
-    if (applyDeductions(cells, deductions)) {
-      changed = true;
-    }
-  }
-
-  return changed;
+  return false;
 }

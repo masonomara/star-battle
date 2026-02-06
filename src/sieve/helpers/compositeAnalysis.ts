@@ -222,10 +222,71 @@ export function findExternalForcedCells(
 }
 
 /**
- * Analyze a composite via direct adjacency enumeration.
- * Used when 2×2 tiling has slack but ratio is tight.
+ * Shared: refresh composite state and compute tiling.
+ * Returns null if no analysis is possible.
  */
-export function analyzeViaDirectEnumeration(
+function prepareComposite(
+  composite: Composite,
+  cells: CellState[][],
+  size: number,
+) {
+  const currentUnknowns = composite.unknownCells.filter(
+    ([row, col]) => cells[row][col] === "unknown",
+  );
+  const starsPlacedInComposite = composite.unknownCells.filter(
+    ([row, col]) => cells[row][col] === "star",
+  ).length;
+  const currentStarsNeeded = composite.starsNeeded - starsPlacedInComposite;
+
+  if (currentUnknowns.length === 0 || currentStarsNeeded <= 0) return null;
+
+  const tiling = computeTiling(currentUnknowns, size);
+  if (tiling.capacity < currentStarsNeeded) return null;
+
+  return { currentUnknowns, currentStarsNeeded, tiling };
+}
+
+/**
+ * Enumeration marks: enumerate valid placements, mark cells that appear in none.
+ */
+function enumerationMarks(
+  currentUnknowns: Coord[],
+  currentStarsNeeded: number,
+  board: Board,
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+): boolean {
+  const validPlacements = enumerateValidPlacements(
+    currentUnknowns,
+    currentStarsNeeded,
+    board,
+    analysis,
+  );
+  if (validPlacements.length === 0 || validPlacements.length >= 1000) {
+    return false;
+  }
+
+  const inAnyPlacement = new Set<string>();
+  for (const placement of validPlacements) {
+    for (const [r, c] of placement) {
+      inAnyPlacement.add(`${r},${c}`);
+    }
+  }
+
+  let changed = false;
+  for (const [r, c] of currentUnknowns) {
+    if (!inAnyPlacement.has(`${r},${c}`) && cells[r][c] === "unknown") {
+      cells[r][c] = "marked";
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+/**
+ * Enumeration placements: enumerate valid placements, place cells that appear in all.
+ */
+function enumerationPlacements(
   currentUnknowns: Coord[],
   currentStarsNeeded: number,
   board: Board,
@@ -239,58 +300,30 @@ export function analyzeViaDirectEnumeration(
     board,
     analysis,
   );
-
-  // No valid placements or too many to analyze
   if (validPlacements.length === 0 || validPlacements.length >= 1000) {
     return false;
   }
 
-  // Find cells in ALL placements (forced stars) and cells in NO placements (forced marks)
-  const allKeys = new Set(currentUnknowns.map((c) => `${c[0]},${c[1]}`));
-  const inAllPlacements = new Set<string>();
-  const inAnyPlacement = new Set<string>();
-
-  for (let p = 0; p < validPlacements.length; p++) {
+  // Find cells in ALL placements
+  const inAllPlacements = new Set<string>(
+    validPlacements[0].map((c) => `${c[0]},${c[1]}`),
+  );
+  for (let p = 1; p < validPlacements.length; p++) {
     const placementKeys = new Set(
       validPlacements[p].map((c) => `${c[0]},${c[1]}`),
     );
-
-    if (p === 0) {
-      // First placement initializes inAllPlacements
-      for (const key of placementKeys) {
-        inAllPlacements.add(key);
+    for (const key of inAllPlacements) {
+      if (!placementKeys.has(key)) {
+        inAllPlacements.delete(key);
       }
-    } else {
-      // Subsequent placements intersect
-      for (const key of inAllPlacements) {
-        if (!placementKeys.has(key)) {
-          inAllPlacements.delete(key);
-        }
-      }
-    }
-
-    // Track cells that appear in any placement
-    for (const key of placementKeys) {
-      inAnyPlacement.add(key);
-    }
-  }
-
-  // Cells in NO placements = all unknowns - cells in any placement
-  const inNoPlacements = new Set<string>();
-  for (const key of allKeys) {
-    if (!inAnyPlacement.has(key)) {
-      inNoPlacements.add(key);
     }
   }
 
   let changed = false;
-
-  // Place forced stars (with validation)
   for (const key of inAllPlacements) {
     const [row, col] = key.split(",").map(Number);
     if (cells[row][col] !== "unknown") continue;
 
-    // Check no adjacent star exists
     let hasAdjacentStar = false;
     for (const [nr, nc] of neighbors(row, col, size)) {
       if (cells[nr][nc] === "star") {
@@ -300,7 +333,6 @@ export function analyzeViaDirectEnumeration(
     }
     if (hasAdjacentStar) continue;
 
-    // Check row/col/region quotas
     let rowStarsCount = 0;
     let colStarsCount = 0;
     for (let i = 0; i < size; i++) {
@@ -323,80 +355,65 @@ export function analyzeViaDirectEnumeration(
     cells[row][col] = "star";
     changed = true;
   }
-
-  // Mark cells that appear in no valid placement
-  for (const key of inNoPlacements) {
-    const [row, col] = key.split(",").map(Number);
-    if (cells[row][col] === "unknown") {
-      cells[row][col] = "marked";
-      changed = true;
-    }
-  }
-
   return changed;
 }
 
 /**
- * Analyze a composite for tight tiling deductions.
+ * Confinement + Inference → Marks.
+ * Tight tiling on composite: cells outside covered by ALL tilings get marked.
  */
-export function analyzeComposite(
+export function analyzeCompositeTilingMarks(
+  composite: Composite,
+  board: Board,
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+): boolean {
+  const prep = prepareComposite(composite, cells, analysis.size);
+  if (!prep) return false;
+  const { currentStarsNeeded, tiling } = prep;
+
+  if (tiling.capacity !== currentStarsNeeded) return false;
+
+  const compositeSet = new Set(
+    composite.cells.map((coord) => `${coord[0]},${coord[1]}`),
+  );
+  const externalForced = findExternalForcedCells(tiling.tilings, compositeSet);
+
+  let changed = false;
+  for (const [erow, ecol] of externalForced) {
+    if (cells[erow][ecol] === "unknown") {
+      cells[erow][ecol] = "marked";
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+/**
+ * Confinement + Inference → Placements.
+ * Tight tiling on composite: single-coverage forced cells become stars.
+ */
+export function analyzeCompositeTilingPlacements(
   composite: Composite,
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
   const { size } = analysis;
-  // Refresh unknownCells to current state (in case of stale composite)
-  const currentUnknowns = composite.unknownCells.filter(
-    ([row, col]) => cells[row][col] === "unknown",
-  );
+  const prep = prepareComposite(composite, cells, size);
+  if (!prep) return false;
+  const { currentStarsNeeded, tiling } = prep;
 
-  // Count stars placed in composite since creation
-  const starsPlacedInComposite = composite.unknownCells.filter(
-    ([row, col]) => cells[row][col] === "star",
-  ).length;
+  if (tiling.capacity !== currentStarsNeeded) return false;
 
-  const currentStarsNeeded = composite.starsNeeded - starsPlacedInComposite;
-
-  if (currentUnknowns.length === 0) return false;
-  if (currentStarsNeeded <= 0) return false;
-
-  const tiling = computeTiling(currentUnknowns, size);
-
-  // Quick feasibility check
-  if (tiling.capacity < currentStarsNeeded) {
-    return false;
-  }
-
-  // Quick non-tight check via 2×2 tiling
-  if (tiling.capacity > currentStarsNeeded) {
-    // Has slack via 2×2 tiling, but try direct enumeration for tight ratios
-    if (currentUnknowns.length < currentStarsNeeded * 8) {
-      const result = analyzeViaDirectEnumeration(
-        currentUnknowns,
-        currentStarsNeeded,
-        board,
-        cells,
-        analysis,
-      );
-      if (result) return true;
-    }
-    return false; // Has slack, not tight
-  }
-
-  let changed = false;
-
-  // Forced placements (single-coverage in all tilings)
-  // Must verify adjacency - composite cells may be disconnected
-  // Also check that forced cells aren't adjacent to each other (invalid analysis)
   const forcedSet = new Set(
     tiling.forcedCells.map(([row, col]) => `${row},${col}`),
   );
 
+  let changed = false;
   for (const [frow, fcol] of tiling.forcedCells) {
     if (cells[frow][fcol] !== "unknown") continue;
 
-    // Check no adjacent star exists AND no adjacent forced cell
     let hasAdjacentConflict = false;
     for (const [nr, nc] of neighbors(frow, fcol, size)) {
       if (cells[nr][nc] === "star" || forcedSet.has(`${nr},${nc}`)) {
@@ -404,20 +421,16 @@ export function analyzeComposite(
         break;
       }
     }
-
     if (hasAdjacentConflict) continue;
 
-    // Global constraint validation: check row/col/region quotas
     let rowStarsCount = 0;
     let colStarsCount = 0;
     for (let i = 0; i < size; i++) {
       if (cells[frow][i] === "star") rowStarsCount++;
       if (cells[i][fcol] === "star") colStarsCount++;
     }
-
     if (rowStarsCount >= board.stars || colStarsCount >= board.stars) continue;
 
-    // Check region quota
     const regionId = board.grid[frow][fcol];
     let regionStars = 0;
     for (let rr = 0; rr < size; rr++) {
@@ -427,25 +440,50 @@ export function analyzeComposite(
         }
       }
     }
-
     if (regionStars >= board.stars) continue;
 
     cells[frow][fcol] = "star";
     changed = true;
   }
-
-  // External exclusions
-  const compositeSet = new Set(
-    composite.cells.map((coord) => `${coord[0]},${coord[1]}`),
-  );
-  const externalForced = findExternalForcedCells(tiling.tilings, compositeSet);
-
-  for (const [erow, ecol] of externalForced) {
-    if (cells[erow][ecol] === "unknown") {
-      cells[erow][ecol] = "marked";
-      changed = true;
-    }
-  }
-
   return changed;
+}
+
+/**
+ * Confinement + Enumeration → Marks.
+ * Slack tiling on composite: enumerate placements, mark cells in none.
+ */
+export function analyzeCompositeEnumerationMarks(
+  composite: Composite,
+  board: Board,
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+): boolean {
+  const prep = prepareComposite(composite, cells, analysis.size);
+  if (!prep) return false;
+  const { currentUnknowns, currentStarsNeeded, tiling } = prep;
+
+  if (tiling.capacity <= currentStarsNeeded) return false;
+  if (currentUnknowns.length >= currentStarsNeeded * 8) return false;
+
+  return enumerationMarks(currentUnknowns, currentStarsNeeded, board, cells, analysis);
+}
+
+/**
+ * Confinement + Enumeration → Placements.
+ * Slack tiling on composite: enumerate placements, place cells in all.
+ */
+export function analyzeCompositeEnumerationPlacements(
+  composite: Composite,
+  board: Board,
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+): boolean {
+  const prep = prepareComposite(composite, cells, analysis.size);
+  if (!prep) return false;
+  const { currentUnknowns, currentStarsNeeded, tiling } = prep;
+
+  if (tiling.capacity <= currentStarsNeeded) return false;
+  if (currentUnknowns.length >= currentStarsNeeded * 8) return false;
+
+  return enumerationPlacements(currentUnknowns, currentStarsNeeded, board, cells, analysis);
 }
