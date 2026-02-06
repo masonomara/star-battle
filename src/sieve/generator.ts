@@ -239,14 +239,43 @@ function layoutWithSeed(size: number, stars: number, seed: number): Board {
 }
 
 /**
- * Check if all regions can fit the required stars using 2×2 tiling.
- * Each 2×2 tile holds at most 1 star, so capacity must be >= stars.
+ * Check if a layout can support the required stars.
+ *
+ * 1. Row/column region count: each row and column must contain at least
+ *    `stars` distinct regions, otherwise it can't hold enough stars.
+ * 2. Per-region tiling capacity: each region must fit `stars` non-overlapping
+ *    2×2 tiles.
+ *
+ * The row/col check is O(size²) and runs first to reject cheaply before
+ * the more expensive per-region tiling computation.
  */
 function isValidTiling(
   regions: Map<number, [number, number][]>,
   stars: number,
   size: number,
 ): boolean {
+  // Build grid from regions for row/col checks
+  const grid: number[][] = Array.from({ length: size }, () => new Array(size));
+  for (const [id, coords] of regions) {
+    for (const [r, c] of coords) {
+      grid[r][c] = id;
+    }
+  }
+
+  // Check each row and column has enough distinct regions
+  for (let i = 0; i < size; i++) {
+    const rowRegions = new Set<number>();
+    const colRegions = new Set<number>();
+    for (let j = 0; j < size; j++) {
+      rowRegions.add(grid[i][j]);
+      colRegions.add(grid[j][i]);
+    }
+    if (rowRegions.size < stars || colRegions.size < stars) {
+      return false;
+    }
+  }
+
+  // Per-region tiling capacity
   for (const [, coords] of regions) {
     if (computeTiling(coords, size).capacity < stars) {
       return false;

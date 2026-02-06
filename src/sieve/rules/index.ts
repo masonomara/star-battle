@@ -5,6 +5,8 @@ import undercountingRow from "./03-confinement-inferences/undercounting/undercou
 import undercountingColumn from "./03-confinement-inferences/undercounting/undercountingColumn";
 import overcountingRow from "./03-confinement-inferences/overcounting/overcountingRow";
 import overcountingColumn from "./03-confinement-inferences/overcounting/overcountingColumn";
+import hypotheticalRowCount from "./07-direct-hypotheticals/hypotheticalRowCount";
+import hypotheticalColumnCount from "./07-direct-hypotheticals/hypotheticalColumnCount";
 import hypotheticalRowCapacity from "./99-hypotheticalRowCapacity/hypotheticalRowCapacity";
 import hypotheticalColumnCapacity from "./99-hypotheticalColumnCapacity/hypotheticalColumnCapacity";
 import hypotheticalRegionCapacity from "./99-hypotheticalRegionCapacity/hypotheticalRegionCapacity";
@@ -65,17 +67,19 @@ export const allRules: RuleEntry[] = [
   { rule: tilingForcedRegion, level: 3, name: "Tiling Forced Regions" },
   { rule: tilingAdjacencyMarks, level: 3, name: "Tiling Adjacency Marks" },
   { rule: tilingOverhangMarks, level: 3, name: "Tiling Overhang Marks" },
+  { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },
+  { rule: hypotheticalColumnCount, level: 7, name: "Hypothetical Column Count" },
   { rule: adjacentRegionCapacity, level: 12, name: "Adjacent Region Capacity" },
   { rule: reservedAreaExclusions, level: 12, name: "Reserved Area Exclusions" },
   { rule: adjacentLineAnalysis, level: 12, name: "Adjacent Line Analysis" },
   {
     rule: hypotheticalRowCapacity,
-    level: 20,
+    level: 8,
     name: "Hypothetical Row Capacity",
   },
   {
     rule: hypotheticalColumnCapacity,
-    level: 20,
+    level: 8,
     name: "Hypothetical Column Capacity",
   },
   {
