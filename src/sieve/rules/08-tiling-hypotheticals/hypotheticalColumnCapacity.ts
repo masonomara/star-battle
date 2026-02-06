@@ -71,8 +71,6 @@ export default function hypotheticalColumnCapacity(
   const { size } = analysis;
   if (size === 0) return false;
 
-  let changed = false;
-
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
       if (cells[row][col] !== "unknown") continue;
@@ -81,10 +79,10 @@ export default function hypotheticalColumnCapacity(
 
       if (checkColumnViolation(row, col, board, cells, markedCells)) {
         cells[row][col] = "marked";
-        changed = true;
+        return true;
       }
     }
   }
 
-  return changed;
+  return false;
 }

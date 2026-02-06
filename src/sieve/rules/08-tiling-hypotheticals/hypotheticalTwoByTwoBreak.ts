@@ -63,8 +63,6 @@ export default function hypotheticalTwoByTwoBreak(
   const twoByTwoConstraints = findStarContaining2x2s(board, cells);
   if (twoByTwoConstraints.length === 0) return false;
 
-  let changed = false;
-
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
       if (cells[row][col] !== "unknown") continue;
@@ -73,10 +71,10 @@ export default function hypotheticalTwoByTwoBreak(
 
       if (checkTwoByTwoViolation(row, col, markedCells, twoByTwoConstraints)) {
         cells[row][col] = "marked";
-        changed = true;
+        return true;
       }
     }
   }
 
-  return changed;
+  return false;
 }

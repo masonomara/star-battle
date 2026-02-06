@@ -60,8 +60,6 @@ export default function hypotheticalRegionCapacity(
   const { size } = analysis;
   if (size === 0) return false;
 
-  let changed = false;
-
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
       if (cells[row][col] !== "unknown") continue;
@@ -70,10 +68,10 @@ export default function hypotheticalRegionCapacity(
 
       if (checkOwnRegionViolation(row, col, board, markedCells, analysis)) {
         cells[row][col] = "marked";
-        changed = true;
+        return true;
       }
     }
   }
 
-  return changed;
+  return false;
 }
