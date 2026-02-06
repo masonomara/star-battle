@@ -63,7 +63,7 @@ function checkAdjacentRegionViolation(
   return false;
 }
 
-export default function adjacentRegionCapacity(
+export default function hypotheticalAdjacentRegionBreak(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

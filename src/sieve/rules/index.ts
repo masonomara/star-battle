@@ -9,8 +9,6 @@ import forcedRow from "./01-direct-inferences/forcedPlacements/forcedRow";
 import forcedColumn from "./01-direct-inferences/forcedPlacements/forcedColumn";
 import forcedRegion from "./01-direct-inferences/forcedPlacements/forcedRegion";
 
-import reservedAreaExclusions from "./02-tiling-inferences/reservedAreaExclusions";
-
 import undercountingRow from "./03-confinement-inferences/undercounting/undercountingRow";
 import undercountingColumn from "./03-confinement-inferences/undercounting/undercountingColumn";
 import overcountingRow from "./03-confinement-inferences/overcounting/overcountingRow";
@@ -19,8 +17,6 @@ import consumedLineRow from "./03-confinement-inferences/consumedLines/consumedL
 import consumedLineColumn from "./03-confinement-inferences/consumedLines/consumedLineColumn";
 import consumedRegionRow from "./03-confinement-inferences/consumedRegions/consumedRegionRow";
 import consumedRegionColumn from "./03-confinement-inferences/consumedRegions/consumedRegionColumn";
-
-import adjacentLineAnalysis from "./04-direct-enumerations/adjacentLineAnalysis";
 
 import {
   tilingForcedRow,
@@ -36,10 +32,9 @@ import hypotheticalRowCapacity from "./07-direct-hypotheticals/hypotheticalRowCa
 import hypotheticalColumnCapacity from "./07-direct-hypotheticals/hypotheticalColumnCapacity";
 
 import hypotheticalRegionCapacity from "./08-tiling-hypotheticals/hypotheticalRegionCapacity";
-import adjacentRegionCapacity from "./08-tiling-hypotheticals/adjacentRegionCapacity";
+import hypotheticalAdjacentRegionBreak from "./08-tiling-hypotheticals/hypotheticalAdjacentRegionBreak";
 import hypotheticalTwoByTwoBreak from "./08-tiling-hypotheticals/hypotheticalTwoByTwoBreak";
 
-import hypotheticalOneByNBreak from "./09-confinement-hypotheticals/hypotheticalOneByNBreak";
 import hypotheticalBindedPlacement from "./09-confinement-hypotheticals/hypotheticalBindedPlacement";
 
 export type Rule = (
@@ -65,7 +60,6 @@ export const allRules: RuleEntry[] = [
   { rule: forcedRegion, level: 1, name: "Forced Regions" },
 
   // Level 2: Tiling Inferences
-  { rule: reservedAreaExclusions, level: 2, name: "Reserved Area Exclusions" },
 
   // Level 3: Confinement Inferences
   { rule: undercountingRow, level: 3, name: "Undercounted Rows" },
@@ -76,9 +70,6 @@ export const allRules: RuleEntry[] = [
   { rule: consumedLineColumn, level: 3, name: "Consumed Line Column" },
   { rule: consumedRegionRow, level: 3, name: "Consumed Region Row" },
   { rule: consumedRegionColumn, level: 3, name: "Consumed Region Column" },
-
-  // Level 4: Direct Enumerations
-  { rule: adjacentLineAnalysis, level: 4, name: "Adjacent Line Analysis" },
 
   // Level 5: Tiling Enumerations
   { rule: tilingForcedRow, level: 5, name: "Tiling Forced Rows" },
@@ -111,7 +102,11 @@ export const allRules: RuleEntry[] = [
     level: 8,
     name: "Hypothetical Region Capacity",
   },
-  { rule: adjacentRegionCapacity, level: 8, name: "Adjacent Region Capacity" },
+  {
+    rule: hypotheticalAdjacentRegionBreak,
+    level: 8,
+    name: "Hypothetical Adjacent Region Break",
+  },
   {
     rule: hypotheticalTwoByTwoBreak,
     level: 8,
@@ -119,7 +114,6 @@ export const allRules: RuleEntry[] = [
   },
 
   // Level 9: Confinement Hypotheticals
-  { rule: hypotheticalOneByNBreak, level: 9, name: "Hypothetical 1×N Break" },
   {
     rule: hypotheticalBindedPlacement,
     level: 9,
