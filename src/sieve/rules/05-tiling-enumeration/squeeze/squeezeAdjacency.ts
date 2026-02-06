@@ -1,15 +1,13 @@
 /**
- * Rule: Squeeze Marks (Level 5 — Tiling + Enumeration)
+ * Rule: Squeeze Adjacency (Level 5 — Tiling + Enumeration)
  *
  * O: Tiling of consecutive row/col pairs
  * T: Enumerate valid star assignments within tight tilings
  * D: Marks
  *
- * When a consecutive row pair or column pair has a tight tiling:
- * 1. Adjacency marks: enumerate valid star assignments (one per tile, no
- *    adjacency); pair cells that never appear as a star → mark
- * 2. Overhang marks: cells OUTSIDE the pair covered by tiles in ALL
- *    active tilings → mark
+ * When a consecutive row pair or column pair has a tight tiling,
+ * enumerate valid star assignments (one per tile, no adjacency).
+ * Pair cells that never appear as a star in any valid assignment → mark.
  */
 
 import { Board, CellState, Coord, Deduction, Tile } from "../../../helpers/types";
@@ -71,9 +69,6 @@ function enumerateStarAssignments(
   return assignments;
 }
 
-/**
- * Collect all cells that appear as valid star positions across all tilings.
- */
 function collectValidStarCells(
   allTilings: Tile[][],
   pairSet: Set<string>,
@@ -90,97 +85,7 @@ function collectValidStarCells(
   return valid;
 }
 
-/**
- * Filter out tilings whose overhang cells are all already marked.
- */
-function filterActiveTilings(
-  allTilings: Tile[][],
-  pairSet: Set<string>,
-  cells: CellState[][],
-): Tile[][] {
-  return allTilings.filter((tiling) => {
-    for (const tile of tiling) {
-      for (const [r, c] of tile.cells) {
-        if (!pairSet.has(`${r},${c}`) && cells[r][c] === "unknown") {
-          return true;
-        }
-      }
-    }
-    return false;
-  });
-}
-
-/**
- * Find non-pair cells that appear in ALL active tilings.
- */
-function findForcedOverhangCells(
-  activeTilings: Tile[][],
-  pairSet: Set<string>,
-): Coord[] {
-  if (activeTilings.length === 0) return [];
-
-  const outsideSets: Set<string>[] = activeTilings.map((tiling) => {
-    const outside = new Set<string>();
-    for (const tile of tiling) {
-      for (const [r, c] of tile.cells) {
-        const key = `${r},${c}`;
-        if (!pairSet.has(key)) {
-          outside.add(key);
-        }
-      }
-    }
-    return outside;
-  });
-
-  const intersection = new Set(outsideSets[0]);
-  for (let i = 1; i < outsideSets.length; i++) {
-    for (const key of intersection) {
-      if (!outsideSets[i].has(key)) {
-        intersection.delete(key);
-      }
-    }
-  }
-
-  return [...intersection].map((key) => {
-    const [r, c] = key.split(",").map(Number);
-    return [r, c] as Coord;
-  });
-}
-
-function markFromPair(
-  pairCells: Coord[],
-  neededStars: number,
-  cells: CellState[][],
-  analysis: BoardAnalysis,
-): boolean {
-  if (pairCells.length === 0 || neededStars <= 0) return false;
-
-  const tiling = analysis.getTiling(pairCells);
-  if (tiling.capacity !== neededStars) return false;
-  if (tiling.tilings.length === 0) return false;
-
-  const deductions: Deduction[] = [];
-  const pairSet = new Set(pairCells.map(([r, c]) => `${r},${c}`));
-
-  // Mark 1: Adjacency — pair cells that can never be a star in any valid assignment
-  const validStarCells = collectValidStarCells(tiling.tilings, pairSet, cells);
-  for (const [r, c] of pairCells) {
-    if (!validStarCells.has(`${r},${c}`)) {
-      deductions.push({ coord: [r, c], state: "marked" });
-    }
-  }
-
-  // Mark 2: Overhang — non-pair cells in ALL active tilings
-  const activeTilings = filterActiveTilings(tiling.tilings, pairSet, cells);
-  const overhangCells = findForcedOverhangCells(activeTilings, pairSet);
-  for (const [r, c] of overhangCells) {
-    deductions.push({ coord: [r, c], state: "marked" });
-  }
-
-  return applyDeductions(cells, deductions);
-}
-
-export default function squeezeMarks(
+export default function squeezeAdjacency(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
@@ -203,8 +108,25 @@ export default function squeezeMarks(
       if (cells[row + 1][col] === "star") existingStars++;
     }
 
+    if (pairCells.length === 0) continue;
     const neededStars = starsPerPair - existingStars;
-    if (markFromPair(pairCells, neededStars, cells, analysis)) {
+    if (neededStars <= 0) continue;
+
+    const tiling = analysis.getTiling(pairCells);
+    if (tiling.capacity !== neededStars) continue;
+    if (tiling.tilings.length === 0) continue;
+
+    const pairSet = new Set(pairCells.map(([r, c]) => `${r},${c}`));
+    const validStarCells = collectValidStarCells(tiling.tilings, pairSet, cells);
+    const deductions: Deduction[] = [];
+
+    for (const [r, c] of pairCells) {
+      if (!validStarCells.has(`${r},${c}`)) {
+        deductions.push({ coord: [r, c], state: "marked" });
+      }
+    }
+
+    if (applyDeductions(cells, deductions)) {
       changed = true;
     }
   }
@@ -221,8 +143,25 @@ export default function squeezeMarks(
       if (cells[row][col + 1] === "star") existingStars++;
     }
 
+    if (pairCells.length === 0) continue;
     const neededStars = starsPerPair - existingStars;
-    if (markFromPair(pairCells, neededStars, cells, analysis)) {
+    if (neededStars <= 0) continue;
+
+    const tiling = analysis.getTiling(pairCells);
+    if (tiling.capacity !== neededStars) continue;
+    if (tiling.tilings.length === 0) continue;
+
+    const pairSet = new Set(pairCells.map(([r, c]) => `${r},${c}`));
+    const validStarCells = collectValidStarCells(tiling.tilings, pairSet, cells);
+    const deductions: Deduction[] = [];
+
+    for (const [r, c] of pairCells) {
+      if (!validStarCells.has(`${r},${c}`)) {
+        deductions.push({ coord: [r, c], state: "marked" });
+      }
+    }
+
+    if (applyDeductions(cells, deductions)) {
       changed = true;
     }
   }
