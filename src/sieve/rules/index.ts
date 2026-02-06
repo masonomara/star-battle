@@ -88,7 +88,6 @@ export const allRules: RuleEntry[] = [
   { rule: squeezeAdjacency, level: 5, name: "Squeeze Adjacency" },
   { rule: squeezeOverhang, level: 5, name: "Squeeze Overhang" },
 
-  // Level 6: Confinement Enumerations
   // { rule: compositeShapes, level: 6, name: "Composite Shapes" },
 
   // Level 7: Direct Hypotheticals
