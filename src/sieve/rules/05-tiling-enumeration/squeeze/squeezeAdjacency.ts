@@ -10,80 +10,10 @@
  * Pair cells that never appear as a star in any valid assignment → mark.
  */
 
-import { Board, CellState, Coord, Deduction, Tile } from "../../../helpers/types";
+import { Board, CellState, Coord, Deduction } from "../../../helpers/types";
 import { BoardAnalysis } from "../../../helpers/boardAnalysis";
 import { applyDeductions } from "../../../helpers/applyDeductions";
-
-function cellsAreAdjacent(c1: Coord, c2: Coord): boolean {
-  return Math.abs(c1[0] - c2[0]) <= 1 && Math.abs(c1[1] - c2[1]) <= 1;
-}
-
-/**
- * Enumerate all valid star assignments for a single tiling.
- * Each tile gets exactly one star from its covered cells. No two stars adjacent.
- */
-function enumerateStarAssignments(
-  tiling: Tile[],
-  pairSet: Set<string>,
-  cells: CellState[][],
-): Coord[][] {
-  const fixed: Coord[] = [];
-  const candidatesPerTile: Coord[][] = [];
-
-  for (const tile of tiling) {
-    const existingStar = tile.coveredCells.find(
-      ([r, c]) => cells[r][c] === "star",
-    );
-    if (existingStar) {
-      fixed.push(existingStar);
-    } else {
-      const candidates = tile.coveredCells.filter(
-        ([r, c]) =>
-          pairSet.has(`${r},${c}`) && cells[r][c] === "unknown",
-      );
-      if (candidates.length === 0) return [];
-      candidatesPerTile.push(candidates);
-    }
-  }
-
-  for (let i = 0; i < fixed.length; i++) {
-    for (let j = i + 1; j < fixed.length; j++) {
-      if (cellsAreAdjacent(fixed[i], fixed[j])) return [];
-    }
-  }
-
-  let assignments: Coord[][] = [[...fixed]];
-
-  for (const candidates of candidatesPerTile) {
-    const extended: Coord[][] = [];
-    for (const partial of assignments) {
-      for (const cell of candidates) {
-        if (partial.some((p) => cellsAreAdjacent(cell, p))) continue;
-        extended.push([...partial, cell]);
-      }
-    }
-    if (extended.length === 0) return [];
-    assignments = extended;
-  }
-
-  return assignments;
-}
-
-function collectValidStarCells(
-  allTilings: Tile[][],
-  pairSet: Set<string>,
-  cells: CellState[][],
-): Set<string> {
-  const valid = new Set<string>();
-  for (const tiling of allTilings) {
-    for (const assignment of enumerateStarAssignments(tiling, pairSet, cells)) {
-      for (const [r, c] of assignment) {
-        valid.add(`${r},${c}`);
-      }
-    }
-  }
-  return valid;
-}
+import { collectValidStarCells } from "../../../helpers/tilingEnumeration";
 
 export default function squeezeAdjacency(
   board: Board,

@@ -10,66 +10,13 @@
  * tilings → mark. The pair's tiling always spills onto them.
  */
 
-import { Board, CellState, Coord, Deduction, Tile } from "../../../helpers/types";
+import { Board, CellState, Coord, Deduction } from "../../../helpers/types";
 import { BoardAnalysis } from "../../../helpers/boardAnalysis";
 import { applyDeductions } from "../../../helpers/applyDeductions";
-
-/**
- * Filter out tilings whose overhang cells are all already marked.
- */
-function filterActiveTilings(
-  allTilings: Tile[][],
-  pairSet: Set<string>,
-  cells: CellState[][],
-): Tile[][] {
-  return allTilings.filter((tiling) => {
-    for (const tile of tiling) {
-      for (const [r, c] of tile.cells) {
-        if (!pairSet.has(`${r},${c}`) && cells[r][c] === "unknown") {
-          return true;
-        }
-      }
-    }
-    return false;
-  });
-}
-
-/**
- * Find non-pair cells that appear in ALL active tilings.
- */
-function findForcedOverhangCells(
-  activeTilings: Tile[][],
-  pairSet: Set<string>,
-): Coord[] {
-  if (activeTilings.length === 0) return [];
-
-  const outsideSets: Set<string>[] = activeTilings.map((tiling) => {
-    const outside = new Set<string>();
-    for (const tile of tiling) {
-      for (const [r, c] of tile.cells) {
-        const key = `${r},${c}`;
-        if (!pairSet.has(key)) {
-          outside.add(key);
-        }
-      }
-    }
-    return outside;
-  });
-
-  const intersection = new Set(outsideSets[0]);
-  for (let i = 1; i < outsideSets.length; i++) {
-    for (const key of intersection) {
-      if (!outsideSets[i].has(key)) {
-        intersection.delete(key);
-      }
-    }
-  }
-
-  return [...intersection].map((key) => {
-    const [r, c] = key.split(",").map(Number);
-    return [r, c] as Coord;
-  });
-}
+import {
+  filterActiveTilings,
+  findForcedOverhangCells,
+} from "../../../helpers/tilingEnumeration";
 
 export default function squeezeOverhang(
   board: Board,
