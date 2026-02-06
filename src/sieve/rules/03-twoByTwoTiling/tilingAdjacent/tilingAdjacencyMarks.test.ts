@@ -1,6 +1,6 @@
-import { Board, CellState } from "../../helpers/types";
+import { Board, CellState } from "../../../helpers/types";
 import { describe, it, expect } from "vitest";
-import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
+import { buildBoardAnalysis } from "../../../helpers/boardAnalysis";
 import tilingAdjacencyMarks from "./tilingAdjacencyMarks";
 
 describe("08c. Tiling Adjacency Marks", () => {

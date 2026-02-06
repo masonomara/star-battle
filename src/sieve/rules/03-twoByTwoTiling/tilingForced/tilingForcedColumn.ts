@@ -1,13 +1,13 @@
-import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { Board, CellState, Coord } from "../../helpers/types";
+import { BoardAnalysis } from "../../../helpers/boardAnalysis";
+import { Board, CellState, Coord } from "../../../helpers/types";
 
 /**
- * Rule 08a: Tiling Forced Stars (Row)
+ * Rule 08b: Tiling Forced Stars (Column)
  *
- * When a row's tiling capacity equals stars needed,
+ * When a column's tiling capacity equals stars needed,
  * cells with single-coverage in all minimal tilings must be stars.
  */
-export default function tilingForcedRow(
+export default function tilingForcedColumn(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
@@ -15,12 +15,12 @@ export default function tilingForcedRow(
   const size = board.grid.length;
   const numCols = board.grid[0]?.length ?? 0;
 
-  for (let row = 0; row < size; row++) {
-    const needed = board.stars - analysis.rowStars[row];
+  for (let col = 0; col < numCols; col++) {
+    const needed = board.stars - analysis.colStars[col];
     if (needed <= 0) continue;
 
     const unknowns: Coord[] = [];
-    for (let col = 0; col < numCols; col++) {
+    for (let row = 0; row < size; row++) {
       if (cells[row][col] === "unknown") {
         unknowns.push([row, col]);
       }

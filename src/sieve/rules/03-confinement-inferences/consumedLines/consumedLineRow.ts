@@ -1,5 +1,5 @@
 /**
- * Rule: Confined Line Placements (Row)
+ * Rule: Consumed Line (Row)
  *
  * When a row's remaining quota can't satisfy a region's star need,
  * the region must place the overflow outside that row.
@@ -10,7 +10,7 @@ import { Board, CellState } from "../../../helpers/types";
 import { BoardAnalysis } from "../../../helpers/boardAnalysis";
 import { applyDeductions } from "../../../helpers/applyDeductions";
 
-export default function confinedPlacementRow(
+export default function consumedLineRow(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

@@ -1,5 +1,5 @@
-import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { Board, CellState } from "../../helpers/types";
+import { BoardAnalysis } from "../../../helpers/boardAnalysis";
+import { Board, CellState } from "../../../helpers/types";
 
 /**
  * Rule 08c: Tiling Forced Stars (Region)

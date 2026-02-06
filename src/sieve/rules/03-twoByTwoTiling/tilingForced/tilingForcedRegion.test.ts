@@ -1,6 +1,6 @@
-import { Board, CellState } from "../../helpers/types";
+import { Board, CellState } from "../../../helpers/types";
 import { describe, it, expect } from "vitest";
-import { buildBoardAnalysis } from "../../helpers/boardAnalysis";
+import { buildBoardAnalysis } from "../../../helpers/boardAnalysis";
 import tilingForcedRegion from "./tilingForcedRegion";
 
 function run(board: Board, cells: CellState[][]): boolean {

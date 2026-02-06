@@ -1,5 +1,5 @@
-import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { Board, CellState, Coord, Tile } from "../../helpers/types";
+import { BoardAnalysis } from "../../../helpers/boardAnalysis";
+import { Board, CellState, Coord, Tile } from "../../../helpers/types";
 
 /**
  * Rule 8d: Tiling Overhang Marks

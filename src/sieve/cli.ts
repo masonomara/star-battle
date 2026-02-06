@@ -379,11 +379,10 @@ async function solveSbfFile(
   // Rule usage summary
   console.log("Rule Usage Summary:");
   const sortedRules = [...ruleStats.entries()].sort((a, b) => {
-    // Sort by level, then by count
-    const levelA = RULE_METADATA.find((r) => r.name === a[0])?.level ?? 0;
-    const levelB = RULE_METADATA.find((r) => r.name === b[0])?.level ?? 0;
-    if (levelA !== levelB) return levelA - levelB;
-    return b[1].count - a[1].count;
+    // Sort by level, then by definition order in allRules
+    const indexA = RULE_METADATA.findIndex((r) => r.name === a[0]);
+    const indexB = RULE_METADATA.findIndex((r) => r.name === b[0]);
+    return indexA - indexB;
   });
 
   for (const [name, stats] of sortedRules) {

@@ -1,10 +1,10 @@
 import { Board, CellState } from "../helpers/types";
 import { BoardAnalysis } from "../helpers/boardAnalysis";
 
-import undercountingRow from "./02-confinement-inferences/undercounting/undercountingRow";
-import undercountingColumn from "./02-confinement-inferences/undercounting/undercountingColumn";
-import overcountingRow from "./02-confinement-inferences/overcounting/overcountingRow";
-import overcountingColumn from "./02-confinement-inferences/overcounting/overcountingColumn";
+import undercountingRow from "./03-confinement-inferences/undercounting/undercountingRow";
+import undercountingColumn from "./03-confinement-inferences/undercounting/undercountingColumn";
+import overcountingRow from "./03-confinement-inferences/overcounting/overcountingRow";
+import overcountingColumn from "./03-confinement-inferences/overcounting/overcountingColumn";
 import hypotheticalRowCapacity from "./99-hypotheticalRowCapacity/hypotheticalRowCapacity";
 import hypotheticalColumnCapacity from "./99-hypotheticalColumnCapacity/hypotheticalColumnCapacity";
 import hypotheticalRegionCapacity from "./99-hypotheticalRegionCapacity/hypotheticalRegionCapacity";
@@ -13,7 +13,7 @@ import hypotheticalTwoByTwoBreak from "./99-hypotheticalTwoByTwoBreak/hypothetic
 import adjacentRegionCapacity from "./99-adjacentRegionCapacity/adjacentRegionCapacity";
 import reservedAreaExclusions from "./99-reservedAreaExclusions/reservedAreaExclusions";
 import adjacentLineAnalysis from "./99-adjacentLineAnalysis/adjacentLineAnalysis";
-import tilingAdjacencyMarks from "./03-twoByTwoTiling/tilingAdjacencyMarks";
+import tilingAdjacencyMarks from "./03-twoByTwoTiling/tilingAdjacent/tilingAdjacencyMarks";
 import starNeighbors from "./01-direct-inferences/starNeighbors/starNeighbors";
 import trivialRow from "./01-direct-inferences/trivialMarks/trivialRow";
 import trivialColumn from "./01-direct-inferences/trivialMarks/trivialColumn";
@@ -21,13 +21,15 @@ import trivialRegion from "./01-direct-inferences/trivialMarks/trivialRegion";
 import forcedRow from "./01-direct-inferences/forcedPlacements/forcedRow";
 import forcedColumn from "./01-direct-inferences/forcedPlacements/forcedColumn";
 import forcedRegion from "./01-direct-inferences/forcedPlacements/forcedRegion";
-import tilingForcedRow from "./03-twoByTwoTiling/tilingForcedRow";
-import tilingForcedColumn from "./03-twoByTwoTiling/tilingForcedColumn";
-import tilingOverhangMarks from "./03-twoByTwoTiling/tilingOverhangMarks";
+import tilingForcedRow from "./03-twoByTwoTiling/tilingForced/tilingForcedRow";
+import tilingForcedColumn from "./03-twoByTwoTiling/tilingForced/tilingForcedColumn";
+import tilingOverhangMarks from "./03-twoByTwoTiling/tilingOverhang/tilingOverhangMarks";
 
-import tilingForcedRegion from "./03-twoByTwoTiling/tilingForcedRegion";
-import confinedPlacementRow from "./02-confinement-inferences/confinedPlacements/confinedPlacementRow";
-import confinedPlacementColumn from "./02-confinement-inferences/confinedPlacements/confinedPlacementColumn";
+import tilingForcedRegion from "./03-twoByTwoTiling/tilingForced/tilingForcedRegion";
+import consumedLineRow from "./03-confinement-inferences/consumedLines/consumedLineRow";
+import consumedLineColumn from "./03-confinement-inferences/consumedLines/consumedLineColumn";
+import consumedRegionRow from "./03-confinement-inferences/consumedRegions/consumedRegionRow";
+import consumedRegionColumn from "./03-confinement-inferences/consumedRegions/consumedRegionColumn";
 
 export type Rule = (
   board: Board,
@@ -53,8 +55,10 @@ export const allRules: RuleEntry[] = [
   { rule: undercountingColumn, level: 2, name: "Undercounted Columns" },
   { rule: overcountingRow, level: 2, name: "Overcounted Rows" },
   { rule: overcountingColumn, level: 2, name: "Overcounted Columns" },
-  { rule: confinedPlacementColumn, level: 2, name: "Confined Row" },
-  { rule: confinedPlacementRow, level: 2, name: "Confined Column" },
+  { rule: consumedLineRow, level: 2, name: "Consumed Line Row" },
+  { rule: consumedLineColumn, level: 2, name: "Consumed Line Column" },
+  { rule: consumedRegionRow, level: 2, name: "Consumed Region Row" },
+  { rule: consumedRegionColumn, level: 2, name: "Consumed Region Column" },
   { rule: tilingForcedRow, level: 4, name: "Tiling Forced Rows" },
   { rule: tilingForcedColumn, level: 4, name: "Tiling Forced Columns" },
   { rule: tilingForcedRegion, level: 4, name: "Tiling Forced Regions" },
