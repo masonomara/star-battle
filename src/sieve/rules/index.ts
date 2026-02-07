@@ -32,22 +32,7 @@ import squeezeAdjacencyColumn from "./05-tiling-enumeration/squeeze/squeezeAdjac
 import squeezeOverhangRow from "./05-tiling-enumeration/squeeze/squeezeOverhangRow";
 import squeezeOverhangColumn from "./05-tiling-enumeration/squeeze/squeezeOverhangColumn";
 
-import {
-  combinationCompositeTilingMarks,
-  combinationCompositeTilingPlacements,
-} from "./06-confinement-enumeration/combinationComposites";
-import {
-  contiguousTilingMarksRow,
-  contiguousTilingMarksColumn,
-  contiguousTilingPlacementsRow,
-  contiguousTilingPlacementsColumn,
-} from "./06-confinement-enumeration/contiguousBandComposites";
-import {
-  regionBandTilingMarksRow,
-  regionBandTilingMarksColumn,
-  regionBandTilingPlacementsRow,
-  regionBandTilingPlacementsColumn,
-} from "./06-confinement-enumeration/regionBandComposites";
+
 
 import hypotheticalRowCount from "./07-direct-hypotheticals/hypotheticalRowCount";
 import hypotheticalColumnCount from "./07-direct-hypotheticals/hypotheticalColumnCount";
@@ -110,24 +95,7 @@ export const allRules: RuleEntry[] = [
   { rule: squeezeOverhangColumn, level: 5, name: "Squeeze Overhang Columns" },
 
   // Level 6: Confinement Enumerations
-  {
-    rule: combinationCompositeTilingMarks,
-    level: 6,
-    name: "Combination Composite Tiling Marks",
-  },
-  {
-    rule: combinationCompositeTilingPlacements,
-    level: 6,
-    name: "Combination Composite Tiling Placements",
-  },
-  { rule: contiguousTilingMarksRow, level: 6, name: "Contiguous Band Tiling Marks Row" },
-  { rule: contiguousTilingMarksColumn, level: 6, name: "Contiguous Band Tiling Marks Column" },
-  { rule: contiguousTilingPlacementsRow, level: 6, name: "Contiguous Band Tiling Placements Row" },
-  { rule: contiguousTilingPlacementsColumn, level: 6, name: "Contiguous Band Tiling Placements Column" },
-  { rule: regionBandTilingMarksRow, level: 6, name: "Region Band Tiling Marks Row" },
-  { rule: regionBandTilingMarksColumn, level: 6, name: "Region Band Tiling Marks Column" },
-  { rule: regionBandTilingPlacementsRow, level: 6, name: "Region Band Tiling Placements Row" },
-  { rule: regionBandTilingPlacementsColumn, level: 6, name: "Region Band Tiling Placements Column" },
+
 
   // Level 7: Direct Hypotheticals
   { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },

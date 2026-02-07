@@ -106,6 +106,113 @@ export function buildAdjacencyGraph(
   return adjacency;
 }
 
+export function forEachCombinationComposite(
+  board: Board,
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+  analyze: CompositeAnalyzer,
+  returnOnFirst = true,
+): boolean {
+  const { regions } = analysis;
+
+  const activeRegions = new Map<number, RegionMeta>();
+  for (const [id, meta] of regions) {
+    if (meta.starsNeeded > 0 && meta.unknownCoords.length > 0) {
+      activeRegions.set(id, meta);
+    }
+  }
+
+  if (activeRegions.size < 2) return false;
+
+  const adjacency = buildAdjacencyGraph(board, activeRegions);
+  let changed = false;
+
+  for (const [id1, neighborIds] of adjacency) {
+    const r1 = activeRegions.get(id1);
+    if (!r1) continue;
+
+    for (const id2 of neighborIds) {
+      if (id2 <= id1) continue;
+
+      const r2 = activeRegions.get(id2);
+      if (!r2) continue;
+
+      const starsNeeded = r1.starsNeeded + r2.starsNeeded;
+      if (starsNeeded <= 0) continue;
+
+      const allCoords = [...r1.unknownCoords, ...r2.unknownCoords];
+      const unknownCells = allCoords.filter(
+        ([r, c]) => cells[r][c] === "unknown",
+      );
+
+      if (unknownCells.length === 0) continue;
+
+      const composite: Composite = {
+        cells: allCoords,
+        unknownCells,
+        starsNeeded,
+      };
+
+      if (analyze(composite, board, cells, analysis)) {
+        if (returnOnFirst) return true;
+        changed = true;
+      }
+    }
+  }
+
+  return changed;
+}
+
+export function forEachContiguousBand(
+  board: Board,
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+  axis: "row" | "col",
+  analyze: CompositeAnalyzer,
+  returnOnFirst = true,
+): boolean {
+  const { size } = analysis;
+  let changed = false;
+
+  for (let start = 0; start < size; start++) {
+    for (let width = 2; width < size; width++) {
+      const end = start + width;
+      if (end > size) break;
+      const bandLines = Array.from({ length: width }, (_, i) => start + i);
+      if (findComplementInBand(bandLines, board, cells, analysis, axis, analyze)) {
+        if (returnOnFirst) return true;
+        changed = true;
+      }
+    }
+  }
+
+  return changed;
+}
+
+export function forEachRegionBand(
+  board: Board,
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+  axis: "row" | "col",
+  analyze: CompositeAnalyzer,
+  returnOnFirst = true,
+): boolean {
+  const { regions } = analysis;
+  let changed = false;
+
+  const unknownLines = axis === "row" ? "unknownRows" : "unknownCols";
+  for (const region of regions.values()) {
+    if (region.starsNeeded <= 0 || region[unknownLines].size < 2) continue;
+    const bandLines = [...region[unknownLines]];
+    if (findComplementInBand(bandLines, board, cells, analysis, axis, analyze)) {
+      if (returnOnFirst) return true;
+      changed = true;
+    }
+  }
+
+  return changed;
+}
+
 function prepareComposite(
   composite: Composite,
   cells: CellState[][],
@@ -167,38 +274,26 @@ export function analyzeCompositeTilingPlacements(
 
   if (tiling.capacity !== currentStarsNeeded) return false;
 
-  const forcedSet = new Set(
-    tiling.forcedCells.map(([row, col]) => `${row},${col}`),
-  );
-
-  const localRowStars = [...analysis.rowStars];
-  const localColStars = [...analysis.colStars];
-  const localRegionStars = new Map<number, number>();
-  for (const [id, m] of analysis.regions) localRegionStars.set(id, m.starsPlaced);
-
-  let changed = false;
   for (const [frow, fcol] of tiling.forcedCells) {
     if (cells[frow][fcol] !== "unknown") continue;
 
-    let hasAdjacentConflict = false;
+    let hasAdjacentStar = false;
     for (const [nr, nc] of neighbors(frow, fcol, size)) {
-      if (cells[nr][nc] === "star" || forcedSet.has(`${nr},${nc}`)) {
-        hasAdjacentConflict = true;
+      if (cells[nr][nc] === "star") {
+        hasAdjacentStar = true;
         break;
       }
     }
-    if (hasAdjacentConflict) continue;
+    if (hasAdjacentStar) continue;
 
-    if (localRowStars[frow] >= board.stars || localColStars[fcol] >= board.stars) continue;
+    if (analysis.rowStars[frow] >= board.stars || analysis.colStars[fcol] >= board.stars) continue;
     const regionId = board.grid[frow][fcol];
-    if ((localRegionStars.get(regionId) ?? 0) >= board.stars) continue;
+    const regionMeta = analysis.regions.get(regionId);
+    if (regionMeta && regionMeta.starsPlaced >= board.stars) continue;
 
     cells[frow][fcol] = "star";
-    localRowStars[frow]++;
-    localColStars[fcol]++;
-    localRegionStars.set(regionId, (localRegionStars.get(regionId) ?? 0) + 1);
-    changed = true;
+    return true;
   }
-  return changed;
+  return false;
 }
 
