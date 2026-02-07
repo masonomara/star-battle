@@ -17,6 +17,7 @@ export interface StepInfo {
 
 export interface SolveOptions {
   onStep?: (step: StepInfo) => void;
+  timing?: Map<string, number>;
 }
 
 /**
@@ -49,7 +50,24 @@ export function solve(
     if (status === "solved") return { cells, cycles, maxLevel };
     if (status === "invalid") return null;
 
-    const applied = allRules.find(({ rule }) => rule(boardDef, cells, analysis));
+    let applied: (typeof allRules)[number] | undefined;
+    for (const entry of allRules) {
+      let fired: boolean;
+      if (options.timing) {
+        const t0 = performance.now();
+        fired = entry.rule(boardDef, cells, analysis);
+        options.timing.set(
+          entry.name,
+          (options.timing.get(entry.name) ?? 0) + (performance.now() - t0),
+        );
+      } else {
+        fired = entry.rule(boardDef, cells, analysis);
+      }
+      if (fired) {
+        applied = entry;
+        break;
+      }
+    }
 
     if (!applied) return null;
 

@@ -265,11 +265,12 @@ async function solveSbfFile(
     return;
   }
 
-  // Initialize rule stats
+  // Initialize rule stats and timing
   const ruleStats = new Map<string, RuleStats>();
   for (const { name } of RULE_METADATA) {
     ruleStats.set(name, { count: 0, puzzlesUsed: new Set() });
   }
+  const ruleTiming = new Map<string, number>();
 
   let solved = 0;
   const difficulties: number[] = [];
@@ -314,6 +315,7 @@ async function solveSbfFile(
     const puzzleRules: string[] = [];
     let prevCells: CellState[][] | null = null;
     const result = solve(puzzle, {
+      timing: ruleTiming,
       onStep: (step: StepInfo) => {
         puzzleRules.push(step.rule);
         const stats = ruleStats.get(step.rule);
@@ -377,22 +379,31 @@ async function solveSbfFile(
   console.log(`Processed ${lines.length} puzzles in ${elapsed}s\n`);
 
   // Rule usage summary
-  console.log("Rule Usage Summary:");
+  console.log("Rule Usage:");
   const sortedRules = [...ruleStats.entries()].sort((a, b) => {
-    // Sort by level, then by definition order in allRules
     const indexA = RULE_METADATA.findIndex((r) => r.name === a[0]);
     const indexB = RULE_METADATA.findIndex((r) => r.name === b[0]);
     return indexA - indexB;
   });
 
+  const maxName = Math.max(...sortedRules.map(([n]) => n.length));
+  let ruleTimeTotal = 0;
+
   for (const [name, stats] of sortedRules) {
     const level = RULE_METADATA.find((r) => r.name === name)?.level ?? 0;
     const pct = ((stats.puzzlesUsed.size / lines.length) * 100).toFixed(0);
-    const padding = " ".repeat(Math.max(0, 26 - name.length));
+    const ms = ruleTiming.get(name) ?? 0;
+    ruleTimeTotal += ms;
+    const time = (ms / 1000).toFixed(2);
+    const pad = " ".repeat(maxName - name.length + 2);
     console.log(
-      `  ${name}${padding}(L${level}): ${stats.count} times (${pct}% of puzzles)`,
+      `  ${name}${pad}L${level}  ${String(stats.count).padStart(6)}  ${pct.padStart(3)}%  ${time.padStart(6)}s`,
     );
   }
+
+  console.log(
+    `  ${"Rule time".padEnd(maxName + 2)}${" ".repeat(18)}${(ruleTimeTotal / 1000).toFixed(2).padStart(6)}s`,
+  );
 
   // Difficulty distribution
   console.log("\nDifficulty distribution:");
