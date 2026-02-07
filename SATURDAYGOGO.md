@@ -136,7 +136,7 @@ Reserved area logic across *multiple columns simultaneously*. Your reserved area
 
 **Why:** You have the traces infrastructure already (`--trace` flag). With the solver running faster, you can now afford to trace all 21 and study where each one gets stuck.
 
-**How:** Run `npx tsx src/sieve/cli.ts --sbf unsolved_clean.sbf --trace > stuck_traces.txt`. For each puzzle, look at the final board state. Identify which cells are still unknown. Look at the region structure around those cells. Ask: "What logical step would unlock this?"
+**How:** Run `npx tsx src/sieve/cli.ts --file unsolved_clean.sbn --trace > stuck_traces.txt`. For each puzzle, look at the final board state. Identify which cells are still unknown. Look at the region structure around those cells. Ask: "What logical step would unlock this?"
 
 #### Task 2.2: Categorize each stuck puzzle
 

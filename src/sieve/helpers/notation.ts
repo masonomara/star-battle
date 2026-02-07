@@ -1,12 +1,13 @@
 /**
- * Star Battle Format (SBF) v1.0
+ * Puzzle String Format
  *
- * A compact, URL-safe format for sharing Star Battle puzzles with metadata.
+ * A compact format for sharing Star Battle puzzles with metadata.
+ * Region encoding uses uppercase letters (A-Z) matching krazydad notation.
  *
- * Format: <header>.<regions>[.<metadata>]
+ * Format: <header>.<layout>[.<metadata>]
  *
  * Header:   {size}x{stars}        e.g., "10x2"
- * Regions:  Base36 region IDs     e.g., "0011223344..." (size² characters)
+ * Layout:   Uppercase letters     e.g., "AAAABBBBBCAAD..." (size² characters)
  * Metadata: Key-value tokens      e.g., "s42d7l4c12"
  *
  * Metadata keys:
@@ -16,16 +17,16 @@
  *   c{int} - cycles (solver iterations)
  *   v{int} - format version (default 1)
  *
- * Example: "10x2.0000111122000111222200111222330011223333...s42d7l4c12"
+ * Example: "10x2.AAAABBBBBCAADABBBBBCADDAEEEECCADD...s42d7l4c12"
  */
 
-import { Board, Puzzle, Solution } from "./types";
+import { Board, Coord, Puzzle, Solution } from "./types";
 
-const BASE36_CHARS = "0123456789abcdefghijklmnopqrstuvwxyz";
-const MAX_REGIONS = 36;
+const REGION_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const MAX_REGIONS = 26;
 const FORMAT_VERSION = 1;
 
-export type SBFMetadata = {
+export type PuzzleStringMetadata = {
   seed?: number;
   difficulty?: number;
   maxLevel?: number;
@@ -33,19 +34,20 @@ export type SBFMetadata = {
   version?: number;
 };
 
-export type SBFData = {
+export type PuzzleStringData = {
   board: Board;
-  metadata: SBFMetadata;
+  metadata: PuzzleStringMetadata;
 };
 
 /**
- * Encode a Board to SBF format.
- * Optionally include metadata from a Solution or Puzzle.
+ * Encode a Board to puzzle string format.
  */
-export function encodeSBF(board: Board, metadata?: SBFMetadata): string {
+export function encodePuzzleString(
+  board: Board,
+  metadata?: PuzzleStringMetadata,
+): string {
   const size = board.grid.length;
 
-  // Validate grid is square
   for (const row of board.grid) {
     if (row.length !== size) {
       throw new Error(
@@ -54,7 +56,6 @@ export function encodeSBF(board: Board, metadata?: SBFMetadata): string {
     }
   }
 
-  // Validate region IDs are in range
   const regionIds = new Set<number>();
   for (const row of board.grid) {
     for (const id of row) {
@@ -65,15 +66,12 @@ export function encodeSBF(board: Board, metadata?: SBFMetadata): string {
     }
   }
 
-  // Header
   const header = `${size}x${board.stars}`;
 
-  // Regions: flatten grid row-major, convert to base36
-  const regions = board.grid
-    .flatMap((row) => row.map((id) => BASE36_CHARS[id]))
+  const layout = board.grid
+    .flatMap((row) => row.map((id) => REGION_LETTERS[id]))
     .join("");
 
-  // Metadata
   const metaParts: string[] = [];
   if (metadata) {
     if (metadata.seed !== undefined) metaParts.push(`s${metadata.seed}`);
@@ -90,16 +88,16 @@ export function encodeSBF(board: Board, metadata?: SBFMetadata): string {
   const metaString = metaParts.join("");
 
   if (metaString) {
-    return `${header}.${regions}.${metaString}`;
+    return `${header}.${layout}.${metaString}`;
   }
-  return `${header}.${regions}`;
+  return `${header}.${layout}`;
 }
 
 /**
- * Encode a Solution (Board + seed + solver stats) to SBF.
+ * Encode a Solution (Board + seed + solver stats).
  */
 export function encodeSolution(solution: Solution): string {
-  return encodeSBF(solution.board, {
+  return encodePuzzleString(solution.board, {
     seed: solution.seed,
     maxLevel: solution.maxLevel,
     cycles: solution.cycles,
@@ -107,10 +105,10 @@ export function encodeSolution(solution: Solution): string {
 }
 
 /**
- * Encode a Puzzle (Solution + difficulty) to SBF.
+ * Encode a Puzzle (Solution + difficulty).
  */
 export function encodePuzzle(puzzle: Puzzle): string {
-  return encodeSBF(puzzle.board, {
+  return encodePuzzleString(puzzle.board, {
     seed: puzzle.seed,
     difficulty: puzzle.difficulty,
     maxLevel: puzzle.maxLevel,
@@ -119,20 +117,19 @@ export function encodePuzzle(puzzle: Puzzle): string {
 }
 
 /**
- * Decode an SBF string to a Board and metadata.
+ * Decode a puzzle string to a Board and metadata.
  */
-export function decodeSBF(sbf: string): SBFData {
-  const parts = sbf.split(".");
+export function decodePuzzleString(str: string): PuzzleStringData {
+  const parts = str.split(".");
 
   if (parts.length < 2 || parts.length > 3) {
     throw new Error(
-      `Invalid SBF format: expected 2-3 dot-separated parts, got ${parts.length}`,
+      `Invalid puzzle string: expected 2-3 dot-separated parts, got ${parts.length}`,
     );
   }
 
-  const [header, regions, metaString] = parts;
+  const [header, layout, metaString] = parts;
 
-  // Parse header
   const headerMatch = header.match(/^(\d+)x(\d+)$/);
   if (!headerMatch) {
     throw new Error(`Invalid header format: "${header}" (expected NxM)`);
@@ -148,11 +145,10 @@ export function decodeSBF(sbf: string): SBFData {
     throw new Error(`Invalid star count: ${stars} (must be >= 1)`);
   }
 
-  // Parse regions
   const expectedLength = size * size;
-  if (regions.length !== expectedLength) {
+  if (layout.length !== expectedLength) {
     throw new Error(
-      `Invalid regions length: ${regions.length} (expected ${expectedLength} for ${size}x${size} grid)`,
+      `Invalid layout length: ${layout.length} (expected ${expectedLength} for ${size}x${size} grid)`,
     );
   }
 
@@ -160,8 +156,8 @@ export function decodeSBF(sbf: string): SBFData {
   for (let row = 0; row < size; row++) {
     const rowData: number[] = [];
     for (let col = 0; col < size; col++) {
-      const char = regions[row * size + col];
-      const regionId = BASE36_CHARS.indexOf(char.toLowerCase());
+      const char = layout[row * size + col];
+      const regionId = REGION_LETTERS.indexOf(char.toUpperCase());
       if (regionId === -1) {
         throw new Error(
           `Invalid region character: "${char}" at position ${row * size + col}`,
@@ -172,7 +168,6 @@ export function decodeSBF(sbf: string): SBFData {
     grid.push(rowData);
   }
 
-  // Validate region count matches grid size
   const regionIds = new Set(grid.flat());
   if (regionIds.size !== size) {
     throw new Error(
@@ -180,8 +175,7 @@ export function decodeSBF(sbf: string): SBFData {
     );
   }
 
-  // Parse metadata
-  const metadata: SBFMetadata = { version: FORMAT_VERSION };
+  const metadata: PuzzleStringMetadata = { version: FORMAT_VERSION };
   if (metaString) {
     const metaPattern = /([sdlcv])(\d+)/g;
     let match;
@@ -215,11 +209,11 @@ export function decodeSBF(sbf: string): SBFData {
 }
 
 /**
- * Validate an SBF string without fully parsing.
+ * Validate a puzzle string without fully parsing.
  */
-export function isValidSBF(sbf: string): boolean {
+export function isValidPuzzleString(str: string): boolean {
   try {
-    decodeSBF(sbf);
+    decodePuzzleString(str);
     return true;
   } catch {
     return false;
@@ -227,8 +221,52 @@ export function isValidSBF(sbf: string): boolean {
 }
 
 /**
- * Extract just the Board from an SBF string.
+ * Extract just the Board from a puzzle string.
  */
-export function boardFromSBF(sbf: string): Board {
-  return decodeSBF(sbf).board;
+export function boardFromPuzzleString(str: string): Board {
+  return decodePuzzleString(str).board;
+}
+
+// ---------------------------------------------------------------------------
+// Display notation helpers (see NOTATION.md)
+// ---------------------------------------------------------------------------
+
+/**
+ * Convert a solver coordinate to cell notation.
+ * (0, 0) → "A1", (9, 9) → "J10"
+ */
+export function coordToCell(coord: Coord): string {
+  const [row, col] = coord;
+  return `${String.fromCharCode(65 + col)}${row + 1}`;
+}
+
+/**
+ * Parse cell notation to a solver coordinate.
+ * "A1" → [0, 0], "J10" → [9, 9]
+ */
+export function cellToCoord(cell: string): Coord {
+  const col = cell.charCodeAt(0) - 65;
+  const row = parseInt(cell.slice(1), 10) - 1;
+  return [row, col];
+}
+
+/**
+ * Row display name: 0 → "Row-1", 9 → "Row-10"
+ */
+export function rowName(index: number): string {
+  return `Row-${index + 1}`;
+}
+
+/**
+ * Column display name: 0 → "Col-a", 9 → "Col-j"
+ */
+export function colName(index: number): string {
+  return `Col-${String.fromCharCode(97 + index)}`;
+}
+
+/**
+ * Region display name: 0 → "Cage-1", 9 → "Cage-10"
+ */
+export function regionName(id: number): string {
+  return `Cage-${id + 1}`;
 }

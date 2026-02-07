@@ -1,7 +1,7 @@
 import { Board, CellState } from "../../../helpers/types";
 import { describe, it, expect } from "vitest";
 import { buildBoardStructure, buildBoardAnalysis } from "../../../helpers/boardAnalysis";
-import { boardFromSBF } from "../../../helpers/sbf";
+import { boardFromPuzzleString } from "../../../helpers/notation";
 import reservedAreaColumn from "./reservedAreaColumn";
 import reservedAreaRow from "./reservedAreaRow";
 
@@ -13,8 +13,8 @@ describe("Reserved Area Column", () => {
   }
 
   it("marks via cols {4,7} on krazydad puzzle at cycle 33 (first deduction)", () => {
-    const board = boardFromSBF(
-      "10x2.0000111112003011111203304444220330455555000044455506067777778666777977866677797786777799778888877999",
+    const board = boardFromPuzzleString(
+      "10x2.AAAABBBBBCAADABBBBBCADDAEEEECCADDAEFFFFFAAAAEEEFFFAGAGHHHHHHIGGGHHHJHHIGGGHHHJHHIGHHHHJJHHIIIIIHHJJJ",
     );
 
     // Cycle 33 state: X=marked, .=unknown, ★=star
@@ -43,8 +43,8 @@ describe("Reserved Area Column", () => {
   });
 
   it("marks G3 via cols {6,7} after earlier deduction applied", () => {
-    const board = boardFromSBF(
-      "10x2.0000111112003011111203304444220330455555000044455506067777778666777977866677797786777799778888877999",
+    const board = boardFromPuzzleString(
+      "10x2.AAAABBBBBCAADABBBBBCADDAEEEECCADDAEFFFFFAAAAEEEFFFAGAGHHHHHHIGGGHHHJHHIGGGHHHJHHIGHHHHJJHHIIIIIHHJJJ",
     );
 
     const m: CellState = "marked";

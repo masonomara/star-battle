@@ -4,6 +4,7 @@ import { layout } from "./generator";
 import { solve, board, StepInfo, RULE_METADATA } from "./solver";
 import { Board, CellState, computeDifficulty } from "./helpers/types";
 import { parsePuzzle } from "./helpers/parsePuzzle";
+import { boardFromPuzzleString } from "./helpers/notation";
 
 function parseArgs(): Record<string, string> {
   const args: Record<string, string> = {};
@@ -38,18 +39,18 @@ async function main() {
   sieve [--size n] [--stars n] [--count n] [--seed n] [--trace]
   sieve [--minDiff n] [--maxDiff n]     # filter by difficulty range
   echo "A B B..." | sieve [--stars n]   # solve from input
-  sieve --sbf puzzles.sbf [--verbose]   # solve SBF file and track rule usage
-  sieve --sbf puzzles.sbf --unsolved    # output only unsolved puzzles
-  sieve --sbf puzzles.sbf --trace       # trace each puzzle step by step`);
+  sieve --file puzzles.sbn [--verbose]   # solve puzzle file and track rule usage
+  sieve --file puzzles.sbn --unsolved    # output only unsolved puzzles
+  sieve --file puzzles.sbn --trace       # trace each puzzle step by step`);
     return;
   }
 
-  // SBF mode: solve puzzles and track rule usage
-  if (args.sbf) {
+  // File mode: solve puzzles and track rule usage
+  if (args.file) {
     const verbose = args.verbose === "true";
     const unsolved = args.unsolved === "true";
     const trace = args.trace === "true";
-    await solveSbfFile(args.sbf, verbose, unsolved, trace);
+    await solvePuzzleFile(args.file, verbose, unsolved, trace);
     return;
   }
 
@@ -145,22 +146,35 @@ async function main() {
 }
 
 function printBoard(grid: number[][]) {
-  const width = Math.max(...grid.flat()).toString().length;
-  for (const row of grid)
-    console.log(row.map((n) => n.toString().padStart(width)).join(" "));
+  const size = grid.length;
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const colHeader =
+    "    " + Array.from({ length: size }, (_, i) => letters[i]).join(" ");
+  console.log(colHeader);
+  for (let r = 0; r < size; r++) {
+    const label = String(r + 1).padStart(2);
+    const row = grid[r].map((id) => letters[id]).join(" ");
+    console.log(`${label}  ${row}`);
+  }
 }
 
 function printCellStateWithDiff(
   cells: CellState[][],
   prev: CellState[][] | null,
 ) {
+  const size = cells.length;
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const sym = { unknown: ".", marked: "X", star: "★" };
-  for (let r = 0; r < cells.length; r++) {
+  const colHeader =
+    "    " + Array.from({ length: size }, (_, i) => letters[i]).join(" ");
+  console.log(colHeader);
+  for (let r = 0; r < size; r++) {
+    const label = String(r + 1).padStart(2);
     const line = cells[r].map((c, i) => {
       const s = sym[c];
       return prev && prev[r][i] !== c ? `\x1b[43m\x1b[30m${s}\x1b[0m` : s;
     });
-    console.log(line.join(" "));
+    console.log(`${label}  ${line.join(" ")}`);
   }
 }
 
@@ -200,53 +214,18 @@ function solveFromInput(input: string, stars: number) {
   );
 }
 
-/**
- * Parse SBF format: {size}x{stars}.{regions_base36}
- * Example: 10x2.0001112233...
- */
-function parseSbf(sbf: string): Board {
-  const match = sbf.match(/^(\d+)x(\d+)\.([0-9a-p]+)$/);
-  if (!match) {
-    throw new Error(`Invalid SBF format: ${sbf}`);
-  }
-
-  const size = parseInt(match[1], 10);
-  const stars = parseInt(match[2], 10);
-  const regionsBase36 = match[3];
-
-  if (regionsBase36.length !== size * size) {
-    throw new Error(
-      `Region string length ${regionsBase36.length} doesn't match ${size}x${size}=${size * size}`,
-    );
-  }
-
-  // Convert base36 chars to region IDs (0→0, 1→1, ..., 9→9, a→10, b→11, ..., p→25)
-  const grid: number[][] = [];
-  for (let row = 0; row < size; row++) {
-    const rowData: number[] = [];
-    for (let col = 0; col < size; col++) {
-      const char = regionsBase36[row * size + col];
-      const regionId = parseInt(char, 26); // base26 covers 0-9 and a-p
-      rowData.push(regionId);
-    }
-    grid.push(rowData);
-  }
-
-  return { grid, stars };
-}
-
 interface RuleStats {
   count: number;
   puzzlesUsed: Set<number>;
 }
 
-async function solveSbfFile(
+async function solvePuzzleFile(
   filePath: string,
   verbose: boolean,
   filterUnsolved: boolean = false,
   trace: boolean = false,
 ) {
-  // Read SBF file (support /dev/stdin)
+  // Read puzzle file (support /dev/stdin)
   let content: string;
   if (filePath === "/dev/stdin") {
     content = await readStdin();
@@ -274,19 +253,20 @@ async function solveSbfFile(
 
   let solved = 0;
   const difficulties: number[] = [];
-  const unsolvedPuzzles: { index: number; sbf: string; reason: string }[] = [];
+  const unsolvedPuzzles: { index: number; line: string; reason: string }[] = [];
   const startTime = Date.now();
 
   for (let i = 0; i < lines.length; i++) {
-    const sbf = lines[i];
+    const line = lines[i];
+    const puzzleStr = line.split("#")[0].trim();
 
     let puzzle: Board;
     try {
-      puzzle = parseSbf(sbf);
+      puzzle = boardFromPuzzleString(puzzleStr);
     } catch (e) {
       unsolvedPuzzles.push({
         index: i + 1,
-        sbf,
+        line,
         reason: `PARSE ERROR: ${(e as Error).message}`,
       });
       if (verbose && !filterUnsolved) {
@@ -296,7 +276,7 @@ async function solveSbfFile(
     }
 
     if (!board.isValid(puzzle)) {
-      unsolvedPuzzles.push({ index: i + 1, sbf, reason: "INVALID LAYOUT" });
+      unsolvedPuzzles.push({ index: i + 1, line, reason: "INVALID LAYOUT" });
       if (verbose && !filterUnsolved) {
         console.log(`Puzzle ${i + 1}: INVALID LAYOUT`);
       }
@@ -306,7 +286,7 @@ async function solveSbfFile(
     // Trace mode: show full board and steps
     if (trace) {
       console.log(`\n${"=".repeat(60)}`);
-      console.log(`Puzzle ${i + 1}: ${sbf}`);
+      console.log(`Puzzle ${i + 1}: ${puzzleStr}`);
       console.log(`${"=".repeat(60)}`);
       console.log("Region grid:");
       printBoard(puzzle.grid);
@@ -346,7 +326,7 @@ async function solveSbfFile(
         );
       }
     } else {
-      unsolvedPuzzles.push({ index: i + 1, sbf, reason: "STUCK" });
+      unsolvedPuzzles.push({ index: i + 1, line, reason: "STUCK" });
       if (trace) {
         console.log(`\n=== STUCK ===`);
       } else if (verbose && !filterUnsolved) {
@@ -365,8 +345,8 @@ async function solveSbfFile(
     console.error(
       `# ${unsolvedPuzzles.length} unsolved puzzles out of ${lines.length}`,
     );
-    for (const { index, sbf, reason } of unsolvedPuzzles) {
-      console.log(`${sbf} # puzzle ${index}: ${reason}`);
+    for (const { index, line, reason } of unsolvedPuzzles) {
+      console.log(`${line} # puzzle ${index}: ${reason}`);
     }
     return;
   }
