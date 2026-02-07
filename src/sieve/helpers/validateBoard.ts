@@ -33,15 +33,16 @@ export function isValidBoard(board: Board): boolean {
     if (coords.length < minRegionSize) return false;
   }
 
-  // Every row and column must have enough distinct regions
+  // Every row and column must be able to tile the required stars
   for (let i = 0; i < size; i++) {
-    const rowRegions = new Set<number>();
-    const colRegions = new Set<number>();
+    const rowCoords: [number, number][] = [];
+    const colCoords: [number, number][] = [];
     for (let j = 0; j < size; j++) {
-      rowRegions.add(board.grid[i][j]);
-      colRegions.add(board.grid[j][i]);
+      rowCoords.push([i, j]);
+      colCoords.push([j, i]);
     }
-    if (rowRegions.size < stars || colRegions.size < stars) return false;
+    if (computeTiling(rowCoords, size).capacity < stars) return false;
+    if (computeTiling(colCoords, size).capacity < stars) return false;
   }
 
   // Every region must be able to tile the required stars
