@@ -1,4 +1,4 @@
-import { Board, CellState, SolverResult } from "./helpers/types";
+import { Board, CellState, SolverResult, TilingResult } from "./helpers/types";
 import { buildBoardAnalysis } from "./helpers/boardAnalysis";
 import { checkProgress } from "./helpers/checkProgress";
 import * as board from "./helpers/board";
@@ -38,11 +38,12 @@ export function solve(
 
   let cycles = 0;
   let maxLevel = 0;
+  const tilingCache = new Map<string, TilingResult>();
 
   while (true) {
     cycles++;
 
-    const analysis = buildBoardAnalysis(boardDef, cells);
+    const analysis = buildBoardAnalysis(boardDef, cells, tilingCache);
     const status = checkProgress(boardDef, cells, analysis);
 
     if (status === "solved") return { cells, cycles, maxLevel };

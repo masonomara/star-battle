@@ -34,6 +34,7 @@ export function capacity(cells: Coord[], analysis: BoardAnalysis): number {
 export function buildBoardAnalysis(
   board: Board,
   cells: CellState[][],
+  tilingCache: Map<string, TilingResult> = new Map(),
 ): BoardAnalysis {
   const size = board.grid.length;
   const numCols = board.grid[0]?.length ?? 0;
@@ -102,8 +103,6 @@ export function buildBoardAnalysis(
       colToRegions.get(col)!.add(id);
     }
   }
-
-  const tilingCache = new Map<string, TilingResult>();
 
   const getTiling = (coords: Coord[]): TilingResult => {
     if (coords.length === 0) {
