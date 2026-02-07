@@ -48,8 +48,6 @@ import {
   complementCompositeEnumerationPlacementsRow,
   complementCompositeEnumerationPlacementsColumn,
 } from "./06-confinement-enumeration/complementComposites";
-import reservedAreaRow from "./06-confinement-enumeration/reservedArea/reservedAreaRow";
-import reservedAreaColumn from "./06-confinement-enumeration/reservedArea/reservedAreaColumn";
 
 import hypotheticalRowCount from "./07-direct-hypotheticals/hypotheticalRowCount";
 import hypotheticalColumnCount from "./07-direct-hypotheticals/hypotheticalColumnCount";
@@ -112,20 +110,66 @@ export const allRules: RuleEntry[] = [
   { rule: squeezeOverhangColumn, level: 5, name: "Squeeze Overhang Columns" },
 
   // Level 6: Confinement Enumerations
-  { rule: combinationCompositeTilingMarks, level: 6, name: "Combination Composite Tiling Marks" },
-  { rule: combinationCompositeTilingPlacements, level: 6, name: "Combination Composite Tiling Placements" },
-  { rule: combinationCompositeEnumerationMarks, level: 6, name: "Combination Composite Enumeration Marks" },
-  { rule: combinationCompositeEnumerationPlacements, level: 6, name: "Combination Composite Enumeration Placements" },
-  { rule: complementCompositeTilingMarksRow, level: 6, name: "Complement Composite Tiling Marks Row" },
-  { rule: complementCompositeTilingMarksColumn, level: 6, name: "Complement Composite Tiling Marks Column" },
-  { rule: complementCompositeTilingPlacementsRow, level: 6, name: "Complement Composite Tiling Placements Row" },
-  { rule: complementCompositeTilingPlacementsColumn, level: 6, name: "Complement Composite Tiling Placements Column" },
-  { rule: complementCompositeEnumerationMarksRow, level: 6, name: "Complement Composite Enumeration Marks Row" },
-  { rule: complementCompositeEnumerationMarksColumn, level: 6, name: "Complement Composite Enumeration Marks Column" },
-  { rule: complementCompositeEnumerationPlacementsRow, level: 6, name: "Complement Composite Enumeration Placements Row" },
-  { rule: complementCompositeEnumerationPlacementsColumn, level: 6, name: "Complement Composite Enumeration Placements Column" },
-  { rule: reservedAreaRow, level: 6, name: "Reserved Area Row" },
-  { rule: reservedAreaColumn, level: 6, name: "Reserved Area Column" },
+  {
+    rule: combinationCompositeTilingMarks,
+    level: 6,
+    name: "Combination Composite Tiling Marks",
+  },
+  {
+    rule: combinationCompositeTilingPlacements,
+    level: 6,
+    name: "Combination Composite Tiling Placements",
+  },
+  {
+    rule: combinationCompositeEnumerationMarks,
+    level: 6,
+    name: "Combination Composite Enumeration Marks",
+  },
+  {
+    rule: combinationCompositeEnumerationPlacements,
+    level: 6,
+    name: "Combination Composite Enumeration Placements",
+  },
+  {
+    rule: complementCompositeTilingMarksRow,
+    level: 6,
+    name: "Complement Composite Tiling Marks Row",
+  },
+  {
+    rule: complementCompositeTilingMarksColumn,
+    level: 6,
+    name: "Complement Composite Tiling Marks Column",
+  },
+  {
+    rule: complementCompositeTilingPlacementsRow,
+    level: 6,
+    name: "Complement Composite Tiling Placements Row",
+  },
+  {
+    rule: complementCompositeTilingPlacementsColumn,
+    level: 6,
+    name: "Complement Composite Tiling Placements Column",
+  },
+  {
+    rule: complementCompositeEnumerationMarksRow,
+    level: 6,
+    name: "Complement Composite Enumeration Marks Row",
+  },
+  {
+    rule: complementCompositeEnumerationMarksColumn,
+    level: 6,
+    name: "Complement Composite Enumeration Marks Column",
+  },
+  {
+    rule: complementCompositeEnumerationPlacementsRow,
+    level: 6,
+    name: "Complement Composite Enumeration Placements Row",
+  },
+  {
+    rule: complementCompositeEnumerationPlacementsColumn,
+    level: 6,
+    name: "Complement Composite Enumeration Placements Column",
+  },
 
   // Level 7: Direct Hypotheticals
   { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },
@@ -157,12 +201,27 @@ export const allRules: RuleEntry[] = [
     name: "Hypothetical Adjacent Region Break",
   },
 
-
   // Level 9: Confinement Hypotheticals
-  { rule: hypotheticalUndercountingRow, level: 9, name: "Hypothetical Undercounting Row" },
-  { rule: hypotheticalUndercountingColumn, level: 9, name: "Hypothetical Undercounting Column" },
-  { rule: hypotheticalOvercountingRow, level: 9, name: "Hypothetical Overcounting Row" },
-  { rule: hypotheticalOvercountingColumn, level: 9, name: "Hypothetical Overcounting Column" },
+  {
+    rule: hypotheticalUndercountingRow,
+    level: 9,
+    name: "Hypothetical Undercounting Row",
+  },
+  {
+    rule: hypotheticalUndercountingColumn,
+    level: 9,
+    name: "Hypothetical Undercounting Column",
+  },
+  {
+    rule: hypotheticalOvercountingRow,
+    level: 9,
+    name: "Hypothetical Overcounting Row",
+  },
+  {
+    rule: hypotheticalOvercountingColumn,
+    level: 9,
+    name: "Hypothetical Overcounting Column",
+  },
 ];
 
 /** Rule metadata for external use (e.g., CLI reporting) */
