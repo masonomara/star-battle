@@ -35,14 +35,13 @@ export function tilingForcedRow(
   analysis: BoardAnalysis,
 ): boolean {
   const size = board.grid.length;
-  const numCols = board.grid[0]?.length ?? 0;
 
   for (let row = 0; row < size; row++) {
     const needed = board.stars - analysis.rowStars[row];
     if (needed <= 0) continue;
 
     const unknowns: Coord[] = [];
-    for (let col = 0; col < numCols; col++) {
+    for (let col = 0; col < size; col++) {
       if (cells[row][col] === "unknown") {
         unknowns.push([row, col]);
       }
@@ -63,9 +62,8 @@ export function tilingForcedColumn(
   analysis: BoardAnalysis,
 ): boolean {
   const size = board.grid.length;
-  const numCols = board.grid[0]?.length ?? 0;
 
-  for (let col = 0; col < numCols; col++) {
+  for (let col = 0; col < size; col++) {
     const needed = board.stars - analysis.colStars[col];
     if (needed <= 0) continue;
 

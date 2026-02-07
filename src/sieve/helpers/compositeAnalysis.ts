@@ -1,10 +1,3 @@
-/**
- * Composite Analysis Helpers
- *
- * Shared utilities for analyzing composite regions in Star Battle puzzles.
- * Used by multiple composite-related rules.
- */
-
 import { computeTiling } from "./tiling";
 import { Board, CellState, Coord } from "./types";
 import { BoardAnalysis, RegionMeta } from "./boardAnalysis";
@@ -19,17 +12,11 @@ export type CompositeAnalyzer = (
 ) => boolean;
 
 export type Composite = {
-  id: string;
-  source: "counting" | "combination" | "complement";
   cells: Coord[];
   unknownCells: Coord[];
   starsNeeded: number;
-  regionIds: Set<number>;
 };
 
-/**
- * Build the complement composite for a band of rows/cols, then analyze it.
- */
 export function findComplementInBand(
   bandLines: number[],
   board: Board,
@@ -82,25 +69,15 @@ export function findComplementInBand(
 
   if (complementCells.length === 0) return false;
 
-  const regionIds = new Set(
-    complementCells.map(([r, c]) => board.grid[r][c]),
-  );
-
   const composite: Composite = {
-    id: `complement-${axis}-${bandLines.join(",")}`,
-    source: "complement",
     cells: complementCells,
     unknownCells: complementCells,
     starsNeeded: complementStars,
-    regionIds,
   };
 
   return analyze(composite, board, cells, analysis);
 }
 
-/**
- * Build adjacency graph (8-connected regions).
- */
 export function buildAdjacencyGraph(
   board: Board,
   regions: Map<number, RegionMeta>,
@@ -129,50 +106,7 @@ export function buildAdjacencyGraph(
   return adjacency;
 }
 
-/**
- * Find connected components of coordinates (8-connected).
- */
-export function findConnectedComponents(coords: Coord[]): Coord[][] {
-  if (coords.length === 0) return [];
-
-  const coordSet = new Set(coords.map((c) => `${c[0]},${c[1]}`));
-  const visited = new Set<string>();
-  const components: Coord[][] = [];
-
-  for (const coord of coords) {
-    const key = `${coord[0]},${coord[1]}`;
-    if (visited.has(key)) continue;
-
-    const component: Coord[] = [];
-    const queue: Coord[] = [coord];
-    visited.add(key);
-
-    while (queue.length > 0) {
-      const [row, col] = queue.shift()!;
-      component.push([row, col]);
-
-      for (let dr = -1; dr <= 1; dr++) {
-        for (let dc = -1; dc <= 1; dc++) {
-          if (dr === 0 && dc === 0) continue;
-          const nKey = `${row + dr},${col + dc}`;
-          if (coordSet.has(nKey) && !visited.has(nKey)) {
-            visited.add(nKey);
-            queue.push([row + dr, col + dc]);
-          }
-        }
-      }
-    }
-    components.push(component);
-  }
-  return components;
-}
-
-/**
- * Enumerate all valid star placements for a set of unknown cells.
- * Returns all subsets of size `starsNeeded` where no two stars are adjacent
- * and row/column quotas are not exceeded.
- */
-export function enumerateValidPlacements(
+function enumerateValidPlacements(
   unknowns: Coord[],
   starsNeeded: number,
   board: Board,
@@ -183,13 +117,11 @@ export function enumerateValidPlacements(
 
   const { size, rowStars, colStars } = analysis;
 
-  // Build adjacency between unknown cells
   const coordToIdx = new Map<string, number>();
   for (let i = 0; i < unknowns.length; i++) {
     coordToIdx.set(`${unknowns[i][0]},${unknowns[i][1]}`, i);
   }
 
-  // For each unknown, which other unknowns are adjacent (can't both be stars)
   const adjacent: Set<number>[] = unknowns.map(() => new Set());
 
   for (let i = 0; i < unknowns.length; i++) {
@@ -203,9 +135,8 @@ export function enumerateValidPlacements(
   }
 
   const results: Coord[][] = [];
-  const MAX_RESULTS = 1000; // Limit enumeration
+  const MAX_RESULTS = 1000;
 
-  // Track accumulated row/column star counts during backtracking
   const rowCounts = new Array(size).fill(0);
   const colCounts = new Array(size).fill(0);
 
@@ -217,7 +148,6 @@ export function enumerateValidPlacements(
       return;
     }
 
-    // Prune: not enough cells left
     const remaining = unknowns.length - start;
     const needed = starsNeeded - current.length;
     if (remaining < needed) return;
@@ -231,7 +161,6 @@ export function enumerateValidPlacements(
 
       const [row, col] = unknowns[i];
 
-      // Check row/column quotas before selecting this cell
       if (rowStars[row] + rowCounts[row] + 1 > board.stars) continue;
       if (colStars[col] + colCounts[col] + 1 > board.stars) continue;
 
@@ -240,7 +169,6 @@ export function enumerateValidPlacements(
         newForbidden.add(adj);
       }
 
-      // Update counts for recursive call
       rowCounts[row]++;
       colCounts[col]++;
 
@@ -248,7 +176,6 @@ export function enumerateValidPlacements(
       backtrack(i + 1, current, newForbidden);
       current.pop();
 
-      // Restore counts
       rowCounts[row]--;
       colCounts[col]--;
     }
@@ -258,10 +185,6 @@ export function enumerateValidPlacements(
   return results;
 }
 
-/**
- * Shared: refresh composite state and compute tiling.
- * Returns null if no analysis is possible.
- */
 function prepareComposite(
   composite: Composite,
   cells: CellState[][],
@@ -283,9 +206,6 @@ function prepareComposite(
   return { currentUnknowns, currentStarsNeeded, tiling };
 }
 
-/**
- * Enumeration marks: enumerate valid placements, mark cells that appear in none.
- */
 function enumerationMarks(
   currentUnknowns: Coord[],
   currentStarsNeeded: number,
@@ -320,9 +240,6 @@ function enumerationMarks(
   return changed;
 }
 
-/**
- * Enumeration placements: enumerate valid placements, place cells that appear in all.
- */
 function enumerationPlacements(
   currentUnknowns: Coord[],
   currentStarsNeeded: number,
@@ -341,7 +258,6 @@ function enumerationPlacements(
     return false;
   }
 
-  // Find cells in ALL placements
   const inAllPlacements = new Set<string>(
     validPlacements[0].map((c) => `${c[0]},${c[1]}`),
   );
@@ -388,10 +304,6 @@ function enumerationPlacements(
   return changed;
 }
 
-/**
- * Confinement + Enumeration (tight tiling) → Marks.
- * Tight tiling on composite: cells outside covered by ALL tilings get marked.
- */
 export function analyzeCompositeTilingMarks(
   composite: Composite,
   board: Board,
@@ -419,10 +331,6 @@ export function analyzeCompositeTilingMarks(
   return changed;
 }
 
-/**
- * Confinement + Enumeration (tight tiling) → Placements.
- * Tight tiling on composite: single-coverage forced cells become stars.
- */
 export function analyzeCompositeTilingPlacements(
   composite: Composite,
   board: Board,
@@ -471,10 +379,6 @@ export function analyzeCompositeTilingPlacements(
   return changed;
 }
 
-/**
- * Confinement + Enumeration (slack tiling) → Marks.
- * Slack tiling on composite: enumerate placements, mark cells in none.
- */
 export function analyzeCompositeEnumerationMarks(
   composite: Composite,
   board: Board,
@@ -491,10 +395,6 @@ export function analyzeCompositeEnumerationMarks(
   return enumerationMarks(currentUnknowns, currentStarsNeeded, board, cells, analysis);
 }
 
-/**
- * Confinement + Enumeration (slack tiling) → Placements.
- * Slack tiling on composite: enumerate placements, place cells in all.
- */
 export function analyzeCompositeEnumerationPlacements(
   composite: Composite,
   board: Board,

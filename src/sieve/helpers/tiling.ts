@@ -1,19 +1,6 @@
-/**
- * 2×2 Tiling Algorithm for Star Battle
- *
- * One function. One enumeration. Returns everything.
- * Caller takes what they need.
- */
-
 import { Coord, Tile, TilingResult } from "./types";
 import { dlxSolve } from "./dlx";
 
-/**
- * Compute tiling for a set of cells.
- *
- * Returns capacity (max stars), all minimal tilings, and forced cells.
- * Uses DLX with secondary columns to prevent tile overlap.
- */
 export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
   if (cells.length === 0) {
     return { capacity: 0, tilings: [[]], forcedCells: [] };
@@ -27,7 +14,6 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
   const cellToIndex = new Map<string, number>();
   cells.forEach((c, i) => cellToIndex.set(`${c[0]},${c[1]}`, i));
 
-  // Generate all 2x2 tiles touching these cells
   const tiles: Tile[] = [];
   const seenAnchors = new Set<string>();
   const maxAnchor = gridSize - 2;
@@ -54,7 +40,7 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
         );
 
         if (coveredCells.length > 0) {
-          tiles.push({ anchor: [ar, ac], cells: allCells, coveredCells });
+          tiles.push({ cells: allCells, coveredCells });
         }
       }
     }
@@ -64,7 +50,6 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
     return { capacity: 0, tilings: [], forcedCells: [] };
   }
 
-  // Build DLX: primary = cells to cover, secondary = outside cells
   const secondaryToIndex = new Map<string, number>();
   for (const tile of tiles) {
     for (const c of tile.cells) {
@@ -92,18 +77,16 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
     return row;
   });
 
-  // Solve once
   const solutions = dlxSolve(numPrimary, numSecondary, dlxRows);
 
   if (solutions.length === 0) {
     return {
-      capacity: Math.ceil(cells.length / 4) || 1,
+      capacity: Math.ceil(cells.length / 4),
       tilings: [],
       forcedCells: [],
     };
   }
 
-  // Extract everything
   let capacity = Infinity;
   for (const s of solutions) {
     if (s.length < capacity) capacity = s.length;
@@ -111,7 +94,6 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
   const minimalSolutions = solutions.filter((s) => s.length === capacity);
   const tilings = minimalSolutions.map((sol) => sol.map((i) => tiles[i]));
 
-  // Find forced cells: single-coverage in ALL tilings
   const forcedCells: Coord[] = [];
   for (const cell of cells) {
     const key = `${cell[0]},${cell[1]}`;

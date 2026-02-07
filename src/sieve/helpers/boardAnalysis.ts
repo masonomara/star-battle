@@ -1,37 +1,28 @@
 import { Board, CellState, Coord, TilingResult } from "./types";
-import buildRegions from "./regions";
 import { computeTiling } from "./tiling";
 
-/** Static per-region data (computed once from the board grid) */
-export type RegionStructure = {
+type RegionStructure = {
   id: number;
   coords: Coord[];
   rows: Set<number>;
   cols: Set<number>;
 };
 
-/** Static board structure (computed once, never changes) */
 export type BoardStructure = {
   size: number;
-  numCols: number;
   stars: number;
   regions: Map<number, RegionStructure>;
 };
 
-/** Pre-computed region metadata for solver rules */
 export type RegionMeta = {
   id: number;
-  coords: Coord[];
   unknownCoords: Coord[];
   starsPlaced: number;
   starsNeeded: number;
-  rows: Set<number>;
-  cols: Set<number>;
   unknownRows: Set<number>;
   unknownCols: Set<number>;
 };
 
-/** Pre-computed board analysis */
 export type BoardAnalysis = {
   size: number;
   regions: Map<number, RegionMeta>;
@@ -39,22 +30,22 @@ export type BoardAnalysis = {
   colStars: number[];
   rowToRegions: Map<number, Set<number>>;
   colToRegions: Map<number, Set<number>>;
-  tilingCache: Map<string, TilingResult>;
   getTiling: (cells: Coord[]) => TilingResult;
 };
 
-export function capacity(cells: Coord[], analysis: BoardAnalysis): number {
-  return analysis.getTiling(cells).capacity;
-}
-
-/** Build static board structure once from the board definition. */
 export function buildBoardStructure(board: Board): BoardStructure {
   const size = board.grid.length;
-  const numCols = board.grid[0]?.length ?? 0;
-  const rawRegions = buildRegions(board.grid);
+  const coordsByRegion = new Map<number, Coord[]>();
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const id = board.grid[r][c];
+      if (!coordsByRegion.has(id)) coordsByRegion.set(id, []);
+      coordsByRegion.get(id)!.push([r, c]);
+    }
+  }
 
   const regions = new Map<number, RegionStructure>();
-  for (const [id, coords] of rawRegions) {
+  for (const [id, coords] of coordsByRegion) {
     const rows = new Set<number>();
     const cols = new Set<number>();
     for (const [row, col] of coords) {
@@ -64,20 +55,19 @@ export function buildBoardStructure(board: Board): BoardStructure {
     regions.set(id, { id, coords, rows, cols });
   }
 
-  return { size, numCols, stars: board.stars, regions };
+  return { size, stars: board.stars, regions };
 }
 
-/** Build cell-state-dependent analysis from pre-computed structure. */
 export function buildBoardAnalysis(
   structure: BoardStructure,
   cells: CellState[][],
   tilingCache: Map<string, TilingResult> = new Map(),
 ): BoardAnalysis {
-  const { size, numCols, stars, regions: structRegions } = structure;
+  const { size, stars, regions: structRegions } = structure;
 
   const regions = new Map<number, RegionMeta>();
   const rowStars = new Array(size).fill(0);
-  const colStars = new Array(numCols).fill(0);
+  const colStars = new Array(size).fill(0);
 
   for (const [id, sr] of structRegions) {
     const unknownCoords: Coord[] = [];
@@ -100,25 +90,21 @@ export function buildBoardAnalysis(
 
     regions.set(id, {
       id,
-      coords: sr.coords,
       unknownCoords,
       starsPlaced,
       starsNeeded: stars - starsPlaced,
-      rows: sr.rows,
-      cols: sr.cols,
       unknownRows,
       unknownCols,
     });
   }
 
-  // Build row -> regions and col -> regions mappings
   const rowToRegions = new Map<number, Set<number>>();
   const colToRegions = new Map<number, Set<number>>();
 
   for (let i = 0; i < size; i++) {
     rowToRegions.set(i, new Set());
   }
-  for (let i = 0; i < numCols; i++) {
+  for (let i = 0; i < size; i++) {
     colToRegions.set(i, new Set());
   }
 
@@ -156,7 +142,6 @@ export function buildBoardAnalysis(
     colStars,
     rowToRegions,
     colToRegions,
-    tilingCache,
     getTiling,
   };
 }

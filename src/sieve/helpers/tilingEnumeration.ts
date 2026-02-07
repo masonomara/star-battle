@@ -1,18 +1,9 @@
-/**
- * Shared helpers for tiling-based star assignment enumeration.
- * Used by squeeze rules (window=2) and multi-line rules (window>=3).
- */
-
 import { CellState, Coord, Tile } from "./types";
 
 function cellsAreAdjacent(c1: Coord, c2: Coord): boolean {
   return Math.abs(c1[0] - c2[0]) <= 1 && Math.abs(c1[1] - c2[1]) <= 1;
 }
 
-/**
- * Enumerate all valid star assignments for a single tiling.
- * Each tile gets exactly one star from its covered cells. No two stars adjacent.
- */
 export function enumerateStarAssignments(
   tiling: Tile[],
   regionSet: Set<string>,
@@ -60,10 +51,6 @@ export function enumerateStarAssignments(
   return assignments;
 }
 
-/**
- * Collect all cells that appear as stars in any valid assignment
- * across all minimal tilings.
- */
 export function collectValidStarCells(
   allTilings: Tile[][],
   regionSet: Set<string>,
@@ -80,10 +67,6 @@ export function collectValidStarCells(
   return valid;
 }
 
-/**
- * Filter out tilings whose overhang cells are all already marked.
- * Only "active" tilings (with unknown overhang) impose constraints.
- */
 export function filterActiveTilings(
   allTilings: Tile[][],
   regionSet: Set<string>,
@@ -101,11 +84,6 @@ export function filterActiveTilings(
   });
 }
 
-/**
- * Find non-region cells that appear in ALL active tilings.
- * These cells are guaranteed to be covered by the region's tiling,
- * so they cannot be stars.
- */
 export function findForcedOverhangCells(
   activeTilings: Tile[][],
   regionSet: Set<string>,

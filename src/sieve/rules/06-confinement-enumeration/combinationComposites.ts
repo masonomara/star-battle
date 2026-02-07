@@ -59,12 +59,9 @@ function forEachCombinationComposite(
       if (unknownCells.length === 0) continue;
 
       const composite: Composite = {
-        id: `${id1}-${id2}`,
-        source: "combination",
         cells: allCoords,
         unknownCells,
         starsNeeded,
-        regionIds: new Set([id1, id2]),
       };
 
       if (analyze(composite, board, cells, analysis)) {

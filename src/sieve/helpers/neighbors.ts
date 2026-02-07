@@ -1,15 +1,5 @@
-/**
- * 8-Neighbor Iteration
- *
- * One function. Yields valid neighbors of a cell.
- */
-
 import { Coord } from "./types";
 
-/**
- * Yields the 8 neighbors of a cell (excludes the cell itself).
- * Only yields cells within bounds.
- */
 export function* neighbors(
   row: number,
   col: number,
@@ -27,9 +17,6 @@ export function* neighbors(
   }
 }
 
-/**
- * Build a set of cell keys that would be marked by placing a star at (row, col).
- */
 export function buildMarkedCellSet(
   row: number,
   col: number,
