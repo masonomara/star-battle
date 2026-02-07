@@ -8,6 +8,7 @@
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis, RegionMeta } from "../../helpers/boardAnalysis";
 import {
+  CompositeAnalyzer,
   Composite,
   buildAdjacencyGraph,
   analyzeCompositeTilingMarks,
@@ -15,13 +16,6 @@ import {
   analyzeCompositeEnumerationMarks,
   analyzeCompositeEnumerationPlacements,
 } from "../../helpers/compositeAnalysis";
-
-type CompositeAnalyzer = (
-  composite: Composite,
-  board: Board,
-  cells: CellState[][],
-  analysis: BoardAnalysis,
-) => boolean;
 
 function forEachCombinationComposite(
   board: Board,

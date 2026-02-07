@@ -39,15 +39,25 @@ import {
   combinationCompositeEnumerationPlacements,
 } from "./06-confinement-enumeration/combinationComposites";
 import {
-  complementCompositeTilingMarksRow,
-  complementCompositeTilingMarksColumn,
-  complementCompositeTilingPlacementsRow,
-  complementCompositeTilingPlacementsColumn,
-  complementCompositeEnumerationMarksRow,
-  complementCompositeEnumerationMarksColumn,
-  complementCompositeEnumerationPlacementsRow,
-  complementCompositeEnumerationPlacementsColumn,
-} from "./06-confinement-enumeration/complementComposites";
+  contiguousTilingMarksRow,
+  contiguousTilingMarksColumn,
+  contiguousTilingPlacementsRow,
+  contiguousTilingPlacementsColumn,
+  contiguousEnumerationMarksRow,
+  contiguousEnumerationMarksColumn,
+  contiguousEnumerationPlacementsRow,
+  contiguousEnumerationPlacementsColumn,
+} from "./06-confinement-enumeration/contiguousBandComposites";
+import {
+  regionBandTilingMarksRow,
+  regionBandTilingMarksColumn,
+  regionBandTilingPlacementsRow,
+  regionBandTilingPlacementsColumn,
+  regionBandEnumerationMarksRow,
+  regionBandEnumerationMarksColumn,
+  regionBandEnumerationPlacementsRow,
+  regionBandEnumerationPlacementsColumn,
+} from "./06-confinement-enumeration/regionBandComposites";
 
 import hypotheticalRowCount from "./07-direct-hypotheticals/hypotheticalRowCount";
 import hypotheticalColumnCount from "./07-direct-hypotheticals/hypotheticalColumnCount";
@@ -130,46 +140,22 @@ export const allRules: RuleEntry[] = [
     level: 6,
     name: "Combination Composite Enumeration Placements",
   },
-  {
-    rule: complementCompositeTilingMarksRow,
-    level: 6,
-    name: "Complement Composite Tiling Marks Row",
-  },
-  {
-    rule: complementCompositeTilingMarksColumn,
-    level: 6,
-    name: "Complement Composite Tiling Marks Column",
-  },
-  {
-    rule: complementCompositeTilingPlacementsRow,
-    level: 6,
-    name: "Complement Composite Tiling Placements Row",
-  },
-  {
-    rule: complementCompositeTilingPlacementsColumn,
-    level: 6,
-    name: "Complement Composite Tiling Placements Column",
-  },
-  {
-    rule: complementCompositeEnumerationMarksRow,
-    level: 6,
-    name: "Complement Composite Enumeration Marks Row",
-  },
-  {
-    rule: complementCompositeEnumerationMarksColumn,
-    level: 6,
-    name: "Complement Composite Enumeration Marks Column",
-  },
-  {
-    rule: complementCompositeEnumerationPlacementsRow,
-    level: 6,
-    name: "Complement Composite Enumeration Placements Row",
-  },
-  {
-    rule: complementCompositeEnumerationPlacementsColumn,
-    level: 6,
-    name: "Complement Composite Enumeration Placements Column",
-  },
+  { rule: contiguousTilingMarksRow, level: 6, name: "Contiguous Band Tiling Marks Row" },
+  { rule: contiguousTilingMarksColumn, level: 6, name: "Contiguous Band Tiling Marks Column" },
+  { rule: contiguousTilingPlacementsRow, level: 6, name: "Contiguous Band Tiling Placements Row" },
+  { rule: contiguousTilingPlacementsColumn, level: 6, name: "Contiguous Band Tiling Placements Column" },
+  { rule: contiguousEnumerationMarksRow, level: 6, name: "Contiguous Band Enumeration Marks Row" },
+  { rule: contiguousEnumerationMarksColumn, level: 6, name: "Contiguous Band Enumeration Marks Column" },
+  { rule: contiguousEnumerationPlacementsRow, level: 6, name: "Contiguous Band Enumeration Placements Row" },
+  { rule: contiguousEnumerationPlacementsColumn, level: 6, name: "Contiguous Band Enumeration Placements Column" },
+  { rule: regionBandTilingMarksRow, level: 6, name: "Region Band Tiling Marks Row" },
+  { rule: regionBandTilingMarksColumn, level: 6, name: "Region Band Tiling Marks Column" },
+  { rule: regionBandTilingPlacementsRow, level: 6, name: "Region Band Tiling Placements Row" },
+  { rule: regionBandTilingPlacementsColumn, level: 6, name: "Region Band Tiling Placements Column" },
+  { rule: regionBandEnumerationMarksRow, level: 6, name: "Region Band Enumeration Marks Row" },
+  { rule: regionBandEnumerationMarksColumn, level: 6, name: "Region Band Enumeration Marks Column" },
+  { rule: regionBandEnumerationPlacementsRow, level: 6, name: "Region Band Enumeration Placements Row" },
+  { rule: regionBandEnumerationPlacementsColumn, level: 6, name: "Region Band Enumeration Placements Column" },
 
   // Level 7: Direct Hypotheticals
   { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },

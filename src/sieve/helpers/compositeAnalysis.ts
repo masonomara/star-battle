@@ -11,6 +11,13 @@ import { BoardAnalysis, RegionMeta } from "./boardAnalysis";
 import { neighbors } from "./neighbors";
 import { findForcedOverhangCells } from "./tilingEnumeration";
 
+export type CompositeAnalyzer = (
+  composite: Composite,
+  board: Board,
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+) => boolean;
+
 export type Composite = {
   id: string;
   source: "counting" | "combination" | "complement";
@@ -19,6 +26,77 @@ export type Composite = {
   starsNeeded: number;
   regionIds: Set<number>;
 };
+
+/**
+ * Build the complement composite for a band of rows/cols, then analyze it.
+ */
+export function findComplementInBand(
+  bandLines: number[],
+  board: Board,
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+  axis: "row" | "col",
+  analyze: CompositeAnalyzer,
+): boolean {
+  const { size, regions, rowStars, colStars } = analysis;
+  const bandSet = new Set(bandLines);
+
+  const confined = [...regions.values()].filter((r) => {
+    if (r.starsNeeded <= 0) return false;
+    const lines = axis === "row" ? r.unknownRows : r.unknownCols;
+    if (lines.size === 0) return false;
+    return [...lines].every((l) => bandSet.has(l));
+  });
+
+  if (confined.length === 0) return false;
+
+  const lineStars = axis === "row" ? rowStars : colStars;
+  let bandStarsTotal = 0;
+  for (const line of bandLines) {
+    bandStarsTotal += board.stars - lineStars[line];
+  }
+
+  let confinedStarsTotal = 0;
+  for (const r of confined) {
+    confinedStarsTotal += r.starsNeeded;
+  }
+
+  const complementStars = bandStarsTotal - confinedStarsTotal;
+  if (complementStars <= 0) return false;
+
+  const confinedIds = new Set(confined.map((r) => r.id));
+  const complementCells: Coord[] = [];
+
+  for (const bandLine of bandLines) {
+    for (let cross = 0; cross < size; cross++) {
+      const row = axis === "row" ? bandLine : cross;
+      const col = axis === "row" ? cross : bandLine;
+      if (
+        cells[row][col] === "unknown" &&
+        !confinedIds.has(board.grid[row][col])
+      ) {
+        complementCells.push([row, col]);
+      }
+    }
+  }
+
+  if (complementCells.length === 0) return false;
+
+  const regionIds = new Set(
+    complementCells.map(([r, c]) => board.grid[r][c]),
+  );
+
+  const composite: Composite = {
+    id: `complement-${axis}-${bandLines.join(",")}`,
+    source: "complement",
+    cells: complementCells,
+    unknownCells: complementCells,
+    starsNeeded: complementStars,
+    regionIds,
+  };
+
+  return analyze(composite, board, cells, analysis);
+}
 
 /**
  * Build adjacency graph (8-connected regions).
