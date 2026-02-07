@@ -36,11 +36,11 @@ import squeezeOverhangColumn from "./05-tiling-enumeration/squeeze/squeezeOverha
 
 import hypotheticalRowCount from "./07-direct-hypotheticals/hypotheticalRowCount";
 import hypotheticalColumnCount from "./07-direct-hypotheticals/hypotheticalColumnCount";
+import hypotheticalRegionCount from "./07-direct-hypotheticals/hypotheticalRegionCount";
 
 import hypotheticalRowCapacity from "./08-tiling-hypotheticals/hypotheticalRowCapacity";
 import hypotheticalColumnCapacity from "./08-tiling-hypotheticals/hypotheticalColumnCapacity";
 import hypotheticalRegionCapacity from "./08-tiling-hypotheticals/hypotheticalRegionCapacity";
-import hypotheticalAdjacentRegionBreak from "./08-tiling-hypotheticals/hypotheticalAdjacentRegionBreak";
 
 import hypotheticalUndercountingRow from "./09-confinement-hypotheticals/hypotheticalUndercountingRow";
 import hypotheticalUndercountingColumn from "./09-confinement-hypotheticals/hypotheticalUndercountingColumn";
@@ -104,6 +104,11 @@ export const allRules: RuleEntry[] = [
     level: 7,
     name: "Hypothetical Column Count",
   },
+  {
+    rule: hypotheticalRegionCount,
+    level: 7,
+    name: "Hypothetical Region Count",
+  },
 
   // Level 8: Tiling Hypotheticals
   {
@@ -121,11 +126,7 @@ export const allRules: RuleEntry[] = [
     level: 8,
     name: "Hypothetical Region Capacity",
   },
-  {
-    rule: hypotheticalAdjacentRegionBreak,
-    level: 8,
-    name: "Hypothetical Adjacent Region Break",
-  },
+ 
 
   // Level 9: Confinement Hypotheticals
   {

@@ -4,32 +4,10 @@ import {
   buildBoardAnalysis,
 } from "./helpers/boardAnalysis";
 import { checkProgress } from "./helpers/checkProgress";
+import { isValidBoard } from "./helpers/validateBoard";
 import { allRules } from "./rules";
 
 export { RULE_METADATA } from "./rules";
-
-/**
- * Check if a board layout is valid before attempting to solve.
- */
-export function isValidBoard(board: Board): boolean {
-  const size = board.grid.length;
-  const minRegionSize = board.stars > 1 ? board.stars * 2 - 1 : 1;
-  const regionSizes = new Map<number, number>();
-
-  for (const row of board.grid) {
-    for (const regionId of row) {
-      regionSizes.set(regionId, (regionSizes.get(regionId) ?? 0) + 1);
-    }
-  }
-
-  if (regionSizes.size !== size) return false;
-
-  for (const regionSize of regionSizes.values()) {
-    if (regionSize < minRegionSize) return false;
-  }
-
-  return true;
-}
 
 /** Step info passed to trace callback */
 export interface StepInfo {
@@ -52,14 +30,12 @@ export function solve(
   boardDef: Board,
   options: SolveOptions = {},
 ): SolverResult | null {
+  if (!isValidBoard(boardDef)) return null;
+
   const size = boardDef.grid.length;
   const cells: CellState[][] = Array.from({ length: size }, () =>
     Array.from({ length: size }, () => "unknown" as CellState),
   );
-
-  if (!isValidBoard(boardDef)) {
-    return null;
-  }
 
   let cycles = 0;
   let maxLevel = 0;

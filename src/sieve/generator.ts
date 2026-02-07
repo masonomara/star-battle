@@ -1,18 +1,4 @@
-import { Board, Coord, GeneratorError } from "./helpers/types";
-import { computeTiling } from "./helpers/tiling";
-
-function buildRegions(grid: number[][]) {
-  const map = new Map<number, Coord[]>();
-  const size = grid.length;
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      const id = grid[r][c];
-      if (!map.has(id)) map.set(id, []);
-      map.get(id)!.push([r, c]);
-    }
-  }
-  return map;
-}
+import { Board, GeneratorError } from "./helpers/types";
 
 const DIRECTIONS: [number, number][] = [
   [-1, 0],
@@ -21,35 +7,19 @@ const DIRECTIONS: [number, number][] = [
   [0, 1],
 ];
 
-function getUnfilledNeighbors(
+function getNeighbors(
   grid: number[][],
   size: number,
   row: number,
   col: number,
+  filled: boolean,
 ): [number, number][] {
   const result: [number, number][] = [];
   for (const [dr, dc] of DIRECTIONS) {
     const nr = row + dr;
     const nc = col + dc;
-    if (nr >= 0 && nr < size && nc >= 0 && nc < size && grid[nr][nc] === -1) {
+    if (nr >= 0 && nr < size && nc >= 0 && nc < size && (grid[nr][nc] !== -1) === filled) {
       result.push([nr, nc]);
-    }
-  }
-  return result;
-}
-
-function getFilledNeighborIds(
-  grid: number[][],
-  size: number,
-  row: number,
-  col: number,
-): number[] {
-  const result: number[] = [];
-  for (const [dr, dc] of DIRECTIONS) {
-    const nr = row + dr;
-    const nc = col + dc;
-    if (nr >= 0 && nr < size && nc >= 0 && nc < size && grid[nr][nc] !== -1) {
-      result.push(grid[nr][nc]);
     }
   }
   return result;
@@ -126,7 +96,7 @@ function growRegionsBalanced(
   size: number,
   minRegionSize: number,
   regionSizes: number[],
-  frontiers: Map<number, Set<string>>,
+  frontiers: Map<number, Set<number>>,
   rng: () => number,
 ): void {
   while (regionSizes.some((s) => s < minRegionSize)) {
@@ -135,7 +105,8 @@ function growRegionsBalanced(
       if (regionSizes[regionId] < minRegionSize) {
         const frontier = frontiers.get(regionId)!;
         for (const key of [...frontier]) {
-          const [r, c] = key.split(",").map(Number) as Coord;
+          const r = Math.floor(key / size);
+          const c = key % size;
           if (grid[r][c] !== -1) frontier.delete(key);
         }
         if (frontier.size > 0) needsGrowth.push(regionId);
@@ -150,14 +121,15 @@ function growRegionsBalanced(
     const key = keys[Math.floor(rng() * keys.length)];
     frontier.delete(key);
 
-    const [row, col] = key.split(",").map(Number) as Coord;
+    const row = Math.floor(key / size);
+    const col = key % size;
     if (grid[row][col] !== -1) continue;
 
     grid[row][col] = regionId;
     regionSizes[regionId]++;
 
-    for (const [nr, nc] of getUnfilledNeighbors(grid, size, row, col)) {
-      frontier.add(`${nr},${nc}`);
+    for (const [nr, nc] of getNeighbors(grid, size, row, col, false)) {
+      frontier.add(nr * size + nc);
     }
   }
 }
@@ -185,9 +157,10 @@ function fillRemaining(
       for (let col = 0; col < size; col++) {
         if (grid[row][col] !== -1) continue;
 
-        const neighborIds = getFilledNeighborIds(grid, size, row, col);
-        if (neighborIds.length > 0) {
-          grid[row][col] = neighborIds[Math.floor(rng() * neighborIds.length)];
+        const neighbors = getNeighbors(grid, size, row, col, true);
+        if (neighbors.length > 0) {
+          const [nr, nc] = neighbors[Math.floor(rng() * neighbors.length)];
+          grid[row][col] = grid[nr][nc];
         } else {
           unfilled = true;
         }
@@ -219,7 +192,7 @@ function layoutWithSeed(size: number, stars: number, seed: number): Board {
   const regionSizes = new Array(size).fill(1);
 
   // Initialize frontiers from seed cells
-  const frontiers: Map<number, Set<string>> = new Map();
+  const frontiers: Map<number, Set<number>> = new Map();
   for (let regionId = 0; regionId < size; regionId++) {
     frontiers.set(regionId, new Set());
   }
@@ -227,8 +200,8 @@ function layoutWithSeed(size: number, stars: number, seed: number): Board {
     for (let col = 0; col < size; col++) {
       if (grid[row][col] !== -1) {
         const regionId = grid[row][col];
-        for (const [nr, nc] of getUnfilledNeighbors(grid, size, row, col)) {
-          frontiers.get(regionId)!.add(`${nr},${nc}`);
+        for (const [nr, nc] of getNeighbors(grid, size, row, col, false)) {
+          frontiers.get(regionId)!.add(nr * size + nc);
         }
       }
     }
@@ -237,61 +210,5 @@ function layoutWithSeed(size: number, stars: number, seed: number): Board {
   growRegionsBalanced(grid, size, minRegionSize, regionSizes, frontiers, rng);
   fillRemaining(grid, size, rng);
 
-  const board = { grid, stars };
-  const regions = buildRegions(grid);
-
-  if (!isValidTiling(regions, board.stars, size)) {
-    throw new GeneratorError(
-      "Layout generation failed: region cannot fit required stars",
-      "invalid_tiling",
-    );
-  }
-
-  return board;
-}
-
-/**
- * Check if a layout can support the required stars.
- *
- * 1. Row/column region count: each row and column must contain at least
- *    `stars` distinct regions, otherwise it can't hold enough stars.
- * 2. Per-region tiling capacity: each region must fit `stars` non-overlapping
- *    2×2 tiles.
- *
- * The row/col check is O(size²) and runs first to reject cheaply before
- * the more expensive per-region tiling computation.
- */
-function isValidTiling(
-  regions: Map<number, [number, number][]>,
-  stars: number,
-  size: number,
-): boolean {
-  // Build grid from regions for row/col checks
-  const grid: number[][] = Array.from({ length: size }, () => new Array(size));
-  for (const [id, coords] of regions) {
-    for (const [r, c] of coords) {
-      grid[r][c] = id;
-    }
-  }
-
-  // Check each row and column has enough distinct regions
-  for (let i = 0; i < size; i++) {
-    const rowRegions = new Set<number>();
-    const colRegions = new Set<number>();
-    for (let j = 0; j < size; j++) {
-      rowRegions.add(grid[i][j]);
-      colRegions.add(grid[j][i]);
-    }
-    if (rowRegions.size < stars || colRegions.size < stars) {
-      return false;
-    }
-  }
-
-  // Per-region tiling capacity
-  for (const [, coords] of regions) {
-    if (computeTiling(coords, size).capacity < stars) {
-      return false;
-    }
-  }
-  return true;
+  return { grid, stars };
 }

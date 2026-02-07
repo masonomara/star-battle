@@ -1,14 +1,15 @@
 /**
- * Hypothetical Region Capacity
+ * Hypothetical Region Count
  *
  * Marks cells where placing a star would leave any affected region
- * (its own region or adjacent regions) unable to fit its required stars.
+ * (its own region or adjacent regions) without enough remaining cells
+ * for its required stars.
  *
  * For each unknown cell, asks: "If I place a star here,
- * can all affected regions still meet their quotas?"
+ * do all affected regions still have enough cells for their quotas?"
  */
 
-import { Board, CellState, Coord } from "../../helpers/types";
+import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { buildMarkedCellSet, neighbors } from "../../helpers/neighbors";
 
@@ -34,28 +35,27 @@ function checkRegionViolation(
     if (!region) continue;
 
     let extraStars = 0;
-    const remainingCells: Coord[] = [];
+    let remainingCount = 0;
 
     for (const [r, c] of region.unknownCoords) {
       const key = `${r},${c}`;
       if (key === starKey) {
         extraStars = 1;
       } else if (!markedCells.has(key)) {
-        remainingCells.push([r, c]);
+        remainingCount++;
       }
     }
 
     const needed = region.starsNeeded - extraStars;
     if (needed <= 0) continue;
 
-    if (remainingCells.length < needed) return true;
-    if (analysis.getTiling(remainingCells).capacity < needed) return true;
+    if (remainingCount < needed) return true;
   }
 
   return false;
 }
 
-export default function hypotheticalRegionCapacity(
+export default function hypotheticalRegionCount(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

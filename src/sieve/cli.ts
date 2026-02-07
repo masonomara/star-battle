@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { sieve } from "./sieve";
 import { layout } from "./generator";
-import { solve, isValidBoard, StepInfo, RULE_METADATA } from "./solver";
+import { solve, StepInfo, RULE_METADATA } from "./solver";
 import { Board, CellState } from "./helpers/types";
 import { decodePuzzleString } from "./helpers/notation";
 
@@ -229,11 +229,6 @@ function printCellStateWithDiff(
 function solveFromInput(input: string, stars: number) {
   const puzzle = parsePuzzle(input, stars);
 
-  if (!isValidBoard(puzzle)) {
-    console.log("Invalid layout");
-    process.exit(1);
-  }
-
   console.log(`${puzzle.grid.length}x${puzzle.grid.length}, ${stars} star(s)`);
   console.log("\nRegion grid:");
   printBoard(puzzle.grid);
@@ -319,14 +314,6 @@ async function solvePuzzleFile(
       });
       if (verbose && !filterUnsolved) {
         console.log(`Puzzle ${i + 1}: PARSE ERROR - ${(e as Error).message}`);
-      }
-      continue;
-    }
-
-    if (!isValidBoard(puzzle)) {
-      unsolvedPuzzles.push({ index: i + 1, line, reason: "INVALID LAYOUT" });
-      if (verbose && !filterUnsolved) {
-        console.log(`Puzzle ${i + 1}: INVALID LAYOUT`);
       }
       continue;
     }
