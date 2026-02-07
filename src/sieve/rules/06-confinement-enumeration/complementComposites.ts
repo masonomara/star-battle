@@ -111,8 +111,10 @@ function forEachComplementBand(
   analysis: BoardAnalysis,
   axis: "row" | "col",
   analyze: CompositeAnalyzer,
+  returnOnFirst = true,
 ): boolean {
   const { size, regions } = analysis;
+  let changed = false;
 
   for (let start = 0; start < size; start++) {
     for (let width = 2; width < size; width++) {
@@ -120,7 +122,8 @@ function forEachComplementBand(
       if (end > size) break;
       const bandLines = Array.from({ length: width }, (_, i) => start + i);
       if (findComplementInBand(bandLines, board, cells, analysis, axis, analyze)) {
-        return true;
+        if (returnOnFirst) return true;
+        changed = true;
       }
     }
   }
@@ -130,27 +133,28 @@ function forEachComplementBand(
     if (region.starsNeeded <= 0 || region[unknownLines].size < 2) continue;
     const bandLines = [...region[unknownLines]];
     if (findComplementInBand(bandLines, board, cells, analysis, axis, analyze)) {
-      return true;
+      if (returnOnFirst) return true;
+      changed = true;
     }
   }
 
-  return false;
+  return changed;
 }
 
-// Confinement + Inference → Marks
+// Confinement + Enumeration (tight tiling) → Marks
 export function complementCompositeTilingMarksRow(
   board: Board, cells: CellState[][], analysis: BoardAnalysis,
 ): boolean {
-  return forEachComplementBand(board, cells, analysis, "row", analyzeCompositeTilingMarks);
+  return forEachComplementBand(board, cells, analysis, "row", analyzeCompositeTilingMarks, false);
 }
 
 export function complementCompositeTilingMarksColumn(
   board: Board, cells: CellState[][], analysis: BoardAnalysis,
 ): boolean {
-  return forEachComplementBand(board, cells, analysis, "col", analyzeCompositeTilingMarks);
+  return forEachComplementBand(board, cells, analysis, "col", analyzeCompositeTilingMarks, false);
 }
 
-// Confinement + Inference → Placements
+// Confinement + Enumeration (tight tiling) → Placements
 export function complementCompositeTilingPlacementsRow(
   board: Board, cells: CellState[][], analysis: BoardAnalysis,
 ): boolean {
@@ -163,20 +167,20 @@ export function complementCompositeTilingPlacementsColumn(
   return forEachComplementBand(board, cells, analysis, "col", analyzeCompositeTilingPlacements);
 }
 
-// Confinement + Enumeration → Marks
+// Confinement + Enumeration (slack tiling) → Marks
 export function complementCompositeEnumerationMarksRow(
   board: Board, cells: CellState[][], analysis: BoardAnalysis,
 ): boolean {
-  return forEachComplementBand(board, cells, analysis, "row", analyzeCompositeEnumerationMarks);
+  return forEachComplementBand(board, cells, analysis, "row", analyzeCompositeEnumerationMarks, false);
 }
 
 export function complementCompositeEnumerationMarksColumn(
   board: Board, cells: CellState[][], analysis: BoardAnalysis,
 ): boolean {
-  return forEachComplementBand(board, cells, analysis, "col", analyzeCompositeEnumerationMarks);
+  return forEachComplementBand(board, cells, analysis, "col", analyzeCompositeEnumerationMarks, false);
 }
 
-// Confinement + Enumeration → Placements
+// Confinement + Enumeration (slack tiling) → Placements
 export function complementCompositeEnumerationPlacementsRow(
   board: Board, cells: CellState[][], analysis: BoardAnalysis,
 ): boolean {

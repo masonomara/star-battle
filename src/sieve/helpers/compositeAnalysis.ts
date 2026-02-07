@@ -6,9 +6,10 @@
  */
 
 import { computeTiling } from "./tiling";
-import { Board, CellState, Coord, Tile } from "./types";
+import { Board, CellState, Coord } from "./types";
 import { BoardAnalysis, RegionMeta } from "./boardAnalysis";
 import { neighbors } from "./neighbors";
+import { findForcedOverhangCells } from "./tilingEnumeration";
 
 export type Composite = {
   id: string;
@@ -180,48 +181,6 @@ export function enumerateValidPlacements(
 }
 
 /**
- * Find cells outside the composite that are covered by ALL tilings.
- * These cells cannot have stars.
- */
-export function findExternalForcedCells(
-  allMinimalTilings: Tile[][],
-  compositeSet: Set<string>,
-): Coord[] {
-  if (allMinimalTilings.length === 0) return [];
-
-  // For each tiling, find cells covered by tiles but outside composite
-  const outsideSets: Set<string>[] = allMinimalTilings.map((tiling) => {
-    const outside = new Set<string>();
-    for (const tile of tiling) {
-      for (const [row, col] of tile.cells) {
-        const key = `${row},${col}`;
-        if (!compositeSet.has(key)) {
-          outside.add(key);
-        }
-      }
-    }
-    return outside;
-  });
-
-  // Intersection: cells that appear in ALL tilings' outside sets
-  if (outsideSets.length === 0) return [];
-
-  const intersection = new Set(outsideSets[0]);
-  for (let i = 1; i < outsideSets.length; i++) {
-    for (const key of intersection) {
-      if (!outsideSets[i].has(key)) {
-        intersection.delete(key);
-      }
-    }
-  }
-
-  return [...intersection].map((key) => {
-    const [row, col] = key.split(",").map(Number);
-    return [row, col] as Coord;
-  });
-}
-
-/**
  * Shared: refresh composite state and compute tiling.
  * Returns null if no analysis is possible.
  */
@@ -319,6 +278,11 @@ function enumerationPlacements(
     }
   }
 
+  const localRowStars = [...analysis.rowStars];
+  const localColStars = [...analysis.colStars];
+  const localRegionStars = new Map<number, number>();
+  for (const [id, m] of analysis.regions) localRegionStars.set(id, m.starsPlaced);
+
   let changed = false;
   for (const key of inAllPlacements) {
     const [row, col] = key.split(",").map(Number);
@@ -333,33 +297,21 @@ function enumerationPlacements(
     }
     if (hasAdjacentStar) continue;
 
-    let rowStarsCount = 0;
-    let colStarsCount = 0;
-    for (let i = 0; i < size; i++) {
-      if (cells[row][i] === "star") rowStarsCount++;
-      if (cells[i][col] === "star") colStarsCount++;
-    }
-    if (rowStarsCount >= board.stars || colStarsCount >= board.stars) continue;
-
+    if (localRowStars[row] >= board.stars || localColStars[col] >= board.stars) continue;
     const regionId = board.grid[row][col];
-    let regionStars = 0;
-    for (let rr = 0; rr < size; rr++) {
-      for (let cc = 0; cc < size; cc++) {
-        if (board.grid[rr][cc] === regionId && cells[rr][cc] === "star") {
-          regionStars++;
-        }
-      }
-    }
-    if (regionStars >= board.stars) continue;
+    if ((localRegionStars.get(regionId) ?? 0) >= board.stars) continue;
 
     cells[row][col] = "star";
+    localRowStars[row]++;
+    localColStars[col]++;
+    localRegionStars.set(regionId, (localRegionStars.get(regionId) ?? 0) + 1);
     changed = true;
   }
   return changed;
 }
 
 /**
- * Confinement + Inference → Marks.
+ * Confinement + Enumeration (tight tiling) → Marks.
  * Tight tiling on composite: cells outside covered by ALL tilings get marked.
  */
 export function analyzeCompositeTilingMarks(
@@ -377,7 +329,7 @@ export function analyzeCompositeTilingMarks(
   const compositeSet = new Set(
     composite.cells.map((coord) => `${coord[0]},${coord[1]}`),
   );
-  const externalForced = findExternalForcedCells(tiling.tilings, compositeSet);
+  const externalForced = findForcedOverhangCells(tiling.tilings, compositeSet);
 
   let changed = false;
   for (const [erow, ecol] of externalForced) {
@@ -390,7 +342,7 @@ export function analyzeCompositeTilingMarks(
 }
 
 /**
- * Confinement + Inference → Placements.
+ * Confinement + Enumeration (tight tiling) → Placements.
  * Tight tiling on composite: single-coverage forced cells become stars.
  */
 export function analyzeCompositeTilingPlacements(
@@ -410,6 +362,11 @@ export function analyzeCompositeTilingPlacements(
     tiling.forcedCells.map(([row, col]) => `${row},${col}`),
   );
 
+  const localRowStars = [...analysis.rowStars];
+  const localColStars = [...analysis.colStars];
+  const localRegionStars = new Map<number, number>();
+  for (const [id, m] of analysis.regions) localRegionStars.set(id, m.starsPlaced);
+
   let changed = false;
   for (const [frow, fcol] of tiling.forcedCells) {
     if (cells[frow][fcol] !== "unknown") continue;
@@ -423,33 +380,21 @@ export function analyzeCompositeTilingPlacements(
     }
     if (hasAdjacentConflict) continue;
 
-    let rowStarsCount = 0;
-    let colStarsCount = 0;
-    for (let i = 0; i < size; i++) {
-      if (cells[frow][i] === "star") rowStarsCount++;
-      if (cells[i][fcol] === "star") colStarsCount++;
-    }
-    if (rowStarsCount >= board.stars || colStarsCount >= board.stars) continue;
-
+    if (localRowStars[frow] >= board.stars || localColStars[fcol] >= board.stars) continue;
     const regionId = board.grid[frow][fcol];
-    let regionStars = 0;
-    for (let rr = 0; rr < size; rr++) {
-      for (let cc = 0; cc < size; cc++) {
-        if (board.grid[rr][cc] === regionId && cells[rr][cc] === "star") {
-          regionStars++;
-        }
-      }
-    }
-    if (regionStars >= board.stars) continue;
+    if ((localRegionStars.get(regionId) ?? 0) >= board.stars) continue;
 
     cells[frow][fcol] = "star";
+    localRowStars[frow]++;
+    localColStars[fcol]++;
+    localRegionStars.set(regionId, (localRegionStars.get(regionId) ?? 0) + 1);
     changed = true;
   }
   return changed;
 }
 
 /**
- * Confinement + Enumeration → Marks.
+ * Confinement + Enumeration (slack tiling) → Marks.
  * Slack tiling on composite: enumerate placements, mark cells in none.
  */
 export function analyzeCompositeEnumerationMarks(
@@ -469,7 +414,7 @@ export function analyzeCompositeEnumerationMarks(
 }
 
 /**
- * Confinement + Enumeration → Placements.
+ * Confinement + Enumeration (slack tiling) → Placements.
  * Slack tiling on composite: enumerate placements, place cells in all.
  */
 export function analyzeCompositeEnumerationPlacements(

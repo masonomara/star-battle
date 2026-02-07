@@ -23,6 +23,7 @@ export default function squeezeOverhangColumn(
   if (size === 0) return false;
 
   const starsPerPair = board.stars * 2;
+  let changed = false;
 
   for (let col = 0; col < size - 1; col++) {
     const pairCells: Coord[] = [];
@@ -53,9 +54,9 @@ export default function squeezeOverhangColumn(
     }
 
     if (applyDeductions(cells, deductions)) {
-      return true;
+      changed = true;
     }
   }
 
-  return false;
+  return changed;
 }

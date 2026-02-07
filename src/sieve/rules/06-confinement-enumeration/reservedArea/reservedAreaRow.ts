@@ -35,6 +35,8 @@ export default function reservedAreaRow(
   const { size, regions, rowStars, rowToRegions } = analysis;
   if (size === 0) return false;
 
+  let changed = false;
+
   for (let k = 1; k <= 3 && k <= size; k++) {
     for (const rowIndices of combinations(size, k)) {
       const rowSet = new Set(rowIndices);
@@ -105,18 +107,16 @@ export default function reservedAreaRow(
 
         if (minFromInside >= lineSupply) {
           // Excluded cage gets 0 stars in these rows — mark them
-          let changed = false;
           for (const [r, c] of excludedCellsInRows) {
             if (cells[r][c] === "unknown") {
               cells[r][c] = "marked";
               changed = true;
             }
           }
-          if (changed) return true;
         }
       }
     }
   }
 
-  return false;
+  return changed;
 }

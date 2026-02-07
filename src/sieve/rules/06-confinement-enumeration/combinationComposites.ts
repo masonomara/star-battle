@@ -28,6 +28,7 @@ function forEachCombinationComposite(
   cells: CellState[][],
   analysis: BoardAnalysis,
   analyze: CompositeAnalyzer,
+  returnOnFirst = true,
 ): boolean {
   const { regions } = analysis;
 
@@ -41,6 +42,7 @@ function forEachCombinationComposite(
   if (activeRegions.size < 2) return false;
 
   const adjacency = buildAdjacencyGraph(board, activeRegions);
+  let changed = false;
 
   for (const [id1, neighborIds] of adjacency) {
     const r1 = activeRegions.get(id1);
@@ -72,18 +74,19 @@ function forEachCombinationComposite(
       };
 
       if (analyze(composite, board, cells, analysis)) {
-        return true;
+        if (returnOnFirst) return true;
+        changed = true;
       }
     }
   }
 
-  return false;
+  return changed;
 }
 
 export function combinationCompositeTilingMarks(
   board: Board, cells: CellState[][], analysis: BoardAnalysis,
 ): boolean {
-  return forEachCombinationComposite(board, cells, analysis, analyzeCompositeTilingMarks);
+  return forEachCombinationComposite(board, cells, analysis, analyzeCompositeTilingMarks, false);
 }
 
 export function combinationCompositeTilingPlacements(
@@ -95,7 +98,7 @@ export function combinationCompositeTilingPlacements(
 export function combinationCompositeEnumerationMarks(
   board: Board, cells: CellState[][], analysis: BoardAnalysis,
 ): boolean {
-  return forEachCombinationComposite(board, cells, analysis, analyzeCompositeEnumerationMarks);
+  return forEachCombinationComposite(board, cells, analysis, analyzeCompositeEnumerationMarks, false);
 }
 
 export function combinationCompositeEnumerationPlacements(

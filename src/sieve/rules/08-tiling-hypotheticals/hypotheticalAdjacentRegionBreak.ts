@@ -71,16 +71,18 @@ export default function hypotheticalAdjacentRegionBreak(
   const { size } = analysis;
   if (size === 0) return false;
 
+  let changed = false;
+
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
       if (cells[row][col] !== "unknown") continue;
 
       if (checkAdjacentRegionViolation(row, col, board, analysis)) {
         cells[row][col] = "marked";
-        return true;
+        changed = true;
       }
     }
   }
 
-  return false;
+  return changed;
 }

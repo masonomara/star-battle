@@ -20,6 +20,7 @@ export default function squeezeAdjacencyRow(
   if (size === 0) return false;
 
   const starsPerPair = board.stars * 2;
+  let changed = false;
 
   for (let row = 0; row < size - 1; row++) {
     const pairCells: Coord[] = [];
@@ -51,9 +52,9 @@ export default function squeezeAdjacencyRow(
     }
 
     if (applyDeductions(cells, deductions)) {
-      return true;
+      changed = true;
     }
   }
 
-  return false;
+  return changed;
 }

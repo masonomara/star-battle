@@ -11,7 +11,7 @@
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { computeTiling } from "../../helpers/tiling";
-import { buildMarkedCellSet } from "../../helpers/oneByN";
+import { buildMarkedCellSet } from "../../helpers/neighbors";
 
 function checkOwnRegionViolation(
   starRow: number,
@@ -60,6 +60,8 @@ export default function hypotheticalRegionCapacity(
   const { size } = analysis;
   if (size === 0) return false;
 
+  let changed = false;
+
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
       if (cells[row][col] !== "unknown") continue;
@@ -68,10 +70,10 @@ export default function hypotheticalRegionCapacity(
 
       if (checkOwnRegionViolation(row, col, board, markedCells, analysis)) {
         cells[row][col] = "marked";
-        return true;
+        changed = true;
       }
     }
   }
 
-  return false;
+  return changed;
 }
