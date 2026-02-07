@@ -32,8 +32,6 @@ import squeezeAdjacencyColumn from "./05-tiling-enumeration/squeeze/squeezeAdjac
 import squeezeOverhangRow from "./05-tiling-enumeration/squeeze/squeezeOverhangRow";
 import squeezeOverhangColumn from "./05-tiling-enumeration/squeeze/squeezeOverhangColumn";
 
-
-
 import hypotheticalRowCount from "./07-direct-hypotheticals/hypotheticalRowCount";
 import hypotheticalColumnCount from "./07-direct-hypotheticals/hypotheticalColumnCount";
 import hypotheticalRegionCount from "./07-direct-hypotheticals/hypotheticalRegionCount";
@@ -61,25 +59,25 @@ export type RuleEntry = {
 
 export const allRules: RuleEntry[] = [
   // Level 1: Direct Inferences
+  { rule: forcedRow, level: 1, name: "Forced Rows" },
+  { rule: forcedColumn, level: 1, name: "Forced Columns" },
+  { rule: forcedRegion, level: 1, name: "Forced Regions" },
   { rule: starNeighbors, level: 1, name: "Star Neighbors" },
   { rule: trivialRow, level: 1, name: "Trivial Rows" },
   { rule: trivialColumn, level: 1, name: "Trivial Columns" },
   { rule: trivialRegion, level: 1, name: "Trivial Regions" },
-  { rule: forcedRow, level: 1, name: "Forced Rows" },
-  { rule: forcedColumn, level: 1, name: "Forced Columns" },
-  { rule: forcedRegion, level: 1, name: "Forced Regions" },
 
   // Level 2: Tiling Inferences
 
   // Level 3: Confinement Inferences
-  { rule: undercountingRow, level: 3, name: "Undercounted Rows" },
-  { rule: undercountingColumn, level: 3, name: "Undercounted Columns" },
-  { rule: overcountingRow, level: 3, name: "Overcounted Rows" },
-  { rule: overcountingColumn, level: 3, name: "Overcounted Columns" },
   { rule: consumedLineRow, level: 3, name: "Consumed Line Row" },
   { rule: consumedLineColumn, level: 3, name: "Consumed Line Column" },
   { rule: consumedRegionRow, level: 3, name: "Consumed Region Row" },
   { rule: consumedRegionColumn, level: 3, name: "Consumed Region Column" },
+  { rule: undercountingRow, level: 3, name: "Undercounted Rows" },
+  { rule: undercountingColumn, level: 3, name: "Undercounted Columns" },
+  { rule: overcountingRow, level: 3, name: "Overcounted Rows" },
+  { rule: overcountingColumn, level: 3, name: "Overcounted Columns" },
 
   // Level 5: Tiling Enumerations
   { rule: tilingForcedRow, level: 5, name: "Tiling Forced Rows" },
@@ -95,7 +93,6 @@ export const allRules: RuleEntry[] = [
   { rule: squeezeOverhangColumn, level: 5, name: "Squeeze Overhang Columns" },
 
   // Level 6: Confinement Enumerations
-
 
   // Level 7: Direct Hypotheticals
   { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },
@@ -126,7 +123,6 @@ export const allRules: RuleEntry[] = [
     level: 8,
     name: "Hypothetical Region Capacity",
   },
- 
 
   // Level 9: Confinement Hypotheticals
   {

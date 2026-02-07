@@ -51,3 +51,22 @@ I chose to cut off at Bifurcation (hypotheticals) because it is "single depth". 
 **On Organizing**
 
 Humans Dont think like how I described above. Humans think like humans. The tools above were extremely useful for "making sure all my gaps were covered" but not very useful for teaching information. Now that I KNEW gaps were covered, I was able to teaach, watch how people learned the game, talked through different ways of teaching. Heres how i recorded the results:
+
+
+## Rules
+
+**Direct Inferences**
+
+Star Neighbors: if a star is placed, then no star can touch it, so mark all of the stars surrounding neighbors diagonally, horizontally, and verticallay
+Trivial Marks: if a row/column/region has all of hte needed stars, then no more stars can be placed, so mark the remaining cells
+Forced Placements: if a row/column/region has the same amount of unknown cells as they do needed stars, then those unknown cells have to be the raimaing stars, so palce stars there
+
+**Confnement Inferecnes**
+
+Overcounting: (regions contained by lines): if a group of _n_ regions completely cover the same group of _n_ rows/columns, then all of those region's stars must be within those covered rows/columns, so mark all cells in the regions outside the covered lines.
+
+Undercounting (regions confined to lines): If a group of _n_ regions' unknown cells all are contained within the same group of _n_ rows/columns, then all of the rows/columns stars must be placed within the constrained regions, so mark all the cells in the rows/columns that are not in the confined regions.
+
+Consumed Line: if a region needs _n_ stars and a particular row/column can give at most _m_ stars and _m_ < _n_, then the reamaing (_n_ - _m_) must go to the region's cells outside that row/column. if the region's unknwon cells outside the row/column equals the remianign stars, then place stars in all of the region's unknown cells
+
+Consumed Region: If a row/column needs _n_ stars, and a particular region can give at most _m_ stars and _m_ < _n_, then the remainign stars (_n_ - _m_) must go to the row/column's cells outside of that region. if the unknown cells outside the region equal the remainign stars, then place all stars in the unknown cells.
