@@ -10,7 +10,6 @@
 
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { computeTiling } from "../../helpers/tiling";
 import { buildMarkedCellSet } from "../../helpers/neighbors";
 
 function checkOwnRegionViolation(
@@ -20,7 +19,6 @@ function checkOwnRegionViolation(
   markedCells: Set<string>,
   analysis: BoardAnalysis,
 ): boolean {
-  const size = board.grid.length;
   const starKey = `${starRow},${starCol}`;
   const regionId = board.grid[starRow][starCol];
   const regionMeta = analysis.regions.get(regionId);
@@ -45,7 +43,7 @@ function checkOwnRegionViolation(
     return true;
   }
 
-  if (computeTiling(remainingCells, size).capacity < needed) {
+  if (analysis.getTiling(remainingCells).capacity < needed) {
     return true;
   }
 

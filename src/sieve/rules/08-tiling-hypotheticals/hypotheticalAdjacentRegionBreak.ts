@@ -12,7 +12,6 @@
 
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { computeTiling } from "../../helpers/tiling";
 import { neighbors } from "../../helpers/neighbors";
 
 function checkAdjacentRegionViolation(
@@ -55,7 +54,7 @@ function checkAdjacentRegionViolation(
       return true;
     }
 
-    if (computeTiling(remainingCells, size).capacity < region.starsNeeded) {
+    if (analysis.getTiling(remainingCells).capacity < region.starsNeeded) {
       return true;
     }
   }

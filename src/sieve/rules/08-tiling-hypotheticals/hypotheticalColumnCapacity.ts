@@ -10,7 +10,6 @@
 
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { computeTiling } from "../../helpers/tiling";
 import { buildMarkedCellSet } from "../../helpers/neighbors";
 
 function checkColumnViolation(
@@ -19,6 +18,7 @@ function checkColumnViolation(
   board: Board,
   cells: CellState[][],
   markedCells: Set<string>,
+  analysis: BoardAnalysis,
 ): boolean {
   const size = board.grid.length;
   const starKey = `${starRow},${starCol}`;
@@ -55,7 +55,7 @@ function checkColumnViolation(
     }
 
     // Tiling capacity check
-    if (computeTiling(remainingCells, size).capacity < needed) {
+    if (analysis.getTiling(remainingCells).capacity < needed) {
       return true;
     }
   }
@@ -79,7 +79,7 @@ export default function hypotheticalColumnCapacity(
 
       const markedCells = buildMarkedCellSet(row, col, size);
 
-      if (checkColumnViolation(row, col, board, cells, markedCells)) {
+      if (checkColumnViolation(row, col, board, cells, markedCells, analysis)) {
         cells[row][col] = "marked";
         changed = true;
       }
