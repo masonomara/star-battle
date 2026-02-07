@@ -52,7 +52,6 @@
 
 **Complement Composite Tiling/Enumeration** — When regions are confined to a band of rows/columns, analyze the *complement* (leftover cells in those rows outside those regions) as a composite. "The leftover scraps form their own solvable mini-puzzle."
 
-**Reserved Area Row/Column** — For a set of rows, find cells that *must* contain all remaining stars for those rows. Everything outside the reserved set gets marked. Krazydad's "reserved area" — "the only place stars can go in these rows, so everything else is dead."
 
 ---
 
@@ -201,7 +200,7 @@ Reserved area logic across *multiple columns simultaneously*. Your reserved area
 
 ### Decision Points
 
-- **After profiling (Task 1.1):** If the bottleneck is tiling (DLX), focus on cache improvements. If it's hypotheticals, focus on skipping unchanged cells. If it's BoardAnalysis rebuilds, focus on incremental updates. Don't guess — measure.
+
 
 - **After categorizing (Task 2.2):** If one category covers 15+ puzzles, spend all of Phase 3 on it. If they're evenly split, implement the easiest one first. If they're all different edge cases, document them and call 98% a win.
 
