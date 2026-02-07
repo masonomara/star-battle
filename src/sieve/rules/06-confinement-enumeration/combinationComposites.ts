@@ -13,8 +13,6 @@ import {
   buildAdjacencyGraph,
   analyzeCompositeTilingMarks,
   analyzeCompositeTilingPlacements,
-  analyzeCompositeEnumerationMarks,
-  analyzeCompositeEnumerationPlacements,
 } from "../../helpers/compositeAnalysis";
 
 function forEachCombinationComposite(
@@ -86,14 +84,3 @@ export function combinationCompositeTilingPlacements(
   return forEachCombinationComposite(board, cells, analysis, analyzeCompositeTilingPlacements);
 }
 
-export function combinationCompositeEnumerationMarks(
-  board: Board, cells: CellState[][], analysis: BoardAnalysis,
-): boolean {
-  return forEachCombinationComposite(board, cells, analysis, analyzeCompositeEnumerationMarks, false);
-}
-
-export function combinationCompositeEnumerationPlacements(
-  board: Board, cells: CellState[][], analysis: BoardAnalysis,
-): boolean {
-  return forEachCombinationComposite(board, cells, analysis, analyzeCompositeEnumerationPlacements);
-}

@@ -14,8 +14,6 @@ import {
   findComplementInBand,
   analyzeCompositeTilingMarks,
   analyzeCompositeTilingPlacements,
-  analyzeCompositeEnumerationMarks,
-  analyzeCompositeEnumerationPlacements,
 } from "../../helpers/compositeAnalysis";
 
 function forEachRegionBand(
@@ -64,24 +62,3 @@ export function regionBandTilingPlacementsColumn(
   return forEachRegionBand(board, cells, analysis, "col", analyzeCompositeTilingPlacements);
 }
 
-// Slack enumeration
-export function regionBandEnumerationMarksRow(
-  board: Board, cells: CellState[][], analysis: BoardAnalysis,
-): boolean {
-  return forEachRegionBand(board, cells, analysis, "row", analyzeCompositeEnumerationMarks, false);
-}
-export function regionBandEnumerationMarksColumn(
-  board: Board, cells: CellState[][], analysis: BoardAnalysis,
-): boolean {
-  return forEachRegionBand(board, cells, analysis, "col", analyzeCompositeEnumerationMarks, false);
-}
-export function regionBandEnumerationPlacementsRow(
-  board: Board, cells: CellState[][], analysis: BoardAnalysis,
-): boolean {
-  return forEachRegionBand(board, cells, analysis, "row", analyzeCompositeEnumerationPlacements);
-}
-export function regionBandEnumerationPlacementsColumn(
-  board: Board, cells: CellState[][], analysis: BoardAnalysis,
-): boolean {
-  return forEachRegionBand(board, cells, analysis, "col", analyzeCompositeEnumerationPlacements);
-}

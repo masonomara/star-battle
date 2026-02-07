@@ -1,6 +1,18 @@
 import { Board, Coord, GeneratorError } from "./helpers/types";
-import buildRegions from "./helpers/regions";
 import { computeTiling } from "./helpers/tiling";
+
+function buildRegions(grid: number[][]) {
+  const map = new Map<number, Coord[]>();
+  const size = grid.length;
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const id = grid[r][c];
+      if (!map.has(id)) map.set(id, []);
+      map.get(id)!.push([r, c]);
+    }
+  }
+  return map;
+}
 
 const DIRECTIONS: [number, number][] = [
   [-1, 0],

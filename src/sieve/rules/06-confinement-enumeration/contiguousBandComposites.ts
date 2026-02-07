@@ -13,8 +13,6 @@ import {
   findComplementInBand,
   analyzeCompositeTilingMarks,
   analyzeCompositeTilingPlacements,
-  analyzeCompositeEnumerationMarks,
-  analyzeCompositeEnumerationPlacements,
 } from "../../helpers/compositeAnalysis";
 
 function forEachContiguousBand(
@@ -65,24 +63,3 @@ export function contiguousTilingPlacementsColumn(
   return forEachContiguousBand(board, cells, analysis, "col", analyzeCompositeTilingPlacements);
 }
 
-// Slack enumeration
-export function contiguousEnumerationMarksRow(
-  board: Board, cells: CellState[][], analysis: BoardAnalysis,
-): boolean {
-  return forEachContiguousBand(board, cells, analysis, "row", analyzeCompositeEnumerationMarks, false);
-}
-export function contiguousEnumerationMarksColumn(
-  board: Board, cells: CellState[][], analysis: BoardAnalysis,
-): boolean {
-  return forEachContiguousBand(board, cells, analysis, "col", analyzeCompositeEnumerationMarks, false);
-}
-export function contiguousEnumerationPlacementsRow(
-  board: Board, cells: CellState[][], analysis: BoardAnalysis,
-): boolean {
-  return forEachContiguousBand(board, cells, analysis, "row", analyzeCompositeEnumerationPlacements);
-}
-export function contiguousEnumerationPlacementsColumn(
-  board: Board, cells: CellState[][], analysis: BoardAnalysis,
-): boolean {
-  return forEachContiguousBand(board, cells, analysis, "col", analyzeCompositeEnumerationPlacements);
-}
