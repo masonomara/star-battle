@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildBoardAnalysis } from "./boardAnalysis";
+import { buildBoardStructure, buildBoardAnalysis } from "./boardAnalysis";
 import { Board, CellState } from "./types";
 
 describe("buildBoardAnalysis", () => {
@@ -15,7 +15,8 @@ describe("buildBoardAnalysis", () => {
       ["star", "unknown"],
       ["unknown", "unknown"],
     ];
-    const analysis = buildBoardAnalysis(board, cells);
+    const structure = buildBoardStructure(board);
+    const analysis = buildBoardAnalysis(structure, cells);
     expect(analysis.regions.get(0)!.starsPlaced).toBe(1);
     expect(analysis.regions.get(1)!.starsPlaced).toBe(0);
   });
@@ -34,7 +35,8 @@ describe("buildBoardAnalysis", () => {
       ["unknown", "star", "unknown"],
       ["unknown", "unknown", "star"],
     ];
-    const analysis = buildBoardAnalysis(board, cells);
+    const structure = buildBoardStructure(board);
+    const analysis = buildBoardAnalysis(structure, cells);
     expect(analysis.rowStars).toEqual([1, 1, 1]);
     expect(analysis.colStars).toEqual([1, 1, 1]);
   });
@@ -51,7 +53,8 @@ describe("buildBoardAnalysis", () => {
       ["star", "unknown"],
       ["unknown", "unknown"],
     ];
-    const analysis = buildBoardAnalysis(board, cells);
+    const structure = buildBoardStructure(board);
+    const analysis = buildBoardAnalysis(structure, cells);
 
     // Region 0 has 1 star, needs 0 more
     expect(analysis.regions.get(0)!.starsNeeded).toBe(0);
@@ -71,7 +74,8 @@ describe("buildBoardAnalysis", () => {
       ["marked", "unknown"],
       ["star", "unknown"],
     ];
-    const analysis = buildBoardAnalysis(board, cells);
+    const structure = buildBoardStructure(board);
+    const analysis = buildBoardAnalysis(structure, cells);
 
     // Region 0 spans rows 0,1 and cols 0,1 (all cells, not just unknowns)
     expect(analysis.regions.get(0)!.rows).toEqual(new Set([0, 1]));
@@ -90,7 +94,8 @@ describe("buildBoardAnalysis", () => {
       ["marked", "unknown"],
       ["star", "unknown"],
     ];
-    const analysis = buildBoardAnalysis(board, cells);
+    const structure = buildBoardStructure(board);
+    const analysis = buildBoardAnalysis(structure, cells);
 
     // Region 0: only (0,1) is unknown
     expect(analysis.regions.get(0)!.unknownRows).toEqual(new Set([0]));
@@ -113,7 +118,8 @@ describe("buildBoardAnalysis", () => {
       ["star", "unknown"],
       ["unknown", "unknown"],
     ];
-    const analysis = buildBoardAnalysis(board, cells);
+    const structure = buildBoardStructure(board);
+    const analysis = buildBoardAnalysis(structure, cells);
 
     expect(analysis.regions.get(0)!.unknownCoords).toEqual([
       [0, 1],
@@ -125,7 +131,8 @@ describe("buildBoardAnalysis", () => {
   it("handles empty board", () => {
     const board: Board = { grid: [], stars: 1 };
     const cells: CellState[][] = [];
-    const analysis = buildBoardAnalysis(board, cells);
+    const structure = buildBoardStructure(board);
+    const analysis = buildBoardAnalysis(structure, cells);
 
     expect(analysis.size).toBe(0);
     expect(analysis.regions.size).toBe(0);

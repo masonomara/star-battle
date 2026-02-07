@@ -1,13 +1,14 @@
 import { Board, CellState } from "../../../helpers/types";
 import { describe, it, expect } from "vitest";
-import { buildBoardAnalysis } from "../../../helpers/boardAnalysis";
+import { buildBoardStructure, buildBoardAnalysis } from "../../../helpers/boardAnalysis";
 import { boardFromSBF } from "../../../helpers/sbf";
 import reservedAreaColumn from "./reservedAreaColumn";
 import reservedAreaRow from "./reservedAreaRow";
 
 describe("Reserved Area Column", () => {
   function run(board: Board, cells: CellState[][]): boolean {
-    const analysis = buildBoardAnalysis(board, cells);
+    const structure = buildBoardStructure(board);
+    const analysis = buildBoardAnalysis(structure, cells);
     return reservedAreaColumn(board, cells, analysis);
   }
 
@@ -99,7 +100,8 @@ describe("Reserved Area Column", () => {
 
 describe("Reserved Area Row", () => {
   function run(board: Board, cells: CellState[][]): boolean {
-    const analysis = buildBoardAnalysis(board, cells);
+    const structure = buildBoardStructure(board);
+    const analysis = buildBoardAnalysis(structure, cells);
     return reservedAreaRow(board, cells, analysis);
   }
 

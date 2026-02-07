@@ -1,6 +1,6 @@
 import { Board, CellState } from "../../../helpers/types";
 import { describe, it, expect } from "vitest";
-import { buildBoardAnalysis } from "../../../helpers/boardAnalysis";
+import { buildBoardStructure, buildBoardAnalysis } from "../../../helpers/boardAnalysis";
 import {
   tilingForcedRow,
   tilingForcedColumn,
@@ -9,7 +9,8 @@ import {
 
 describe("08a. Tiling Forced Stars (Row)", () => {
   function run(board: Board, cells: CellState[][]): boolean {
-    const analysis = buildBoardAnalysis(board, cells);
+    const structure = buildBoardStructure(board);
+    const analysis = buildBoardAnalysis(structure, cells);
     return tilingForcedRow(board, cells, analysis);
   }
 
@@ -86,7 +87,8 @@ describe("08a. Tiling Forced Stars (Row)", () => {
 
 describe("08b. Tiling Forced Stars (Column)", () => {
   function run(board: Board, cells: CellState[][]): boolean {
-    const analysis = buildBoardAnalysis(board, cells);
+    const structure = buildBoardStructure(board);
+    const analysis = buildBoardAnalysis(structure, cells);
     return tilingForcedColumn(board, cells, analysis);
   }
 
@@ -163,7 +165,8 @@ describe("08b. Tiling Forced Stars (Column)", () => {
 
 describe("08c. Tiling Forced Stars (Region)", () => {
   function run(board: Board, cells: CellState[][]): boolean {
-    const analysis = buildBoardAnalysis(board, cells);
+    const structure = buildBoardStructure(board);
+    const analysis = buildBoardAnalysis(structure, cells);
     return tilingForcedRegion(board, cells, analysis);
   }
 

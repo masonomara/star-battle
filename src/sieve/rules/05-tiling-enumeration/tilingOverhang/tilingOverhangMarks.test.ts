@@ -1,6 +1,6 @@
 import { Board, CellState } from "../../../helpers/types";
 import { describe, it, expect } from "vitest";
-import { buildBoardAnalysis } from "../../../helpers/boardAnalysis";
+import { buildBoardStructure, buildBoardAnalysis } from "../../../helpers/boardAnalysis";
 import tilingOverhangMarks from "./tilingOverhangMarks";
 
 describe("08b. Tiling Overhang Marks", () => {
@@ -26,7 +26,7 @@ describe("08b. Tiling Overhang Marks", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingOverhangMarks(board, cells, buildBoardAnalysis(board, cells));
+      const result = tilingOverhangMarks(board, cells, buildBoardAnalysis(buildBoardStructure(board), cells));
 
       expect(result).toBe(true);
       expect(cells[1][0]).toBe("marked");
@@ -53,7 +53,7 @@ describe("08b. Tiling Overhang Marks", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingOverhangMarks(board, cells, buildBoardAnalysis(board, cells));
+      const result = tilingOverhangMarks(board, cells, buildBoardAnalysis(buildBoardStructure(board), cells));
 
       expect(result).toBe(true);
       const markedCount = cells[1].filter((c) => c === "marked").length;
@@ -80,7 +80,7 @@ describe("08b. Tiling Overhang Marks", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingOverhangMarks(board, cells, buildBoardAnalysis(board, cells));
+      const result = tilingOverhangMarks(board, cells, buildBoardAnalysis(buildBoardStructure(board), cells));
 
       expect(result).toBe(true);
       const col1Marked = cells.filter((row) => row[1] === "marked").length;
@@ -107,7 +107,7 @@ describe("08b. Tiling Overhang Marks", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingOverhangMarks(board, cells, buildBoardAnalysis(board, cells));
+      const result = tilingOverhangMarks(board, cells, buildBoardAnalysis(buildBoardStructure(board), cells));
 
       expect(result).toBe(true);
       expect(cells[1][0]).toBe("marked");
@@ -132,7 +132,7 @@ describe("08b. Tiling Overhang Marks", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingOverhangMarks(board, cells, buildBoardAnalysis(board, cells));
+      const result = tilingOverhangMarks(board, cells, buildBoardAnalysis(buildBoardStructure(board), cells));
 
       expect(result).toBe(false);
     });
@@ -156,7 +156,7 @@ describe("08b. Tiling Overhang Marks", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingOverhangMarks(board, cells, buildBoardAnalysis(board, cells));
+      const result = tilingOverhangMarks(board, cells, buildBoardAnalysis(buildBoardStructure(board), cells));
 
       expect(result).toBe(false);
     });
@@ -179,7 +179,7 @@ describe("08b. Tiling Overhang Marks", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingOverhangMarks(board, cells, buildBoardAnalysis(board, cells));
+      const result = tilingOverhangMarks(board, cells, buildBoardAnalysis(buildBoardStructure(board), cells));
 
       expect(result).toBe(false);
     });

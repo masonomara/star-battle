@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Board, CellState } from "../../../helpers/types";
-import { buildBoardAnalysis } from "../../../helpers/boardAnalysis";
+import { buildBoardStructure, buildBoardAnalysis } from "../../../helpers/boardAnalysis";
 import trivialRegion from "./trivialRegion";
 
 describe("04. regionComplete", () => {
@@ -21,7 +21,8 @@ describe("04. regionComplete", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const analysis = buildBoardAnalysis(board, cells);
+      const structure = buildBoardStructure(board);
+      const analysis = buildBoardAnalysis(structure, cells);
       const result = trivialRegion(board, cells, analysis);
 
       expect(result).toBe(true);

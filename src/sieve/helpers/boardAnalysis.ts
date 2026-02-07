@@ -2,6 +2,22 @@ import { Board, CellState, Coord, TilingResult } from "./types";
 import buildRegions from "./regions";
 import { computeTiling } from "./tiling";
 
+/** Static per-region data (computed once from the board grid) */
+export type RegionStructure = {
+  id: number;
+  coords: Coord[];
+  rows: Set<number>;
+  cols: Set<number>;
+};
+
+/** Static board structure (computed once, never changes) */
+export type BoardStructure = {
+  size: number;
+  numCols: number;
+  stars: number;
+  regions: Map<number, RegionStructure>;
+};
+
 /** Pre-computed region metadata for solver rules */
 export type RegionMeta = {
   id: number;
@@ -31,33 +47,46 @@ export function capacity(cells: Coord[], analysis: BoardAnalysis): number {
   return analysis.getTiling(cells).capacity;
 }
 
-export function buildBoardAnalysis(
-  board: Board,
-  cells: CellState[][],
-  tilingCache: Map<string, TilingResult> = new Map(),
-): BoardAnalysis {
+/** Build static board structure once from the board definition. */
+export function buildBoardStructure(board: Board): BoardStructure {
   const size = board.grid.length;
   const numCols = board.grid[0]?.length ?? 0;
   const rawRegions = buildRegions(board.grid);
 
+  const regions = new Map<number, RegionStructure>();
+  for (const [id, coords] of rawRegions) {
+    const rows = new Set<number>();
+    const cols = new Set<number>();
+    for (const [row, col] of coords) {
+      rows.add(row);
+      cols.add(col);
+    }
+    regions.set(id, { id, coords, rows, cols });
+  }
+
+  return { size, numCols, stars: board.stars, regions };
+}
+
+/** Build cell-state-dependent analysis from pre-computed structure. */
+export function buildBoardAnalysis(
+  structure: BoardStructure,
+  cells: CellState[][],
+  tilingCache: Map<string, TilingResult> = new Map(),
+): BoardAnalysis {
+  const { size, numCols, stars, regions: structRegions } = structure;
+
   const regions = new Map<number, RegionMeta>();
   const rowStars = new Array(size).fill(0);
   const colStars = new Array(numCols).fill(0);
-  // Build region metadata and count stars
-  for (const [id, coords] of rawRegions) {
+
+  for (const [id, sr] of structRegions) {
     const unknownCoords: Coord[] = [];
-    const rows = new Set<number>();
-    const cols = new Set<number>();
     const unknownRows = new Set<number>();
     const unknownCols = new Set<number>();
     let starsPlaced = 0;
 
-    for (const [row, col] of coords) {
-      rows.add(row);
-      cols.add(col);
-
+    for (const [row, col] of sr.coords) {
       const cell = cells[row][col];
-
       if (cell === "unknown") {
         unknownCoords.push([row, col]);
         unknownRows.add(row);
@@ -69,16 +98,14 @@ export function buildBoardAnalysis(
       }
     }
 
-    const starsNeeded = board.stars - starsPlaced;
-
     regions.set(id, {
       id,
-      coords,
+      coords: sr.coords,
       unknownCoords,
       starsPlaced,
-      starsNeeded,
-      rows,
-      cols,
+      starsNeeded: stars - starsPlaced,
+      rows: sr.rows,
+      cols: sr.cols,
       unknownRows,
       unknownCols,
     });
