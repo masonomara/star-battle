@@ -1,17 +1,17 @@
 /**
- * Propagated Hypothetical Count
+ * Propagated Hypothetical Row Count
  *
  * Observation: Propagated hypothetical state
  * Technique:   Hypothetical
- * Deduction:   Mark — if the propagated state breaks any row, column,
- *              or region count (or adjacency) constraint
+ * Deduction:   Mark — if any row can't meet its star quota,
+ *              or if forced stars are adjacent
  */
 
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { propagateHypothetical } from "../../helpers/propagateHypothetical";
 
-export default function propagatedCount(
+export default function propagatedRowCount(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
@@ -25,8 +25,8 @@ export default function propagatedCount(
     for (let col = 0; col < size; col++) {
       if (cells[row][col] !== "unknown") continue;
 
-      const { violated } = propagateHypothetical(board, cells, row, col, analysis);
-      if (violated) {
+      const { violation } = propagateHypothetical(board, cells, row, col, analysis);
+      if (violation === "row" || violation === "adjacency") {
         cells[row][col] = "marked";
         changed = true;
       }

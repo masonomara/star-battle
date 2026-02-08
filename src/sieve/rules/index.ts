@@ -44,9 +44,14 @@ import hypotheticalRegionCapacity from "./08-tiling-hypotheticals/hypotheticalRe
 import hypotheticalCountingRow from "./09-confinement-hypotheticals/hypotheticalUndercountingRow";
 import hypotheticalCountingColumn from "./09-confinement-hypotheticals/hypotheticalUndercountingColumn";
 
-import propagatedCount from "./10-propagated-hypotheticals/propagatedCount";
-import propagatedCapacity from "./10-propagated-hypotheticals/propagatedCapacity";
-import propagatedCounting from "./10-propagated-hypotheticals/propagatedCounting";
+import propagatedRowCount from "./10-propagated-hypotheticals/propagatedRowCount";
+import propagatedColumnCount from "./10-propagated-hypotheticals/propagatedColumnCount";
+import propagatedRegionCount from "./10-propagated-hypotheticals/propagatedRegionCount";
+import propagatedRowCapacity from "./10-propagated-hypotheticals/propagatedRowCapacity";
+import propagatedColumnCapacity from "./10-propagated-hypotheticals/propagatedColumnCapacity";
+import propagatedRegionCapacity from "./10-propagated-hypotheticals/propagatedRegionCapacity";
+import propagatedCountingRow from "./10-propagated-hypotheticals/propagatedCountingRow";
+import propagatedCountingColumn from "./10-propagated-hypotheticals/propagatedCountingColumn";
 
 export type Rule = (
   board: Board,
@@ -157,19 +162,44 @@ export const allRules: RuleEntry[] = [
 
   // Level 10: Propagated Hypotheticals
   {
-    rule: propagatedCount,
+    rule: propagatedRowCount,
     level: 10,
-    name: "Propagated Hypothetical Count",
+    name: "Propagated Hypothetical Row Count",
   },
   {
-    rule: propagatedCapacity,
+    rule: propagatedColumnCount,
     level: 10,
-    name: "Propagated Hypothetical Capacity",
+    name: "Propagated Hypothetical Column Count",
   },
   {
-    rule: propagatedCounting,
+    rule: propagatedRegionCount,
     level: 10,
-    name: "Propagated Hypothetical Counting",
+    name: "Propagated Hypothetical Region Count",
+  },
+  {
+    rule: propagatedRowCapacity,
+    level: 10,
+    name: "Propagated Hypothetical Row Capacity",
+  },
+  {
+    rule: propagatedColumnCapacity,
+    level: 10,
+    name: "Propagated Hypothetical Column Capacity",
+  },
+  {
+    rule: propagatedRegionCapacity,
+    level: 10,
+    name: "Propagated Hypothetical Region Capacity",
+  },
+  {
+    rule: propagatedCountingRow,
+    level: 10,
+    name: "Propagated Hypothetical Counting Row",
+  },
+  {
+    rule: propagatedCountingColumn,
+    level: 10,
+    name: "Propagated Hypothetical Counting Column",
   },
 ];
 
