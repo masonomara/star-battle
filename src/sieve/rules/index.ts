@@ -36,10 +36,8 @@ import hypotheticalRowCapacity from "./08-tiling-hypotheticals/hypotheticalRowCa
 import hypotheticalColumnCapacity from "./08-tiling-hypotheticals/hypotheticalColumnCapacity";
 import hypotheticalRegionCapacity from "./08-tiling-hypotheticals/hypotheticalRegionCapacity";
 
-import hypotheticalUndercountingRow from "./09-confinement-hypotheticals/hypotheticalUndercountingRow";
-import hypotheticalUndercountingColumn from "./09-confinement-hypotheticals/hypotheticalUndercountingColumn";
-import hypotheticalOvercountingRow from "./09-confinement-hypotheticals/hypotheticalOvercountingRow";
-import hypotheticalOvercountingColumn from "./09-confinement-hypotheticals/hypotheticalOvercountingColumn";
+import hypotheticalCountingRow from "./09-confinement-hypotheticals/hypotheticalUndercountingRow";
+import hypotheticalCountingColumn from "./09-confinement-hypotheticals/hypotheticalUndercountingColumn";
 
 import hypotheticalForcedCount from "./10-forced-star-hypotheticals/hypotheticalForcedCount";
 
@@ -117,24 +115,14 @@ export const allRules: RuleEntry[] = [
 
   // Level 9: Counting Hypotheticals
   {
-    rule: hypotheticalUndercountingRow,
+    rule: hypotheticalCountingRow,
     level: 9,
-    name: "Hypothetical Counting Row (Under)",
+    name: "Hypothetical Counting Row",
   },
   {
-    rule: hypotheticalUndercountingColumn,
+    rule: hypotheticalCountingColumn,
     level: 9,
-    name: "Hypothetical Counting Column (Under)",
-  },
-  {
-    rule: hypotheticalOvercountingRow,
-    level: 9,
-    name: "Hypothetical Counting Row (Over)",
-  },
-  {
-    rule: hypotheticalOvercountingColumn,
-    level: 9,
-    name: "Hypothetical Counting Column (Over)",
+    name: "Hypothetical Counting Column",
   },
 
   // Level 10: Forced-Star Hypotheticals

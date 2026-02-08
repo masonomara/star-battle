@@ -16,6 +16,7 @@ function checkRegionViolation(
   starRow: number,
   starCol: number,
   board: Board,
+  cells: CellState[][],
   markedCells: Set<string>,
   analysis: BoardAnalysis,
 ): boolean {
@@ -37,6 +38,7 @@ function checkRegionViolation(
     const remainingCells: Coord[] = [];
 
     for (const [r, c] of region.unknownCoords) {
+      if (cells[r][c] !== "unknown") continue;
       const key = `${r},${c}`;
       if (key === starKey) {
         extraStars = 1;
@@ -71,7 +73,7 @@ export default function hypotheticalRegionCapacity(
 
       const markedCells = buildMarkedCellSet(row, col, size);
 
-      if (checkRegionViolation(row, col, board, markedCells, analysis)) {
+      if (checkRegionViolation(row, col, board, cells, markedCells, analysis)) {
         cells[row][col] = "marked";
         changed = true;
       }
