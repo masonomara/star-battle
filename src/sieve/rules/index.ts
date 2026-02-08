@@ -30,6 +30,8 @@ import squeezeOverhangColumn from "./05-tiling-enumeration/squeeze/squeezeOverha
 
 import tilingCountingMarkRow from "./06-tiling-counting/tilingCountingMarkRow";
 import tilingCountingMarkColumn from "./06-tiling-counting/tilingCountingMarkColumn";
+import tilingCountingForcedRow from "./06-tiling-counting/tilingCountingForcedRow";
+import tilingCountingForcedColumn from "./06-tiling-counting/tilingCountingForcedColumn";
 
 import hypotheticalRowCount from "./07-direct-hypotheticals/hypotheticalRowCount";
 import hypotheticalColumnCount from "./07-direct-hypotheticals/hypotheticalColumnCount";
@@ -96,6 +98,16 @@ export const allRules: RuleEntry[] = [
     rule: tilingCountingMarkColumn,
     level: 5,
     name: "Tiling Counting Mark Columns",
+  },
+  {
+    rule: tilingCountingForcedRow,
+    level: 5,
+    name: "Tiling Counting Forced Rows",
+  },
+  {
+    rule: tilingCountingForcedColumn,
+    level: 5,
+    name: "Tiling Counting Forced Columns",
   },
   // Level 7: Direct Hypotheticals
   { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },
