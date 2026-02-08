@@ -28,6 +28,9 @@ import squeezeAdjacencyColumn from "./05-tiling-enumeration/squeeze/squeezeAdjac
 import squeezeOverhangRow from "./05-tiling-enumeration/squeeze/squeezeOverhangRow";
 import squeezeOverhangColumn from "./05-tiling-enumeration/squeeze/squeezeOverhangColumn";
 
+import tilingCountingMarkRow from "./06-tiling-counting/tilingCountingMarkRow";
+import tilingCountingMarkColumn from "./06-tiling-counting/tilingCountingMarkColumn";
+
 import hypotheticalRowCount from "./07-direct-hypotheticals/hypotheticalRowCount";
 import hypotheticalColumnCount from "./07-direct-hypotheticals/hypotheticalColumnCount";
 import hypotheticalRegionCount from "./07-direct-hypotheticals/hypotheticalRegionCount";
@@ -83,6 +86,17 @@ export const allRules: RuleEntry[] = [
   { rule: squeezeOverhangRow, level: 4, name: "Squeeze Overhang Rows" },
   { rule: squeezeOverhangColumn, level: 4, name: "Squeeze Overhang Columns" },
 
+  // Level 5: Tiling Counting
+  {
+    rule: tilingCountingMarkRow,
+    level: 5,
+    name: "Tiling Counting Mark Rows",
+  },
+  {
+    rule: tilingCountingMarkColumn,
+    level: 5,
+    name: "Tiling Counting Mark Columns",
+  },
   // Level 7: Direct Hypotheticals
   { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },
   {
