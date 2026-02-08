@@ -7,6 +7,24 @@
 
 ---
 
+
+## Decisions
+
+**On Guessing:**
+
+Techniques exist on a spectrum of "how much guesswork are you doing", ranked from "Pure Logic" to "Brute Force".
+
+I chose to cut off at Bifurcation (hypotheticals) because it is "single depth". One assumption, immediately cascading consequences — humans do this intuitively.
+
+1. Inferences: Direct constraint propagation. No brute force, pure logic.
+2. Enumeration: Systematically list all possible configurations, then draw conclusions from commonalities between them.
+3. Bifurcation (Hypotheticals): Single assumption — pick a cell, assume "placement" or "mark", and see if it leads to a broken puzzle. If so, deduce accordingly.
+4. Backtracking: Make a choice, propagate consequences/more assumptions until you hit a contradiction, undo that choice, then try the next assumption. Runs exponentially.
+
+**On Organizing:**
+
+Humans don't think like how I described above. Humans think like humans. The tools above were extremely useful for "making sure all my gaps were covered" but not very useful for teaching. Now that I knew gaps were covered, I was able to teach, watch how people learned the game, and talk through different ways of teaching. Here's how I recorded the results:
+
 ## Production Rules
 
 Production rules are a series of applied "Observations -> Techniques -> Deductions" that are cycled through until a puzzle is solved or determined to be unsolvable.
@@ -36,26 +54,6 @@ Actions derived from observations and techniques.
 1. Marks - this cell can't be a star
 2. Placements - this cell must be a star
 
----
-
-## Decisions
-
-**On Guessing:**
-
-Techniques exist on a spectrum of "how much guesswork are you doing", ranked from "Pure Logic" to "Brute Force".
-
-I chose to cut off at Bifurcation (hypotheticals) because it is "single depth". One assumption, immediately cascading consequences — humans do this intuitively.
-
-1. Inferences: Direct constraint propagation. No brute force, pure logic.
-2. Enumeration: Systematically list all possible configurations, then draw conclusions from commonalities between them.
-3. Bifurcation (Hypotheticals): Single assumption — pick a cell, assume "placement" or "mark", and see if it leads to a broken puzzle. If so, deduce accordingly.
-4. Backtracking: Make a choice, propagate consequences/more assumptions until you hit a contradiction, undo that choice, then try the next assumption. Runs exponentially.
-
-**On Organizing:**
-
-Humans don't think like how I described above. Humans think like humans. The tools above were extremely useful for "making sure all my gaps were covered" but not very useful for teaching. Now that I knew gaps were covered, I was able to teach, watch how people learned the game, and talk through different ways of teaching. Here's how I recorded the results:
-
-## Production Rules
 
 ### Direct Inferences
 
