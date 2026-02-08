@@ -1,7 +1,7 @@
 here is the puzzle to be solved:
 
 ```
-10x2.AABBCCCDDDAABBCCCCCCAABBBBCCCCAAABBBBCCEFAABBBBGGEFHABBGGGEEFHHHHIIGGEFFHHHIIIGEFFFFIIGGGGFJJJJJJGGG
+10x2.AAAAAABBBBCAACAABBBBCCCCABBDDBEEECABBDBBEEEFAAADDDFFFFFAGDHHFFFFFGGDHHFFIIGGGDJHIIIGGGGDJHIIIGGGJJJH
 ```
 
 Here is the view source from crazy dad's sovler:
@@ -920,241 +920,166 @@ Here is the view source from crazy dad's sovler:
 Here is the results when we try to solve the puzzle:
 
 ```bash
+============================================================
+Puzzle 1: 10x2.AAAAAABBBBCAACAABBBBCCCCABBDDBEEECABBDBBEEEFAAADDDFFFFFAGDHHFFFFFGGDHHFFIIGGGDJHIIIGGGGDJHIIIGGGJJJH
+============================================================
 Region grid:
     A B C D E F G H I J
- 1  A A B B C C C D D D
- 2  A A B B C C C C C C
- 3  A A B B B B C C C C
- 4  A A A B B B B C C E
- 5  F A A B B B B G G E
- 6  F H A B B G G G E E
- 7  F H H H H I I G G E
- 8  F F H H H I I I G E
- 9  F F F F I I G G G G
-10  F J J J J J J G G G
+ 1  A A A A A A B B B B
+ 2  C A A C A A B B B B
+ 3  C C C C A B B D D B
+ 4  E E E C A B B D B B
+ 5  E E E F A A A D D D
+ 6  F F F F F A G D H H
+ 7  F F F F F G G D H H
+ 8  F F I I G G G D J H
+ 9  I I I G G G G D J H
+10  I I I G G G J J J H
 
---- Cycle 1: Undercounted Rows (level 3) ---
+--- Cycle 1: Tiling Adjacency Marks (level 5) ---
     A B C D E F G H I J
- 1  X X X X X X X . . .
+ 1  . . . . . . . . . .
  2  . . . . . . . . . .
  3  . . . . . . . . . .
- 4  . . . . . . . . . .
- 5  . . . . . . . . . .
+ 4  . X . . . . . . . .
+ 5  . X . . . . . . . .
  6  . . . . . . . . . .
  7  . . . . . . . . . .
  8  . . . . . . . . . .
  9  . . . . . . . . . .
-10  X . . . . . . X X X
+10  . . . . . . . . . .
 
---- Cycle 2: Tiling Forced Rows (level 5) ---
+--- Cycle 2: Tiling Overhang Marks (level 5) ---
     A B C D E F G H I J
- 1  X X X X X X X ★ . .
+ 1  . . . . . . . . . .
  2  . . . . . . . . . .
  3  . . . . . . . . . .
- 4  . . . . . . . . . .
- 5  . . . . . . . . . .
+ 4  . X . X . . . . . .
+ 5  . X . X . . . . . .
  6  . . . . . . . . . .
  7  . . . . . . . . . .
  8  . . . . . . . . . .
  9  . . . . . . . . . .
-10  X . . . . . . X X X
+10  . . . . . . . . . .
 
---- Cycle 3: Star Neighbors (level 1) ---
+--- Cycle 3: Enum Overcounting Rows (level 2) ---
     A B C D E F G H I J
- 1  X X X X X X X ★ X .
- 2  . . . . . . X X X .
+ 1  . . . . . . . . . .
+ 2  . . . . . . . . . .
  3  . . . . . . . . . .
- 4  . . . . . . . . . .
- 5  . . . . . . . . . .
- 6  . . . . . . . . . .
- 7  . . . . . . . . . .
- 8  . . . . . . . . . .
- 9  . . . . . . . . . .
-10  X . . . . . . X X X
+ 4  . X . X . . . . . .
+ 5  . X . X . . . . . .
+ 6  . . . . . X . X . .
+ 7  . . . . . . . X . .
+ 8  . . . . . . . X . .
+ 9  . . . . . . . X . .
+10  . . . . . . . . . .
 
---- Cycle 4: Forced Rows (level 1) ---
+--- Cycle 4: Tiling Overhang Marks (level 5) ---
     A B C D E F G H I J
- 1  X X X X X X X ★ X ★
- 2  . . . . . . X X X .
+ 1  . . . . . . . . . .
+ 2  . X X . . . . . . .
  3  . . . . . . . . . .
- 4  . . . . . . . . . .
- 5  . . . . . . . . . .
- 6  . . . . . . . . . .
- 7  . . . . . . . . . .
- 8  . . . . . . . . . .
- 9  . . . . . . . . . .
-10  X . . . . . . X X X
+ 4  . X . X . . . . . .
+ 5  . X . X . . . . . .
+ 6  . . . . . X . X . .
+ 7  . . . . . . . X . .
+ 8  . . . . . . . X . .
+ 9  . . . . . . . X . .
+10  . . . . . . . . . .
 
---- Cycle 5: Star Neighbors (level 1) ---
+--- Cycle 5: Hypothetical Region Count (level 7) ---
     A B C D E F G H I J
- 1  X X X X X X X ★ X ★
- 2  . . . . . . X X X X
+ 1  . . . . . . . . . .
+ 2  . X X . . . . . . .
  3  . . . . . . . . . .
- 4  . . . . . . . . . .
- 5  . . . . . . . . . .
- 6  . . . . . . . . . .
- 7  . . . . . . . . . .
- 8  . . . . . . . . . .
- 9  . . . . . . . . . .
-10  X . . . . . . X X X
+ 4  . X . X . . . . X .
+ 5  . X . X . . . . . .
+ 6  . . . . . X . X . .
+ 7  . . . . . . . X . .
+ 8  . . . . . . . X . .
+ 9  . . . . . . . X . .
+10  . . . . . . . . . .
 
---- Cycle 6: Consumed Line Column (level 3) ---
+--- Cycle 6: Hypothetical Region Capacity (level 8) ---
     A B C D E F G H I J
- 1  X X X X X X X ★ X ★
- 2  . . . . . . X X X X
+ 1  . . . . . . . . . .
+ 2  . X X . . . . . . .
  3  . . . . . . . . . .
- 4  . . . . . . . . . .
- 5  . . . . . . . . . .
- 6  . . . . . . . . ★ .
- 7  . . . . . . . . . .
- 8  . . . . . . . . . .
- 9  . . . . . . . . . .
-10  X . . . . . . X X X
+ 4  . X . X . . . . X .
+ 5  . X . X . . . . . .
+ 6  . . . . . X . X X .
+ 7  . . . . . . . X . .
+ 8  . . . . . . . X . .
+ 9  . . . X . . . X X X
+10  . . . . . . . . . .
 
---- Cycle 7: Star Neighbors (level 1) ---
+--- Cycle 7: Hypothetical Undercounting Row (level 9) ---
     A B C D E F G H I J
- 1  X X X X X X X ★ X ★
- 2  . . . . . . X X X X
+ 1  . . . . . . . . . .
+ 2  . X X . . . . . . .
  3  . . . . . . . . . .
- 4  . . . . . . . . . .
- 5  . . . . . . . X X X
- 6  . . . . . . . X ★ X
+ 4  . X . X . . . . X .
+ 5  . X . X . . . . . .
+ 6  . . . . . X . X X .
  7  . . . . . . . X X X
- 8  . . . . . . . . . .
- 9  . . . . . . . . . .
-10  X . . . . . . X X X
+ 8  . X . . . . . X . .
+ 9  . . . X . . . X X X
+10  . . . . . . . . . .
 
---- Cycle 8: Undercounted Columns (level 3) ---
+--- Cycle 8: Enum Overcounting Columns (level 2) ---
     A B C D E F G H I J
- 1  X X X X X X X ★ X ★
- 2  . . . . . . X X X X
+ 1  . . . . . . . . . X
+ 2  . X X . . . . . . X
  3  . . . . . . . . . X
- 4  . . . . . . . . . .
- 5  . . . . . . . X X X
- 6  . . . . . . . X ★ X
+ 4  . X . X . . . . X X
+ 5  . X . X . . . . . X
+ 6  . . . . . X . X X .
  7  . . . . . . . X X X
- 8  . . . . . . . . . .
- 9  . . . . . . . . . X
-10  X . . . . . . X X X
+ 8  . X . . . . . X . .
+ 9  . . . X . . . X X X
+10  . . . . . . . . . .
 
---- Cycle 9: Hypothetical Region Capacity (level 8) ---
+--- Cycle 9: Tiling Adjacency Marks (level 5) ---
     A B C D E F G H I J
- 1  X X X X X X X ★ X ★
- 2  . . . . . . X X X X
- 3  . . . . . X . . . X
- 4  . . . . . . . . . .
- 5  . . . . . . . X X X
- 6  . . . . . . . X ★ X
+ 1  . . . . . . . . . X
+ 2  . X X . . . . . . X
+ 3  . . . . . . . . . X
+ 4  . X . X . . . X X X
+ 5  . X . X . . . . . X
+ 6  . . . . . X . X X .
  7  . . . . . . . X X X
- 8  . . . . X . . X . .
- 9  . . . . . . . . . X
-10  X . . . . . . X X X
+ 8  . X . . . . . X . .
+ 9  . . . X . . . X X X
+10  . . . . . . . . . .
 
---- Cycle 10: Tiling Adjacency Marks (level 5) ---
+--- Cycle 10: Tiling Overhang Marks (level 5) ---
     A B C D E F G H I J
- 1  X X X X X X X ★ X ★
- 2  . . . . . . X X X X
- 3  . . . . . X . . . X
- 4  . . . . . . . . . .
- 5  . . . . . . . X X X
- 6  . . . . . . . X ★ X
+ 1  . . . . . . . . . X
+ 2  . X X . . . . X X X
+ 3  . . . . . . . . . X
+ 4  . X . X . . . X X X
+ 5  . X . X . . . . . X
+ 6  . . . . . X . X X .
  7  . . . . . . . X X X
- 8  . . . . X X . X . .
- 9  . . . . . . . . . X
-10  X . . . . . . X X X
+ 8  . X . . . . . X . .
+ 9  . . . X . . . X X X
+10  . . . . . . . . . .
 
---- Cycle 11: Tiling Overhang Marks (level 5) ---
+--- Cycle 11: Hypothetical Undercounting Row (level 9) ---
     A B C D E F G H I J
- 1  X X X X X X X ★ X ★
- 2  . . . . . . X X X X
- 3  . . . . . X . . . X
- 4  . . . . . . . . . .
- 5  . . . . . . . X X X
- 6  . . . . . . . X ★ X
+ 1  . . . . . . . . . X
+ 2  . X X . . . . X X X
+ 3  . X . . . . . . . X
+ 4  . X . X . . . X X X
+ 5  . X . X . . . . . X
+ 6  . . . . . X . X X .
  7  . . . . . . . X X X
- 8  . . . . X X . X . .
- 9  . . . . . . . . . X
-10  X . . . X X . X X X
-
---- Cycle 12: Hypothetical Row Count (level 7) ---
-    A B C D E F G H I J
- 1  X X X X X X X ★ X ★
- 2  . . . . . . X X X X
- 3  . . . . . X . . . X
- 4  . . . . . . . . . .
- 5  . . . . . . . X X X
- 6  . . . . . . . X ★ X
- 7  . . . . . . . X X X
- 8  . . . . X X . X . .
- 9  . . X . . . . . . X
-10  X . . . X X . X X X
-
---- Cycle 13: Hypothetical Undercounting Row (level 9) ---
-    A B C D E F G H I J
- 1  X X X X X X X ★ X ★
- 2  . . . . . . X X X X
- 3  . . . . . X . . . X
- 4  X X . . . . . . . .
- 5  . . . . . . . X X X
- 6  . . . . . . . X ★ X
- 7  . . . . . . . X X X
- 8  . . . . X X . X . .
- 9  . . X . . . . . . X
-10  X . . . X X . X X X
-
---- Cycle 14: Hypothetical Overcounting Row (level 9) ---
-    A B C D E F G H I J
- 1  X X X X X X X ★ X ★
- 2  . . . . . . X X X X
- 3  . . . . . X . . . X
- 4  X X . . . . . . . .
- 5  . . . . . . . X X X
- 6  X X . . . . . X ★ X
- 7  . . . . . . . X X X
- 8  . . . . X X . X . .
- 9  . . X . . . . . . X
-10  X . . . X X . X X X
-
---- Cycle 15: Tiling Overhang Marks (level 5) ---
-    A B C D E F G H I J
- 1  X X X X X X X ★ X ★
- 2  . . . . . . X X X X
- 3  . . . . . X . . . X
- 4  X X . . . . . . . .
- 5  . . . . . . . X X X
- 6  X X . . . . . X ★ X
- 7  . . . . . . . X X X
- 8  . X . . X X . X . .
- 9  . . X . . . . . . X
-10  X . . . X X . X X X
-
---- Cycle 16: Hypothetical Undercounting Row (level 9) ---
-    A B C D E F G H I J
- 1  X X X X X X X ★ X ★
- 2  . . . . . . X X X X
- 3  . . . . . X . . . X
- 4  X X . . . . . . . .
- 5  . . . . . X X X X X
- 6  X X . . . . . X ★ X
- 7  . . . . . . . X X X
- 8  . X . . X X . X . .
- 9  . . X . . . . . . X
-10  X . . . X X . X X X
-
---- Cycle 17: Hypothetical Row Capacity (level 8) ---
-    A B C D E F G H I J
- 1  X X X X X X X ★ X ★
- 2  . . . . . . X X X X
- 3  . . . . . X . . . X
- 4  X X . X . . . . . .
- 5  . . . . . X X X X X
- 6  X X . X . . . X ★ X
- 7  . . . . . . . X X X
- 8  . X . . X X . X . .
- 9  . . X . . . . . . X
-10  X . . . X X . X X X
+ 8  . X . . . . . X . .
+ 9  . . . X . . . X X X
+10  . . . . . . . . . .
 
 === STUCK ===
 ```
 
-Our puzzle gets stuck at cycle 17. At Krazydad's step 38, he palces a star at column 6 row 2 (0-indexed) which Is where our puzzles diverge I dont really understand how he deireved that mark, can you explain it to me in my own words (use @PRIMER.md) as an example
+Our puzzle gets stuck at cycle 11. At Krazydad's step 17, he palces a mark at column 10 row 7 (0-indexed) which Is where our puzzles diverge I dont really understand how he deireved that mark, can you explain it to me in my own words (use @PRIMER.md) as an example
