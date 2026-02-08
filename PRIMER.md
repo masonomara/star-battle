@@ -7,7 +7,6 @@
 
 ---
 
-
 ## Decisions
 
 **On Guessing:**
@@ -37,7 +36,7 @@ Ways of seeing the board.
 
 1. Direct - Raw/container state. Used by simplest production rules
 2. Tiling - Derived from adjacency rules. Stars occupy 2x2 tiles across the board, deduced from star neighbors rule
-3. Confinement - Derived from star quota. A region locked into a line (or line locked into regions) links quotas
+3. Counting - Derived from star quota. For a group of lines, count how many stars each region can contribute — tight constraints reveal forced deductions (Counting defintion is AI genrated language)
 
 **Techniques:**
 
@@ -54,7 +53,6 @@ Actions derived from observations and techniques.
 1. Marks - this cell can't be a star
 2. Placements - this cell must be a star
 
-
 ### Direct Inferences
 
 **Star Neighbors:** If a star is placed, then no star can touch it, so mark all of the star's surrounding neighbors diagonally, horizontally, and vertically.
@@ -63,17 +61,17 @@ Actions derived from observations and techniques.
 
 **Forced Placements:** If a row/column/region has the same number of unknown cells as needed stars, then those unknown cells must be the remaining stars, so place stars there.
 
-### Confinement Inferences
+### Counting Enumerations
+
+_AI-generated language_
 
 _implementation splits into row/column variants_
 
-**Overcounting (lines confined to regions):** If a group of _n_ rows/columns are completely covered by a group of _n_ regions, then all of those regions' stars must be within those covered rows/columns, so mark all cells in the regions outside the covered lines.
+**Counting Observation:** For any group of rows (or columns), each touching region can contribute at most min(its stars needed, its unknowns inside the group). If the sum of these max contributions exactly equals the group's combined star need, the constraint is tight — every region must contribute its max. "These lines need exactly this many stars. These regions can provide exactly this many. No slack."
 
-**Undercounting (regions confined to lines):** If a group of _n_ regions' unknown cells are all contained within the same group of _n_ rows/columns, then all of the rows/columns' stars must be placed within the constrained regions, so mark all cells in the rows/columns that are not in the confined regions.
+**Counting Marks:** If a region must contribute all its remaining stars inside the group (max contribution equals its stars needed), then its cells outside the group can't be stars, so mark them.
 
-**Consumed Line:** If a region needs _n_ stars and a particular row/column can give at most _m_ stars and _m_ < _n_, then the remaining (_n_ - _m_) must go to the region's cells outside that row/column. If the region's unknown cells outside the row/column equal the remaining stars, then place stars in all of the region's unknown cells outside the row/column.
-
-**Consumed Region:** If a row/column needs _n_ stars and a particular region can give at most _m_ stars and _m_ < _n_, then the remaining (_n_ - _m_) stars must go to the row/column's cells outside that region. If the unknown cells outside the region equal the remaining stars, then place stars in all of the unknown cells.
+**Counting Forced:** If a region has exactly as many unknowns inside the group as it must contribute, those cells must all be stars, so place them.
 
 ### Tiling Enumeration
 
@@ -95,6 +93,12 @@ _implementation splits into row/column variants_
 
 **Squeeze Overhang:** If a cell outside the pair of consecutive rows/columns is covered by a tile in every valid tiling of the pair, then that cell can't be a star, so mark the cell.
 
+### Tiling Counting
+
+**Tiling Counting Observation:** For a line (row or column), each touching region must place a minimum number of stars in that line — computed as `starsNeeded − capacity(cells outside the line)`. If the sum of these minimums equals the line's star quota, every region contributes exactly its minimum. "These regions must each send at least this many stars into the line. Together, that's all the line needs. No room for anyone else."
+
+**Tiling Counting Marks:** If a region's minimum contribution to the line is zero, its cells in the line can't be stars, so mark them.
+
 ### Direct Hypotheticals
 
 **Key Observation:** For each unknown cell, assume a star is placed there and mark its neighbors.
@@ -113,12 +117,22 @@ _implementation splits into row/column variants_
 
 **Hypothetical Region Capacity:** If any nearby region's remaining unknown cells can no longer fit enough 2x2 tiles for the needed stars after a hypothetical is placed, then the assumption leads to a contradiction, so mark that cell.
 
-### Confinement Hypotheticals
+### Counting Hypotheticals
 
-**Hypothetical Undercounting Row:** If a hypothetical is placed and which regions are confined to which rows is recalculated and any group of confined regions needs more stars than its rows can provide, then the assumption leads to a contradiction, so place a mark.
+_AI-generated language_
 
-**Hypothetical Undercounting Column:** If a hypothetical is placed and which regions are confined to which columns is recalculated and any group of confined regions needs more stars than its columns can provide, then the assumption leads to a contradiction, so place a mark.
+**Hypothetical Counting Row:** If a hypothetical is placed and all row group counting constraints are enumerated and any group of rows now needs more stars than its touching regions can provide, then the assumption leads to a contradiction, so mark the cell.
 
-**Hypothetical Overcounting Row:** If a hypothetical is placed and which rows are confined to which regions is recalculated and any group of confined rows needs more stars than its regions can provide, then the assumption leads to a contradiction, so place a mark.
+**Hypothetical Counting Column:** If a hypothetical is placed and all column group counting constraints are enumerated and any group of columns now needs more stars than its touching regions can provide, then the assumption leads to a contradiction, so mark the cell.
 
-**Hypothetical Overcounting Column:** If a hypothetical is placed and which columns are confined to which regions is recalculated and any group of confined columns needs more stars than its regions can provide, then the assumption leads to a contradiction, so place a mark.
+### Forced-Star Hypotheticals
+
+_AI-generated language_
+
+**Key Observation:** After a hypothetical star is placed and its neighbors marked, a row, column, or region may now have exactly as many unknown cells as needed stars — a Forced Placement. That forced star must also be placed, and its neighbors marked. If the forced star's consequences break the puzzle, the original hypothesis was wrong.
+
+**Hypothetical Forced Row Count:** If a hypothetical is placed, that forces another star via Forced Placement, and any nearby row no longer has enough unknown cells to meet its needed stars after marking the forced star's neighbors, then the assumption leads to a contradiction, so mark the cell.
+
+**Hypothetical Forced Column Count:** If a hypothetical is placed, that forces another star via Forced Placement, and any nearby column no longer has enough unknown cells to meet its needed stars after marking the forced star's neighbors, then the assumption leads to a contradiction, so mark the cell.
+
+**Hypothetical Forced Region Count:** If a hypothetical is placed, that forces another star via Forced Placement, and any affected region no longer has enough unknown cells to meet its needed stars after marking the forced star's neighbors, then the assumption leads to a contradiction, so mark the cell.
