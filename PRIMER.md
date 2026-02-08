@@ -48,36 +48,74 @@ I chose to cut off at Bifurcation (hypotheticals) because it is "single depth". 
 3. Bifurcation (Hypotheticals): Single assumption — pick a cell, assume "placement" or "mark", and see if it leads to a broken puzzle. If so, deduce accordingly.
 4. Backtracking: Make a choice, propagate consequences/more assumptions until you hit a contradiction, undo that choice, then try the next assumption. Runs exponentially.
 
-**On Organizing**
+**On Organizing:**
 
-Humans Dont think like how I described above. Humans think like humans. The tools above were extremely useful for "making sure all my gaps were covered" but not very useful for teaching information. Now that I KNEW gaps were covered, I was able to teaach, watch how people learned the game, talked through different ways of teaching. Heres how i recorded the results:
-
+Humans don't think like how I described above. Humans think like humans. The tools above were extremely useful for "making sure all my gaps were covered" but not very useful for teaching. Now that I knew gaps were covered, I was able to teach, watch how people learned the game, and talk through different ways of teaching. Here's how I recorded the results:
 
 ## Rules
 
 **Direct Inferences**
 
-Star Neighbors: if a star is placed, then no star can touch it, so mark all of the stars surrounding neighbors diagonally, horizontally, and verticallay
-Trivial Marks: if a row/column/region has all of hte needed stars, then no more stars can be placed, so mark the remaining cells
-Forced Placements: if a row/column/region has the same amount of unknown cells as they do needed stars, then those unknown cells have to be the raimaing stars, so palce stars there
+Star Neighbors: If a star is placed, then no star can touch it, so mark all of the star's surrounding neighbors diagonally, horizontally, and vertically.
+Trivial Marks: If a row/column/region has all of the needed stars, then no more stars can be placed, so mark the remaining cells.
+Forced Placements: If a row/column/region has the same number of unknown cells as needed stars, then those unknown cells must be the remaining stars, so place stars there.
 
-**Confnement Inferecnes**
+**Confinement Inferences**
 
-Overcounting: (lines confined to regions): if a group of _n_ row/columns are completely covered  by a group of _n_ regions, then all of those region's stars must be within those covered rows/columns, so mark all cells in the regions outside the covered lines.
+_implementation splits into row/column variants_
 
-Undercounting (regions confined to lines): If a group of _n_ regions' unknown cells all are contained within the same group of _n_ rows/columns, then all of the rows/columns stars must be placed within the constrained regions, so mark all the cells in the rows/columns that are not in the confined regions.
+Overcounting (lines confined to regions): If a group of _n_ rows/columns are completely covered by a group of _n_ regions, then all of those regions' stars must be within those covered rows/columns, so mark all cells in the regions outside the covered lines.
 
-Consumed Line: if a region needs _n_ stars and a particular row/column can give at most _m_ stars and _m_ < _n_, then the reamaing (_n_ - _m_) must go to the region's cells outside that row/column. if the region's unknwon cells outside the row/column equals the remianign stars, then place stars in all of the region's unknown cells outside the row/column
+Undercounting (regions confined to lines): If a group of _n_ regions' unknown cells are all contained within the same group of _n_ rows/columns, then all of the rows/columns' stars must be placed within the constrained regions, so mark all cells in the rows/columns that are not in the confined regions.
 
-Consumed Region: If a row/column needs _n_ stars, and a particular region can give at most _m_ stars and _m_ < _n_, then the remainign stars (_n_ - _m_) must go to the row/column's cells outside of that region. if the unknown cells outside the region equal the remainign stars, then place all stars in the unknown cells.
+Consumed Line: If a region needs _n_ stars and a particular row/column can give at most _m_ stars and _m_ < _n_, then the remaining (_n_ - _m_) must go to the region's cells outside that row/column. If the region's unknown cells outside the row/column equal the remaining stars, then place stars in all of the region's unknown cells outside the row/column.
+
+Consumed Region: If a row/column needs _n_ stars and a particular region can give at most _m_ stars and _m_ < _n_, then the remaining (_n_ - _m_) stars must go to the row/column's cells outside that region. If the unknown cells outside the region equal the remaining stars, then place stars in all of the unknown cells.
 
 **Tiling Enumeration**
 
-Key Observation: Given that stars cannot touch, you can fit all stars in a grid of 2 cell by 2 cell tiles . "Tiling" is a way of seeing the board split into 2x2 tiles, where you can make deductiosn based on overlap when you try to "fit" the tiles into a region or a pair of rows/columns
+Tiling Observation: Given that stars cannot touch, you can fit all stars in a grid of 2x2 tiles. "Tiling" is a way of seeing the board split into 2x2 tiles, where you can make deductions based on overlap when you try to fit the tiles into a region or a pair of rows/columns. If a row/column/region's tiling capacity (max tiles placed) equals the needed stars, then every tile must contribute exactly one star.
 
+Tiling Forced: If a cell is a star in every valid tiling of the row/column/region, then it must be a star, so place a star.
 
-Tiling Forced: If all combinations of tiles show that a star should be placed here, then a star belongs there for a solve, so place a star
+Tiling Adjacent: If a cell never appears as a star in a valid tiling assignment, then it can't be a star, so mark the cell.
 
-Tiling Adjacent: If all cominations of tiles show that a mark would displace the monumim amount of 2x2 tiles in a the stars region region to below the stars needed, then a star palcement there woudl break the needed stars be valid so palce a mark
+Tiling Overhang: If a cell outside a region is covered by a tile in every valid tiling assignment of the region, then that cell can't be a star, so mark the cell.
 
-Tiling Overhang: If all cominations of tiles show that a mark would displace the monumim amount of 2x2 tiles in a the stars neighboring region to below the stars needed, then a star palcement there woudl break the needed stars be valid so palce a mark
+**Squeeze**
+
+Key Observation: Tiling applied to consecutive row/column pairs. If a pair of consecutive rows/columns has a tiling capacity equal to its combined needed stars, then each tile must contribute exactly one star.
+
+Squeeze Forced: If a cell is a star in every valid tiling of the pair, then it must be a star, so place a star.
+
+Squeeze Adjacency: If a cell never appears as a star in any valid tiling assignment across the consecutive pair, then it can't be a star, so mark that cell.
+
+Squeeze Overhang: If a cell outside the pair of consecutive rows/columns is covered by a tile in every valid tiling, then that cell can't be a star, so mark the cell.
+
+**Direct Hypotheticals**
+
+Key Observation: For each unknown cell, assume a star is placed there and mark its neighbors.
+
+Hypothetical Row Count: If any nearby row (the star's row or its immediate neighbors) no longer has enough unknown cells to meet its needed stars after a hypothetical placement, then the assumption leads to a contradiction, so mark the cell.
+
+Hypothetical Column Count: If any nearby column (the star's column or its immediate neighbors) no longer has enough unknown cells to meet its needed stars after a hypothetical placement, then the assumption leads to a contradiction, so mark the cell.
+
+Hypothetical Region Count: If any affected region (the star's region or its neighbors' regions) no longer has enough unknown cells to meet its needed stars after a hypothetical placement, then the assumption leads to a contradiction, so mark the cell.
+
+**Tiling Hypotheticals**
+
+Hypothetical Row Capacity: If any nearby row's remaining unknown cells can no longer fit enough 2x2 tiles for the needed stars after a hypothetical is placed, then the assumption leads to a contradiction, so mark that cell.
+
+Hypothetical Column Capacity: If any nearby column's remaining unknown cells can no longer fit enough 2x2 tiles for the needed stars after a hypothetical is placed, then the assumption leads to a contradiction, so mark that cell.
+
+Hypothetical Region Capacity: If any nearby region's remaining unknown cells can no longer fit enough 2x2 tiles for the needed stars after a hypothetical is placed, then the assumption leads to a contradiction, so mark that cell.
+
+**Confinement Hypotheticals**
+
+Hypothetical Undercounting Row: If a hypothetical is placed and which regions are confined to which rows is recalculated and any group of confined regions needs more stars than its rows can provide, then the assumption leads to a contradiction, so place a mark.
+
+Hypothetical Undercounting Column: If a hypothetical is placed and which regions are confined to which columns is recalculated and any group of confined regions needs more stars than its columns can provide, then the assumption leads to a contradiction, so place a mark.
+
+Hypothetical Overcounting Row: If a hypothetical is placed and which rows are confined to which regions is recalculated and any group of confined rows needs more stars than its regions can provide, then the assumption leads to a contradiction, so place a mark.
+
+Hypothetical Overcounting Column: If a hypothetical is placed and which columns are confined to which regions is recalculated and any group of confined columns needs more stars than its regions can provide, then the assumption leads to a contradiction, so place a mark.
