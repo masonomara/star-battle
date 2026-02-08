@@ -17,6 +17,8 @@ import consumedLineRow from "./03-confinement-inferences/consumedLines/consumedL
 import consumedLineColumn from "./03-confinement-inferences/consumedLines/consumedLineColumn";
 import consumedRegionRow from "./03-confinement-inferences/consumedRegions/consumedRegionRow";
 import consumedRegionColumn from "./03-confinement-inferences/consumedRegions/consumedRegionColumn";
+import enumOvercountingRow from "./03-confinement-inferences/enumOvercounting/enumOvercountingRow";
+import enumOvercountingColumn from "./03-confinement-inferences/enumOvercounting/enumOvercountingColumn";
 
 import {
   tilingForcedRow,
@@ -68,6 +70,9 @@ export const allRules: RuleEntry[] = [
   { rule: trivialRegion, level: 1, name: "Trivial Regions" },
 
   // Level 2: Tiling Inferences
+    { rule: enumOvercountingRow, level: 2, name: "Enum Overcounting Rows" },
+  { rule: enumOvercountingColumn, level: 2, name: "Enum Overcounting Columns" },
+
 
   // Level 3: Confinement Inferences
   { rule: consumedLineRow, level: 3, name: "Consumed Line Row" },
