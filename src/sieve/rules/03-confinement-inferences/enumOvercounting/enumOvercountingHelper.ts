@@ -67,15 +67,21 @@ export function enumOvercountingLoop(
     }
     if (totalNeeded <= 0) continue;
 
-    // Sum max contributions from each region
+    // Sum max contributions from each region, caching inside counts
     let totalMax = 0;
     let exceeded = false;
-    for (const info of regionInfos) {
-      if (!(info.axisMask & mask)) continue;
+    const insideCounts: number[] = [];
+    for (let ri = 0; ri < regionInfos.length; ri++) {
+      const info = regionInfos[ri];
+      if (!(info.axisMask & mask)) {
+        insideCounts.push(0);
+        continue;
+      }
       let inside = 0;
       for (let i = 0; i < size; i++) {
         if ((mask >> i) & 1) inside += info.unknownsByAxis[i];
       }
+      insideCounts.push(inside);
       totalMax += Math.min(info.starsNeeded, inside);
       if (totalMax > totalNeeded) {
         exceeded = true;
@@ -86,12 +92,10 @@ export function enumOvercountingLoop(
 
     // Tight constraint — delegate deductions
     let changed = false;
-    for (const info of regionInfos) {
+    for (let ri = 0; ri < regionInfos.length; ri++) {
+      const info = regionInfos[ri];
       if (!(info.axisMask & mask)) continue;
-      let inside = 0;
-      for (let i = 0; i < size; i++) {
-        if ((mask >> i) & 1) inside += info.unknownsByAxis[i];
-      }
+      const inside = insideCounts[ri];
       const maxContrib = Math.min(info.starsNeeded, inside);
       if (deduct(cells, mask, inside, maxContrib, info.starsNeeded, info.unknownCoords)) {
         changed = true;

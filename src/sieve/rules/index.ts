@@ -21,6 +21,10 @@ import enumOvercountingMarkRow from "./03-confinement-inferences/enumOvercountin
 import enumOvercountingMarkColumn from "./03-confinement-inferences/enumOvercounting/enumOvercountingMarkColumn";
 import enumOvercountingForcedRow from "./03-confinement-inferences/enumOvercounting/enumOvercountingForcedRow";
 import enumOvercountingForcedColumn from "./03-confinement-inferences/enumOvercounting/enumOvercountingForcedColumn";
+import enumUndercountingMarkRow from "./03-confinement-inferences/enumUndercounting/enumUndercountingMarkRow";
+import enumUndercountingMarkColumn from "./03-confinement-inferences/enumUndercounting/enumUndercountingMarkColumn";
+import enumUndercountingForcedRow from "./03-confinement-inferences/enumUndercounting/enumUndercountingForcedRow";
+import enumUndercountingForcedColumn from "./03-confinement-inferences/enumUndercounting/enumUndercountingForcedColumn";
 
 import {
   tilingForcedRow,
@@ -71,11 +75,15 @@ export const allRules: RuleEntry[] = [
   { rule: trivialColumn, level: 1, name: "Trivial Columns" },
   { rule: trivialRegion, level: 1, name: "Trivial Regions" },
 
-  // Level 2: Confinement Enumerations (Overcounting)
+  // Level 2: Confinement Enumerations
   { rule: enumOvercountingMarkRow, level: 2, name: "Enum Overcounting Mark Rows" },
   { rule: enumOvercountingMarkColumn, level: 2, name: "Enum Overcounting Mark Columns" },
   { rule: enumOvercountingForcedRow, level: 2, name: "Enum Overcounting Forced Rows" },
   { rule: enumOvercountingForcedColumn, level: 2, name: "Enum Overcounting Forced Columns" },
+  { rule: enumUndercountingMarkRow, level: 2, name: "Enum Undercounting Mark Rows" },
+  { rule: enumUndercountingMarkColumn, level: 2, name: "Enum Undercounting Mark Columns" },
+  { rule: enumUndercountingForcedRow, level: 2, name: "Enum Undercounting Forced Rows" },
+  { rule: enumUndercountingForcedColumn, level: 2, name: "Enum Undercounting Forced Columns" },
 
 
   // Level 3: Confinement Inferences
