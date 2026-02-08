@@ -1,5 +1,5 @@
 /**
- * Rule: Enum Overcounting Mark (Row)
+ * Rule: Counting Mark (Row)
  *
  * If a group of rows forms a tight constraint with its touching regions,
  * every region must contribute its max — mark region cells outside those rows.
@@ -7,14 +7,14 @@
 
 import { Board, CellState } from "../../../helpers/types";
 import { BoardAnalysis } from "../../../helpers/boardAnalysis";
-import { enumOvercountingLoop } from "./enumOvercountingHelper";
+import { countingLoop } from "./countingHelper";
 
-export default function enumOvercountingMarkRow(
+export default function countingMarkRow(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
-  return enumOvercountingLoop(board, cells, analysis, "row",
+  return countingLoop(board, cells, analysis, "row",
     (cells, mask, _inside, maxContrib, starsNeeded, unknownCoords) => {
       if (maxContrib !== starsNeeded) return false;
       let changed = false;

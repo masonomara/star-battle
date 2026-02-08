@@ -9,22 +9,10 @@ import forcedRow from "./01-direct-inferences/forcedPlacements/forcedRow";
 import forcedColumn from "./01-direct-inferences/forcedPlacements/forcedColumn";
 import forcedRegion from "./01-direct-inferences/forcedPlacements/forcedRegion";
 
-import undercountingRow from "./03-confinement-inferences/undercounting/undercountingRow";
-import undercountingColumn from "./03-confinement-inferences/undercounting/undercountingColumn";
-import overcountingRow from "./03-confinement-inferences/overcounting/overcountingRow";
-import overcountingColumn from "./03-confinement-inferences/overcounting/overcountingColumn";
-import consumedLineRow from "./03-confinement-inferences/consumedLines/consumedLineRow";
-import consumedLineColumn from "./03-confinement-inferences/consumedLines/consumedLineColumn";
-import consumedRegionRow from "./03-confinement-inferences/consumedRegions/consumedRegionRow";
-import consumedRegionColumn from "./03-confinement-inferences/consumedRegions/consumedRegionColumn";
-import enumOvercountingMarkRow from "./03-confinement-inferences/enumOvercounting/enumOvercountingMarkRow";
-import enumOvercountingMarkColumn from "./03-confinement-inferences/enumOvercounting/enumOvercountingMarkColumn";
-import enumOvercountingForcedRow from "./03-confinement-inferences/enumOvercounting/enumOvercountingForcedRow";
-import enumOvercountingForcedColumn from "./03-confinement-inferences/enumOvercounting/enumOvercountingForcedColumn";
-import enumUndercountingMarkRow from "./03-confinement-inferences/enumUndercounting/enumUndercountingMarkRow";
-import enumUndercountingMarkColumn from "./03-confinement-inferences/enumUndercounting/enumUndercountingMarkColumn";
-import enumUndercountingForcedRow from "./03-confinement-inferences/enumUndercounting/enumUndercountingForcedRow";
-import enumUndercountingForcedColumn from "./03-confinement-inferences/enumUndercounting/enumUndercountingForcedColumn";
+import countingMarkRow from "./03-confinement-inferences/counting/countingMarkRow";
+import countingMarkColumn from "./03-confinement-inferences/counting/countingMarkColumn";
+import countingForcedRow from "./03-confinement-inferences/counting/countingForcedRow";
+import countingForcedColumn from "./03-confinement-inferences/counting/countingForcedColumn";
 
 import {
   tilingForcedRow,
@@ -53,6 +41,8 @@ import hypotheticalUndercountingColumn from "./09-confinement-hypotheticals/hypo
 import hypotheticalOvercountingRow from "./09-confinement-hypotheticals/hypotheticalOvercountingRow";
 import hypotheticalOvercountingColumn from "./09-confinement-hypotheticals/hypotheticalOvercountingColumn";
 
+import hypotheticalForcedCount from "./10-forced-star-hypotheticals/hypotheticalForcedCount";
+
 export type Rule = (
   board: Board,
   cells: CellState[][],
@@ -75,39 +65,25 @@ export const allRules: RuleEntry[] = [
   { rule: trivialColumn, level: 1, name: "Trivial Columns" },
   { rule: trivialRegion, level: 1, name: "Trivial Regions" },
 
-  // Level 2: Confinement Enumerations
-  { rule: enumOvercountingMarkRow, level: 2, name: "Enum Overcounting Mark Rows" },
-  { rule: enumOvercountingMarkColumn, level: 2, name: "Enum Overcounting Mark Columns" },
-  { rule: enumOvercountingForcedRow, level: 2, name: "Enum Overcounting Forced Rows" },
-  { rule: enumOvercountingForcedColumn, level: 2, name: "Enum Overcounting Forced Columns" },
-  { rule: enumUndercountingMarkRow, level: 2, name: "Enum Undercounting Mark Rows" },
-  { rule: enumUndercountingMarkColumn, level: 2, name: "Enum Undercounting Mark Columns" },
-  { rule: enumUndercountingForcedRow, level: 2, name: "Enum Undercounting Forced Rows" },
-  { rule: enumUndercountingForcedColumn, level: 2, name: "Enum Undercounting Forced Columns" },
-
-
-  // Level 3: Confinement Inferences
-  { rule: consumedLineRow, level: 3, name: "Consumed Line Row" },
-  { rule: consumedLineColumn, level: 3, name: "Consumed Line Column" },
-  { rule: consumedRegionRow, level: 3, name: "Consumed Region Row" },
-  { rule: consumedRegionColumn, level: 3, name: "Consumed Region Column" },
-  { rule: undercountingRow, level: 3, name: "Undercounted Rows" },
-  { rule: undercountingColumn, level: 3, name: "Undercounted Columns" },
-  { rule: overcountingRow, level: 3, name: "Overcounted Rows" },
-  { rule: overcountingColumn, level: 3, name: "Overcounted Columns" },
-
   // Level 5: Tiling Enumerations
-  { rule: tilingForcedRow, level: 5, name: "Tiling Forced Rows" },
-  { rule: tilingForcedColumn, level: 5, name: "Tiling Forced Columns" },
-  { rule: tilingForcedRegion, level: 5, name: "Tiling Forced Regions" },
-  { rule: tilingAdjacencyMarks, level: 5, name: "Tiling Adjacency Marks" },
-  { rule: tilingOverhangMarks, level: 5, name: "Tiling Overhang Marks" },
-  { rule: squeezeForcedRow, level: 5, name: "Squeeze Forced Rows" },
-  { rule: squeezeForcedColumn, level: 5, name: "Squeeze Forced Columns" },
-  { rule: squeezeAdjacencyRow, level: 5, name: "Squeeze Adjacency Rows" },
-  { rule: squeezeAdjacencyColumn, level: 5, name: "Squeeze Adjacency Columns" },
-  { rule: squeezeOverhangRow, level: 5, name: "Squeeze Overhang Rows" },
-  { rule: squeezeOverhangColumn, level: 5, name: "Squeeze Overhang Columns" },
+  { rule: tilingForcedRow, level: 2, name: "Tiling Forced Rows" },
+  { rule: tilingForcedColumn, level: 2, name: "Tiling Forced Columns" },
+  { rule: tilingForcedRegion, level: 2, name: "Tiling Forced Regions" },
+  { rule: tilingAdjacencyMarks, level: 2, name: "Tiling Adjacency Marks" },
+  { rule: tilingOverhangMarks, level: 2, name: "Tiling Overhang Marks" },
+
+  // Level 2: Counting Enumerations
+  { rule: countingMarkRow, level: 3, name: "Counting Mark Rows" },
+  { rule: countingMarkColumn, level: 3, name: "Counting Mark Columns" },
+  { rule: countingForcedRow, level: 3, name: "Counting Forced Rows" },
+  { rule: countingForcedColumn, level: 3, name: "Counting Forced Columns" },
+
+  // { rule: squeezeForcedRow, level: 4, name: "Squeeze Forced Rows" },
+  // { rule: squeezeForcedColumn, level: 4, name: "Squeeze Forced Columns" },
+  // { rule: squeezeAdjacencyRow, level: 4, name: "Squeeze Adjacency Rows" },
+  // { rule: squeezeAdjacencyColumn, level: 4, name: "Squeeze Adjacency Columns" },
+  // { rule: squeezeOverhangRow, level: 4, name: "Squeeze Overhang Rows" },
+  // { rule: squeezeOverhangColumn, level: 4, name: "Squeeze Overhang Columns" },
 
   // Level 6: Confinement Enumerations
 
@@ -161,6 +137,13 @@ export const allRules: RuleEntry[] = [
     rule: hypotheticalOvercountingColumn,
     level: 9,
     name: "Hypothetical Overcounting Column",
+  },
+
+  // Level 10: Forced-Star Hypotheticals
+  {
+    rule: hypotheticalForcedCount,
+    level: 10,
+    name: "Hypothetical Forced Count",
   },
 ];
 

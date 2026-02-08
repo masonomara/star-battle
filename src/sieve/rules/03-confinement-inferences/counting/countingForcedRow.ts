@@ -1,5 +1,5 @@
 /**
- * Rule: Enum Overcounting Forced (Row)
+ * Rule: Counting Forced (Row)
  *
  * If a group of rows forms a tight constraint and a region has exactly as many
  * unknowns inside as it must contribute, those cells must be stars.
@@ -7,14 +7,14 @@
 
 import { Board, CellState } from "../../../helpers/types";
 import { BoardAnalysis } from "../../../helpers/boardAnalysis";
-import { enumOvercountingLoop } from "./enumOvercountingHelper";
+import { countingLoop } from "./countingHelper";
 
-export default function enumOvercountingForcedRow(
+export default function countingForcedRow(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
-  return enumOvercountingLoop(board, cells, analysis, "row",
+  return countingLoop(board, cells, analysis, "row",
     (cells, mask, inside, maxContrib, _starsNeeded, unknownCoords) => {
       if (inside !== maxContrib) return false;
       let changed = false;

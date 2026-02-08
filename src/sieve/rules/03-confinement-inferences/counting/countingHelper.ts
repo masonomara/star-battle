@@ -1,5 +1,5 @@
 /**
- * Shared enumeration loop for overcounting: iterates all subsets of rows or
+ * Shared enumeration loop for counting: iterates all subsets of rows or
  * columns, finds tight constraints (totalMax === totalNeeded), and delegates
  * deductions to a callback for each contributing region.
  */
@@ -14,7 +14,7 @@ type RegionInfo = {
   unknownCoords: [number, number][];
 };
 
-export function enumOvercountingLoop(
+export function countingLoop(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
