@@ -89,7 +89,10 @@ async function main() {
   echo "A B B..." | sieve [--stars n]   # solve from input
   sieve --file puzzles.sbn [--verbose]   # solve puzzle file and track rule usage
   sieve --file puzzles.sbn --unsolved    # output only unsolved puzzles
-  sieve --file puzzles.sbn --trace       # trace each puzzle step by step`);
+  sieve --file puzzles.sbn --trace       # trace each puzzle step by step
+
+Trace a single puzzle (encoded notation):
+  echo "10x2.AABB..." > /tmp/p.sbn && sieve --file /tmp/p.sbn --trace`);
     return;
   }
 
