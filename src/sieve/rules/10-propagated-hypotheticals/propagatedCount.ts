@@ -1,16 +1,16 @@
 /**
  * Propagated Hypothetical Count
  *
- * Observation: Propagated hypothetical state (infrastructure)
- * Technique:   Hypothetical — assume a star, propagate deterministic consequences
- * Deduction:   Mark — if the propagated state breaks any constraint, mark the cell
+ * Observation: Propagated hypothetical state
+ * Technique:   Hypothetical
+ * Deduction:   Mark — if any row, column, or region can't meet its star quota
  */
 
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { propagateHypothetical } from "../../helpers/propagateHypothetical";
 
-export default function hypotheticalForcedCount(
+export default function propagatedCount(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
@@ -22,7 +22,8 @@ export default function hypotheticalForcedCount(
     for (let col = 0; col < size; col++) {
       if (cells[row][col] !== "unknown") continue;
 
-      if (propagateHypothetical(board, cells, row, col, analysis)) {
+      const { violated } = propagateHypothetical(board, cells, row, col, analysis);
+      if (violated) {
         cells[row][col] = "marked";
         return true;
       }

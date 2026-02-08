@@ -67,7 +67,9 @@ _AI-generated language_
 
 _implementation splits into row/column variants_
 
-**Counting Observation:** For any group of rows (or columns), each touching region can contribute at most min(its stars needed, its unknowns inside the group). If the sum of these max contributions exactly equals the group's combined star need, the constraint is tight — every region must contribute its max. "These lines need exactly this many stars. These regions can provide exactly this many. No slack."
+**Counting Observation:** For any group of rows (or columns), each region within the group of rows/columnscan contribute at most min(its stars needed, its unknowns inside the group). If the sum of these max contributions exactly equals the group's combined star need, the constraint is tight — every region must contribute its max. "These lines need exactly this many stars. These regions can provide exactly this many. No slack."
+
+**Counting Observation** Given that for any group of rows/columns, each region within teh group of rows/columns can contribute at most its stars needed and unknowns inside the group 
 
 **Counting Marks:** If a region must contribute all its remaining stars inside the group (max contribution equals its stars needed), then its cells outside the group can't be stars, so mark them.
 

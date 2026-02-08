@@ -44,7 +44,9 @@ import hypotheticalRegionCapacity from "./08-tiling-hypotheticals/hypotheticalRe
 import hypotheticalCountingRow from "./09-confinement-hypotheticals/hypotheticalUndercountingRow";
 import hypotheticalCountingColumn from "./09-confinement-hypotheticals/hypotheticalUndercountingColumn";
 
-import hypotheticalForcedCount from "./10-forced-star-hypotheticals/hypotheticalForcedCount";
+import propagatedCount from "./10-propagated-hypotheticals/propagatedCount";
+import propagatedCapacity from "./10-propagated-hypotheticals/propagatedCapacity";
+import propagatedCounting from "./10-propagated-hypotheticals/propagatedCounting";
 
 export type Rule = (
   board: Board,
@@ -60,10 +62,10 @@ export type RuleEntry = {
 
 export const allRules: RuleEntry[] = [
   // Level 1: Direct Inferences
+  { rule: starNeighbors, level: 1, name: "Star Neighbors" },
   { rule: forcedRow, level: 1, name: "Forced Rows" },
   { rule: forcedColumn, level: 1, name: "Forced Columns" },
   { rule: forcedRegion, level: 1, name: "Forced Regions" },
-  { rule: starNeighbors, level: 1, name: "Star Neighbors" },
   { rule: trivialRow, level: 1, name: "Trivial Rows" },
   { rule: trivialColumn, level: 1, name: "Trivial Columns" },
   { rule: trivialRegion, level: 1, name: "Trivial Regions" },
@@ -81,34 +83,36 @@ export const allRules: RuleEntry[] = [
   { rule: countingForcedRow, level: 3, name: "Counting Forced Rows" },
   { rule: countingForcedColumn, level: 3, name: "Counting Forced Columns" },
 
-  { rule: squeezeForcedRow, level: 4, name: "Squeeze Forced Rows" },
-  { rule: squeezeForcedColumn, level: 4, name: "Squeeze Forced Columns" },
-  { rule: squeezeAdjacencyRow, level: 4, name: "Squeeze Adjacency Rows" },
-  { rule: squeezeAdjacencyColumn, level: 4, name: "Squeeze Adjacency Columns" },
-  { rule: squeezeOverhangRow, level: 4, name: "Squeeze Overhang Rows" },
-  { rule: squeezeOverhangColumn, level: 4, name: "Squeeze Overhang Columns" },
-
-  // Level 5: Tiling Counting
+  // Level 4: Tiling Counting
   {
     rule: tilingCountingMarkRow,
-    level: 5,
+    level: 4,
     name: "Tiling Counting Mark Rows",
   },
   {
     rule: tilingCountingMarkColumn,
-    level: 5,
+    level: 4,
     name: "Tiling Counting Mark Columns",
   },
   {
     rule: tilingCountingForcedRow,
-    level: 5,
+    level: 4,
     name: "Tiling Counting Forced Rows",
   },
   {
     rule: tilingCountingForcedColumn,
-    level: 5,
+    level: 4,
     name: "Tiling Counting Forced Columns",
   },
+
+  // Level 5: Squeeze
+  { rule: squeezeForcedRow, level: 5, name: "Squeeze Forced Rows" },
+  { rule: squeezeForcedColumn, level: 5, name: "Squeeze Forced Columns" },
+  { rule: squeezeAdjacencyRow, level: 5, name: "Squeeze Adjacency Rows" },
+  { rule: squeezeAdjacencyColumn, level: 5, name: "Squeeze Adjacency Columns" },
+  { rule: squeezeOverhangRow, level: 5, name: "Squeeze Overhang Rows" },
+  { rule: squeezeOverhangColumn, level: 5, name: "Squeeze Overhang Columns" },
+
   // Level 7: Direct Hypotheticals
   { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },
   {
@@ -151,11 +155,21 @@ export const allRules: RuleEntry[] = [
     name: "Hypothetical Counting Column",
   },
 
-  // Level 10: Forced-Star Hypotheticals
+  // Level 10: Propagated Hypotheticals
   {
-    rule: hypotheticalForcedCount,
+    rule: propagatedCount,
     level: 10,
-    name: "Hypothetical Forced Count",
+    name: "Propagated Hypothetical Count",
+  },
+  {
+    rule: propagatedCapacity,
+    level: 10,
+    name: "Propagated Hypothetical Capacity",
+  },
+  {
+    rule: propagatedCounting,
+    level: 10,
+    name: "Propagated Hypothetical Counting",
   },
 ];
 

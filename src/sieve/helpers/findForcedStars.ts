@@ -1,7 +1,6 @@
 /**
- * After a hypothetical star is placed at (starRow, starCol) and its neighbors
- * are in markedCells, find cells that are now forced — cells in a row,
- * column, or region where unknowns == starsNeeded.
+ * Single-pass scan for forced placements given a set of hypothetical stars
+ * and marked cells. Returns newly forced coords not already in starKeys.
  */
 
 import { Board, CellState, Coord } from "./types";
@@ -10,16 +9,13 @@ import { BoardAnalysis } from "./boardAnalysis";
 export function findForcedStars(
   board: Board,
   cells: CellState[][],
-  starRow: number,
-  starCol: number,
+  starKeys: Set<string>,
   markedCells: Set<string>,
   analysis: BoardAnalysis,
 ): Coord[] {
   const size = board.grid.length;
-  const starKey = `${starRow},${starCol}`;
   const forced: Coord[] = [];
-  const seen = new Set<string>();
-  seen.add(starKey);
+  const seen = new Set(starKeys);
 
   // Check rows
   for (let row = 0; row < size; row++) {
@@ -28,14 +24,10 @@ export function findForcedStars(
 
     for (let col = 0; col < size; col++) {
       const key = `${row},${col}`;
-      if (cells[row][col] === "star") {
+      if (cells[row][col] === "star" || starKeys.has(key)) {
         stars++;
-      } else if (cells[row][col] === "unknown") {
-        if (key === starKey) {
-          stars++;
-        } else if (!markedCells.has(key)) {
-          unknowns.push([row, col]);
-        }
+      } else if (cells[row][col] === "unknown" && !markedCells.has(key)) {
+        unknowns.push([row, col]);
       }
     }
 
@@ -58,14 +50,10 @@ export function findForcedStars(
 
     for (let row = 0; row < size; row++) {
       const key = `${row},${col}`;
-      if (cells[row][col] === "star") {
+      if (cells[row][col] === "star" || starKeys.has(key)) {
         stars++;
-      } else if (cells[row][col] === "unknown") {
-        if (key === starKey) {
-          stars++;
-        } else if (!markedCells.has(key)) {
-          unknowns.push([row, col]);
-        }
+      } else if (cells[row][col] === "unknown" && !markedCells.has(key)) {
+        unknowns.push([row, col]);
       }
     }
 
@@ -89,8 +77,8 @@ export function findForcedStars(
     for (const [r, c] of region.unknownCoords) {
       if (cells[r][c] !== "unknown") continue;
       const key = `${r},${c}`;
-      if (key === starKey) {
-        extraStars = 1;
+      if (starKeys.has(key)) {
+        extraStars++;
       } else if (!markedCells.has(key)) {
         unknowns.push([r, c]);
       }
