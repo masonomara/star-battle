@@ -1,62 +1,8 @@
 import { Board, CellState } from "../helpers/types";
 import { BoardAnalysis } from "../helpers/boardAnalysis";
 
-import starNeighbors from "./01-direct-inferences/starNeighbors/starNeighbors";
-import trivialRow from "./01-direct-inferences/trivialMarks/trivialRow";
-import trivialColumn from "./01-direct-inferences/trivialMarks/trivialColumn";
-import trivialRegion from "./01-direct-inferences/trivialMarks/trivialRegion";
-import forcedRow from "./01-direct-inferences/forcedPlacements/forcedRow";
-import forcedColumn from "./01-direct-inferences/forcedPlacements/forcedColumn";
-import forcedRegion from "./01-direct-inferences/forcedPlacements/forcedRegion";
-
-import countingMarkRow from "./03-counting-enumerations/counting/countingMarkRow";
-import countingMarkColumn from "./03-counting-enumerations/counting/countingMarkColumn";
-import countingForcedRow from "./03-counting-enumerations/counting/countingForcedRow";
-import countingForcedColumn from "./03-counting-enumerations/counting/countingForcedColumn";
-
-import {
-  tilingForcedRow,
-  tilingForcedColumn,
-  tilingForcedRegion,
-} from "./05-tiling-enumeration/tilingForced/tilingForced";
-import tilingAdjacencyMarks from "./05-tiling-enumeration/tilingAdjacent/tilingAdjacencyMarks";
-import tilingOverhangMarks from "./05-tiling-enumeration/tilingOverhang/tilingOverhangMarks";
-import squeezeForcedRow from "./05-tiling-enumeration/squeeze/squeezeForcedRow";
-import squeezeForcedColumn from "./05-tiling-enumeration/squeeze/squeezeForcedColumn";
-import squeezeAdjacencyRow from "./05-tiling-enumeration/squeeze/squeezeAdjacencyRow";
-import squeezeAdjacencyColumn from "./05-tiling-enumeration/squeeze/squeezeAdjacencyColumn";
-import squeezeOverhangRow from "./05-tiling-enumeration/squeeze/squeezeOverhangRow";
-import squeezeOverhangColumn from "./05-tiling-enumeration/squeeze/squeezeOverhangColumn";
-
-import tilingCountingMarkRow from "./06-tiling-counting/tilingCountingMarkRow";
-import tilingCountingMarkColumn from "./06-tiling-counting/tilingCountingMarkColumn";
-import tilingCountingForcedRow from "./06-tiling-counting/tilingCountingForcedRow";
-import tilingCountingForcedColumn from "./06-tiling-counting/tilingCountingForcedColumn";
-import groupTilingCountingMarkRow from "./06-tiling-counting/groupTilingCountingMarkRow";
-import groupTilingCountingMarkColumn from "./06-tiling-counting/groupTilingCountingMarkColumn";
-
-import hypotheticalRowCount from "./07-direct-hypotheticals/hypotheticalRowCount";
-import hypotheticalColumnCount from "./07-direct-hypotheticals/hypotheticalColumnCount";
-import hypotheticalRegionCount from "./07-direct-hypotheticals/hypotheticalRegionCount";
-
-import hypotheticalRowCapacity from "./08-tiling-hypotheticals/hypotheticalRowCapacity";
-import hypotheticalColumnCapacity from "./08-tiling-hypotheticals/hypotheticalColumnCapacity";
-import hypotheticalRegionCapacity from "./08-tiling-hypotheticals/hypotheticalRegionCapacity";
-
-import hypotheticalCountingRow from "./09-confinement-hypotheticals/hypotheticalUndercountingRow";
-import hypotheticalCountingColumn from "./09-confinement-hypotheticals/hypotheticalUndercountingColumn";
-
-import propagatedRowCount from "./10-propagated-hypotheticals/propagatedRowCount";
-import propagatedColumnCount from "./10-propagated-hypotheticals/propagatedColumnCount";
-import propagatedRegionCount from "./10-propagated-hypotheticals/propagatedRegionCount";
-import propagatedColumnCapacity from "./10-propagated-hypotheticals/propagatedColumnCapacity";
-
-import propagatedRegionCapacity from "./10-propagated-hypotheticals/propagatedRegionCapacity";
-import propagatedRowCapacity from "./10-propagated-hypotheticals/propagatedRowCapacity";
-import propagatedCountingColumn from "./10-propagated-hypotheticals/propagatedCountingColumn";
-
-import propagatedCountingRow from "./10-propagated-hypotheticals/propagatedCountingRow";
-
+import starNeighbors from "../rules/01-starNeighbors/starNeighbors.ts"
+import forcedRow from "../rules/02-forcedPlacements/forcedRow.ts"
 
 export type Rule = (
   board: Board,
@@ -111,10 +57,10 @@ export const allRules: RuleEntry[] = [
   { rule: groupTilingCountingMarkRow, level: 6, name: "Group Tiling Counting Mark Rows" },
   { rule: groupTilingCountingMarkColumn, level: 6, name: "Group Tiling Counting Mark Columns" },
 
-  // // Level 7: Direct Hypotheticals
-  // { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },
-  // { rule: hypotheticalColumnCount, level: 7, name: "Hypothetical Column Count" },
-  // { rule: hypotheticalRegionCount, level: 7, name: "Hypothetical Region Count" },
+  // Level 7: Direct Hypotheticals
+  { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },
+  { rule: hypotheticalColumnCount, level: 7, name: "Hypothetical Column Count" },
+  { rule: hypotheticalRegionCount, level: 7, name: "Hypothetical Region Count" },
 
   // Level 8: Tiling Hypotheticals
   { rule: hypotheticalRowCapacity, level: 8, name: "Hypothetical Row Capacity" },
