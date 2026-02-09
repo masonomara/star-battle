@@ -2,7 +2,7 @@
 
 Star Battle puzzle generator using inference rules that emulate human deduction to produce solvable puzzles without brute-force guessing or backtracking.
 
-### Why Inference Rules?
+### Why Production Rules?
 
 Generating a puzzle with a valid layout and satisfies Star Battle Rules is easy. However, a valid layout may not be solvable by human deduction without guessing. This game is meant to be played by humans. Each rule is logical and able to be computed by a human.
 
