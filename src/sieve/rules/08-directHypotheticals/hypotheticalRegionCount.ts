@@ -1,10 +1,3 @@
-/**
- * Hypothetical Region Count
- *
- * For each unknown cell, asks: "If I place a star here,
- * do all affected regions still have enough cells for their quotas?"
- */
-
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { cellKey, neighbors } from "../../helpers/neighbors";
@@ -25,8 +18,7 @@ export default function hypotheticalRegionCount(
     }
 
     for (const regionId of affectedRegions) {
-      const region = analysis.regions.get(regionId);
-      if (!region) continue;
+      const region = analysis.regions.get(regionId)!;
 
       let extraStars = 0;
       let remaining = 0;

@@ -1,10 +1,3 @@
-/**
- * Rule: Tiling Counting Mark (Column)
- *
- * For each column, if the sum of minimum region contributions equals the
- * column's star need, regions with minimum = 0 can't place stars here — mark them.
- */
-
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { tilingCountingLoop } from "../../helpers/tilingCountingHelper";

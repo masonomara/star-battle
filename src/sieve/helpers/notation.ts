@@ -2,7 +2,6 @@ import { Board } from "./types";
 
 const REGION_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const MAX_REGIONS = 26;
-const FORMAT_VERSION = 1;
 
 type PuzzleStringMetadata = {
   seed?: number;
@@ -68,7 +67,7 @@ export function decodePuzzleString(str: string): { board: Board; metadata: Puzzl
     );
   }
 
-  const metadata: PuzzleStringMetadata = { version: FORMAT_VERSION };
+  const metadata: PuzzleStringMetadata = { version: 1 };
   if (metaString) {
     const metaPattern = /([sdlcv])(\d+)/g;
     let match;

@@ -1,10 +1,3 @@
-/**
- * Hypothetical Row Capacity
- *
- * For each unknown cell, asks: "If I place a star here,
- * can rows r-1, r, and r+1 still tile their required stars?"
- */
-
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { cellKey } from "../../helpers/neighbors";

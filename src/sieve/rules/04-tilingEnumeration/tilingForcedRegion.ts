@@ -1,9 +1,6 @@
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { Board, CellState } from "../../helpers/types";
 
-/**
- * Tiling Forced Stars (Region)
- */
 export default function tilingForcedRegion(
   board: Board,
   cells: CellState[][],

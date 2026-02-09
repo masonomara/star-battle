@@ -1,10 +1,3 @@
-/**
- * Rule: Counting Mark (Row)
- *
- * If a group of rows forms a tight constraint with its touching regions,
- * every region must contribute its max — mark region cells outside those rows.
- */
-
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 

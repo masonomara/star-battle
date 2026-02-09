@@ -1,10 +1,3 @@
-/**
- * Hypothetical Row Count
- *
- * For each unknown cell, asks: "If I place a star here,
- * do rows r-1, r, and r+1 still have enough cells for their quotas?"
- */
-
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { cellKey } from "../../helpers/neighbors";

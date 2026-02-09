@@ -9,7 +9,6 @@ export default function tilingPairAdjacencyRow(
   analysis: BoardAnalysis,
 ): boolean {
   const size = board.grid.length;
-  if (size === 0) return false;
 
   return squeezePairLoop(cells, size, board.stars, analysis, "row", (pairCells, tiling) => {
     if (tiling.tilings.length === 0) return false;

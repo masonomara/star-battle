@@ -1,12 +1,3 @@
-/**
- * Propagated Hypothetical Counting Column
- *
- * Observation: Propagated hypothetical state + counting constraints
- * Technique:   Hypothetical
- * Deduction:   Mark — if any group of columns needs more stars
- *              than its touching regions can provide
- */
-
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { hypotheticalLoop, propagatedCountingViolation } from "../../helpers/hypothetical";

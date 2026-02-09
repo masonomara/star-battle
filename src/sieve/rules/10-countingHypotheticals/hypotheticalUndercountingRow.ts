@@ -1,11 +1,3 @@
-/**
- * Hypothetical Counting Row
- *
- * For each unknown cell, hypothesize placing a star there, then check
- * if any group of rows needs more stars than its touching regions
- * can provide. If so, mark the cell.
- */
-
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { hypotheticalLoop, propagatedCountingViolation } from "../../helpers/hypothetical";

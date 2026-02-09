@@ -1,10 +1,3 @@
-/**
- * Hypothetical Region Capacity
- *
- * For each unknown cell, asks: "If I place a star here,
- * can all affected regions still tile their required stars?"
- */
-
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { cellKey, neighbors } from "../../helpers/neighbors";
@@ -25,8 +18,7 @@ export default function hypotheticalRegionCapacity(
     }
 
     for (const regionId of affectedRegions) {
-      const region = analysis.regions.get(regionId);
-      if (!region) continue;
+      const region = analysis.regions.get(regionId)!;
 
       let extraStars = 0;
       const remaining: Coord[] = [];

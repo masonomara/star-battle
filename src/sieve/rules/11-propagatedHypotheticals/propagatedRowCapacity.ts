@@ -1,11 +1,3 @@
-/**
- * Propagated Hypothetical Row Capacity
- *
- * Observation: Propagated hypothetical state + tiling capacity
- * Technique:   Hypothetical
- * Deduction:   Mark — if any row can't tile enough stars
- */
-
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { cellKey } from "../../helpers/neighbors";

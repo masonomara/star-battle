@@ -1,10 +1,3 @@
-/**
- * Hypothetical Column Count
- *
- * For each unknown cell, asks: "If I place a star here,
- * do columns c-1, c, and c+1 still have enough cells for their quotas?"
- */
-
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { cellKey } from "../../helpers/neighbors";

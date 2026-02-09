@@ -12,7 +12,6 @@ export default function tilingPairOverhangColumn(
   analysis: BoardAnalysis,
 ): boolean {
   const size = board.grid.length;
-  if (size === 0) return false;
 
   return squeezePairLoop(cells, size, board.stars, analysis, "col", (pairCells, tiling) => {
     if (tiling.tilings.length === 0) return false;

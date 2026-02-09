@@ -1,10 +1,3 @@
-/**
- * Rule: Counting Mark (Column)
- *
- * If a group of columns forms a tight constraint with its touching regions,
- * every region must contribute its max — mark region cells outside those columns.
- */
-
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 

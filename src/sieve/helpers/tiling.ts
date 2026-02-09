@@ -84,11 +84,10 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
   const solutions = dlxSolve(numPrimary, numSecondary, dlxRows);
 
   if (solutions.length === 0) {
-    return {
-      capacity: Math.ceil(cells.length / 4),
-      tilings: [],
-      forcedCells: [],
-    };
+    // No exact cover exists (e.g. boundary L-shapes). Capacity is unknown;
+    // cells.length is a trivially correct upper bound so callers never
+    // see a false tight constraint or a false violation.
+    return { capacity: cells.length, tilings: [], forcedCells: [] };
   }
 
   let capacity = Infinity;

@@ -1,12 +1,3 @@
-/**
- * Rule: Tiling Counting Forced (Column)
- *
- * For each column, if the sum of minimum region contributions equals the
- * column's star need (tight), a region must place (starsNeeded - minContrib)
- * stars outside the column. If it has exactly that many unknown cells outside,
- * they are all forced stars.
- */
-
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { tilingCountingLoop } from "../../helpers/tilingCountingHelper";
