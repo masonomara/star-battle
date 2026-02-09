@@ -1,8 +1,5 @@
 import { CellState, Coord, Tile } from "./types";
-
-function cellsAreAdjacent(c1: Coord, c2: Coord): boolean {
-  return Math.abs(c1[0] - c2[0]) <= 1 && Math.abs(c1[1] - c2[1]) <= 1;
-}
+import { cellsAreAdjacent } from "./neighbors";
 
 function enumerateStarAssignments(
   tiling: Tile[],

@@ -6,7 +6,7 @@
 
 import { Board, CellState, Coord } from "./types";
 import { BoardAnalysis } from "./boardAnalysis";
-import { buildMarkedCellSet, cellKey } from "./neighbors";
+import { buildMarkedCellSet, cellKey, cellsAreAdjacent } from "./neighbors";
 import { hasCountingViolation, CountingFlowInput } from "./countingFlow";
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -79,10 +79,7 @@ function scanBoard(
   }
   for (let i = 0; i < starCoords.length; i++) {
     for (let j = i + 1; j < starCoords.length; j++) {
-      if (
-        Math.abs(starCoords[i][0] - starCoords[j][0]) <= 1 &&
-        Math.abs(starCoords[i][1] - starCoords[j][1]) <= 1
-      ) {
+      if (cellsAreAdjacent(starCoords[i], starCoords[j])) {
         return { violation: "adjacency", forced: [] };
       }
     }
