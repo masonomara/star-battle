@@ -1,11 +1,9 @@
-# Star Battle Puzzle
+# Production Rules
 
 ## Star Battle Rules
 
 1. **Star Neighbors:** No star can neighbor another star (horizontally, vertically, or diagonally)
 2. **Star Quotas:** Each row, column, and region must contain exactly N stars
-
----
 
 ## Decisions
 
