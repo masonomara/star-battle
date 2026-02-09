@@ -5,10 +5,10 @@
  * every region must contribute its max — mark region cells outside those columns.
  */
 
-import { Board, CellState } from "../../../helpers/types";
-import { BoardAnalysis } from "../../../helpers/boardAnalysis";
+import { Board, CellState } from "../../helpers/types";
+import { BoardAnalysis } from "../../helpers/boardAnalysis";
 
-export default functioncountingMarkColumn(
+export default function countingMarkColumn(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

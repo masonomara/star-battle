@@ -29,7 +29,7 @@ function tilingForced(
 /**
  * Rule 08a: Tiling Forced Stars (Row)
  */
-export default functiontilingForcedRow(
+export default function tilingForcedRow(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

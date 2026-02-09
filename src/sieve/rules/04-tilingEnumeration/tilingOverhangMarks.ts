@@ -11,7 +11,7 @@ import { Board, CellState, Coord, Tile } from "../../helpers/types";
  * Tilings whose overhang is already fully marked are filtered out -
  * they impose no new constraint.
  */
-export default functiontilingOverhangMarks(
+export default function tilingOverhangMarks(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

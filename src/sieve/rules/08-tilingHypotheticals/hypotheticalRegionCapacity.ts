@@ -10,7 +10,7 @@ import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { cellKey, neighbors } from "../../helpers/neighbors";
 import { hypotheticalLoop } from "../../helpers/hypotheticalLoop";
 
-export default functionhypotheticalRegionCapacity(
+export default function hypotheticalRegionCapacity(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

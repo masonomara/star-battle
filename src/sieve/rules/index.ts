@@ -1,8 +1,69 @@
 import { Board, CellState } from "../helpers/types";
 import { BoardAnalysis } from "../helpers/boardAnalysis";
 
-import starNeighbors from "../rules/01-starNeighbors/starNeighbors.ts"
-import forcedRow from "../rules/02-forcedPlacements/forcedRow.ts"
+// Level 1: Direct Inferences
+import starNeighbors from "./01-starNeighbors/starNeighbors";
+import forcedRow from "./02-forcedPlacements/forcedRow";
+import forcedColumn from "./02-forcedPlacements/forcedColumn";
+import forcedRegion from "./02-forcedPlacements/forcedRegion";
+import trivialRow from "./03-trivialMarks/trivialRow";
+import trivialColumn from "./03-trivialMarks/trivialColumn";
+import trivialRegion from "./03-trivialMarks/trivialRegion";
+
+// Level 2: Tiling Enumerations
+import tilingForcedRow from "./04-tilingEnumeration/tilingForcedRow";
+import tilingForcedColumn from "./04-tilingEnumeration/tilingForcedColumn";
+import tilingForcedRegion from "./04-tilingEnumeration/tilingForcedRegion";
+import tilingAdjacencyMarks from "./04-tilingEnumeration/tilingAdjacencyMarks";
+import tilingOverhangMarks from "./04-tilingEnumeration/tilingOverhangMarks";
+
+// Level 3: Counting Enumerations
+import countingMarkRow from "./05-countingEnumeration/countingMarkRow";
+import countingMarkColumn from "./05-countingEnumeration/countingMarkColumn";
+import countingForcedRow from "./05-countingEnumeration/countingForcedRow";
+import countingForcedColumn from "./05-countingEnumeration/countingForcedColumn";
+
+// Level 4: Tiling Counting
+import tilingCountingMarkRow from "./06-tilingCountingEnumeration/tilingCountingMarkRow";
+import tilingCountingMarkColumn from "./06-tilingCountingEnumeration/tilingCountingMarkColumn";
+import tilingCountingForcedRow from "./06-tilingCountingEnumeration/tilingCountingForcedRow";
+import tilingCountingForcedColumn from "./06-tilingCountingEnumeration/tilingCountingForcedColumn";
+
+// Level 5: Squeeze
+import squeezeForcedRow from "./06-tilingCountingEnumeration/squeezeForcedRow";
+import squeezeForcedColumn from "./06-tilingCountingEnumeration/squeezeForcedColumn";
+import squeezeAdjacencyRow from "./06-tilingCountingEnumeration/squeezeAdjacencyRow";
+import squeezeAdjacencyColumn from "./06-tilingCountingEnumeration/squeezeAdjacencyColumn";
+import squeezeOverhangRow from "./06-tilingCountingEnumeration/squeezeOverhangRow";
+import squeezeOverhangColumn from "./06-tilingCountingEnumeration/squeezeOverhangColumn";
+
+// Level 6: Group Tiling Counting
+import groupTilingCountingMarkRow from "./06-tilingCountingEnumeration/groupTilingCountingMarkRow";
+import groupTilingCountingMarkColumn from "./06-tilingCountingEnumeration/groupTilingCountingMarkColumn";
+
+// Level 7: Direct Hypotheticals
+import hypotheticalRowCount from "./07-directHypotheticals/hypotheticalRowCount";
+import hypotheticalColumnCount from "./07-directHypotheticals/hypotheticalColumnCount";
+import hypotheticalRegionCount from "./07-directHypotheticals/hypotheticalRegionCount";
+
+// Level 8: Tiling Hypotheticals
+import hypotheticalRowCapacity from "./08-tilingHypotheticals/hypotheticalRowCapacity";
+import hypotheticalColumnCapacity from "./08-tilingHypotheticals/hypotheticalColumnCapacity";
+import hypotheticalRegionCapacity from "./08-tilingHypotheticals/hypotheticalRegionCapacity";
+
+// Level 9: Counting Hypotheticals
+import hypotheticalCountingRow from "./09-countingHypotheticals/hypotheticalUndercountingRow";
+import hypotheticalCountingColumn from "./09-countingHypotheticals/hypotheticalUndercountingColumn";
+
+// Level 10: Propagated Hypotheticals
+import propagatedRowCount from "./11-propagatedHypotheticals/propagatedRowCount";
+import propagatedColumnCount from "./11-propagatedHypotheticals/propagatedColumnCount";
+import propagatedRegionCount from "./11-propagatedHypotheticals/propagatedRegionCount";
+import propagatedRowCapacity from "./11-propagatedHypotheticals/propagatedRowCapacity";
+import propagatedColumnCapacity from "./11-propagatedHypotheticals/propagatedColumnCapacity";
+import propagatedRegionCapacity from "./11-propagatedHypotheticals/propagatedRegionCapacity";
+import propagatedCountingRow from "./11-propagatedHypotheticals/propagatedCountingRow";
+import propagatedCountingColumn from "./11-propagatedHypotheticals/propagatedCountingColumn";
 
 export type Rule = (
   board: Board,

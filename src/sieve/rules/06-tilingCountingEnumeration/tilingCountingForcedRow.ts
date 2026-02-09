@@ -9,9 +9,9 @@
 
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { tilingCountingLoop } from "./tilingCountingHelper";
+import { tilingCountingLoop } from "../../helpers/tilingCountingHelper";
 
-export default functiontilingCountingForcedRow(
+export default function tilingCountingForcedRow(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

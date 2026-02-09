@@ -8,7 +8,7 @@
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 
-export default functioncountingMarkRow(
+export default function countingMarkRow(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

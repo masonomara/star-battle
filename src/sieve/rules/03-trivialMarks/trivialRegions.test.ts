@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { Board, CellState } from "../../../helpers/types";
-import { buildBoardStructure, buildBoardAnalysis } from "../../../helpers/boardAnalysis";
+import { Board, CellState } from "../../helpers/types";
+import { buildBoardStructure, buildBoardAnalysis } from "../../helpers/boardAnalysis";
 import trivialRegion from "./trivialRegion";
 
 describe("04. regionComplete", () => {

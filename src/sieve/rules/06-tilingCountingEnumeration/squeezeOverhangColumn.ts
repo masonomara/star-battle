@@ -14,7 +14,7 @@ import {
   findForcedOverhangCells,
 } from "../../helpers/tilingEnumeration";
 
-export default functionsqueezeOverhangColumn(
+export default function squeezeOverhangColumn(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

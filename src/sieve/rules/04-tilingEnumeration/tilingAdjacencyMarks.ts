@@ -15,7 +15,7 @@ function cellsAreAdjacent(c1: Coord, c2: Coord): boolean {
  * Cells that don't appear in any valid star assignment across all tilings
  * cannot be stars.
  */
-export default functiontilingAdjacencyMarks(
+export default function tilingAdjacencyMarks(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

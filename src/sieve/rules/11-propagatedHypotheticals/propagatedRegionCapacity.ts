@@ -11,7 +11,7 @@ import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { cellKey } from "../../helpers/neighbors";
 import { hypotheticalLoop } from "../../helpers/hypotheticalLoop";
 
-export default functionpropagatedRegionCapacity(
+export default function propagatedRegionCapacity(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

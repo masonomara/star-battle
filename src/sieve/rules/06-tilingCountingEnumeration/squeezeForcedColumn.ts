@@ -6,11 +6,11 @@
  * ALL minimal tilings must be stars.
  */
 
-import { Board, CellState, Coord } from "../../../helpers/types";
-import { BoardAnalysis } from "../../../helpers/boardAnalysis";
-import { applyDeductions } from "../../../helpers/applyDeductions";
+import { Board, CellState, Coord } from "../../helpers/types";
+import { BoardAnalysis } from "../../helpers/boardAnalysis";
+import { applyDeductions } from "../../helpers/applyDeductions";
 
-export default functionsqueezeForcedColumn(
+export default function squeezeForcedColumn(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

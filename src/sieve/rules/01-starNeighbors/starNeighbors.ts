@@ -2,7 +2,7 @@ import { neighbors } from "../../helpers/neighbors";
 import { Board, CellState } from "../../helpers/types";
 
 
-export default functionstarNeighbors(
+export default function starNeighbors(
   board: Board,
   cells: CellState[][],
 ): boolean {

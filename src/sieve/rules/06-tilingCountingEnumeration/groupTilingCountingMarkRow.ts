@@ -8,9 +8,9 @@
 
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { groupTilingCountingLoop } from "./groupTilingCountingHelper";
+import { groupTilingCountingLoop } from "../../helpers/groupTilingCountingHelper";
 
-export default functiongroupTilingCountingMarkRow(
+export default function groupTilingCountingMarkRow(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

@@ -6,15 +6,15 @@
  * tilings get marked. The pair's tiling always spills onto them.
  */
 
-import { Board, CellState, Coord, Deduction } from "../../../helpers/types";
-import { BoardAnalysis } from "../../../helpers/boardAnalysis";
-import { applyDeductions } from "../../../helpers/applyDeductions";
+import { Board, CellState, Coord, Deduction } from "../../helpers/types";
+import { BoardAnalysis } from "../../helpers/boardAnalysis";
+import { applyDeductions } from "../../helpers/applyDeductions";
 import {
   filterActiveTilings,
   findForcedOverhangCells,
-} from "../../../helpers/tilingEnumeration";
+} from "../../helpers/tilingEnumeration";
 
-export default functionsqueezeOverhangRow(
+export default function squeezeOverhangRow(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

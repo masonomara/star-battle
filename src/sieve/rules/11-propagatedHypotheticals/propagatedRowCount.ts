@@ -11,7 +11,7 @@ import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { hypotheticalLoop } from "../../helpers/hypotheticalLoop";
 
-export default functionpropagatedRowCount(
+export default function propagatedRowCount(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

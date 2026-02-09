@@ -1,9 +1,9 @@
-import { Board, CellState, Coord } from "../../../helpers/types";
+import { Board, CellState, Coord } from "../../helpers/types";
 
 /**
  * When unknowns in a row equal needed stars, place one star.
  */
-export default functionforcedRow(board: Board, cells: CellState[][]): boolean {
+export default function forcedRow(board: Board, cells: CellState[][]): boolean {
   const size = board.grid.length;
 
   for (let row = 0; row < size; row++) {

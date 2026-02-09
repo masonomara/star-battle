@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import starNeighbors from "./01-starNeighbors";
-import { Board, CellState } from "../../../helpers/types";
+import starNeighbors from "./starNeighbors";
+import { Board, CellState } from "../../helpers/types";
 
 describe("01. starNeighbors", () => {
   describe("01.1 Marks neighbors correctly", () => {

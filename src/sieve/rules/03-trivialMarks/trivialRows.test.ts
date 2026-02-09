@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { Board, CellState } from "../../../helpers/types";
+import { Board, CellState } from "../../helpers/types";
 import trivialRow from "./trivialRow";
 
 describe("02. trivialRow", () => {

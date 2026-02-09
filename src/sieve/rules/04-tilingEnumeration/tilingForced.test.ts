@@ -1,11 +1,9 @@
 import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
 import { buildBoardStructure, buildBoardAnalysis } from "../../helpers/boardAnalysis";
-import {
-  tilingForcedRow,
-  tilingForcedColumn,
-  tilingForcedRegion,
-} from "./tilingForced";
+import tilingForcedRow from "./tilingForcedRow";
+import tilingForcedColumn from "./tilingForcedColumn";
+import tilingForcedRegion from "./tilingForcedRegion";
 
 describe("08a. Tiling Forced Stars (Row)", () => {
   function run(board: Board, cells: CellState[][]): boolean {

@@ -5,10 +5,10 @@
  * unknowns inside as it must contribute, those cells must be stars.
  */
 
-import { Board, CellState } from "../../../helpers/types";
-import { BoardAnalysis } from "../../../helpers/boardAnalysis";
+import { Board, CellState } from "../../helpers/types";
+import { BoardAnalysis } from "../../helpers/boardAnalysis";
 
-export default functioncountingForcedRow(
+export default function countingForcedRow(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

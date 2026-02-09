@@ -7,6 +7,10 @@ export type Board = {
   stars: number;
 };
 
+export function computeDifficulty(maxLevel: number, cycles: number): number {
+  return Math.round(maxLevel * 4 + cycles / 4);
+}
+
 export type SolverResult = {
   cells: CellState[][];
   cycles: number;

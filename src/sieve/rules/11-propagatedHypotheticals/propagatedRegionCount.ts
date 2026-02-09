@@ -10,7 +10,7 @@ import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { hypotheticalLoop } from "../../helpers/hypotheticalLoop";
 
-export default functionpropagatedRegionCount(
+export default function propagatedRegionCount(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

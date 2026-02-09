@@ -29,7 +29,7 @@ function tilingForced(
 /**
  * Rule 08c: Tiling Forced Stars (Region)
  */
-export default functiontilingForcedRegion(
+export default function tilingForcedRegion(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,

@@ -1,9 +1,9 @@
-import { Board, CellState, Coord } from "../../../helpers/types";
+import { Board, CellState, Coord } from "../../helpers/types";
 
 /**
  * When unknowns in a column equal needed stars, place one star.
  */
-export default functionforcedColumn(
+export default function forcedColumn(
   board: Board,
   cells: CellState[][],
 ): boolean {

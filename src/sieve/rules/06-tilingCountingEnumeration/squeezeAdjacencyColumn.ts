@@ -6,12 +6,12 @@
  * Cells that never appear as a star in any valid assignment get marked.
  */
 
-import { Board, CellState, Coord, Deduction } from "../../../helpers/types";
-import { BoardAnalysis } from "../../../helpers/boardAnalysis";
-import { applyDeductions } from "../../../helpers/applyDeductions";
-import { collectValidStarCells } from "../../../helpers/tilingEnumeration";
+import { Board, CellState, Coord, Deduction } from "../../helpers/types";
+import { BoardAnalysis } from "../../helpers/boardAnalysis";
+import { applyDeductions } from "../../helpers/applyDeductions";
+import { collectValidStarCells } from "../../helpers/tilingEnumeration";
 
-export default functionsqueezeAdjacencyColumn(
+export default function squeezeAdjacencyColumn(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
