@@ -4,6 +4,7 @@ import { layout } from "./generator";
 import { solve, StepInfo, RULE_METADATA } from "./solver";
 import { decodePuzzleString } from "./helpers/notation";
 import { Board, CellState } from "./helpers/types";
+import { computeDifficulty } from "./helpers/difficulty";
 
 // --- Formatting ---
 
@@ -138,7 +139,7 @@ function benchmark(content: string, verbose: boolean, filterUnsolved: boolean, t
 
     if (result) {
       solved++;
-      const difficulty = Math.round(result.maxLevel * 4 + result.cycles / 4);
+      const difficulty = computeDifficulty(result);
       difficulties.push(difficulty);
 
       if (trace) {
