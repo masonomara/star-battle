@@ -286,10 +286,11 @@ function extractTightSets(
   let blockLines: number[] = [];
   let blockRegions: number[] = [];
 
+  const sccSource = sccId[source];
+  const sccSink = sccId[sink];
+
   for (let si = sccCount - 1; si >= 0; si--) {
-    const s = sccId[source];
-    const t = sccId[sink];
-    if (si === s || si === t) continue;
+    if (si === sccSource || si === sccSink) continue;
 
     for (const line of sccLines[si]) {
       cumDemand += axisNeeded[line];
