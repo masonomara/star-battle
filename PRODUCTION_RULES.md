@@ -9,7 +9,7 @@ Production rule system over constraint satisfaction problem for a human-solvable
 
 ## System Framework
 
-Series of **production rules** that emulate human dedction to validate solvable puzzles without brute-force guessing or backtracking. Applies one observation with a technique to produce a deduction. The solver cycles through rules in order until the puzzle is solved or determined to be unsolvable.
+Series of **production rules** that emulate human deduction to validate solvable puzzles without brute-force guessing or backtracking. Applies one observation with a technique to produce a deduction. The solver cycles through rules in order until the puzzle is solved or determined to be unsolvable.
 
 ### Observations — Ways of Seeing the Board
 
