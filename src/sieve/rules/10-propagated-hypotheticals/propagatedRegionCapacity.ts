@@ -8,48 +8,33 @@
 
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { propagateHypothetical } from "../../helpers/propagateHypothetical";
+import { cellKey } from "../../helpers/neighbors";
+import { hypotheticalLoop } from "../../helpers/hypotheticalLoop";
 
 export default function propagatedRegionCapacity(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
-  const { size } = analysis;
-  if (size === 0) return false;
+  const size = analysis.size;
 
-  let changed = false;
-
-  for (let row = 0; row < size; row++) {
-    for (let col = 0; col < size; col++) {
-      if (cells[row][col] !== "unknown") continue;
-
-      const state = propagateHypothetical(board, cells, row, col, analysis);
-      if (state.violation !== null) continue;
-
-      let violation = false;
-      for (const [, region] of analysis.regions) {
-        let extraStars = 0;
-        const remaining: Coord[] = [];
-        for (const [r, c] of region.unknownCoords) {
-          if (cells[r][c] !== "unknown") continue;
-          const key = `${r},${c}`;
-          if (state.starKeys.has(key)) extraStars++;
-          else if (!state.marked.has(key)) remaining.push([r, c]);
-        }
-        const needed = region.starsNeeded - extraStars;
-        if (needed > 0 && analysis.getTiling(remaining).capacity < needed) {
-          violation = true;
-          break;
-        }
+  return hypotheticalLoop(board, cells, analysis, true, (_row, _col, state) => {
+    if (state.violation !== null) return false;
+    for (const [, region] of analysis.regions) {
+      let extraStars = 0;
+      const remaining: Coord[] = [];
+      for (const [r, c] of region.unknownCoords) {
+        if (cells[r][c] !== "unknown") continue;
+        const key = cellKey(r, c, size);
+        if (state.starKeys.has(key)) extraStars++;
+        else if (!state.marked.has(key)) remaining.push([r, c]);
       }
-
-      if (violation) {
-        cells[row][col] = "marked";
-        changed = true;
-      }
+      const needed = region.starsNeeded - extraStars;
+      if (needed <= 0) continue;
+      if (remaining.length < needed) return true;
+      if (remaining.length >= needed * 4) continue;
+      if (analysis.getTiling(remaining).capacity < needed) return true;
     }
-  }
-
-  return changed;
+    return false;
+  });
 }

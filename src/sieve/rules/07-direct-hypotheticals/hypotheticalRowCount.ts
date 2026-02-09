@@ -1,81 +1,34 @@
 /**
  * Hypothetical Row Count
  *
- * Marks cells where placing a star would leave a nearby row
- * without enough remaining cells for its required stars.
- *
  * For each unknown cell, asks: "If I place a star here,
  * do rows r-1, r, and r+1 still have enough cells for their quotas?"
  */
 
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { buildMarkedCellSet } from "../../helpers/neighbors";
-
-function checkRowViolation(
-  starRow: number,
-  starCol: number,
-  board: Board,
-  cells: CellState[][],
-  markedCells: Set<string>,
-): boolean {
-  const size = board.grid.length;
-  const starKey = `${starRow},${starCol}`;
-
-  for (
-    let row = Math.max(0, starRow - 1);
-    row <= Math.min(size - 1, starRow + 1);
-    row++
-  ) {
-    let existingStars = 0;
-    let remainingCount = 0;
-
-    for (let col = 0; col < size; col++) {
-      if (cells[row][col] === "star") {
-        existingStars++;
-      } else if (cells[row][col] === "unknown") {
-        const key = `${row},${col}`;
-        if (key === starKey) {
-          existingStars++;
-        } else if (!markedCells.has(key)) {
-          remainingCount++;
-        }
-      }
-    }
-
-    const needed = board.stars - existingStars;
-    if (needed <= 0) continue;
-
-    if (remainingCount < needed) {
-      return true;
-    }
-  }
-
-  return false;
-}
+import { cellKey } from "../../helpers/neighbors";
+import { hypotheticalLoop } from "../../helpers/hypotheticalLoop";
 
 export default function hypotheticalRowCount(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
-  const { size } = analysis;
-  if (size === 0) return false;
+  const size = analysis.size;
 
-  let changed = false;
-
-  for (let row = 0; row < size; row++) {
-    for (let col = 0; col < size; col++) {
-      if (cells[row][col] !== "unknown") continue;
-
-      const markedCells = buildMarkedCellSet(row, col, size);
-
-      if (checkRowViolation(row, col, board, cells, markedCells)) {
-        cells[row][col] = "marked";
-        changed = true;
+  return hypotheticalLoop(board, cells, analysis, false, (row, _col, state) => {
+    for (let r = Math.max(0, row - 1); r <= Math.min(size - 1, row + 1); r++) {
+      let stars = 0;
+      let remaining = 0;
+      for (let c = 0; c < size; c++) {
+        const key = cellKey(r, c, size);
+        if (cells[r][c] === "star" || state.starKeys.has(key)) stars++;
+        else if (cells[r][c] === "unknown" && !state.marked.has(key)) remaining++;
       }
+      const needed = board.stars - stars;
+      if (needed > 0 && remaining < needed) return true;
     }
-  }
-
-  return changed;
+    return false;
+  });
 }

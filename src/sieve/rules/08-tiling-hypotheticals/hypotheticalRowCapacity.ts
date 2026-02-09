@@ -1,90 +1,38 @@
 /**
- * Rule 12a: Hypothetical Row Capacity
- *
- * Marks cells where placing a star would leave a nearby row
- * unable to fit its required stars.
+ * Hypothetical Row Capacity
  *
  * For each unknown cell, asks: "If I place a star here,
- * can rows r-1, r, and r+1 still meet their quotas?"
+ * can rows r-1, r, and r+1 still tile their required stars?"
  */
 
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { buildMarkedCellSet } from "../../helpers/neighbors";
-
-function checkRowViolation(
-  starRow: number,
-  starCol: number,
-  board: Board,
-  cells: CellState[][],
-  markedCells: Set<string>,
-  analysis: BoardAnalysis,
-): boolean {
-  const size = board.grid.length;
-  const starKey = `${starRow},${starCol}`;
-
-  // Check rows affected by this star (the star's row and adjacent rows)
-  for (
-    let row = Math.max(0, starRow - 1);
-    row <= Math.min(size - 1, starRow + 1);
-    row++
-  ) {
-    let existingStars = 0;
-    const remainingCells: Coord[] = [];
-
-    for (let col = 0; col < size; col++) {
-      if (cells[row][col] === "star") {
-        existingStars++;
-      } else if (cells[row][col] === "unknown") {
-        const key = `${row},${col}`;
-        // If this is the hypothetical star location, count it as a star
-        if (key === starKey) {
-          existingStars++;
-        } else if (!markedCells.has(key)) {
-          remainingCells.push([row, col]);
-        }
-      }
-    }
-
-    const needed = board.stars - existingStars;
-    if (needed <= 0) continue;
-
-    // Basic count check
-    if (remainingCells.length < needed) {
-      return true;
-    }
-
-    // Tiling capacity check
-    if (analysis.getTiling(remainingCells).capacity < needed) {
-      return true;
-    }
-  }
-
-  return false;
-}
+import { cellKey } from "../../helpers/neighbors";
+import { hypotheticalLoop } from "../../helpers/hypotheticalLoop";
 
 export default function hypotheticalRowCapacity(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
-  const { size } = analysis;
-  if (size === 0) return false;
+  const size = analysis.size;
 
-  let changed = false;
-
-  for (let row = 0; row < size; row++) {
-    for (let col = 0; col < size; col++) {
-      if (cells[row][col] !== "unknown") continue;
-
-      const markedCells = buildMarkedCellSet(row, col, size);
-
-      if (checkRowViolation(row, col, board, cells, markedCells, analysis)) {
-        cells[row][col] = "marked";
-        changed = true;
+  return hypotheticalLoop(board, cells, analysis, false, (row, _col, state) => {
+    for (let r = Math.max(0, row - 1); r <= Math.min(size - 1, row + 1); r++) {
+      let stars = 0;
+      const remaining: Coord[] = [];
+      for (let c = 0; c < size; c++) {
+        const key = cellKey(r, c, size);
+        if (cells[r][c] === "star" || state.starKeys.has(key)) stars++;
+        else if (cells[r][c] === "unknown" && !state.marked.has(key))
+          remaining.push([r, c]);
       }
+      const needed = board.stars - stars;
+      if (needed <= 0) continue;
+      if (remaining.length < needed) return true;
+      if (remaining.length >= needed * 2) continue;
+      if (analysis.getTiling(remaining).capacity < needed) return true;
     }
-  }
-
-  return changed;
+    return false;
+  });
 }

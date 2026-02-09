@@ -1,5 +1,9 @@
 import { Coord } from "./types";
 
+export function cellKey(r: number, c: number, size: number): number {
+  return r * size + c;
+}
+
 export function* neighbors(
   row: number,
   col: number,
@@ -21,12 +25,12 @@ export function buildMarkedCellSet(
   row: number,
   col: number,
   size: number,
-): Set<string> {
-  const marked = new Set<string>();
-  marked.add(`${row},${col}`);
+): Set<number> {
+  const marked = new Set<number>();
+  marked.add(cellKey(row, col, size));
 
   for (const [nr, nc] of neighbors(row, col, size)) {
-    marked.add(`${nr},${nc}`);
+    marked.add(cellKey(nr, nc, size));
   }
 
   return marked;

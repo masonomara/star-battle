@@ -1,25 +1,21 @@
 /**
  * Propagate a hypothetical star placement to a stable state.
  *
- * Infrastructure helper (like getTiling or buildBoardAnalysis).
  * Places a hypothetical star, then deterministically cascades:
  *   forced placements (unknowns == needed) and trivial marks (quota met).
  * Repeats until stable or a basic violation is found.
- *
- * Returns the propagated state for rules to check against.
  */
 
-import { Board, CellState } from "./types";
+import { Board, CellState, Coord } from "./types";
 import { BoardAnalysis } from "./boardAnalysis";
-import { buildMarkedCellSet } from "./neighbors";
-import { findForcedStars } from "./findForcedStars";
+import { buildMarkedCellSet, cellKey } from "./neighbors";
 
 export type ViolationType = null | "adjacency" | "row" | "col" | "region";
 
 export type PropagatedState = {
   violation: ViolationType;
-  starKeys: Set<string>;
-  marked: Set<string>;
+  starKeys: Set<number>;
+  marked: Set<number>;
 };
 
 export function propagateHypothetical(
@@ -30,23 +26,17 @@ export function propagateHypothetical(
   analysis: BoardAnalysis,
 ): PropagatedState {
   const { size } = analysis;
-  const starKeys = new Set([`${row},${col}`]);
+  const starKeys = new Set([cellKey(row, col, size)]);
   const marked = new Set(buildMarkedCellSet(row, col, size));
   const maxRounds = size * board.stars;
 
   for (let round = 0; round < maxRounds; round++) {
-    applyTrivialMarks(board, cells, starKeys, marked, size, analysis);
+    const { violation, forced } = scanBoard(board, cells, starKeys, marked, size, analysis);
+    if (violation !== null) return { violation, starKeys, marked };
+    if (forced.length === 0) break;
 
-    const violation = findViolation(board, cells, starKeys, marked, size, analysis);
-    if (violation !== null) {
-      return { violation, starKeys, marked };
-    }
-
-    const newForced = findForcedStars(board, cells, starKeys, marked, analysis);
-    if (newForced.length === 0) break;
-
-    for (const [fr, fc] of newForced) {
-      starKeys.add(`${fr},${fc}`);
+    for (const [fr, fc] of forced) {
+      starKeys.add(cellKey(fr, fc, size));
       for (const key of buildMarkedCellSet(fr, fc, size)) {
         marked.add(key);
       }
@@ -56,119 +46,116 @@ export function propagateHypothetical(
   return { violation: null, starKeys, marked };
 }
 
-/** Mark remaining unknowns in any row/col/region that has reached its star quota. */
-function applyTrivialMarks(
+/**
+ * Single pass over rows, columns, and regions under hypothetical state.
+ *
+ * For each container, counts stars and remaining unknowns, then:
+ *   needed <= 0        → mark remaining unknowns (trivial)
+ *   remaining < needed → violation
+ *   remaining == needed → forced placements
+ */
+function scanBoard(
   board: Board,
   cells: CellState[][],
-  starKeys: Set<string>,
-  marked: Set<string>,
+  starKeys: Set<number>,
+  marked: Set<number>,
   size: number,
   analysis: BoardAnalysis,
-): void {
-  for (let r = 0; r < size; r++) {
-    let stars = 0;
-    const unknowns: string[] = [];
-    for (let c = 0; c < size; c++) {
-      const key = `${r},${c}`;
-      if (cells[r][c] === "star" || starKeys.has(key)) stars++;
-      else if (cells[r][c] === "unknown" && !marked.has(key))
-        unknowns.push(key);
-    }
-    if (stars >= board.stars) {
-      for (const key of unknowns) marked.add(key);
-    }
-  }
-
-  for (let c = 0; c < size; c++) {
-    let stars = 0;
-    const unknowns: string[] = [];
-    for (let r = 0; r < size; r++) {
-      const key = `${r},${c}`;
-      if (cells[r][c] === "star" || starKeys.has(key)) stars++;
-      else if (cells[r][c] === "unknown" && !marked.has(key))
-        unknowns.push(key);
-    }
-    if (stars >= board.stars) {
-      for (const key of unknowns) marked.add(key);
-    }
-  }
-
-  for (const [, region] of analysis.regions) {
-    let extraStars = 0;
-    const unknowns: string[] = [];
-    for (const [r, c] of region.unknownCoords) {
-      if (cells[r][c] !== "unknown") continue;
-      const key = `${r},${c}`;
-      if (starKeys.has(key)) extraStars++;
-      else if (!marked.has(key)) unknowns.push(key);
-    }
-    if (extraStars >= region.starsNeeded) {
-      for (const key of unknowns) marked.add(key);
-    }
-  }
-}
-
-/** Find the first violated constraint, or null if none. */
-function findViolation(
-  board: Board,
-  cells: CellState[][],
-  starKeys: Set<string>,
-  marked: Set<string>,
-  size: number,
-  analysis: BoardAnalysis,
-): ViolationType {
-  const stars: [number, number][] = [];
+): { violation: ViolationType; forced: Coord[] } {
+  // Adjacency check
+  const starCoords: [number, number][] = [];
   for (const key of starKeys) {
-    const [r, c] = key.split(",").map(Number);
-    stars.push([r, c]);
+    starCoords.push([Math.floor(key / size), key % size]);
   }
-  for (let i = 0; i < stars.length; i++) {
-    for (let j = i + 1; j < stars.length; j++) {
+  for (let i = 0; i < starCoords.length; i++) {
+    for (let j = i + 1; j < starCoords.length; j++) {
       if (
-        Math.abs(stars[i][0] - stars[j][0]) <= 1 &&
-        Math.abs(stars[i][1] - stars[j][1]) <= 1
+        Math.abs(starCoords[i][0] - starCoords[j][0]) <= 1 &&
+        Math.abs(starCoords[i][1] - starCoords[j][1]) <= 1
       ) {
-        return "adjacency";
+        return { violation: "adjacency", forced: [] };
       }
     }
   }
 
+  const forced: Coord[] = [];
+  const seen = new Set(starKeys);
+
+  // Rows
   for (let r = 0; r < size; r++) {
-    let starCount = 0;
-    let remaining = 0;
+    let stars = 0;
+    const unknowns: number[] = [];
     for (let c = 0; c < size; c++) {
-      const key = `${r},${c}`;
-      if (cells[r][c] === "star" || starKeys.has(key)) starCount++;
-      else if (cells[r][c] === "unknown" && !marked.has(key)) remaining++;
+      const key = r * size + c;
+      if (cells[r][c] === "star" || starKeys.has(key)) stars++;
+      else if (cells[r][c] === "unknown" && !marked.has(key)) unknowns.push(key);
     }
-    const needed = board.stars - starCount;
-    if (needed < 0 || (needed > 0 && remaining < needed)) return "row";
+    const needed = board.stars - stars;
+    if (needed < 0) return { violation: "row", forced: [] };
+    if (needed === 0) {
+      for (const key of unknowns) marked.add(key);
+    } else if (unknowns.length < needed) {
+      return { violation: "row", forced: [] };
+    } else if (unknowns.length === needed) {
+      for (const key of unknowns) {
+        if (!seen.has(key)) {
+          seen.add(key);
+          forced.push([Math.floor(key / size), key % size]);
+        }
+      }
+    }
   }
 
+  // Columns
   for (let c = 0; c < size; c++) {
-    let starCount = 0;
-    let remaining = 0;
+    let stars = 0;
+    const unknowns: number[] = [];
     for (let r = 0; r < size; r++) {
-      const key = `${r},${c}`;
-      if (cells[r][c] === "star" || starKeys.has(key)) starCount++;
-      else if (cells[r][c] === "unknown" && !marked.has(key)) remaining++;
+      const key = r * size + c;
+      if (cells[r][c] === "star" || starKeys.has(key)) stars++;
+      else if (cells[r][c] === "unknown" && !marked.has(key)) unknowns.push(key);
     }
-    const needed = board.stars - starCount;
-    if (needed < 0 || (needed > 0 && remaining < needed)) return "col";
+    const needed = board.stars - stars;
+    if (needed < 0) return { violation: "col", forced: [] };
+    if (needed === 0) {
+      for (const key of unknowns) marked.add(key);
+    } else if (unknowns.length < needed) {
+      return { violation: "col", forced: [] };
+    } else if (unknowns.length === needed) {
+      for (const key of unknowns) {
+        if (!seen.has(key)) {
+          seen.add(key);
+          forced.push([Math.floor(key / size), key % size]);
+        }
+      }
+    }
   }
 
+  // Regions
   for (const [, region] of analysis.regions) {
     let extraStars = 0;
-    let remaining = 0;
+    const unknowns: number[] = [];
     for (const [r, c] of region.unknownCoords) {
       if (cells[r][c] !== "unknown") continue;
-      const key = `${r},${c}`;
+      const key = r * size + c;
       if (starKeys.has(key)) extraStars++;
-      else if (!marked.has(key)) remaining++;
+      else if (!marked.has(key)) unknowns.push(key);
     }
     const needed = region.starsNeeded - extraStars;
-    if (needed < 0 || (needed > 0 && remaining < needed)) return "region";
+    if (needed < 0) return { violation: "region", forced: [] };
+    if (needed === 0) {
+      for (const key of unknowns) marked.add(key);
+    } else if (unknowns.length < needed) {
+      return { violation: "region", forced: [] };
+    } else if (unknowns.length === needed) {
+      for (const key of unknowns) {
+        if (!seen.has(key)) {
+          seen.add(key);
+          forced.push([Math.floor(key / size), key % size]);
+        }
+      }
+    }
   }
 
-  return null;
+  return { violation: null, forced };
 }

@@ -111,10 +111,10 @@ export const allRules: RuleEntry[] = [
   { rule: groupTilingCountingMarkRow, level: 6, name: "Group Tiling Counting Mark Rows" },
   { rule: groupTilingCountingMarkColumn, level: 6, name: "Group Tiling Counting Mark Columns" },
 
-  // Level 7: Direct Hypotheticals
-  { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },
-  { rule: hypotheticalColumnCount, level: 7, name: "Hypothetical Column Count" },
-  { rule: hypotheticalRegionCount, level: 7, name: "Hypothetical Region Count" },
+  // // Level 7: Direct Hypotheticals
+  // { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },
+  // { rule: hypotheticalColumnCount, level: 7, name: "Hypothetical Column Count" },
+  // { rule: hypotheticalRegionCount, level: 7, name: "Hypothetical Region Count" },
 
   // Level 8: Tiling Hypotheticals
   { rule: hypotheticalRowCapacity, level: 8, name: "Hypothetical Row Capacity" },

@@ -1,52 +1,58 @@
 /**
- * Max-flow based hypothetical confinement violation detection.
+ * Shared counting violation check for propagated hypothetical state.
  *
- * For a hypothetical star at (starRow, starCol) with neighbors in markedCells,
- * checks if any group of rows (or columns) now needs more stars than its
- * touching regions can provide — using a single max-flow computation instead
- * of O(2^N) bitmask enumeration.
+ * Builds a CountingFlowInput from the propagated stars/marks and
+ * checks if any group of lines needs more stars than regions can provide.
  */
 
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
+import { cellKey } from "../../helpers/neighbors";
 import { hasCountingViolation, CountingFlowInput } from "../../helpers/countingFlow";
 
-export function hypotheticalConfinementViolation(
+export function propagatedCountingViolation(
   board: Board,
   cells: CellState[][],
+  starKeys: Set<number>,
+  marked: Set<number>,
   analysis: BoardAnalysis,
-  starRow: number,
-  starCol: number,
-  markedCells: Set<string>,
   axis: "row" | "col",
 ): boolean {
   const { size, regions } = analysis;
-  const starRegionId = board.grid[starRow][starCol];
   const axisStars = axis === "row" ? analysis.rowStars : analysis.colStars;
-  const starAxis = axis === "row" ? starRow : starCol;
 
-  // Build flow input under hypothesis
+  const hypStarsPerAxis = new Array(size).fill(0);
+  const hypStarsPerRegion = new Map<number, number>();
+  for (const key of starKeys) {
+    const r = Math.floor(key / size);
+    const c = key % size;
+    const idx = axis === "row" ? r : c;
+    hypStarsPerAxis[idx]++;
+    const regionId = board.grid[r][c];
+    hypStarsPerRegion.set(regionId, (hypStarsPerRegion.get(regionId) || 0) + 1);
+  }
+
   const axisNeeded = new Array(size);
   for (let i = 0; i < size; i++) {
-    axisNeeded[i] = board.stars - axisStars[i] - (i === starAxis ? 1 : 0);
+    axisNeeded[i] = board.stars - axisStars[i] - hypStarsPerAxis[i];
   }
 
   const regionInfos: CountingFlowInput["regionInfos"] = [];
   for (const [id, meta] of regions) {
-    const needed = meta.starsNeeded - (id === starRegionId ? 1 : 0);
+    const needed = meta.starsNeeded - (hypStarsPerRegion.get(id) || 0);
     if (needed <= 0) continue;
 
     const unknownsByAxis = new Array(size).fill(0);
     let total = 0;
     for (const [r, c] of meta.unknownCoords) {
       if (cells[r][c] !== "unknown") continue;
-      if (markedCells.has(`${r},${c}`)) continue;
+      const key = cellKey(r, c, size);
+      if (starKeys.has(key) || marked.has(key)) continue;
       const idx = axis === "row" ? r : c;
       unknownsByAxis[idx]++;
       total++;
     }
 
-    // Region needs stars but has no available unknowns — immediate violation
     if (total < needed) return true;
 
     regionInfos.push({
