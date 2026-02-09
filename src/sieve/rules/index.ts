@@ -18,10 +18,8 @@ import tilingAdjacencyMarks from "./04-tilingEnumeration/tilingAdjacencyMarks";
 import tilingOverhangMarks from "./04-tilingEnumeration/tilingOverhangMarks";
 
 // Level 3: Counting Enumerations
-import overcountingMarkRow from "./05-countingEnumeration/overcountingMarkRow";
-import overcountingMarkColumn from "./05-countingEnumeration/overcountingMarkColumn";
-import undercountingMarkRow from "./05-countingEnumeration/undercountingMarkRow";
-import undercountingMarkColumn from "./05-countingEnumeration/undercountingMarkColumn";
+import countingMarkRow from "./05-countingEnumeration/countingMarkRow";
+import countingMarkColumn from "./05-countingEnumeration/countingMarkColumn";
 
 // Level 4: Tiling Counting
 import tilingCountingMarkRow from "./06-tilingCountingEnumeration/tilingCountingMarkRow";
@@ -95,10 +93,8 @@ export const allRules: RuleEntry[] = [
   { rule: tilingOverhangMarks, level: 2, name: "Tiling Overhang Marks" },
 
   // Level 3: Counting Enumerations
-  { rule: overcountingMarkRow, level: 3, name: "Overcounting Mark Rows" },
-  { rule: overcountingMarkColumn, level: 3, name: "Overcounting Mark Columns" },
-  { rule: undercountingMarkRow, level: 3, name: "Undercounting Mark Rows" },
-  { rule: undercountingMarkColumn, level: 3, name: "Undercounting Mark Columns" },
+  { rule: countingMarkRow, level: 3, name: "Counting Mark Rows" },
+  { rule: countingMarkColumn, level: 3, name: "Counting Mark Columns" },
 
   // Level 4: Tiling Counting
   { rule: tilingCountingMarkRow, level: 4, name: "Tiling Counting Mark Rows" },
