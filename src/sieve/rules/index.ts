@@ -71,10 +71,6 @@ export type RuleEntry = {
 };
 
 export const allRules: RuleEntry[] = [
-
-
-
-
   // Level 1: Direct Inferences
   { rule: starNeighbors, level: 1, name: "Star Neighbors" },
   { rule: forcedRow, level: 1, name: "Forced Rows" },
@@ -103,8 +99,6 @@ export const allRules: RuleEntry[] = [
   { rule: tilingCountingForcedRow, level: 4, name: "Tiling Counting Forced Rows" },
   { rule: tilingCountingForcedColumn, level: 4, name: "Tiling Counting Forced Columns" },
 
-
-
   // Level 5: Squeeze
   { rule: squeezeForcedRow, level: 5, name: "Squeeze Forced Rows" },
   { rule: squeezeForcedColumn, level: 5, name: "Squeeze Forced Columns" },
@@ -112,10 +106,10 @@ export const allRules: RuleEntry[] = [
   { rule: squeezeAdjacencyColumn, level: 5, name: "Squeeze Adjacency Columns" },
   { rule: squeezeOverhangRow, level: 5, name: "Squeeze Overhang Rows" },
   { rule: squeezeOverhangColumn, level: 5, name: "Squeeze Overhang Columns" },
-    // Level 6: Group Tiling Counting
+
+  // Level 6: Group Tiling Counting
   { rule: groupTilingCountingMarkRow, level: 6, name: "Group Tiling Counting Mark Rows" },
   { rule: groupTilingCountingMarkColumn, level: 6, name: "Group Tiling Counting Mark Columns" },
-
 
   // Level 7: Direct Hypotheticals
   { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },
