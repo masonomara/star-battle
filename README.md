@@ -1,39 +1,23 @@
 # Star Battle Generator
 
-Star Battle puzzle generator using inference rules that emulate human deduction to produce solvable puzzles without brute-force guessing or backtracking.
+<!-- TODO: replace with actual gif -->
 
-### Why Production Rules?
+![Solver in action](assets/solver-demo.gif)
 
-Generating a puzzle with a valid layout and satisfies Star Battle Rules is easy. However, a valid layout may not be solvable by human deduction without guessing. This game is meant to be played by humans. Each rule is logical and able to be computed by a human.
+A production rule system that generates human-solvable Star Battle puzzles using formalized deduction techniques — no brute-force guessing or backtracking. See [Production Rules](PRODUCTION_RULES.md) for the full system framework.
 
-### Star Battle Constraints
+## Why Production Rules?
 
-- Each row, column, and region must contain exactly _n_ stars
-- Stars cannot touch horizontally, vertically, or diagonally
+Generating a valid Star Battle layout is easy. Generating one that a human can solve through logic alone is hard. Each production rule in this system corresponds to a deduction a human can perform — the solver never guesses, so neither does the player.
 
-### Key Components
+## Architecture
 
-- **Generator** – produces a randomized grid divided into _n_ regions, validates star placement via 2×2 tiling
-- **Solver** – executes inference rules from simple to complex
-- **Inference Rules** – logical solving techniques a human can perform, based on [Kris De Asis's Star Battle Guide](https://kris.pengy.ca/starbattle)
-- **Sieve** – orchestrates generation and solving, assigns difficulty ratings
+- **Generator** — Produces randomized grids with region layouts and validates boards with tiling assignment.
+- **Solver** — Applies production rules in logical order until a solution or invalid state is reached.
+- **Production Rules** — Logical solving techniques a human can perform, derived from [Kris De Asis's Star Battle Guide](https://kris.pengy.ca/starbattle) and [KrazyDad's Two Not Touch Advanced Tutorial](https://krazydad.com/twonottouch/adv_tutorial/).
+- **Sieve** — Coordinates generation and solving. Assigns difficulty ratings based on rule usage.
 
-## Project Structure
-
-```
-src/sieve/
-├── cli.ts          # CLI interface
-├── sieve.ts        # Sieve orchestrator
-├── generator.ts    # Board generator
-├── solver.ts       # Rule-based solver
-├── helpers/        # Shared utilities (tiling, regions, types)
-└── rules/          # One folder per rule with implementation + tests
-    ├── 01-starNeighbors/
-    ├── 02-rowComplete/
-    └── ...         # 14 rules total
-```
-
-## Get Started
+## Getting Started
 
 ```bash
 git clone https://github.com/masonomara/star-battle.git
@@ -44,36 +28,40 @@ npm install
 ### Generate Puzzles
 
 ```bash
-npm run sieve                    # Default: 10×10 grid, 2 stars
-npm run sieve -- --size 8        # 8×8 grid
-npm run sieve -- --stars 1       # 1 star per row/column/region
-npm run sieve -- --count 5       # Generate 5 puzzles
-npm run sieve -- --seed 42       # Reproducible output
+npx tsx src/sieve/cli.ts                        # Default: 10x10, 2 stars
+npx tsx src/sieve/cli.ts --size 8               # 8x8 grid
+npx tsx src/sieve/cli.ts --stars 1              # 1 star per container
+npx tsx src/sieve/cli.ts --count 5              # Generate 5 puzzles
+npx tsx src/sieve/cli.ts --seed 42              # Reproducible output
+npx tsx src/sieve/cli.ts --seed 42 --trace      # Step-by-step solve trace
+```
+
+### Solve a Custom Puzzle
+
+Pass a puzzle string directly using the `.sbn` format — `{size}x{stars}.{layout}`:
+
+```bash
+# 10x10, 2 stars — layout is 100 region characters (A-J), read left-to-right top-to-bottom
+npx tsx src/sieve/cli.ts --puzzle "10x2.AAAABBBBBCDDDDBEEBBCDDDDBECBCCDDBBBECCCCDDBBBEFCCCDDGGFFFGGCDDGGFGGGGCHGGGGGGGICHGGJJJJGIIHGIIIIIIII"
+
+# With trace to see each rule fire
+npx tsx src/sieve/cli.ts --puzzle "10x2.AAAABBBBBCDDDDBEEBBCDDDDBECBCCDDBBBECCCCDDBBBEFCCCDDGGFFFGGCDDGGFGGGGCHGGGGGGGICHGGJJJJGIIHGIIIIIIII" --trace
+```
+
+You can also solve a batch from a file (one puzzle string per line):
+
+```bash
+npx tsx src/sieve/cli.ts --file my-puzzles.sbn
+npx tsx src/sieve/cli.ts --file my-puzzles.sbn --verbose
+npx tsx src/sieve/cli.ts --file my-puzzles.sbn --unsolved   # Only show failures
 ```
 
 ### Filter by Difficulty
 
 ```bash
-npm run sieve -- --minDiff 20              # Only harder puzzles
-npm run sieve -- --maxDiff 10              # Only easier puzzles
-npm run sieve -- --minDiff 15 --maxDiff 25 # Specific range
-```
-
-### Trace Solve Steps
-
-```bash
-# Requires `--seed`
-npm run sieve -- --seed 42 --trace
-```
-
-### Solve Custom Puzzles
-
-```bash
-# Each number is a region
-echo "0 0 1 1
-0 0 1 1
-2 2 3 3
-2 2 3 3" | npm run sieve -- --stars 1
+npx tsx src/sieve/cli.ts --minDiff 20              # Harder puzzles only
+npx tsx src/sieve/cli.ts --maxDiff 10              # Easier puzzles only
+npx tsx src/sieve/cli.ts --minDiff 15 --maxDiff 25 # Specific range
 ```
 
 ### Run Tests
@@ -84,76 +72,39 @@ npm test
 
 ### CLI Reference
 
-- `--size` – Grid size. Default 10. Accepts 4–25
-- `--stars` – Stars per row/column/region. Default 2. Accepts 1–6
-- `--count` – Puzzles to generate. Default 1. Accepts 1–300
-- `--seed` – Deterministic seed. Random by default
-- `--minDiff` – Minimum difficulty
-- `--maxDiff` – Maximum difficulty
-- `--trace` – Show solve steps (requires `--seed`)
-- `--help` – Show options
+- `--size` — Grid size (4–25, default: 10)
+- `--stars` — Stars per container (1–6, default: 2)
+- `--count` — Puzzles to generate (1–300, default: 1)
+- `--seed` — Deterministic seed (random by default)
+- `--minDiff` — Minimum difficulty
+- `--maxDiff` — Maximum difficulty
+- `--puzzle` — Solve a single puzzle string
+- `--file` — Solve puzzles from a `.sbn` file
+- `--verbose` — Show details per puzzle
+- `--unsolved` — Only output unsolved puzzles
+- `--trace` — Step-by-step solve trace
+- `--help` — Show options
 
-## Inference Rules
+## Production Rules Overview
 
-### Level 1: Trivial Marks
+Rules combine an **Observation** (how you see the board) with a **Technique** (how you reason) to produce a **Deduction** (mark or placement). The solver cycles through rules in order, restarting from the top whenever a rule fires.
 
-1. **Star Neighbors** – When a star is placed, mark all unknown neighbors as eliminated.
+1. **Star Neighbors** — Direct × Inference
+2. **Forced Placements** — Direct × Inference
+3. **Trivial Marks** — Direct × Inference
+4. **Tiling Enumeration** — Tiling × Enumeration
+5. **Counting Enumerations** — Counting × Enumeration
+6. **Tiling Pairs** — Tiling × Enumeration
+7. **Tiling Counting** — Tiling + Counting × Enumeration
+8. **Direct Hypotheticals** — Direct × Hypothetical
+9. **Tiling Hypotheticals** — Tiling × Hypothetical
+10. **Counting Hypotheticals** — Counting × Hypothetical
+11. **Propagated Hypotheticals** — Direct + Tiling + Counting × Hypothetical
 
-2. **Row Complete** – When a row has all its stars, mark the remaining unknown cells
+See [Production Rules](PRODUCTION_RULES.md) for full definitions of each rule.
 
-3. **Column Complete** – When a column has all its stars, mark the remaining unknown cells
+## Results
 
-4. **Region Complete** – When a column has all its stars, mark the remaining unknown cells
+<!-- TODO: replace with actual screenshot -->
 
-5. **Forced Placement** – When the number of unknown cells in each row/column/region equals the number of stars needed to complete the row/column/region, place the stars in the unknown cells
-
-### Level 2: Counting
-
-6. **Undercounting** – When _n_ regions are completely contained within _n_ rows/columns, mark all cells within those rows/columns that are not in the contained regions.
-
-7. **Overcounting** – When _n_ regions completely contain _n_ rows/columns, mark all cells within those contained regions that are outside the set rows/columns.
-
-### Level 3: Tiling
-
-8. **2×2 Tiling** – Apply "Dancing Links" `src/sieve/helpers/dlx.ts` to tile regions with 2×2 tiles. Each 2×2 must have exactly one star. Stars and marks that are single-coverage in all tiling combinations are forced.
-
-### Level 4: Confinement
-
-9. **1×n Confinement** – When a region's unknown cells are confined to a single row/column, its stars must go there. If the confined regions account for all stars a row/column needs, mark cells outside those regions.
-
-10. **Exclusion** – Mark cells where placing a star would make a row/column/region unable to fit its required stars. Single-depth search, deduced with **2×2 Tiling**.
-
-### Level 5: Pressure
-
-11. **Pressured Exclusion** – Like **Exclusion**, but considers **1×n Confinements** that span multiple regions. Mark cells where placing a star would make a region/row/column unable to fit all required stars. Single-depth search, deduced with **2×2 Tiling** and **1×n Confinement**.
-
-12. **Finned Counts** – Check for **Exclusion** scenarios when placing a star would violate an undercounting or overcounting scenario. Mark cells where **Exclusion** occurs.
-
-13. **The Squeeze** – Create side-by-side column/row pairs and run 2x2 tiling. Apply stars when **Forced Placements** occur, mark cells where **Exclusion** occurs.
-
-### Level 6: Composite Regions
-
-14. **Composite Regions** – Combine regions with known star counts into composite regions. If _n_ regions are contained by _m_ rows/columns (_m_ > _n_) and the leftover area has (_m_ - _n_) × _stars_, apply tiling logic to composites for **Forced Placement** and **Exclusion**.
-
-## Future Plans
-
-React Native mobile app with puzzle libraries and daily/weekly/monthly challenges.
-
-
-Wht was the big problem: 
-
-I attatcked the production rules as "simulations of what the human mind does" when they shoudl really be "programs that validate and replicate human intuition"
-
-## 01. Star Neighbors
-
-Mark all 8 neighboring cells for each star
-
-## 02. Trivial Marks
-
-Mark all unknown cells in each container when the stars are satisfied
-
-## 03. Complete Containers
-
-Fill in all stars when only x amount of unknowns reamin
-
-- 
+![Benchmark results](assets/results.png)
