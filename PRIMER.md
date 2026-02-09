@@ -69,21 +69,23 @@ Production rules are a series of applied "Observations -> Techniques -> Deductio
 
 **Counting Marks:** If a tight constraint forces a region to place all its remaining stars inside a line group, then the region's cells outside the lane group cannot be stars, so mark them.
 
-### Squeeze
+### Tilign Pairs
 
-**Key Observation:** Tiling applied to consecutive row/column pairs. If a pair of consecutive rows/columns has a tiling capacity equal to its combined needed stars, then each tile must contribute exactly one star.
+**Key Observation:** Tiling Pairs can be applied to consecutive row/column pairs. If a pair of consecutive rows/columns has a maximum tiling capacity equal to its combined needed stars, then each tile must contribute exactly one star.
 
-**Squeeze Forced:** If a cell is a star in every valid tiling of the pair, then it must be a star, so place a star.
+**Tiling Pairs Forced:** If a cell is a star in every valid tiling of the pair, then it must be a star, so place a star.
 
-**Squeeze Adjacency:** If a cell never appears as a star in any valid tiling assignment across the consecutive pair, then it can't be a star, so mark that cell.
+**Tiling Pairs Adjacency:** If a cell never appears as a star in any valid tiling assignment across the consecutive pair, then it can't be a star, so mark that cell.
 
-**Squeeze Overhang:** If a cell outside the pair of consecutive rows/columns is covered by a tile in every valid tiling of the pair, then that cell can't be a star, so mark the cell.
+**Tiling Pairs Overhang:** If a cell outside the pair of consecutive rows/columns is covered by a tile in every valid tiling of the pair, then that cell can't be a star, so mark the cell.
 
 ### Tiling Counting
 
 **Tiling Counting Observation:** For a line (row or column), each touching region must place a minimum number of stars in that line — computed as `starsNeeded − capacity(cells outside the line)`. If the sum of these minimums equals the line's star quota, every region contributes exactly its minimum. "These regions must each send at least this many stars into the line. Together, that's all the line needs. No room for anyone else."
 
 **Tiling Counting Marks:** If a region's minimum contribution to the line is zero, its cells in the line can't be stars, so mark them.
+
+**Grouped Tiling COunting Marks**. If a regions;s minimu contribution toa. group of lines is zero, its cells in the lines cant be stars, so mark them. Note that Grouped tiling completely supercedes single line tilign coutning, seperated for solver executuion simplicity and amtchign human hueristics.
 
 ### Direct Hypotheticals
 
