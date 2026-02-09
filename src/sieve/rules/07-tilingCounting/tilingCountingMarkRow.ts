@@ -1,6 +1,6 @@
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { tilingCountingLoop } from "../../helpers/tilingCountingHelper";
+import { tilingCountingLoop } from "../../helpers/tilingCounting";
 
 export default function tilingCountingMarkRow(
   board: Board,
