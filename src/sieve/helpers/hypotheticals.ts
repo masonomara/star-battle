@@ -7,7 +7,7 @@
 import { Board, CellState, Coord } from "./types";
 import { BoardAnalysis } from "./boardAnalysis";
 import { buildMarkedCellSet, cellKey, cellsAreAdjacent } from "./neighbors";
-import { hasCountingViolation, CountingFlowInput } from "./countingFlow";
+import { hasCountingViolation, CountingFlowInput } from "./counting";
 
 // ── Types ──────────────────────────────────────────────────────────────
 
