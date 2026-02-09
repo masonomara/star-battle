@@ -32,6 +32,8 @@ import tilingCountingMarkRow from "./06-tiling-counting/tilingCountingMarkRow";
 import tilingCountingMarkColumn from "./06-tiling-counting/tilingCountingMarkColumn";
 import tilingCountingForcedRow from "./06-tiling-counting/tilingCountingForcedRow";
 import tilingCountingForcedColumn from "./06-tiling-counting/tilingCountingForcedColumn";
+import groupTilingCountingMarkRow from "./06-tiling-counting/groupTilingCountingMarkRow";
+import groupTilingCountingMarkColumn from "./06-tiling-counting/groupTilingCountingMarkColumn";
 
 import hypotheticalRowCount from "./07-direct-hypotheticals/hypotheticalRowCount";
 import hypotheticalColumnCount from "./07-direct-hypotheticals/hypotheticalColumnCount";
@@ -47,11 +49,14 @@ import hypotheticalCountingColumn from "./09-confinement-hypotheticals/hypotheti
 import propagatedRowCount from "./10-propagated-hypotheticals/propagatedRowCount";
 import propagatedColumnCount from "./10-propagated-hypotheticals/propagatedColumnCount";
 import propagatedRegionCount from "./10-propagated-hypotheticals/propagatedRegionCount";
-import propagatedRowCapacity from "./10-propagated-hypotheticals/propagatedRowCapacity";
 import propagatedColumnCapacity from "./10-propagated-hypotheticals/propagatedColumnCapacity";
+
 import propagatedRegionCapacity from "./10-propagated-hypotheticals/propagatedRegionCapacity";
-import propagatedCountingRow from "./10-propagated-hypotheticals/propagatedCountingRow";
+import propagatedRowCapacity from "./10-propagated-hypotheticals/propagatedRowCapacity";
 import propagatedCountingColumn from "./10-propagated-hypotheticals/propagatedCountingColumn";
+
+import propagatedCountingRow from "./10-propagated-hypotheticals/propagatedCountingRow";
+
 
 export type Rule = (
   board: Board,
@@ -66,6 +71,10 @@ export type RuleEntry = {
 };
 
 export const allRules: RuleEntry[] = [
+
+
+
+
   // Level 1: Direct Inferences
   { rule: starNeighbors, level: 1, name: "Star Neighbors" },
   { rule: forcedRow, level: 1, name: "Forced Rows" },
@@ -89,26 +98,12 @@ export const allRules: RuleEntry[] = [
   { rule: countingForcedColumn, level: 3, name: "Counting Forced Columns" },
 
   // Level 4: Tiling Counting
-  {
-    rule: tilingCountingMarkRow,
-    level: 4,
-    name: "Tiling Counting Mark Rows",
-  },
-  {
-    rule: tilingCountingMarkColumn,
-    level: 4,
-    name: "Tiling Counting Mark Columns",
-  },
-  {
-    rule: tilingCountingForcedRow,
-    level: 4,
-    name: "Tiling Counting Forced Rows",
-  },
-  {
-    rule: tilingCountingForcedColumn,
-    level: 4,
-    name: "Tiling Counting Forced Columns",
-  },
+  { rule: tilingCountingMarkRow, level: 4, name: "Tiling Counting Mark Rows" },
+  { rule: tilingCountingMarkColumn, level: 4, name: "Tiling Counting Mark Columns" },
+  { rule: tilingCountingForcedRow, level: 4, name: "Tiling Counting Forced Rows" },
+  { rule: tilingCountingForcedColumn, level: 4, name: "Tiling Counting Forced Columns" },
+
+
 
   // Level 5: Squeeze
   { rule: squeezeForcedRow, level: 5, name: "Squeeze Forced Rows" },
@@ -117,90 +112,34 @@ export const allRules: RuleEntry[] = [
   { rule: squeezeAdjacencyColumn, level: 5, name: "Squeeze Adjacency Columns" },
   { rule: squeezeOverhangRow, level: 5, name: "Squeeze Overhang Rows" },
   { rule: squeezeOverhangColumn, level: 5, name: "Squeeze Overhang Columns" },
+    // Level 6: Group Tiling Counting
+  { rule: groupTilingCountingMarkRow, level: 6, name: "Group Tiling Counting Mark Rows" },
+  { rule: groupTilingCountingMarkColumn, level: 6, name: "Group Tiling Counting Mark Columns" },
+
 
   // Level 7: Direct Hypotheticals
   { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },
-  {
-    rule: hypotheticalColumnCount,
-    level: 7,
-    name: "Hypothetical Column Count",
-  },
-  {
-    rule: hypotheticalRegionCount,
-    level: 7,
-    name: "Hypothetical Region Count",
-  },
+  { rule: hypotheticalColumnCount, level: 7, name: "Hypothetical Column Count" },
+  { rule: hypotheticalRegionCount, level: 7, name: "Hypothetical Region Count" },
 
   // Level 8: Tiling Hypotheticals
-  {
-    rule: hypotheticalRowCapacity,
-    level: 8,
-    name: "Hypothetical Row Capacity",
-  },
-  {
-    rule: hypotheticalColumnCapacity,
-    level: 8,
-    name: "Hypothetical Column Capacity",
-  },
-  {
-    rule: hypotheticalRegionCapacity,
-    level: 8,
-    name: "Hypothetical Region Capacity",
-  },
+  { rule: hypotheticalRowCapacity, level: 8, name: "Hypothetical Row Capacity" },
+  { rule: hypotheticalColumnCapacity, level: 8, name: "Hypothetical Column Capacity" },
+  { rule: hypotheticalRegionCapacity, level: 8, name: "Hypothetical Region Capacity" },
 
   // Level 9: Counting Hypotheticals
-  {
-    rule: hypotheticalCountingRow,
-    level: 9,
-    name: "Hypothetical Counting Row",
-  },
-  {
-    rule: hypotheticalCountingColumn,
-    level: 9,
-    name: "Hypothetical Counting Column",
-  },
+  { rule: hypotheticalCountingRow, level: 9, name: "Hypothetical Counting Row" },
+  { rule: hypotheticalCountingColumn, level: 9, name: "Hypothetical Counting Column" },
 
   // Level 10: Propagated Hypotheticals
-  {
-    rule: propagatedRowCount,
-    level: 10,
-    name: "Propagated Hypothetical Row Count",
-  },
-  {
-    rule: propagatedColumnCount,
-    level: 10,
-    name: "Propagated Hypothetical Column Count",
-  },
-  {
-    rule: propagatedRegionCount,
-    level: 10,
-    name: "Propagated Hypothetical Region Count",
-  },
-  {
-    rule: propagatedRowCapacity,
-    level: 10,
-    name: "Propagated Hypothetical Row Capacity",
-  },
-  {
-    rule: propagatedColumnCapacity,
-    level: 10,
-    name: "Propagated Hypothetical Column Capacity",
-  },
-  {
-    rule: propagatedRegionCapacity,
-    level: 10,
-    name: "Propagated Hypothetical Region Capacity",
-  },
-  {
-    rule: propagatedCountingRow,
-    level: 10,
-    name: "Propagated Hypothetical Counting Row",
-  },
-  {
-    rule: propagatedCountingColumn,
-    level: 10,
-    name: "Propagated Hypothetical Counting Column",
-  },
+  { rule: propagatedRowCount, level: 10, name: "Propagated Hypothetical Row Count" },
+  { rule: propagatedColumnCount, level: 10, name: "Propagated Hypothetical Column Count" },
+  { rule: propagatedRegionCount, level: 10, name: "Propagated Hypothetical Region Count" },
+  { rule: propagatedRowCapacity, level: 10, name: "Propagated Hypothetical Row Capacity" },
+  { rule: propagatedColumnCapacity, level: 10, name: "Propagated Hypothetical Column Capacity" },
+  { rule: propagatedRegionCapacity, level: 10, name: "Propagated Hypothetical Region Capacity" },
+  { rule: propagatedCountingRow, level: 10, name: "Propagated Hypothetical Counting Row" },
+  { rule: propagatedCountingColumn, level: 10, name: "Propagated Hypothetical Counting Column" },
 ];
 
 /** Rule metadata for external use (e.g., CLI reporting) */
