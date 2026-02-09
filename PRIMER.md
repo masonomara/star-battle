@@ -4,7 +4,7 @@
 
 1. **Star Neighbors:** No star can neighbor another star (horizontally, vertically, or diagonally)
 2. **Star Quotas:** Each row, column, and region must contain exactly N stars
-
+3. 
 ---
 
 ## Decisions
@@ -26,29 +26,21 @@ Humans don't think like how I described above. Humans think like humans. The too
 
 ## Production Rules
 
-Production rules are a series of applied "Observations -> Techniques -> Deductions" that are cycled through until a puzzle is solved or determined to be unsolvable.
+Production rules are a series of applied "Observations -> Techniques -> Deductions" that are cycled through until a puzzle is solved or determined to be unsolvable. The solver acts as a production system on top of a constrain satisfaction problem.
 
-A production system on top of a Constrain Satisfaction Problem
+**Observations - ways of seeing the board:**
 
-**Observations:**
+1. Direct - Raw cell and container state (which cells are unknown, how many stars a container still needs).
+2. Tiling - Derived from Star Neighbors rule. Given no two stars can be adjacent, every star can be contained within a 2x2 tile. Non-overlapping tiles placed on a container reveal the upper bound on it's stars.
+3. Counting - Derived from Star Quota rule. Given that each container (row/column/region) has a set needed amount fo stars, overlap between containers create forced deductions.
 
-Ways of seeing the board.
+**Techniques - how you apply observations:**
 
-1. Direct - Raw/container state. Used by simplest production rules
-2. Tiling - Derived from adjacency rules. Stars occupy 2x2 tiles across the board, deduced from star neighbors rule
-3. Counting - Derived from star quota. For a group of lines, count how many stars each region can contribute — tight constraints reveal forced deductions (Counting defintion is AI genrated language)
+1. Inferences - Direct constraint propagation. See the state, deduce immediately. No search.
+2. Enumerations - List all valid arrangements. What's a star in every arrangment must be a star. What's a mark in every configuration must be a mark.
+3. Hypotheticals - Assume a star placement, propagate deterministic consequences. If there is a contradiction, the assumption should be marked.
 
-**Techniques:**
-
-How you apply observations to reach deductions. See "On Guessing" for more details.
-
-1. Inferences - Direct constraint propagation, see the state, deduce immediately
-2. Enumerations - List all valid arrangements, make deductions from universal placements and marks
-3. Hypotheticals - Assume a placement, check for a contradiction, mark if broken
-
-**Deductions:**
-
-Actions derived from observations and techniques.
+**Deductions - actions taken:**
 
 1. Marks - this cell can't be a star
 2. Placements - this cell must be a star
@@ -57,9 +49,19 @@ Actions derived from observations and techniques.
 
 **Star Neighbors:** If a star is placed, then no star can touch it, so mark all of the star's surrounding neighbors diagonally, horizontally, and vertically.
 
-**Trivial Marks:** If a row/column/region has all its needed stars, then no more stars can be placed, so mark the remaining cells.
+**Trivial Marks:** If a container has all its needed stars, then no more stars can be placed, so mark the remaining cells.
 
-**Forced Placements:** If a row/column/region has the same number of unknown cells as needed stars, then those unknown cells must be the remaining stars, so place stars there.
+**Forced Placements:** If a container has the same number of unknown cells as needed stars, then those unknown cells must be the remaining stars, so place stars there.
+
+### Tiling Enumeration
+
+**Tiling Observation:** Given that no star can neighbor another star and two cells within a 2x2 tile would be neighbors, then each 2x2 tile can only hold one star. As a result, the maximum number of non-overlapping 2x2 tiles that fit in a container's unknown cells is the container's tilign capacity - the upper bound on the amount of stars that can be placed in that container. When a container's tiling capacity equals its needed stars, every tile must contribute exactly one star. Enumeration produces all valid tiling assignments.
+
+**Tiling Forced:** If a cell is a star in every valid tiling assignment of the container, then it must be a star, so place a star.
+
+**Tiling Adjacent:** If a cell is never a star in every valid tiling assignment of region, then it can't be a star, so mark the cell.
+
+**Tiling Overhang:** If a cell outside of a region is covered by a tile in every valid tiling assignment of the region, then that cell can't be a star, so mark the cell.
 
 ### Counting Enumerations
 
@@ -69,21 +71,11 @@ _implementation splits into row/column variants_
 
 **Counting Observation:** For any group of rows (or columns), each region within the group of rows/columnscan contribute at most min(its stars needed, its unknowns inside the group). If the sum of these max contributions exactly equals the group's combined star need, the constraint is tight — every region must contribute its max. "These lines need exactly this many stars. These regions can provide exactly this many. No slack."
 
-**Counting Observation** Given that for any group of rows/columns, each region within teh group of rows/columns can contribute at most its stars needed and unknowns inside the group 
+**Counting Observation** Given that for any group of rows/columns, each region within teh group of rows/columns can contribute at most its stars needed and unknowns inside the group
 
 **Counting Marks:** If a region must contribute all its remaining stars inside the group (max contribution equals its stars needed), then its cells outside the group can't be stars, so mark them.
 
 **Counting Forced:** If a region has exactly as many unknowns inside the group as it must contribute, those cells must all be stars, so place them.
-
-### Tiling Enumeration
-
-**Tiling Observation:** Given that stars cannot touch, you can fit all stars in a grid of 2x2 tiles. "Tiling" is a way of seeing the board split into 2x2 tiles, where you can make deductions based on overlap when you try to fit the tiles into a region or a pair of rows/columns. If a row/column/region's tiling capacity (max tiles placed) equals the needed stars, then every tile must contribute exactly one star.
-
-**Tiling Forced:** If a cell is a star in every valid tiling of the row/column/region, then it must be a star, so place a star.
-
-**Tiling Adjacent:** If a cell never appears as a star in a valid tiling assignment of a region, then it can't be a star, so mark the cell.
-
-**Tiling Overhang:** If a cell outside a region is covered by a tile in every valid tiling assignment of the region, then that cell can't be a star, so mark the cell.
 
 ### Squeeze
 
