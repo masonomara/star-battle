@@ -4,7 +4,7 @@
 
 1. **Star Neighbors:** No star can neighbor another star (horizontally, vertically, or diagonally)
 2. **Star Quotas:** Each row, column, and region must contain exactly N stars
-3. 
+
 ---
 
 ## Decisions
@@ -65,17 +65,9 @@ Production rules are a series of applied "Observations -> Techniques -> Deductio
 
 ### Counting Enumerations
 
-_AI-generated language_
+**Counting Observation:** Given that each container has a fixed star quota, overlap between containers create forced deductions. If a region overlapping a group of lines can contribute at most its remaining unplaced stars to those lines, capped by number of unknown cells in the overlap. If the sum of every region's maximum contribution equals the line group's combined needed stars, then the contriant is tight - each region must contribute its maximum contribution.
 
-_implementation splits into row/column variants_
-
-**Counting Observation:** For any group of rows (or columns), each region within the group of rows/columnscan contribute at most min(its stars needed, its unknowns inside the group). If the sum of these max contributions exactly equals the group's combined star need, the constraint is tight — every region must contribute its max. "These lines need exactly this many stars. These regions can provide exactly this many. No slack."
-
-**Counting Observation** Given that for any group of rows/columns, each region within teh group of rows/columns can contribute at most its stars needed and unknowns inside the group
-
-**Counting Marks:** If a region must contribute all its remaining stars inside the group (max contribution equals its stars needed), then its cells outside the group can't be stars, so mark them.
-
-**Counting Forced:** If a region has exactly as many unknowns inside the group as it must contribute, those cells must all be stars, so place them.
+**Counting Marks:** If a tight constraint forces a region to place all its remaining stars inside a line group, then the region's cells outside the lane group cannot be stars, so mark them.
 
 ### Squeeze
 
