@@ -1,134 +1,14 @@
-import { Board, CellState, SolverResult } from "./helpers/types";
-import starNeighbors from "./rules/01-starNeighbors/starNeighbors";
-import rowComplete from "./rules/02-rowComplete/rowComplete";
-import columnComplete from "./rules/03-columnComplete/columnComplete";
-import regionComplete from "./rules/04-regionComplete/regionComplete";
-import forcedPlacement from "./rules/05-forcedPlacement/forcedPlacement";
-import undercounting from "./rules/06-undercounting/undercounting";
-import overcounting from "./rules/07-overcounting/overcounting";
-import twoByTwoTiling from "./rules/08-twoByTwoTiling/twoByTwoTiling";
-import oneByNConfinement from "./rules/09-oneByNConfinement/oneByNConfinement";
-import exclusion from "./rules/10-exclusion/exclusion";
-import pressuredExclusion from "./rules/11-pressuredExclusion/pressuredExclusion";
-import finnedCounts from "./rules/12-finnedCounts/finnedCounts";
-import squeeze from "./rules/13-squeeze/squeeze";
-import compositeRegions from "./rules/14-compositeRegions/compositeRegions";
+import { Board, CellState, Progress, SolverResult, TilingResult } from "./helpers/types";
+import {
+  buildBoardStructure,
+  buildBoardAnalysis,
+  BoardAnalysis,
+} from "./helpers/boardAnalysis";
+import { computeTiling } from "./helpers/tiling";
+import { neighbors } from "./helpers/neighbors";
+import { allRules } from "./rules";
 
-/**
- * Check if a board layout is valid before attempting to solve.
- * Validates:
- * - Exactly `size` distinct regions exist
- * - For multi-star puzzles (stars > 1), each region has at least
- *   (stars * 2) - 1 cells to fit the required stars without touching.
- */
-export function isValidLayout(board: Board): boolean {
-  const size = board.grid.length;
-  const minRegionSize = board.stars > 1 ? board.stars * 2 - 1 : 1;
-  const regionSizes = new Map<number, number>();
-
-  for (const row of board.grid) {
-    for (const regionId of row) {
-      regionSizes.set(regionId, (regionSizes.get(regionId) ?? 0) + 1);
-    }
-  }
-
-  // Must have exactly `size` regions
-  if (regionSizes.size !== size) return false;
-
-  // Each region must meet minimum size requirement
-  for (const regionSize of regionSizes.values()) {
-    if (regionSize < minRegionSize) return false;
-  }
-
-  return true;
-}
-
-type Rule = (board: Board, cells: CellState[][]) => boolean;
-
-const allRules: { rule: Rule; level: number; name: string }[] = [
-  { rule: starNeighbors, level: 1, name: "Star Neighbors" },
-  { rule: rowComplete, level: 1, name: "Row Complete" },
-  { rule: columnComplete, level: 1, name: "Column Complete" },
-  { rule: regionComplete, level: 1, name: "Region Complete" },
-  { rule: forcedPlacement, level: 1, name: "Forced Placement" },
-  { rule: undercounting, level: 2, name: "Undercounting" },
-  { rule: overcounting, level: 2, name: "Overcounting" },
-  { rule: twoByTwoTiling, level: 3, name: "2×2 Tiling" },
-  { rule: oneByNConfinement, level: 4, name: "1×n Confinement" },
-  { rule: exclusion, level: 4, name: "Exclusion" },
-  { rule: pressuredExclusion, level: 5, name: "Pressured Exclusion" },
-  { rule: finnedCounts, level: 5, name: "Finned Counts" },
-  { rule: squeeze, level: 5, name: "The Squeeze" },
-  { rule: compositeRegions, level: 6, name: "Composite Regions" },
-];
-
-const MAX_CYCLES = 1000;
-
-export type BoardStatus = "solved" | "valid" | "invalid";
-
-/**
- * Check board state in a single pass. Returns:
- * - "invalid": constraints violated (not enough capacity or adjacent stars)
- * - "solved": all star counts match target
- * - "valid": solvable but not yet complete
- */
-export function checkBoardState(board: Board, cells: CellState[][]): BoardStatus {
-  const size = board.grid.length;
-
-  const starsByRow = new Array(size).fill(0);
-  const starsByCol = new Array(size).fill(0);
-  const availableByRow = new Array(size).fill(0);
-  const availableByCol = new Array(size).fill(0);
-  const starsByRegion = new Map<number, number>();
-  const availableByRegion = new Map<number, number>();
-
-  for (let row = 0; row < size; row++) {
-    for (let col = 0; col < size; col++) {
-      const cell = cells[row][col];
-      const regionId = board.grid[row][col];
-
-      if (cell === "star") {
-        starsByRow[row]++;
-        starsByCol[col]++;
-        starsByRegion.set(regionId, (starsByRegion.get(regionId) ?? 0) + 1);
-
-        // Check adjacency (only right and down to avoid double-checking)
-        if (col + 1 < size && cells[row][col + 1] === "star") return "invalid";
-        if (row + 1 < size) {
-          if (cells[row + 1][col] === "star") return "invalid";
-          if (col > 0 && cells[row + 1][col - 1] === "star") return "invalid";
-          if (col + 1 < size && cells[row + 1][col + 1] === "star") return "invalid";
-        }
-      }
-
-      if (cell !== "marked") {
-        availableByRow[row]++;
-        availableByCol[col]++;
-        availableByRegion.set(regionId, (availableByRegion.get(regionId) ?? 0) + 1);
-      }
-    }
-  }
-
-  // Check capacity constraints
-  for (let i = 0; i < size; i++) {
-    if (availableByRow[i] < board.stars) return "invalid";
-    if (availableByCol[i] < board.stars) return "invalid";
-  }
-  for (const available of availableByRegion.values()) {
-    if (available < board.stars) return "invalid";
-  }
-
-  // Check if solved
-  for (let i = 0; i < size; i++) {
-    if (starsByRow[i] !== board.stars) return "valid";
-    if (starsByCol[i] !== board.stars) return "valid";
-  }
-  for (const count of starsByRegion.values()) {
-    if (count !== board.stars) return "valid";
-  }
-
-  return "solved";
-}
+export { RULE_METADATA } from "./rules";
 
 /** Step info passed to trace callback */
 export interface StepInfo {
@@ -140,62 +20,147 @@ export interface StepInfo {
 
 export interface SolveOptions {
   onStep?: (step: StepInfo) => void;
+  timing?: Map<string, number>;
+}
+
+function isValidBoard(board: Board): boolean {
+  const size = board.grid.length;
+  const stars = board.stars;
+  const minRegionSize = stars > 1 ? stars * 2 - 1 : 1;
+
+  const regionCells = new Map<number, [number, number][]>();
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const id = board.grid[r][c];
+      if (!regionCells.has(id)) regionCells.set(id, []);
+      regionCells.get(id)!.push([r, c]);
+    }
+  }
+
+  if (regionCells.size !== size) return false;
+
+  for (const coords of regionCells.values()) {
+    if (coords.length < minRegionSize) return false;
+  }
+
+  for (let i = 0; i < size; i++) {
+    const rowCoords: [number, number][] = [];
+    const colCoords: [number, number][] = [];
+    for (let j = 0; j < size; j++) {
+      rowCoords.push([i, j]);
+      colCoords.push([j, i]);
+    }
+    if (computeTiling(rowCoords, size).capacity < stars) return false;
+    if (computeTiling(colCoords, size).capacity < stars) return false;
+  }
+
+  for (const coords of regionCells.values()) {
+    if (computeTiling(coords, size).capacity < stars) return false;
+  }
+
+  return true;
+}
+
+function checkProgress(
+  board: Board,
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+): Progress {
+  const { size, rowStars, colStars, regions } = analysis;
+  const stars = board.stars;
+  let solved = true;
+
+  for (let i = 0; i < size; i++) {
+    let rowUnknowns = 0;
+    let colUnknowns = 0;
+    for (let j = 0; j < size; j++) {
+      if (cells[i][j] === "unknown") rowUnknowns++;
+      if (cells[j][i] === "unknown") colUnknowns++;
+      if (cells[i][j] === "star") {
+        for (const [nr, nc] of neighbors(i, j, size)) {
+          if (cells[nr][nc] === "star") return "invalid";
+        }
+      }
+    }
+    if (rowStars[i] + rowUnknowns < stars || colStars[i] + colUnknowns < stars) {
+      return "invalid";
+    }
+    if (rowStars[i] !== stars || colStars[i] !== stars) {
+      solved = false;
+    }
+  }
+
+  for (const region of regions.values()) {
+    if (region.starsPlaced + region.unknownCoords.length < stars) {
+      return "invalid";
+    }
+    if (region.starsPlaced !== stars) {
+      solved = false;
+    }
+  }
+
+  return solved ? "solved" : "valid";
 }
 
 /**
  * Attempt to solve a Star Battle puzzle using inference rules.
- * Accepts optional onStep callback for tracing.
+ * Flows rules through the board until it settles into a final state.
  */
 export function solve(
-  board: Board,
+  boardDef: Board,
   options: SolveOptions = {},
 ): SolverResult | null {
-  const size = board.grid.length;
+  if (!isValidBoard(boardDef)) return null;
+
+  const size = boardDef.grid.length;
   const cells: CellState[][] = Array.from({ length: size }, () =>
     Array.from({ length: size }, () => "unknown" as CellState),
   );
 
-  // Early rejection for invalid layouts
-  if (!isValidLayout(board)) {
-    return null;
-  }
-
   let cycles = 0;
   let maxLevel = 0;
+  const tilingCache = new Map<string, TilingResult>();
+  const structure = buildBoardStructure(boardDef);
 
-  while (cycles < MAX_CYCLES) {
+  while (true) {
     cycles++;
 
-    const status = checkBoardState(board, cells);
+    const analysis = buildBoardAnalysis(structure, cells, tilingCache);
+    const status = checkProgress(boardDef, cells, analysis);
+
     if (status === "solved") return { cells, cycles, maxLevel };
     if (status === "invalid") return null;
 
-    let progress = false;
-
-    for (const { rule, level, name } of allRules) {
-      if (rule(board, cells)) {
-        maxLevel = Math.max(maxLevel, level);
-        progress = true;
-
-        if (options.onStep) {
-          options.onStep({
-            cycle: cycles,
-            rule: name,
-            level,
-            cells: cells.map((row) => [...row]),
-          });
-        }
-
+    let applied: (typeof allRules)[number] | undefined;
+    for (const entry of allRules) {
+      let fired: boolean;
+      if (options.timing) {
+        const t0 = performance.now();
+        fired = entry.rule(boardDef, cells, analysis);
+        options.timing.set(
+          entry.name,
+          (options.timing.get(entry.name) ?? 0) + (performance.now() - t0),
+        );
+      } else {
+        fired = entry.rule(boardDef, cells, analysis);
+      }
+      if (fired) {
+        applied = entry;
         break;
       }
     }
 
-    // No rule made progress - stuck
-    if (!progress) {
-      return null;
+    if (!applied) return null;
+
+    maxLevel = Math.max(maxLevel, applied.level);
+
+    if (options.onStep) {
+      options.onStep({
+        cycle: cycles,
+        rule: applied.name,
+        level: applied.level,
+        cells: cells.map((row) => [...row]),
+      });
     }
   }
-
-  // Exceeded max cycles
-  return null;
 }

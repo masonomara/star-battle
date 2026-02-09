@@ -1,7 +1,4 @@
 import { Board, GeneratorError } from "./helpers/types";
-import { cellKey, parseKey } from "./helpers/cellKey";
-import buildRegions from "./helpers/regions";
-import { canTileWithMinCount } from "./helpers/tiling";
 
 const DIRECTIONS: [number, number][] = [
   [-1, 0],
@@ -10,35 +7,19 @@ const DIRECTIONS: [number, number][] = [
   [0, 1],
 ];
 
-function getUnfilledNeighbors(
+function getNeighbors(
   grid: number[][],
   size: number,
   row: number,
   col: number,
+  filled: boolean,
 ): [number, number][] {
   const result: [number, number][] = [];
   for (const [dr, dc] of DIRECTIONS) {
     const nr = row + dr;
     const nc = col + dc;
-    if (nr >= 0 && nr < size && nc >= 0 && nc < size && grid[nr][nc] === -1) {
+    if (nr >= 0 && nr < size && nc >= 0 && nc < size && (grid[nr][nc] !== -1) === filled) {
       result.push([nr, nc]);
-    }
-  }
-  return result;
-}
-
-function getFilledNeighborIds(
-  grid: number[][],
-  size: number,
-  row: number,
-  col: number,
-): number[] {
-  const result: number[] = [];
-  for (const [dr, dc] of DIRECTIONS) {
-    const nr = row + dr;
-    const nc = col + dc;
-    if (nr >= 0 && nr < size && nc >= 0 && nc < size && grid[nr][nc] !== -1) {
-      result.push(grid[nr][nc]);
     }
   }
   return result;
@@ -115,7 +96,7 @@ function growRegionsBalanced(
   size: number,
   minRegionSize: number,
   regionSizes: number[],
-  frontiers: Map<number, Set<string>>,
+  frontiers: Map<number, Set<number>>,
   rng: () => number,
 ): void {
   while (regionSizes.some((s) => s < minRegionSize)) {
@@ -124,7 +105,8 @@ function growRegionsBalanced(
       if (regionSizes[regionId] < minRegionSize) {
         const frontier = frontiers.get(regionId)!;
         for (const key of [...frontier]) {
-          const [r, c] = parseKey(key);
+          const r = Math.floor(key / size);
+          const c = key % size;
           if (grid[r][c] !== -1) frontier.delete(key);
         }
         if (frontier.size > 0) needsGrowth.push(regionId);
@@ -139,14 +121,15 @@ function growRegionsBalanced(
     const key = keys[Math.floor(rng() * keys.length)];
     frontier.delete(key);
 
-    const [row, col] = parseKey(key);
+    const row = Math.floor(key / size);
+    const col = key % size;
     if (grid[row][col] !== -1) continue;
 
     grid[row][col] = regionId;
     regionSizes[regionId]++;
 
-    for (const [nr, nc] of getUnfilledNeighbors(grid, size, row, col)) {
-      frontier.add(cellKey(nr, nc));
+    for (const [nr, nc] of getNeighbors(grid, size, row, col, false)) {
+      frontier.add(nr * size + nc);
     }
   }
 }
@@ -174,9 +157,10 @@ function fillRemaining(
       for (let col = 0; col < size; col++) {
         if (grid[row][col] !== -1) continue;
 
-        const neighborIds = getFilledNeighborIds(grid, size, row, col);
-        if (neighborIds.length > 0) {
-          grid[row][col] = neighborIds[Math.floor(rng() * neighborIds.length)];
+        const neighbors = getNeighbors(grid, size, row, col, true);
+        if (neighbors.length > 0) {
+          const [nr, nc] = neighbors[Math.floor(rng() * neighbors.length)];
+          grid[row][col] = grid[nr][nc];
         } else {
           unfilled = true;
         }
@@ -208,7 +192,7 @@ function layoutWithSeed(size: number, stars: number, seed: number): Board {
   const regionSizes = new Array(size).fill(1);
 
   // Initialize frontiers from seed cells
-  const frontiers: Map<number, Set<string>> = new Map();
+  const frontiers: Map<number, Set<number>> = new Map();
   for (let regionId = 0; regionId < size; regionId++) {
     frontiers.set(regionId, new Set());
   }
@@ -216,8 +200,8 @@ function layoutWithSeed(size: number, stars: number, seed: number): Board {
     for (let col = 0; col < size; col++) {
       if (grid[row][col] !== -1) {
         const regionId = grid[row][col];
-        for (const [nr, nc] of getUnfilledNeighbors(grid, size, row, col)) {
-          frontiers.get(regionId)!.add(cellKey(nr, nc));
+        for (const [nr, nc] of getNeighbors(grid, size, row, col, false)) {
+          frontiers.get(regionId)!.add(nr * size + nc);
         }
       }
     }
@@ -226,32 +210,5 @@ function layoutWithSeed(size: number, stars: number, seed: number): Board {
   growRegionsBalanced(grid, size, minRegionSize, regionSizes, frontiers, rng);
   fillRemaining(grid, size, rng);
 
-  const board = { grid, stars };
-  const regions = buildRegions(grid);
-
-  if (!isValidTiling(regions, board.stars, size)) {
-    throw new GeneratorError(
-      "Layout generation failed: region cannot fit required stars",
-      "invalid_tiling",
-    );
-  }
-
-  return board;
-}
-
-/**
- * Check if all regions can fit the required stars using 2×2 tiling.
- * Each 2×2 tile holds at most 1 star, so minTileCount must be >= stars.
- */
-function isValidTiling(
-  regions: Map<number, [number, number][]>,
-  stars: number,
-  size: number,
-): boolean {
-  for (const [, coords] of regions) {
-    if (!canTileWithMinCount(coords, size, stars)) {
-      return false;
-    }
-  }
-  return true;
+  return { grid, stars };
 }

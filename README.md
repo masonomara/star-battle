@@ -1,39 +1,21 @@
 # Star Battle Generator
 
-Star Battle puzzle generator using inference rules that emulate human deduction to produce solvable puzzles without brute-force guessing or backtracking.
+![February 2nd, 2026 version](assets/feb-2-demo.gif)
 
-### Why Inference Rules?
+A production rule system that generates human-solvable Star Battle puzzles using formalized deduction techniques - no brute-force guessing or backtracking. See [Production Rules](PRODUCTION_RULES.md) for the full system framework.
 
-Generating a puzzle with a valid layout and satisfies Star Battle Rules is easy. However, a valid layout may not be solvable by human deduction without guessing. This game is meant to be played by humans. Each rule is logical and able to be computed by a human.
+## Why Production Rules?
 
-### Star Battle Constraints
+Generating a valid Star Battle layout is easy. Generating one that a human can solve through logic alone is hard. Each production rule in this system corresponds to a deduction a human can perform - the solver never guesses, so neither does the player.
 
-- Each row, column, and region must contain exactly _n_ stars
-- Stars cannot touch horizontally, vertically, or diagonally
+## Architecture
 
-### Key Components
+- **Generator** - Produces randomized grids with region layouts and validates boards with tiling assignment.
+- **Solver** - Applies production rules in logical order until a solution or invalid state is reached.
+- **Production Rules** - Logical solving techniques a human can perform, derived from [Kris De Asis's Star Battle Guide](https://kris.pengy.ca/starbattle) and [KrazyDad's Two Not Touch Advanced Tutorial](https://krazydad.com/twonottouch/adv_tutorial/).
+- **Sieve** - Coordinates generation and solving. Assigns difficulty ratings based on rule usage.
 
-- **Generator** – produces a randomized grid divided into _n_ regions, validates star placement via 2×2 tiling
-- **Solver** – executes inference rules from simple to complex
-- **Inference Rules** – logical solving techniques a human can perform, based on [Kris De Asis's Star Battle Guide](https://kris.pengy.ca/starbattle)
-- **Sieve** – orchestrates generation and solving, assigns difficulty ratings
-
-## Project Structure
-
-```
-src/sieve/
-├── cli.ts          # CLI interface
-├── sieve.ts        # Sieve orchestrator
-├── generator.ts    # Board generator
-├── solver.ts       # Rule-based solver
-├── helpers/        # Shared utilities (tiling, regions, types)
-└── rules/          # One folder per rule with implementation + tests
-    ├── 01-starNeighbors/
-    ├── 02-rowComplete/
-    └── ...         # 14 rules total
-```
-
-## Get Started
+## Getting Started
 
 ```bash
 git clone https://github.com/masonomara/star-battle.git
@@ -44,36 +26,43 @@ npm install
 ### Generate Puzzles
 
 ```bash
-npm run sieve                    # Default: 10×10 grid, 2 stars
-npm run sieve -- --size 8        # 8×8 grid
-npm run sieve -- --stars 1       # 1 star per row/column/region
-npm run sieve -- --count 5       # Generate 5 puzzles
-npm run sieve -- --seed 42       # Reproducible output
+npx tsx src/sieve/cli.ts                        # Default: 10x10, 2 stars
+npx tsx src/sieve/cli.ts --size 8               # 8x8 grid
+npx tsx src/sieve/cli.ts --stars 1              # 1 star per container
+npx tsx src/sieve/cli.ts --count 5              # Generate 5 puzzles
+npx tsx src/sieve/cli.ts --seed 417582859       # Reproducible generation from seed
+```
+
+### Solve Custom Puzzles
+
+Pipe a space-separated region grid via stdin. Each row is one line, each cell is a region letter:
+
+```bash
+echo "A A B B
+A A B B
+C C D D
+C C D D" | npx tsx src/sieve/cli.ts --stars 1
+```
+
+For batch solving, create a `.sbn` file with one puzzle string per line - format is `{size}x{stars}.{layout}`, where the layout is `size × size` region characters read left-to-right, top-to-bottom:
+
+```
+10x2.AAAABBBBBCDDDDBEEBBCDDDDBECBCCDDBBBECCCCDDBBBEFCCCDDGGFFFGGCDDGGFGGGGCHGGGGGGGICHGGJJJJGIIHGIIIIIIII
+```
+
+```bash
+npx tsx src/sieve/cli.ts --file sample-puzzle.sbn
+npx tsx src/sieve/cli.ts --file sample-puzzle.sbn --verbose    # Details per puzzle
+npx tsx src/sieve/cli.ts --file sample-puzzle.sbn --unsolved   # Only show failures
+npx tsx src/sieve/cli.ts --file sample-puzzle.sbn --trace      # Step-by-step solve trace
 ```
 
 ### Filter by Difficulty
 
 ```bash
-npm run sieve -- --minDiff 20              # Only harder puzzles
-npm run sieve -- --maxDiff 10              # Only easier puzzles
-npm run sieve -- --minDiff 15 --maxDiff 25 # Specific range
-```
-
-### Trace Solve Steps
-
-```bash
-# Requires `--seed`
-npm run sieve -- --seed 42 --trace
-```
-
-### Solve Custom Puzzles
-
-```bash
-# Each number is a region
-echo "0 0 1 1
-0 0 1 1
-2 2 3 3
-2 2 3 3" | npm run sieve -- --stars 1
+npx tsx src/sieve/cli.ts --minDiff 20              # Harder puzzles only
+npx tsx src/sieve/cli.ts --maxDiff 10              # Easier puzzles only
+npx tsx src/sieve/cli.ts --minDiff 15 --maxDiff 25 # Specific range
 ```
 
 ### Run Tests
@@ -84,57 +73,86 @@ npm test
 
 ### CLI Reference
 
-- `--size` – Grid size. Default 10. Accepts 4–25
-- `--stars` – Stars per row/column/region. Default 2. Accepts 1–6
-- `--count` – Puzzles to generate. Default 1. Accepts 1–300
-- `--seed` – Deterministic seed. Random by default
-- `--minDiff` – Minimum difficulty
-- `--maxDiff` – Maximum difficulty
-- `--trace` – Show solve steps (requires `--seed`)
-- `--help` – Show options
+- `--size` - Grid size (4–25, default: 10)
+- `--stars` - Stars per container (1–6, default: 2)
+- `--count` - Puzzles to generate (1–300, default: 1)
+- `--seed` - Deterministic generation seed (random by default)
+- `--minDiff` - Minimum difficulty
+- `--maxDiff` - Maximum difficulty
+- `--file` - Solve puzzles from a `.sbn` file
+- `--verbose` - Show details per puzzle
+- `--unsolved` - Only output unsolved puzzles
+- `--trace` - Step-by-step solve trace
+- `--help` - Show options
 
-## Inference Rules
+## Production Rules Overview
 
-### Level 1: Trivial Marks
+Rules combine an **Observation** (how you see the board) with a **Technique** (how you reason) to produce a **Deduction** (mark or placement). The solver cycles through rules in order, restarting from the top whenever a rule fires.
 
-1. **Star Neighbors** – All cells neighboring a star must be marked
+1. **Star Neighbors** - Direct × Inference
+2. **Forced Placements** - Direct × Inference
+3. **Trivial Marks** - Direct × Inference
+4. **Tiling Enumeration** - Tiling × Enumeration
+5. **Counting Enumerations** - Counting × Enumeration
+6. **Tiling Pairs** - Tiling × Enumeration
+7. **Tiling Counting** - Tiling + Counting × Enumeration
+8. **Direct Hypotheticals** - Direct × Hypothetical
+9. **Tiling Hypotheticals** - Tiling × Hypothetical
+10. **Counting Hypotheticals** - Counting × Hypothetical
+11. **Propagated Hypotheticals** - Direct + Tiling + Counting × Hypothetical
 
-2. **Row Complete** – When all stars in a row are placed, mark the remaining cells
+See [Production Rules](PRODUCTION_RULES.md) for full definitions of each rule.
 
-3. **Column Complete** – When all stars in a column are placed, mark the remaining cells
+## Results
 
-4. **Region Complete** – When all stars in a region are placed, mark the remaining cells
+![Benchmark results](assets/feb-9-results.png)
 
-5. **Forced Placement** – When the number of unknown cells in each row/column/region equals the number of stars needed to complete the row/column/region, place the stars in the unknown cells
+1000 puzzles solved in 21.19s — **999/1000 (100%)**
 
-### Level 2: Counting
+### Rule Usage
 
-6. **Undercounting** – When _n_ regions are completely contained within _n_ rows/columns, mark all cells within those rows/columns that are not in the contained regions.
-
-7. **Overcounting** – When _n_ regions completely contain _n_ rows/columns, mark all cells within those contained regions that are outside the set rows/columns.
-
-### Level 3: Tiling
-
-8. **2×2 Tiling** – Apply "Dancing Links" `src/sieve/helpers/dlx.ts` to tile regions with 2×2 tiles. Each 2×2 must have exactly one star. Stars and marks that are single-coverage in all tiling combinations are forced.
-
-### Level 4: Confinement
-
-9. **1×n Confinement** – When a region's unknown cells are confined to a single row/column, its stars must go there. If the confined regions account for all stars a row/column needs, mark cells outside those regions.
-
-10. **Exclusion** – Mark cells where placing a star would make a row/column/region unable to fit its required stars. Single-depth search, deduced with **2×2 Tiling**.
-
-### Level 5: Pressure
-
-11. **Pressured Exclusion** – Like **Exclusion**, but considers **1×n Confinements** that span multiple regions. Mark cells where placing a star would make a region/row/column unable to fit all required stars. Single-depth search, deduced with **2×2 Tiling** and **1×n Confinement**.
-
-12. **Finned Counts** – Check for **Exclusion** scenarios when placing a star would violate an undercounting or overcounting scenario. Mark cells where **Exclusion** occurs.
-
-13. **The Squeeze** – Create side-by-side column/row pairs and run 2x2 tiling. Apply stars when **Forced Placements** occur, mark cells where **Exclusion** occurs.
-
-### Level 6: Composite Regions
-
-14. **Composite Regions** – Combine regions with known star counts into composite regions. If _n_ regions are contained by _m_ rows/columns (_m_ > _n_) and the leftover area has (_m_ - _n_) × _stars_, apply tiling logic to composites for **Forced Placement** and **Exclusion**.
-
-## Future Plans
-
-React Native mobile app with puzzle libraries and daily/weekly/monthly challenges.
+| Rule                                    | Level | Firings | Puzzles | Time       |
+| --------------------------------------- | ----- | ------- | ------- | ---------- |
+| Star Neighbors                          | L1    | 12708   | 100%    | 0.17s      |
+| Forced Rows                             | L2    | 5078    | 100%    | 0.01s      |
+| Forced Columns                          | L2    | 4078    | 99%     | 0.01s      |
+| Forced Regions                          | L2    | 2928    | 97%     | 0.01s      |
+| Trivial Rows                            | L3    | 2196    | 92%     | 0.01s      |
+| Trivial Columns                         | L3    | 1980    | 90%     | 0.01s      |
+| Trivial Regions                         | L3    | 231     | 20%     | 0.01s      |
+| Tiling Forced Rows                      | L4    | 691     | 51%     | 1.36s      |
+| Tiling Forced Columns                   | L4    | 732     | 53%     | 1.22s      |
+| Tiling Forced Regions                   | L4    | 2807    | 97%     | 0.81s      |
+| Tiling Adjacency Marks                  | L4    | 2544    | 98%     | 0.28s      |
+| Tiling Overhang Marks                   | L4    | 2850    | 97%     | 0.18s      |
+| Counting Mark Rows                      | L5    | 2095    | 84%     | 0.31s      |
+| Counting Mark Columns                   | L5    | 1829    | 77%     | 0.15s      |
+| Tiling Pair Forced Rows                 | L6    | 503     | 38%     | 0.80s      |
+| Tiling Pair Forced Columns              | L6    | 458     | 34%     | 0.72s      |
+| Tiling Pair Adjacency Rows              | L6    | 286     | 26%     | 0.18s      |
+| Tiling Pair Adjacency Columns           | L6    | 264     | 24%     | 0.14s      |
+| Tiling Pair Overhang Rows               | L6    | 311     | 26%     | 0.09s      |
+| Tiling Pair Overhang Columns            | L6    | 309     | 26%     | 0.07s      |
+| Tiling Counting Mark Rows               | L7    | 266     | 23%     | 0.68s      |
+| Tiling Counting Mark Columns            | L7    | 270     | 23%     | 0.56s      |
+| Tiling Counting Forced Rows             | L7    | 78      | 8%      | 0.08s      |
+| Tiling Counting Forced Columns          | L7    | 65      | 6%      | 0.09s      |
+| Group Tiling Counting Mark Rows         | L7    | 234     | 18%     | 5.04s      |
+| Group Tiling Counting Mark Columns      | L7    | 206     | 18%     | 4.35s      |
+| Hypothetical Row Count                  | L8    | 308     | 27%     | 0.22s      |
+| Hypothetical Column Count               | L8    | 227     | 20%     | 0.19s      |
+| Hypothetical Region Count               | L8    | 298     | 27%     | 0.25s      |
+| Hypothetical Row Capacity               | L9    | 144     | 13%     | 0.18s      |
+| Hypothetical Column Capacity            | L9    | 118     | 11%     | 0.14s      |
+| Hypothetical Region Capacity            | L9    | 243     | 22%     | 0.27s      |
+| Hypothetical Counting Row               | L10   | 149     | 13%     | 0.22s      |
+| Hypothetical Counting Column            | L10   | 88      | 8%      | 0.10s      |
+| Propagated Hypothetical Row Count       | L11   | 20      | 2%      | 0.03s      |
+| Propagated Hypothetical Column Count    | L11   | 1       | 0%      | 0.01s      |
+| Propagated Hypothetical Region Count    | L11   | 2       | 0%      | 0.01s      |
+| Propagated Hypothetical Row Capacity    | L11   | 0       | 0%      | 0.01s      |
+| Propagated Hypothetical Column Capacity | L11   | 0       | 0%      | 0.01s      |
+| Propagated Hypothetical Region Capacity | L11   | 0       | 0%      | 0.01s      |
+| Propagated Hypothetical Counting Row    | L11   | 0       | 0%      | 0.01s      |
+| Propagated Hypothetical Counting Column | L11   | 2       | 0%      | 0.01s      |
+| **Rule time**                           |       |         |         | **19.02s** |
