@@ -1,7 +1,18 @@
 import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
-import { buildBoardStructure, buildBoardAnalysis } from "../../helpers/boardAnalysis";
+import { buildBoardStructure, buildBoardState, BoardAnalysis } from "../../helpers/boardAnalysis";
+import { makeTilingLens } from "../../helpers/tiling";
+import { makeCountingFlowLens } from "../../helpers/countingFlow";
 import tilingAdjacencyMarks from "./tilingAdjacencyMarks";
+
+function buildAnalysis(board: Board, cells: CellState[][]): BoardAnalysis {
+  const state = buildBoardState(buildBoardStructure(board), cells);
+  return {
+    ...state,
+    getTiling: makeTilingLens(new Map(), state.size),
+    getCountingFlow: makeCountingFlowLens(state, board.stars),
+  };
+}
 
 describe("08c. Tiling Adjacency Marks", () => {
   describe("Basic adjacency marking", () => {
@@ -25,7 +36,7 @@ describe("08c. Tiling Adjacency Marks", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingAdjacencyMarks(board, cells, buildBoardAnalysis(buildBoardStructure(board), cells));
+      const result = tilingAdjacencyMarks(board, cells, buildAnalysis(board, cells));
 
       // The rule detects some adjacency violations
       expect(result).toBe(true);
@@ -57,7 +68,7 @@ describe("08c. Tiling Adjacency Marks", () => {
         ["unknown", "unknown", "unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingAdjacencyMarks(board, cells, buildBoardAnalysis(buildBoardStructure(board), cells));
+      const result = tilingAdjacencyMarks(board, cells, buildAnalysis(board, cells));
 
       // These cells are well-separated, no adjacency violations
       expect(result).toBe(false);
@@ -84,7 +95,7 @@ describe("08c. Tiling Adjacency Marks", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingAdjacencyMarks(board, cells, buildBoardAnalysis(buildBoardStructure(board), cells));
+      const result = tilingAdjacencyMarks(board, cells, buildAnalysis(board, cells));
 
       expect(result).toBe(false);
     });
@@ -107,7 +118,7 @@ describe("08c. Tiling Adjacency Marks", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingAdjacencyMarks(board, cells, buildBoardAnalysis(buildBoardStructure(board), cells));
+      const result = tilingAdjacencyMarks(board, cells, buildAnalysis(board, cells));
 
       expect(result).toBe(false);
     });
@@ -130,7 +141,7 @@ describe("08c. Tiling Adjacency Marks", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = tilingAdjacencyMarks(board, cells, buildBoardAnalysis(buildBoardStructure(board), cells));
+      const result = tilingAdjacencyMarks(board, cells, buildAnalysis(board, cells));
 
       expect(result).toBe(false);
     });

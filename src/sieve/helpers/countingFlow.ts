@@ -14,6 +14,7 @@
  */
 
 import { Coord } from "./types";
+import type { BoardState } from "./boardAnalysis";
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -376,4 +377,42 @@ function extractTightSets(
   }
 
   return tightSets;
+}
+
+// ── Lens Factory ─────────────────────────────────────────────────────
+
+export function makeCountingFlowLens(
+  state: BoardState,
+  stars: number,
+): (axis: "row" | "col") => CountingFlowResult {
+  const cache = new Map<string, CountingFlowResult>();
+  return (axis) => {
+    let result = cache.get(axis);
+    if (result) return result;
+
+    const axisStars = axis === "row" ? state.rowStars : state.colStars;
+    const axisNeeded = new Array(state.size);
+    for (let i = 0; i < state.size; i++) {
+      axisNeeded[i] = stars - axisStars[i];
+    }
+
+    const regionInfos: CountingFlowInput["regionInfos"] = [];
+    for (const region of state.regions.values()) {
+      if (region.starsNeeded <= 0) continue;
+      const unknownsByAxis = new Array(state.size).fill(0);
+      for (const [r, c] of region.unknownCoords) {
+        const idx = axis === "row" ? r : c;
+        unknownsByAxis[idx]++;
+      }
+      regionInfos.push({
+        starsNeeded: region.starsNeeded,
+        unknownsByAxis,
+        unknownCoords: region.unknownCoords,
+      });
+    }
+
+    result = computeCountingFlow({ size: state.size, axisNeeded, regionInfos });
+    cache.set(axis, result);
+    return result;
+  };
 }

@@ -1,8 +1,11 @@
 import { Board, CellState, SolverResult, TilingResult } from "./helpers/types";
 import {
   buildBoardStructure,
-  buildBoardAnalysis,
+  buildBoardState,
+  BoardAnalysis,
 } from "./helpers/boardAnalysis";
+import { makeTilingLens } from "./helpers/tiling";
+import { makeCountingFlowLens } from "./helpers/countingFlow";
 import { checkProgress } from "./helpers/checkProgress";
 import { isValidBoard } from "./helpers/validateBoard";
 import { allRules } from "./rules";
@@ -45,7 +48,12 @@ export function solve(
   while (true) {
     cycles++;
 
-    const analysis = buildBoardAnalysis(structure, cells, tilingCache);
+    const state = buildBoardState(structure, cells);
+    const analysis: BoardAnalysis = {
+      ...state,
+      getTiling: makeTilingLens(tilingCache, size),
+      getCountingFlow: makeCountingFlowLens(state, boardDef.stars),
+    };
     const status = checkProgress(boardDef, cells, analysis);
 
     if (status === "solved") return { cells, cycles, maxLevel };

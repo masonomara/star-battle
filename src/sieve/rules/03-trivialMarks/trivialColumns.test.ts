@@ -1,7 +1,18 @@
 import { describe, it, expect } from "vitest";
 import columnComplete from "./trivialColumn";
 import { Board, CellState } from "../../helpers/types";
-import { buildBoardStructure, buildBoardAnalysis } from "../../helpers/boardAnalysis";
+import { buildBoardStructure, buildBoardState, BoardAnalysis } from "../../helpers/boardAnalysis";
+import { makeTilingLens } from "../../helpers/tiling";
+import { makeCountingFlowLens } from "../../helpers/countingFlow";
+
+function buildAnalysis(board: Board, cells: CellState[][]): BoardAnalysis {
+  const state = buildBoardState(buildBoardStructure(board), cells);
+  return {
+    ...state,
+    getTiling: makeTilingLens(new Map(), state.size),
+    getCountingFlow: makeCountingFlowLens(state, board.stars),
+  };
+}
 
 describe("03. columnComplete", () => {
   describe("03.1 Marks remaining cells correctly", () => {
@@ -20,9 +31,7 @@ describe("03. columnComplete", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const structure = buildBoardStructure(board);
-      const analysis = buildBoardAnalysis(structure, cells);
-      const result = columnComplete(board, cells, analysis);
+      const result = columnComplete(board, cells, buildAnalysis(board, cells));
 
       expect(result).toBe(true);
       expect(cells).toEqual([
@@ -49,9 +58,7 @@ describe("03. columnComplete", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const structure = buildBoardStructure(board);
-      const analysis = buildBoardAnalysis(structure, cells);
-      const result = columnComplete(board, cells, analysis);
+      const result = columnComplete(board, cells, buildAnalysis(board, cells));
 
       expect(result).toBe(true);
       expect(cells[0][0]).toBe("star");
@@ -75,9 +82,7 @@ describe("03. columnComplete", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const structure = buildBoardStructure(board);
-      const analysis = buildBoardAnalysis(structure, cells);
-      const result = columnComplete(board, cells, analysis);
+      const result = columnComplete(board, cells, buildAnalysis(board, cells));
 
       expect(result).toBe(true);
       expect(cells).toEqual([
@@ -102,9 +107,7 @@ describe("03. columnComplete", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const structure = buildBoardStructure(board);
-      const analysis = buildBoardAnalysis(structure, cells);
-      const result = columnComplete(board, cells, analysis);
+      const result = columnComplete(board, cells, buildAnalysis(board, cells));
 
       expect(result).toBe(true);
       expect(cells[0][0]).toBe("star");
@@ -129,9 +132,7 @@ describe("03. columnComplete", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const structure = buildBoardStructure(board);
-      const analysis = buildBoardAnalysis(structure, cells);
-      const result = columnComplete(board, cells, analysis);
+      const result = columnComplete(board, cells, buildAnalysis(board, cells));
 
       expect(result).toBe(false);
       expect(cells).toEqual([
@@ -156,9 +157,7 @@ describe("03. columnComplete", () => {
         ["marked", "unknown", "unknown"],
       ];
 
-      const structure = buildBoardStructure(board);
-      const analysis = buildBoardAnalysis(structure, cells);
-      const result = columnComplete(board, cells, analysis);
+      const result = columnComplete(board, cells, buildAnalysis(board, cells));
 
       expect(result).toBe(false);
     });
@@ -180,9 +179,7 @@ describe("03. columnComplete", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const structure = buildBoardStructure(board);
-      const analysis = buildBoardAnalysis(structure, cells);
-      const result = columnComplete(board, cells, analysis);
+      const result = columnComplete(board, cells, buildAnalysis(board, cells));
 
       expect(result).toBe(false);
     });
@@ -206,9 +203,7 @@ describe("03. columnComplete", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const structure = buildBoardStructure(board);
-      const analysis = buildBoardAnalysis(structure, cells);
-      columnComplete(board, cells, analysis);
+      columnComplete(board, cells, buildAnalysis(board, cells));
 
       expect(cells[1][0]).toBe("unknown");
       expect(cells[2][0]).toBe("unknown");
@@ -230,9 +225,7 @@ describe("03. columnComplete", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const structure = buildBoardStructure(board);
-      const analysis = buildBoardAnalysis(structure, cells);
-      columnComplete(board, cells, analysis);
+      columnComplete(board, cells, buildAnalysis(board, cells));
 
       expect(cells[0][1]).toBe("unknown");
       expect(cells[0][2]).toBe("unknown");
@@ -257,9 +250,7 @@ describe("03. columnComplete", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const structure = buildBoardStructure(board);
-      const analysis = buildBoardAnalysis(structure, cells);
-      columnComplete(board, cells, analysis);
+      columnComplete(board, cells, buildAnalysis(board, cells));
 
       expect(cells[0][0]).toBe("star");
       expect(cells[2][0]).toBe("star");
@@ -282,9 +273,7 @@ describe("03. columnComplete", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const structure = buildBoardStructure(board);
-      const analysis = buildBoardAnalysis(structure, cells);
-      columnComplete(board, cells, analysis);
+      columnComplete(board, cells, buildAnalysis(board, cells));
 
       expect(cells).toEqual([
         ["star", "star", "star"],
@@ -308,9 +297,7 @@ describe("03. columnComplete", () => {
         ["unknown", "unknown", "star"],
       ];
 
-      const structure = buildBoardStructure(board);
-      const analysis = buildBoardAnalysis(structure, cells);
-      columnComplete(board, cells, analysis);
+      columnComplete(board, cells, buildAnalysis(board, cells));
 
       expect(cells[0][2]).toBe("marked");
       expect(cells[1][2]).toBe("marked");
@@ -332,9 +319,7 @@ describe("03. columnComplete", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const structure = buildBoardStructure(board);
-      const analysis = buildBoardAnalysis(structure, cells);
-      columnComplete(board, cells, analysis);
+      columnComplete(board, cells, buildAnalysis(board, cells));
 
       expect(cells[0][1]).toBe("marked");
       expect(cells[1][1]).toBe("star");

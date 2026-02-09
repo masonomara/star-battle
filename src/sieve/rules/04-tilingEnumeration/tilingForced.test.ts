@@ -1,15 +1,24 @@
 import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
-import { buildBoardStructure, buildBoardAnalysis } from "../../helpers/boardAnalysis";
+import { buildBoardStructure, buildBoardState, BoardAnalysis } from "../../helpers/boardAnalysis";
+import { makeTilingLens } from "../../helpers/tiling";
+import { makeCountingFlowLens } from "../../helpers/countingFlow";
 import tilingForcedRow from "./tilingForcedRow";
 import tilingForcedColumn from "./tilingForcedColumn";
 import tilingForcedRegion from "./tilingForcedRegion";
 
+function buildAnalysis(board: Board, cells: CellState[][]): BoardAnalysis {
+  const state = buildBoardState(buildBoardStructure(board), cells);
+  return {
+    ...state,
+    getTiling: makeTilingLens(new Map(), state.size),
+    getCountingFlow: makeCountingFlowLens(state, board.stars),
+  };
+}
+
 describe("08a. Tiling Forced Stars (Row)", () => {
   function run(board: Board, cells: CellState[][]): boolean {
-    const structure = buildBoardStructure(board);
-    const analysis = buildBoardAnalysis(structure, cells);
-    return tilingForcedRow(board, cells, analysis);
+    return tilingForcedRow(board, cells, buildAnalysis(board, cells));
   }
 
   it("places star when row tiling has forced cell", () => {
@@ -85,9 +94,7 @@ describe("08a. Tiling Forced Stars (Row)", () => {
 
 describe("08b. Tiling Forced Stars (Column)", () => {
   function run(board: Board, cells: CellState[][]): boolean {
-    const structure = buildBoardStructure(board);
-    const analysis = buildBoardAnalysis(structure, cells);
-    return tilingForcedColumn(board, cells, analysis);
+    return tilingForcedColumn(board, cells, buildAnalysis(board, cells));
   }
 
   it("places star when column tiling has forced cell", () => {
@@ -163,9 +170,7 @@ describe("08b. Tiling Forced Stars (Column)", () => {
 
 describe("08c. Tiling Forced Stars (Region)", () => {
   function run(board: Board, cells: CellState[][]): boolean {
-    const structure = buildBoardStructure(board);
-    const analysis = buildBoardAnalysis(structure, cells);
-    return tilingForcedRegion(board, cells, analysis);
+    return tilingForcedRegion(board, cells, buildAnalysis(board, cells));
   }
 
   it("places star when tile covers only one region cell", () => {
