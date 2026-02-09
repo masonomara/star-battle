@@ -6,10 +6,10 @@ import {
   SieveStats,
   Solution,
 } from "./helpers/types";
+import { computeDifficulty } from "./helpers/difficulty";
 
 function assignDifficulty(solution: Solution): Puzzle {
-  const difficulty = Math.round(solution.maxLevel * 4 + solution.cycles / 4);
-  return { ...solution, difficulty };
+  return { ...solution, difficulty: computeDifficulty(solution) };
 }
 
 type SieveOptions = {

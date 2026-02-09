@@ -57,9 +57,7 @@ function traceBoard(board: Board) {
     },
   });
   const elapsed = ((Date.now() - start) / 1000).toFixed(2);
-  const difficulty = result
-    ? Math.round(result.maxLevel * 4 + result.cycles / 4)
-    : null;
+  const difficulty = result ? computeDifficulty(result) : null;
   console.log(
     result
       ? `\n=== SOLVED === ${elapsed}s | difficulty: ${difficulty}`
