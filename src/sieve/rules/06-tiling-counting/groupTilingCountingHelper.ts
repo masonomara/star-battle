@@ -42,11 +42,20 @@ export function groupTilingCountingLoop(
     lineNeeded[i] = board.stars - axisStars[i];
   }
 
+  // Cap subset size — tiling capacity is subset-dependent and can't use flow,
+  // but tight multi-line tiling constraints larger than 4 are extremely rare.
+  const MAX_GROUP_SIZE = 4;
   const limit = 1 << size;
 
   for (let mask = 1; mask < limit; mask++) {
     // Skip single-line masks (handled by single-line tiling counting at L4)
     if ((mask & (mask - 1)) === 0) continue;
+
+    // Skip subsets larger than MAX_GROUP_SIZE
+    let bits = mask;
+    let popcount = 0;
+    while (bits) { popcount++; bits &= bits - 1; }
+    if (popcount > MAX_GROUP_SIZE) continue;
 
     // Total stars needed by these lines
     let totalNeeded = 0;

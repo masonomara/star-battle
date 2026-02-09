@@ -1,5 +1,10 @@
 import { Board, CellState, Coord, TilingResult } from "./types";
 import { computeTiling } from "./tiling";
+import {
+  computeCountingFlow,
+  CountingFlowResult,
+  CountingFlowInput,
+} from "./countingFlow";
 
 type RegionStructure = {
   id: number;
@@ -31,6 +36,7 @@ export type BoardAnalysis = {
   rowToRegions: Map<number, Set<number>>;
   colToRegions: Map<number, Set<number>>;
   getTiling: (cells: Coord[]) => TilingResult;
+  getCountingFlow: (axis: "row" | "col") => CountingFlowResult;
 };
 
 export function buildBoardStructure(board: Board): BoardStructure {
@@ -135,6 +141,38 @@ export function buildBoardAnalysis(
     return result;
   };
 
+  const countingFlowCache = new Map<string, CountingFlowResult>();
+
+  const getCountingFlow = (axis: "row" | "col"): CountingFlowResult => {
+    let result = countingFlowCache.get(axis);
+    if (result) return result;
+
+    const axisStars = axis === "row" ? rowStars : colStars;
+    const axisNeeded = new Array(size);
+    for (let i = 0; i < size; i++) {
+      axisNeeded[i] = stars - axisStars[i];
+    }
+
+    const regionInfos: CountingFlowInput["regionInfos"] = [];
+    for (const region of regions.values()) {
+      if (region.starsNeeded <= 0) continue;
+      const unknownsByAxis = new Array(size).fill(0);
+      for (const [r, c] of region.unknownCoords) {
+        const idx = axis === "row" ? r : c;
+        unknownsByAxis[idx]++;
+      }
+      regionInfos.push({
+        starsNeeded: region.starsNeeded,
+        unknownsByAxis,
+        unknownCoords: region.unknownCoords as Coord[],
+      });
+    }
+
+    result = computeCountingFlow({ size, axisNeeded, regionInfos });
+    countingFlowCache.set(axis, result);
+    return result;
+  };
+
   return {
     size,
     regions,
@@ -143,5 +181,6 @@ export function buildBoardAnalysis(
     rowToRegions,
     colToRegions,
     getTiling,
+    getCountingFlow,
   };
 }
