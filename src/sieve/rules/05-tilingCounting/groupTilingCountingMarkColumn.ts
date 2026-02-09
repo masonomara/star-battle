@@ -1,35 +1,37 @@
 /**
- * Rule: Group Tiling Counting Mark (Row)
+ * Rule: Group Tiling Counting Mark (Column)
  *
- * For groups of rows, if the sum of tiling-based minimum region contributions
+ * For groups of columns, if the sum of tiling-based minimum region contributions
  * equals the group's star need, regions with minimum = 0 can't place stars
- * in these rows — mark them.
+ * in these columns — mark them.
  */
 
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { groupTilingCountingLoop } from "../../helpers/groupTilingCountingHelper";
+import { tilingCountingLoop } from "../../helpers/tilingCountingHelper";
 
-export default function groupTilingCountingMarkRow(
+export default function groupTilingCountingMarkColumn(
   board: Board,
   cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
-  return groupTilingCountingLoop(
+  return tilingCountingLoop(
     board,
     cells,
     analysis,
-    "row",
+    "col",
     (cells, mask, regionMeta, minContrib) => {
       if (minContrib !== 0) return false;
       let changed = false;
       for (const [r, c] of regionMeta.unknownCoords) {
-        if ((mask >> r) & 1 && cells[r][c] === "unknown") {
+        if ((mask >> c) & 1 && cells[r][c] === "unknown") {
           cells[r][c] = "marked";
           changed = true;
         }
       }
       return changed;
     },
+    2,
+    4,
   );
 }

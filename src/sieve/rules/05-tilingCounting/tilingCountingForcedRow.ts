@@ -21,13 +21,13 @@ export default function tilingCountingForcedRow(
     cells,
     analysis,
     "row",
-    (cells, lineIndex, regionMeta, minContrib) => {
+    (cells, mask, regionMeta, minContrib) => {
       const starsOutside = regionMeta.starsNeeded - minContrib;
       if (starsOutside <= 0) return false;
 
       let outsideCount = 0;
       for (const [r, c] of regionMeta.unknownCoords) {
-        if (r !== lineIndex && cells[r][c] === "unknown") {
+        if (!((mask >> r) & 1) && cells[r][c] === "unknown") {
           outsideCount++;
         }
       }
@@ -36,7 +36,7 @@ export default function tilingCountingForcedRow(
 
       let changed = false;
       for (const [r, c] of regionMeta.unknownCoords) {
-        if (r !== lineIndex && cells[r][c] === "unknown") {
+        if (!((mask >> r) & 1) && cells[r][c] === "unknown") {
           cells[r][c] = "star";
           changed = true;
         }

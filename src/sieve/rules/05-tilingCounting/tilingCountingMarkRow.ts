@@ -19,11 +19,11 @@ export default function tilingCountingMarkRow(
     cells,
     analysis,
     "row",
-    (cells, lineIndex, regionMeta, minContrib) => {
+    (cells, mask, regionMeta, minContrib) => {
       if (minContrib !== 0) return false;
       let changed = false;
       for (const [r, c] of regionMeta.unknownCoords) {
-        if (r === lineIndex && cells[r][c] === "unknown") {
+        if ((mask >> r) & 1 && cells[r][c] === "unknown") {
           cells[r][c] = "marked";
           changed = true;
         }

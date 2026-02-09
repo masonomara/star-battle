@@ -22,12 +22,10 @@ import countingMarkRow from "./05-countingEnumeration/countingMarkRow";
 import countingMarkColumn from "./05-countingEnumeration/countingMarkColumn";
 
 // Level 4: Tiling Counting
-import tilingCountingMarkRow from "./06-tilingCountingEnumeration/tilingCountingMarkRow";
-import tilingCountingMarkColumn from "./06-tilingCountingEnumeration/tilingCountingMarkColumn";
-import tilingCountingForcedRow from "./06-tilingCountingEnumeration/tilingCountingForcedRow";
-import tilingCountingForcedColumn from "./06-tilingCountingEnumeration/tilingCountingForcedColumn";
-
-// Level 5: Tiling Pair Enumeration
+import tilingCountingMarkRow from "./05-tilingCounting/tilingCountingMarkRow";
+import tilingCountingMarkColumn from "./05-tilingCounting/tilingCountingMarkColumn";
+import tilingCountingForcedRow from "./05-tilingCounting/tilingCountingForcedRow";
+import tilingCountingForcedColumn from "./05-tilingCounting/tilingCountingForcedColumn";
 import tilingPairForcedRow from "./04-tilingEnumeration/tilingPairForcedRow";
 import tilingPairForcedColumn from "./04-tilingEnumeration/tilingPairForcedColumn";
 import tilingPairAdjacencyRow from "./04-tilingEnumeration/tilingPairAdjacencyRow";
@@ -36,8 +34,8 @@ import tilingPairOverhangRow from "./04-tilingEnumeration/tilingPairOverhangRow"
 import tilingPairOverhangColumn from "./04-tilingEnumeration/tilingPairOverhangColumn";
 
 // Level 6: Group Tiling Counting
-import groupTilingCountingMarkRow from "./06-tilingCountingEnumeration/groupTilingCountingMarkRow";
-import groupTilingCountingMarkColumn from "./06-tilingCountingEnumeration/groupTilingCountingMarkColumn";
+import groupTilingCountingMarkRow from "./05-tilingCounting/groupTilingCountingMarkRow";
+import groupTilingCountingMarkColumn from "./05-tilingCounting/groupTilingCountingMarkColumn";
 
 // Level 7: Direct Hypotheticals
 import hypotheticalRowCount from "./07-directHypotheticals/hypotheticalRowCount";
@@ -91,6 +89,12 @@ export const allRules: RuleEntry[] = [
   { rule: tilingForcedRegion, level: 2, name: "Tiling Forced Regions" },
   { rule: tilingAdjacencyMarks, level: 2, name: "Tiling Adjacency Marks" },
   { rule: tilingOverhangMarks, level: 2, name: "Tiling Overhang Marks" },
+  { rule: tilingPairForcedRow, level: 2, name: "Tiling Pair Forced Rows" },
+  { rule: tilingPairForcedColumn, level: 2, name: "Tiling Pair Forced Columns" },
+  { rule: tilingPairAdjacencyRow, level: 2, name: "Tiling Pair Adjacency Rows" },
+  { rule: tilingPairAdjacencyColumn, level: 2, name: "Tiling Pair Adjacency Columns" },
+  { rule: tilingPairOverhangRow, level: 2, name: "Tiling Pair Overhang Rows" },
+  { rule: tilingPairOverhangColumn, level: 2, name: "Tiling Pair Overhang Columns" },
 
   // Level 3: Counting Enumerations
   { rule: countingMarkRow, level: 3, name: "Counting Mark Rows" },
@@ -101,14 +105,6 @@ export const allRules: RuleEntry[] = [
   { rule: tilingCountingMarkColumn, level: 4, name: "Tiling Counting Mark Columns" },
   { rule: tilingCountingForcedRow, level: 4, name: "Tiling Counting Forced Rows" },
   { rule: tilingCountingForcedColumn, level: 4, name: "Tiling Counting Forced Columns" },
-
-  // Level 5: Tiling Pair Enumeration
-  { rule: tilingPairForcedRow, level: 5, name: "Tiling Pair Forced Rows" },
-  { rule: tilingPairForcedColumn, level: 5, name: "Tiling Pair Forced Columns" },
-  { rule: tilingPairAdjacencyRow, level: 5, name: "Tiling Pair Adjacency Rows" },
-  { rule: tilingPairAdjacencyColumn, level: 5, name: "Tiling Pair Adjacency Columns" },
-  { rule: tilingPairOverhangRow, level: 5, name: "Tiling Pair Overhang Rows" },
-  { rule: tilingPairOverhangColumn, level: 5, name: "Tiling Pair Overhang Columns" },
 
   // Level 6: Group Tiling Counting
   { rule: groupTilingCountingMarkRow, level: 6, name: "Group Tiling Counting Mark Rows" },
