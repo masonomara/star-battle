@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Board, CellState } from "../../helpers/types";
+import { buildBoardStructure, buildBoardAnalysis } from "../../helpers/boardAnalysis";
 import trivialRow from "./trivialRow";
 
 describe("02. trivialRow", () => {
@@ -19,7 +20,9 @@ describe("02. trivialRow", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = trivialRow(board, cells);
+      const structure = buildBoardStructure(board);
+      const analysis = buildBoardAnalysis(structure, cells);
+      const result = trivialRow(board, cells, analysis);
 
       expect(result).toBe(true);
       expect(cells).toEqual([
@@ -46,7 +49,9 @@ describe("02. trivialRow", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = trivialRow(board, cells);
+      const structure = buildBoardStructure(board);
+      const analysis = buildBoardAnalysis(structure, cells);
+      const result = trivialRow(board, cells, analysis);
 
       expect(result).toBe(true);
       expect(cells).toEqual([
@@ -72,7 +77,9 @@ describe("02. trivialRow", () => {
         ["unknown", "star", "unknown"],
       ];
 
-      const result = trivialRow(board, cells);
+      const structure = buildBoardStructure(board);
+      const analysis = buildBoardAnalysis(structure, cells);
+      const result = trivialRow(board, cells, analysis);
 
       expect(result).toBe(true);
       expect(cells).toEqual([
@@ -99,7 +106,9 @@ describe("02. trivialRow", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = trivialRow(board, cells);
+      const structure = buildBoardStructure(board);
+      const analysis = buildBoardAnalysis(structure, cells);
+      const result = trivialRow(board, cells, analysis);
 
       expect(result).toBe(false);
       expect(cells).toEqual([
@@ -124,7 +133,9 @@ describe("02. trivialRow", () => {
         ["unknown", "unknown", "unknown"],
       ];
 
-      const result = trivialRow(board, cells);
+      const structure = buildBoardStructure(board);
+      const analysis = buildBoardAnalysis(structure, cells);
+      const result = trivialRow(board, cells, analysis);
 
       expect(result).toBe(false);
     });
@@ -146,7 +157,9 @@ describe("02. trivialRow", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      const result = trivialRow(board, cells);
+      const structure = buildBoardStructure(board);
+      const analysis = buildBoardAnalysis(structure, cells);
+      const result = trivialRow(board, cells, analysis);
 
       expect(result).toBe(false);
     });
@@ -170,7 +183,9 @@ describe("02. trivialRow", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      trivialRow(board, cells);
+      const structure = buildBoardStructure(board);
+      const analysis = buildBoardAnalysis(structure, cells);
+      trivialRow(board, cells, analysis);
 
       expect(cells[0]).toEqual(["star", "unknown", "unknown", "unknown"]);
     });
@@ -192,7 +207,9 @@ describe("02. trivialRow", () => {
         ["unknown", "unknown", "unknown", "unknown"],
       ];
 
-      trivialRow(board, cells);
+      const structure = buildBoardStructure(board);
+      const analysis = buildBoardAnalysis(structure, cells);
+      trivialRow(board, cells, analysis);
 
       expect(cells[0][0]).toBe("star");
       expect(cells[0][1]).toBe("star");
@@ -215,7 +232,9 @@ describe("02. trivialRow", () => {
         ["star", "unknown", "unknown"],
       ];
 
-      trivialRow(board, cells);
+      const structure = buildBoardStructure(board);
+      const analysis = buildBoardAnalysis(structure, cells);
+      trivialRow(board, cells, analysis);
 
       expect(cells).toEqual([
         ["star", "marked", "marked"],

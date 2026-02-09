@@ -1,21 +1,17 @@
 import { Board, CellState } from "../../helpers/types";
+import { BoardAnalysis } from "../../helpers/boardAnalysis";
 
 export default function trivialRow(
   board: Board,
   cells: CellState[][],
+  analysis: BoardAnalysis,
 ): boolean {
-  const size = board.grid.length;
   let changed = false;
-  for (let row = 0; row < size; row++) {
-    let stars = 0;
-    for (let col = 0; col < size; col++)
-      if (cells[row][col] === "star") stars++;
-    if (stars === board.stars) {
-      for (let col = 0; col < size; col++) {
-        if (cells[row][col] === "unknown") {
-          cells[row][col] = "marked";
-          changed = true;
-        }
+  for (let row = 0; row < analysis.size; row++) {
+    if (analysis.rowStars[row] === board.stars) {
+      for (const [r, c] of analysis.rowUnknowns[row]) {
+        cells[r][c] = "marked";
+        changed = true;
       }
     }
   }

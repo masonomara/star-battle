@@ -57,7 +57,7 @@ Actions derived from observations and techniques.
 
 **Star Neighbors:** If a star is placed, then no star can touch it, so mark all of the star's surrounding neighbors diagonally, horizontally, and vertically.
 
-**Trivial Marks:** If a row/column/region has all of the needed stars, then no more stars can be placed, so mark the remaining cells.
+**Trivial Marks:** If a row/column/region has all its needed stars, then no more stars can be placed, so mark the remaining cells.
 
 **Forced Placements:** If a row/column/region has the same number of unknown cells as needed stars, then those unknown cells must be the remaining stars, so place stars there.
 

@@ -33,6 +33,8 @@ export type BoardAnalysis = {
   regions: Map<number, RegionMeta>;
   rowStars: number[];
   colStars: number[];
+  rowUnknowns: Coord[][];
+  colUnknowns: Coord[][];
   rowToRegions: Map<number, Set<number>>;
   colToRegions: Map<number, Set<number>>;
   getTiling: (cells: Coord[]) => TilingResult;
@@ -74,6 +76,8 @@ export function buildBoardAnalysis(
   const regions = new Map<number, RegionMeta>();
   const rowStars = new Array(size).fill(0);
   const colStars = new Array(size).fill(0);
+  const rowUnknowns: Coord[][] = Array.from({ length: size }, () => []);
+  const colUnknowns: Coord[][] = Array.from({ length: size }, () => []);
 
   for (const [id, sr] of structRegions) {
     const unknownCoords: Coord[] = [];
@@ -87,6 +91,8 @@ export function buildBoardAnalysis(
         unknownCoords.push([row, col]);
         unknownRows.add(row);
         unknownCols.add(col);
+        rowUnknowns[row].push([row, col]);
+        colUnknowns[col].push([row, col]);
       } else if (cell === "star") {
         starsPlaced++;
         rowStars[row]++;
@@ -178,6 +184,8 @@ export function buildBoardAnalysis(
     regions,
     rowStars,
     colStars,
+    rowUnknowns,
+    colUnknowns,
     rowToRegions,
     colToRegions,
     getTiling,

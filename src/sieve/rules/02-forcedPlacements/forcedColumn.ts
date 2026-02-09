@@ -1,22 +1,14 @@
-import { Board, CellState, Coord } from "../../helpers/types";
+import { Board, CellState } from "../../helpers/types";
+import { BoardAnalysis } from "../../helpers/boardAnalysis";
 
-/**
- * When unknowns in a column equal needed stars, place one star.
- */
 export default function forcedColumn(
   board: Board,
   cells: CellState[][],
+  analysis: BoardAnalysis,
 ): boolean {
-  const size = board.grid.length;
-
-  for (let col = 0; col < size; col++) {
-    let stars = 0;
-    const unknowns: Coord[] = [];
-    for (let row = 0; row < size; row++) {
-      if (cells[row][col] === "star") stars++;
-      else if (cells[row][col] === "unknown") unknowns.push([row, col]);
-    }
-    const needed = board.stars - stars;
+  for (let col = 0; col < analysis.size; col++) {
+    const needed = board.stars - analysis.colStars[col];
+    const unknowns = analysis.colUnknowns[col];
     if (needed > 0 && unknowns.length === needed) {
       for (const [r, c] of unknowns) {
         cells[r][c] = "star";
