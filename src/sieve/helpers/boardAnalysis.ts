@@ -1,6 +1,6 @@
 import { Board, CellState, Coord, TilingResult } from "./types";
 import { computeTiling } from "./tiling";
-import { computeCountingFlow, CountingFlowInput, CountingFlowResult } from "./countingFlow";
+import { computeCountingFlow, CountingFlowInput, CountingFlowResult } from "./counting";
 
 type RegionStructure = {
   id: number;

@@ -49,9 +49,9 @@ Production rules are a series of applied "Observations -> Techniques -> Deductio
 
 **Star Neighbors:** If a star is placed, then no star can touch it, so mark all of the star's surrounding neighbors diagonally, horizontally, and vertically.
 
-**Trivial Marks:** If a container has all its needed stars, then no more stars can be placed, so mark the remaining cells.
-
 **Forced Placements:** If a container has the same number of unknown cells as needed stars, then those unknown cells must be the remaining stars, so place stars there.
+
+**Trivial Marks:** If a container has all its needed stars, then no more stars can be placed, so mark the remaining cells.
 
 ### Tiling Enumeration
 
@@ -59,13 +59,13 @@ Production rules are a series of applied "Observations -> Techniques -> Deductio
 
 **Tiling Forced:** If a cell is a star in every valid tiling assignment of the container, then it must be a star, so place a star.
 
-**Tiling Adjacency:** If a cell never appears as a star in any valid tiling assignment of a container, then it can't be a star, so mark the cell.
+**Tiling Adjacency:** If a cell never appears as a star in any valid tiling assignment of a region, then it can't be a star, so mark the cell.
 
 **Tiling Overhang:** If a cell outside of a region is covered by a tile in every valid tiling assignment of the region, then that cell can't be a star, so mark the cell.
 
 ### Counting Enumerations
 
-**Counting Observation:** Given that each container has a fixed star quota, overlaps between containers create forced deductions. If a region overlapping a group of lines can contribute at most its remaining unplaced needed stars to those lines, capped by the number of unknown cells in the overlap. If the sum of every region's maximum contribution equals the line group's combined needed stars, the constraint is tight — each region must contribute exactly its maximum.
+**Counting Observation:** Given that each container has a fixed star quota, overlaps between containers create forced deductions. If a region overlapping a group of lines can contribute at most its remaining needed stars to those lines, capped by the number of unknown cells in the overlap. If the sum of every region's maximum contribution equals the line group's combined needed stars, the constraint is tight — each region must contribute exactly its maximum.
 
 **Counting Marks:** If a tight constraint forces a region to place all its remaining stars inside a line group, then the region's cells outside the line group cannot be stars, so mark them.
 
@@ -85,7 +85,9 @@ Production rules are a series of applied "Observations -> Techniques -> Deductio
 
 **Tiling Counting Marks:** If a region's minimum contribution to the line is zero, its cells in the line can't be stars, so mark them.
 
-**Grouped Tiling Counting Marks:** If a region's minimum contribution to a group of lines is zero, its cells in those lines can't be stars, so mark them. Note grouped tiling counting fully consumes single-line tiling counting — they are separated in the solver for execution simplicity and to match how humans apply the heuristic.
+**Tiling Counting Forced:** If a tight constraint requires a region to place a specific number of stars outside the line, and the region has exactly that many unknown cells outside the line, then those cells must be stars, so place them.
+
+**Grouped Tiling Counting Marks:** If a region's minimum contribution to a group of lines is zero, its cells in those lines can't be stars, so mark them. Grouped tiling counting fully subsumes single-line tiling counting — they are separated in the solver for execution simplicity and to match how humans apply the heuristic.
 
 ### Direct Hypotheticals
 
@@ -107,12 +109,11 @@ Production rules are a series of applied "Observations -> Techniques -> Deductio
 
 ### Counting Hypotheticals
 
-_AI-generated language_
+**Counting Hypothetical Observation:** After a hypothetical star is placed, its consequences are propagated through forced placements. The resulting board state is then checked against counting constraints.
 
+**Hypothetical Counting Row:** If a hypothetical is placed, consequences propagated, and any group of rows now needs more stars than its touching regions can provide, then the assumption leads to a contradiction, so mark the cell.
 
-**Hypothetical Counting Row:** If a hypothetical is placed and any group of rows now needs more stars than its touching regions can provide, then the assumption leads to a contradiction, so mark the cell.
-
-**Hypothetical Counting Column:** If a hypothetical is placed and any group of columns now needs more stars than its touching regions can provide, then the assumption leads to a contradiction, so mark the cell.
+**Hypothetical Counting Column:** If a hypothetical is placed, consequences propagated, and any group of columns now needs more stars than its touching regions can provide, then the assumption leads to a contradiction, so mark the cell.
 
 ### Propagated Hypotheticals
 
@@ -123,3 +124,13 @@ _AI-generated language_
 **Propagated Column Count:** If a hypothetical placement cascades through forced placements and any column no longer has enough unknown cells to meet its needed stars, then the assumption leads to a contradiction, so mark the cell.
 
 **Propagated Region Count:** If a hypothetical placement cascades through forced placements and any region no longer has enough unknown cells to meet its needed stars, then the assumption leads to a contradiction, so mark the cell.
+
+**Propagated Row Capacity:** If a hypothetical placement cascades through forced placements and any nearby row's remaining cells can no longer fit enough 2x2 tiles for the needed stars, then the assumption leads to a contradiction, so mark the cell.
+
+**Propagated Column Capacity:** If a hypothetical placement cascades through forced placements and any nearby column's remaining cells can no longer fit enough 2x2 tiles for the needed stars, then the assumption leads to a contradiction, so mark the cell.
+
+**Propagated Region Capacity:** If a hypothetical placement cascades through forced placements and any affected region's remaining cells can no longer fit enough 2x2 tiles for the needed stars, then the assumption leads to a contradiction, so mark the cell.
+
+**Propagated Counting Row:** If a hypothetical placement cascades through forced placements and any group of rows now needs more stars than its touching regions can provide, then the assumption leads to a contradiction, so mark the cell.
+
+**Propagated Counting Column:** If a hypothetical placement cascades through forced placements and any group of columns now needs more stars than its touching regions can provide, then the assumption leads to a contradiction, so mark the cell.
