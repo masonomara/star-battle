@@ -1,7 +1,7 @@
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { cellKey } from "../../helpers/neighbors";
-import { hypotheticalLoop } from "../../helpers/hypothetical";
+import { hypotheticalLoop } from "../../helpers/hypotheticals";
 
 export default function hypotheticalRowCount(
   board: Board,

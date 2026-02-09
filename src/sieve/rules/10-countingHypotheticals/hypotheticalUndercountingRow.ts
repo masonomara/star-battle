@@ -1,6 +1,6 @@
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { hypotheticalLoop, propagatedCountingViolation } from "../../helpers/hypothetical";
+import { hypotheticalLoop, propagatedCountingViolation } from "../../helpers/hypotheticals";
 
 export default function hypotheticalCountingRow(
   board: Board,
