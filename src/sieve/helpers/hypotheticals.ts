@@ -264,7 +264,7 @@ export function propagatedCountingViolation(
     regionInfos.push({
       starsNeeded: needed,
       unknownsByAxis,
-      unknownCoords: meta.unknownCoords as [number, number][],
+      unknownCoords: meta.unknownCoords,
     });
   }
 
