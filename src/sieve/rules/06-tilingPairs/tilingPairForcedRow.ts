@@ -1,5 +1,5 @@
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { squeezePairLoop } from "../../helpers/squeezeHelper";
+import { squeezePairLoop } from "../../helpers/tilingPairs";
 import { Board, CellState } from "../../helpers/types";
 
 export default function tilingPairForcedRow(
