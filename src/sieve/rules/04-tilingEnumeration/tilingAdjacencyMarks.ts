@@ -9,7 +9,7 @@ function cellsAreAdjacent(c1: Coord, c2: Coord): boolean {
 }
 
 /**
- * Rule 8e: Tiling Adjacency Marks
+ * Tiling Adjacency Marks
  *
  * When capacity === starsNeeded, each tile contains exactly one star.
  * Cells that don't appear in any valid star assignment across all tilings
@@ -20,6 +20,7 @@ export default function tilingAdjacencyMarks(
   cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
+  const size = board.grid.length;
   let changed = false;
 
   for (const [, meta] of analysis.regions) {
@@ -28,17 +29,20 @@ export default function tilingAdjacencyMarks(
     const tiling = analysis.getTiling(meta.unknownCoords);
     if (tiling.capacity !== meta.starsNeeded) continue;
 
-    const unknownSet = new Set(
-      meta.unknownCoords.map((c) => `${c[0]},${c[1]}`),
-    );
+    const unknownSet = new Set<number>();
+    for (const [r, c] of meta.unknownCoords) {
+      unknownSet.add(r * size + c);
+    }
+
     const validStarCells = collectValidStarCells(
       tiling.tilings,
       unknownSet,
       cells,
+      size,
     );
 
     for (const [row, col] of meta.unknownCoords) {
-      if (!validStarCells.has(`${row},${col}`) && cells[row][col] === "unknown") {
+      if (!validStarCells.has(row * size + col) && cells[row][col] === "unknown") {
         cells[row][col] = "marked";
         changed = true;
       }
@@ -54,16 +58,17 @@ export default function tilingAdjacencyMarks(
  */
 function collectValidStarCells(
   allMinimalTilings: Tile[][],
-  unknownSet: Set<string>,
+  unknownSet: Set<number>,
   cells: CellState[][],
-): Set<string> {
-  const validCells = new Set<string>();
+  size: number,
+): Set<number> {
+  const validCells = new Set<number>();
 
   for (const tiling of allMinimalTilings) {
-    const assignments = enumerateStarAssignments(tiling, unknownSet, cells);
+    const assignments = enumerateStarAssignments(tiling, unknownSet, cells, size);
     for (const assignment of assignments) {
       for (const [r, c] of assignment) {
-        validCells.add(`${r},${c}`);
+        validCells.add(r * size + c);
       }
     }
   }
@@ -74,12 +79,12 @@ function collectValidStarCells(
 /**
  * Enumerate all valid star assignments for a single tiling.
  * Each tile gets exactly one star. No two stars are adjacent.
- * Builds assignments iteratively, tile by tile.
  */
 function enumerateStarAssignments(
   tiling: Tile[],
-  unknownSet: Set<string>,
+  unknownSet: Set<number>,
   cells: CellState[][],
+  size: number,
 ): Coord[][] {
   const fixed: Coord[] = [];
   const candidatesPerTile: Coord[][] = [];
@@ -91,8 +96,8 @@ function enumerateStarAssignments(
     if (existingStar) {
       fixed.push(existingStar);
     } else {
-      const candidates = tile.coveredCells.filter((c) =>
-        unknownSet.has(`${c[0]},${c[1]}`),
+      const candidates = tile.coveredCells.filter(([r, c]) =>
+        unknownSet.has(r * size + c),
       );
       if (candidates.length === 0) return [];
       candidatesPerTile.push(candidates);

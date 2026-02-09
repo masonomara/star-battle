@@ -2,7 +2,7 @@ import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { Board, CellState, Coord, Tile } from "../../helpers/types";
 
 /**
- * Rule 8d: Tiling Overhang Marks
+ * Tiling Overhang Marks
  *
  * When capacity === starsNeeded, each tile contains exactly one star.
  * Non-region cells covered by tiles in ALL minimal tilings cannot have stars
@@ -16,6 +16,7 @@ export default function tilingOverhangMarks(
   cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
+  const size = board.grid.length;
   let changed = false;
 
   for (const [, meta] of analysis.regions) {
@@ -24,11 +25,10 @@ export default function tilingOverhangMarks(
     const tiling = analysis.getTiling(meta.unknownCoords);
     if (tiling.capacity !== meta.starsNeeded) continue;
 
-    // Filter out tilings whose overhang is already fully marked
-    const activeTilings = filterActiveTilings(tiling.tilings, cells);
+    const activeTilings = filterActiveTilings(tiling.tilings, cells, size);
     if (activeTilings.length === 0) continue;
 
-    const forcedNonRegion = findForcedNonRegionCells(activeTilings);
+    const forcedNonRegion = findForcedNonRegionCells(activeTilings, size);
     for (const [row, col] of forcedNonRegion) {
       if (cells[row][col] === "unknown") {
         cells[row][col] = "marked";
@@ -42,29 +42,24 @@ export default function tilingOverhangMarks(
 
 /**
  * Filter out tilings whose overhang cells are all already marked.
- * These tilings are "free" - they impose no new constraint.
  */
 function filterActiveTilings(
   allTilings: Tile[][],
   cells: CellState[][],
+  size: number,
 ): Tile[][] {
   return allTilings.filter((tiling) => {
-    // Get all overhang cells for this tiling
     for (const tile of tiling) {
-      const coveredKeys = new Set(
-        tile.coveredCells.map((c) => `${c[0]},${c[1]}`),
-      );
-      for (const cell of tile.cells) {
-        if (!coveredKeys.has(`${cell[0]},${cell[1]}`)) {
-          const [row, col] = cell;
-          // If any overhang cell is unknown, this tiling is active
-          if (cells[row][col] === "unknown") {
-            return true;
-          }
+      const coveredKeys = new Set<number>();
+      for (const [r, c] of tile.coveredCells) {
+        coveredKeys.add(r * size + c);
+      }
+      for (const [r, c] of tile.cells) {
+        if (!coveredKeys.has(r * size + c) && cells[r][c] === "unknown") {
+          return true;
         }
       }
     }
-    // All overhang cells are marked - this tiling is free
     return false;
   });
 }
@@ -72,17 +67,18 @@ function filterActiveTilings(
 /**
  * Find non-region cells that appear in ALL minimal tilings.
  */
-function findForcedNonRegionCells(allMinimalTilings: Tile[][]): Coord[] {
+function findForcedNonRegionCells(allMinimalTilings: Tile[][], size: number): Coord[] {
   if (allMinimalTilings.length === 0) return [];
 
-  const nonRegionSets: Set<string>[] = allMinimalTilings.map((tiling) => {
-    const nonRegion = new Set<string>();
+  const nonRegionSets: Set<number>[] = allMinimalTilings.map((tiling) => {
+    const nonRegion = new Set<number>();
     for (const tile of tiling) {
-      const coveredKeys = new Set(
-        tile.coveredCells.map((c) => `${c[0]},${c[1]}`),
-      );
-      for (const cell of tile.cells) {
-        const key = `${cell[0]},${cell[1]}`;
+      const coveredKeys = new Set<number>();
+      for (const [r, c] of tile.coveredCells) {
+        coveredKeys.add(r * size + c);
+      }
+      for (const [r, c] of tile.cells) {
+        const key = r * size + c;
         if (!coveredKeys.has(key)) {
           nonRegion.add(key);
         }
@@ -91,12 +87,14 @@ function findForcedNonRegionCells(allMinimalTilings: Tile[][]): Coord[] {
     return nonRegion;
   });
 
-  const intersection = [...nonRegionSets[0]].filter((key) =>
-    nonRegionSets.every((set) => set.has(key)),
-  );
+  const result: Coord[] = [];
+  for (const key of nonRegionSets[0]) {
+    if (nonRegionSets.every((set) => set.has(key))) {
+      const r = Math.floor(key / size);
+      const c = key % size;
+      result.push([r, c]);
+    }
+  }
 
-  return intersection.map((key) => {
-    const [row, col] = key.split(",").map(Number);
-    return [row, col] as Coord;
-  });
+  return result;
 }
