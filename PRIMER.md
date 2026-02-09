@@ -109,28 +109,28 @@ Production rules are a series of applied "Observations -> Techniques -> Deductio
 
 ### Counting Hypotheticals
 
-**Counting Hypothetical Observation:** After a hypothetical star is placed, its consequences are propagated through forced placements. The resulting board state is then checked against counting constraints.
+**Counting Hypothetical Observation:** Given a hypothetical star is placed, certian consequences can be propagated through deterministic forced placements. The resulting board state is then checked against counting constraints. Hypotetical stars that create a contradiction can be marked.
 
-**Hypothetical Counting Row:** If a hypothetical is placed, consequences propagated, and any group of rows now needs more stars than its touching regions can provide, then the assumption leads to a contradiction, so mark the cell.
+**Hypothetical Counting Row:** If a hypothetical is placed, consequences propagated, and any group of rows now needs more stars than its overlapping regions can provide, then the assumption leads to a contradiction, so mark the cell.
 
-**Hypothetical Counting Column:** If a hypothetical is placed, consequences propagated, and any group of columns now needs more stars than its touching regions can provide, then the assumption leads to a contradiction, so mark the cell.
+**Hypothetical Counting Column:** If a hypothetical is placed, consequences propagated, and any group of columns now needs more stars than its overlapping regions can provide, then the assumption leads to a contradiction, so mark the cell.
 
 ### Propagated Hypotheticals
 
-**Propagation Observation:** After a hypothetical star is placed and its neighbors marked, a container may now have exactly as many unknown cells as needed stars — triggering a Forced Placement. That forced star must also be placed and its neighbors marked, potentially cascading further. If any consequence in this chain breaks the puzzle, the original hypothesis was wrong.
+**Propagation Observation:** Given a hypothetical star is placed and its neighbors marked, a container may now have exactly as many unknown cells as needed stars — triggering a Forced Placement. The forced star must also be placed and its neighbors marked, potentially propogating further with deterministic placements. If any consequence in this chain breaks the puzzle, the original hypothesis creates a contradcition and can be marked.
 
-**Propagated Row Count:** If a hypothetical placement cascades through forced placements and any row no longer has enough unknown cells to meet its needed stars, then the assumption leads to a contradiction, so mark the cell.
+**Propagated Row Count:** If a hypothetical placement propagates forced placements and any row no longer has enough unknown cells to meet its needed stars, then the assumption leads to a contradiction, so mark the cell.
 
-**Propagated Column Count:** If a hypothetical placement cascades through forced placements and any column no longer has enough unknown cells to meet its needed stars, then the assumption leads to a contradiction, so mark the cell.
+**Propagated Column Count:** If a hypothetical placement propagates  forced placements and any column no longer has enough unknown cells to meet its needed stars, then the assumption leads to a contradiction, so mark the cell.
 
-**Propagated Region Count:** If a hypothetical placement cascades through forced placements and any region no longer has enough unknown cells to meet its needed stars, then the assumption leads to a contradiction, so mark the cell.
+**Propagated Region Count:** If a hypothetical placement propagates forced placements and any region no longer has enough unknown cells to meet its needed stars, then the assumption leads to a contradiction, so mark the cell.
 
-**Propagated Row Capacity:** If a hypothetical placement cascades through forced placements and any nearby row's remaining cells can no longer fit enough 2x2 tiles for the needed stars, then the assumption leads to a contradiction, so mark the cell.
+**Propagated Row Capacity:** If a hypothetical placement propagates forced placements and any nearby row's remaining cells can no longer fit enough 2x2 tiles for the needed stars, then the assumption leads to a contradiction, so mark the cell.
 
-**Propagated Column Capacity:** If a hypothetical placement cascades through forced placements and any nearby column's remaining cells can no longer fit enough 2x2 tiles for the needed stars, then the assumption leads to a contradiction, so mark the cell.
+**Propagated Column Capacity:** If a hypothetical placement propagates forced placements and any nearby column's remaining cells can no longer fit enough 2x2 tiles for the needed stars, then the assumption leads to a contradiction, so mark the cell.
 
-**Propagated Region Capacity:** If a hypothetical placement cascades through forced placements and any affected region's remaining cells can no longer fit enough 2x2 tiles for the needed stars, then the assumption leads to a contradiction, so mark the cell.
+**Propagated Region Capacity:** If a hypothetical placement propagates forced placements and any affected region's remaining cells can no longer fit enough 2x2 tiles for the needed stars, then the assumption leads to a contradiction, so mark the cell.
 
-**Propagated Counting Row:** If a hypothetical placement cascades through forced placements and any group of rows now needs more stars than its touching regions can provide, then the assumption leads to a contradiction, so mark the cell.
+**Propagated Counting Row:** If a hypothetical placement propagates forced placements and any group of rows now needs more stars than its overlapping regions can provide, then the assumption leads to a contradiction, so mark the cell.
 
-**Propagated Counting Column:** If a hypothetical placement cascades through forced placements and any group of columns now needs more stars than its touching regions can provide, then the assumption leads to a contradiction, so mark the cell.
+**Propagated Counting Column:** If a hypothetical placement propagates forced placements and any group of columns now needs more stars than its overlapping regions can provide, then the assumption leads to a contradiction, so mark the cell.
