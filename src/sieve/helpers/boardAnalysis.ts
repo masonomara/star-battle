@@ -150,7 +150,7 @@ export function buildBoardAnalysis(
 
   const getTiling = (coords: Coord[]): TilingResult => {
     if (coords.length === 0) return { capacity: 0, tilings: [[]], forcedCells: [] };
-    const key = coords.map(([r, c]) => `${r},${c}`).sort().join("|");
+    const key = coords.map(([r, c]) => r * size + c).sort((a, b) => a - b).join("|");
     let result = cache.get(key);
     if (!result) { result = computeTiling(coords, size); cache.set(key, result); }
     return result;

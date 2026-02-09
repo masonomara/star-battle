@@ -21,17 +21,17 @@ import tilingOverhangMarks from "./04-tilingEnumeration/tilingOverhangMarks";
 import countingMarkRow from "./05-countingEnumeration/countingMarkRow";
 import countingMarkColumn from "./05-countingEnumeration/countingMarkColumn";
 
-// Level 4: Tiling Counting
+// Level 6: Tiling Counting
 import tilingCountingMarkRow from "./07-tilingCounting/tilingCountingMarkRow";
 import tilingCountingMarkColumn from "./07-tilingCounting/tilingCountingMarkColumn";
 import tilingCountingForcedRow from "./07-tilingCounting/tilingCountingForcedRow";
 import tilingCountingForcedColumn from "./07-tilingCounting/tilingCountingForcedColumn";
-import tilingPairForcedRow from "./04-tilingEnumeration/tilingPairForcedRow";
-import tilingPairForcedColumn from "./04-tilingEnumeration/tilingPairForcedColumn";
-import tilingPairAdjacencyRow from "./04-tilingEnumeration/tilingPairAdjacencyRow";
-import tilingPairAdjacencyColumn from "./04-tilingEnumeration/tilingPairAdjacencyColumn";
-import tilingPairOverhangRow from "./04-tilingEnumeration/tilingPairOverhangRow";
-import tilingPairOverhangColumn from "./04-tilingEnumeration/tilingPairOverhangColumn";
+import tilingPairForcedRow from "./06-tilingPairs/tilingPairForcedRow";
+import tilingPairForcedColumn from "./06-tilingPairs/tilingPairForcedColumn";
+import tilingPairAdjacencyRow from "./06-tilingPairs/tilingPairAdjacencyRow";
+import tilingPairAdjacencyColumn from "./06-tilingPairs/tilingPairAdjacencyColumn";
+import tilingPairOverhangRow from "./06-tilingPairs/tilingPairOverhangRow";
+import tilingPairOverhangColumn from "./06-tilingPairs/tilingPairOverhangColumn";
 
 // Level 6: Group Tiling Counting
 import groupTilingCountingMarkRow from "./07-tilingCounting/groupTilingCountingMarkRow";
@@ -76,63 +76,64 @@ export type RuleEntry = {
 export const allRules: RuleEntry[] = [
   // Level 1: Direct Inferences
   { rule: starNeighbors, level: 1, name: "Star Neighbors" },
-  { rule: forcedRow, level: 1, name: "Forced Rows" },
-  { rule: forcedColumn, level: 1, name: "Forced Columns" },
-  { rule: forcedRegion, level: 1, name: "Forced Regions" },
-  { rule: trivialRow, level: 1, name: "Trivial Rows" },
-  { rule: trivialColumn, level: 1, name: "Trivial Columns" },
-  { rule: trivialRegion, level: 1, name: "Trivial Regions" },
+  { rule: forcedRow, level: 2, name: "Forced Rows" },
+  { rule: forcedColumn, level: 2, name: "Forced Columns" },
+  { rule: forcedRegion, level: 2, name: "Forced Regions" },
+  { rule: trivialRow, level: 3, name: "Trivial Rows" },
+  { rule: trivialColumn, level: 3, name: "Trivial Columns" },
+  { rule: trivialRegion, level: 3, name: "Trivial Regions" },
 
   // Level 2: Tiling Enumerations
-  { rule: tilingForcedRow, level: 2, name: "Tiling Forced Rows" },
-  { rule: tilingForcedColumn, level: 2, name: "Tiling Forced Columns" },
-  { rule: tilingForcedRegion, level: 2, name: "Tiling Forced Regions" },
-  { rule: tilingAdjacencyMarks, level: 2, name: "Tiling Adjacency Marks" },
-  { rule: tilingOverhangMarks, level: 2, name: "Tiling Overhang Marks" },
-  { rule: tilingPairForcedRow, level: 2, name: "Tiling Pair Forced Rows" },
-  { rule: tilingPairForcedColumn, level: 2, name: "Tiling Pair Forced Columns" },
-  { rule: tilingPairAdjacencyRow, level: 2, name: "Tiling Pair Adjacency Rows" },
-  { rule: tilingPairAdjacencyColumn, level: 2, name: "Tiling Pair Adjacency Columns" },
-  { rule: tilingPairOverhangRow, level: 2, name: "Tiling Pair Overhang Rows" },
-  { rule: tilingPairOverhangColumn, level: 2, name: "Tiling Pair Overhang Columns" },
+  { rule: tilingForcedRow, level: 4, name: "Tiling Forced Rows" },
+  { rule: tilingForcedColumn, level: 4, name: "Tiling Forced Columns" },
+  { rule: tilingForcedRegion, level: 4, name: "Tiling Forced Regions" },
+  { rule: tilingAdjacencyMarks, level: 4, name: "Tiling Adjacency Marks" },
+  { rule: tilingOverhangMarks, level: 4, name: "Tiling Overhang Marks" },
 
   // Level 3: Counting Enumerations
-  { rule: countingMarkRow, level: 3, name: "Counting Mark Rows" },
-  { rule: countingMarkColumn, level: 3, name: "Counting Mark Columns" },
+  { rule: countingMarkRow, level: 5, name: "Counting Mark Rows" },
+  { rule: countingMarkColumn, level: 5, name: "Counting Mark Columns" },
 
-  // Level 4: Tiling Counting
-  { rule: tilingCountingMarkRow, level: 4, name: "Tiling Counting Mark Rows" },
-  { rule: tilingCountingMarkColumn, level: 4, name: "Tiling Counting Mark Columns" },
-  { rule: tilingCountingForcedRow, level: 4, name: "Tiling Counting Forced Rows" },
-  { rule: tilingCountingForcedColumn, level: 4, name: "Tiling Counting Forced Columns" },
+ // Level 6: Tiling Pairs
+  { rule: tilingPairForcedRow, level: 6, name: "Tiling Pair Forced Rows" },
+  { rule: tilingPairForcedColumn, level: 6, name: "Tiling Pair Forced Columns" },
+  { rule: tilingPairAdjacencyRow, level: 6, name: "Tiling Pair Adjacency Rows" },
+  { rule: tilingPairAdjacencyColumn, level: 6, name: "Tiling Pair Adjacency Columns" },
+  { rule: tilingPairOverhangRow, level: 6, name: "Tiling Pair Overhang Rows" },
+  { rule: tilingPairOverhangColumn, level: 6, name: "Tiling Pair Overhang Columns" },
 
-  // Level 6: Group Tiling Counting
-  { rule: groupTilingCountingMarkRow, level: 6, name: "Group Tiling Counting Mark Rows" },
-  { rule: groupTilingCountingMarkColumn, level: 6, name: "Group Tiling Counting Mark Columns" },
 
-  // Level 7: Direct Hypotheticals
-  { rule: hypotheticalRowCount, level: 7, name: "Hypothetical Row Count" },
-  { rule: hypotheticalColumnCount, level: 7, name: "Hypothetical Column Count" },
-  { rule: hypotheticalRegionCount, level: 7, name: "Hypothetical Region Count" },
+  // Level 7: Tiling Counting
+  { rule: tilingCountingMarkRow, level: 7, name: "Tiling Counting Mark Rows" },
+  { rule: tilingCountingMarkColumn, level: 7, name: "Tiling Counting Mark Columns" },
+  { rule: tilingCountingForcedRow, level: 7, name: "Tiling Counting Forced Rows" },
+  { rule: tilingCountingForcedColumn, level: 7, name: "Tiling Counting Forced Columns" },
+  { rule: groupTilingCountingMarkRow, level: 7, name: "Group Tiling Counting Mark Rows" },
+  { rule: groupTilingCountingMarkColumn, level: 7, name: "Group Tiling Counting Mark Columns" },
+
+  // Level 8: Direct Hypotheticals
+  { rule: hypotheticalRowCount, level: 8, name: "Hypothetical Row Count" },
+  { rule: hypotheticalColumnCount, level: 8, name: "Hypothetical Column Count" },
+  { rule: hypotheticalRegionCount, level: 8, name: "Hypothetical Region Count" },
 
   // Level 8: Tiling Hypotheticals
-  { rule: hypotheticalRowCapacity, level: 8, name: "Hypothetical Row Capacity" },
-  { rule: hypotheticalColumnCapacity, level: 8, name: "Hypothetical Column Capacity" },
-  { rule: hypotheticalRegionCapacity, level: 8, name: "Hypothetical Region Capacity" },
+  { rule: hypotheticalRowCapacity, level: 9, name: "Hypothetical Row Capacity" },
+  { rule: hypotheticalColumnCapacity, level: 9, name: "Hypothetical Column Capacity" },
+  { rule: hypotheticalRegionCapacity, level: 9, name: "Hypothetical Region Capacity" },
 
   // Level 9: Counting Hypotheticals
-  { rule: hypotheticalCountingRow, level: 9, name: "Hypothetical Counting Row" },
-  { rule: hypotheticalCountingColumn, level: 9, name: "Hypothetical Counting Column" },
+  { rule: hypotheticalCountingRow, level: 10, name: "Hypothetical Counting Row" },
+  { rule: hypotheticalCountingColumn, level: 10, name: "Hypothetical Counting Column" },
 
   // Level 10: Propagated Hypotheticals
-  { rule: propagatedRowCount, level: 10, name: "Propagated Hypothetical Row Count" },
-  { rule: propagatedColumnCount, level: 10, name: "Propagated Hypothetical Column Count" },
-  { rule: propagatedRegionCount, level: 10, name: "Propagated Hypothetical Region Count" },
-  { rule: propagatedRowCapacity, level: 10, name: "Propagated Hypothetical Row Capacity" },
-  { rule: propagatedColumnCapacity, level: 10, name: "Propagated Hypothetical Column Capacity" },
-  { rule: propagatedRegionCapacity, level: 10, name: "Propagated Hypothetical Region Capacity" },
-  { rule: propagatedCountingRow, level: 10, name: "Propagated Hypothetical Counting Row" },
-  { rule: propagatedCountingColumn, level: 10, name: "Propagated Hypothetical Counting Column" },
+  { rule: propagatedRowCount, level: 11, name: "Propagated Hypothetical Row Count" },
+  { rule: propagatedColumnCount, level: 11, name: "Propagated Hypothetical Column Count" },
+  { rule: propagatedRegionCount, level: 11, name: "Propagated Hypothetical Region Count" },
+  { rule: propagatedRowCapacity, level: 11, name: "Propagated Hypothetical Row Capacity" },
+  { rule: propagatedColumnCapacity, level: 11, name: "Propagated Hypothetical Column Capacity" },
+  { rule: propagatedRegionCapacity, level: 11, name: "Propagated Hypothetical Region Capacity" },
+  { rule: propagatedCountingRow, level: 11, name: "Propagated Hypothetical Counting Row" },
+  { rule: propagatedCountingColumn, level: 11, name: "Propagated Hypothetical Counting Column" },
 ];
 
 /** Rule metadata for external use (e.g., CLI reporting) */

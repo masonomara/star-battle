@@ -10,12 +10,16 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
     return { capacity: 1, tilings: [], forcedCells: [cells[0]] };
   }
 
-  const cellSet = new Set(cells.map((c) => `${c[0]},${c[1]}`));
-  const cellToIndex = new Map<string, number>();
-  cells.forEach((c, i) => cellToIndex.set(`${c[0]},${c[1]}`, i));
+  const cellSet = new Set<number>();
+  const cellToIndex = new Map<number, number>();
+  for (let i = 0; i < cells.length; i++) {
+    const key = cells[i][0] * gridSize + cells[i][1];
+    cellSet.add(key);
+    cellToIndex.set(key, i);
+  }
 
   const tiles: Tile[] = [];
-  const seenAnchors = new Set<string>();
+  const seenAnchors = new Set<number>();
   const maxAnchor = gridSize - 2;
 
   for (const [r, c] of cells) {
@@ -25,7 +29,7 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
         const ac = c + dc;
         if (ar < 0 || ac < 0 || ar > maxAnchor || ac > maxAnchor) continue;
 
-        const anchorKey = `${ar},${ac}`;
+        const anchorKey = ar * gridSize + ac;
         if (seenAnchors.has(anchorKey)) continue;
         seenAnchors.add(anchorKey);
 
@@ -36,7 +40,7 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
           [ar + 1, ac + 1],
         ];
         const coveredCells = allCells.filter((tc) =>
-          cellSet.has(`${tc[0]},${tc[1]}`),
+          cellSet.has(tc[0] * gridSize + tc[1]),
         );
 
         if (coveredCells.length > 0) {
@@ -50,10 +54,10 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
     return { capacity: 0, tilings: [], forcedCells: [] };
   }
 
-  const secondaryToIndex = new Map<string, number>();
+  const secondaryToIndex = new Map<number, number>();
   for (const tile of tiles) {
     for (const c of tile.cells) {
-      const key = `${c[0]},${c[1]}`;
+      const key = c[0] * gridSize + c[1];
       if (!cellToIndex.has(key) && !secondaryToIndex.has(key)) {
         secondaryToIndex.set(key, secondaryToIndex.size);
       }
@@ -66,10 +70,10 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
   const dlxRows: number[][] = tiles.map((tile) => {
     const row: number[] = [];
     for (const c of tile.coveredCells) {
-      row.push(cellToIndex.get(`${c[0]},${c[1]}`)!);
+      row.push(cellToIndex.get(c[0] * gridSize + c[1])!);
     }
     for (const c of tile.cells) {
-      const key = `${c[0]},${c[1]}`;
+      const key = c[0] * gridSize + c[1];
       if (!cellToIndex.has(key) && secondaryToIndex.has(key)) {
         row.push(numPrimary + secondaryToIndex.get(key)!);
       }
@@ -96,10 +100,10 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
 
   const forcedCells: Coord[] = [];
   for (const cell of cells) {
-    const key = `${cell[0]},${cell[1]}`;
+    const key = cell[0] * gridSize + cell[1];
     const forcedInAll = tilings.every((tiling) => {
       const tile = tiling.find((t) =>
-        t.coveredCells.some((c) => `${c[0]},${c[1]}` === key),
+        t.coveredCells.some((c) => c[0] * gridSize + c[1] === key),
       );
       return tile && tile.coveredCells.length === 1;
     });
