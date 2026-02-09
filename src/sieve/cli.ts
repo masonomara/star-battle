@@ -218,6 +218,39 @@ function benchmark(content: string, verbose: boolean, filterUnsolved: boolean, t
   console.log(`\nSolve rate: ${solved}/${lines.length} (${solveRate}%)`);
 }
 
+// --- Stdin grid parser ---
+
+function parseGridFromStdin(input: string, stars: number): Board {
+  const rows = input.trim().split("\n").map((line) => line.trim()).filter((line) => line.length > 0);
+  const size = rows.length;
+
+  const grid: number[][] = [];
+  const letterToRegion = new Map<string, number>();
+  let nextRegion = 0;
+
+  for (const row of rows) {
+    const cells = row.split(/\s+/);
+    if (cells.length !== size) {
+      throw new Error(`Expected ${size} columns but row has ${cells.length}: "${row}"`);
+    }
+    const rowData: number[] = [];
+    for (const cell of cells) {
+      const letter = cell.toUpperCase();
+      if (!letterToRegion.has(letter)) {
+        letterToRegion.set(letter, nextRegion++);
+      }
+      rowData.push(letterToRegion.get(letter)!);
+    }
+    grid.push(rowData);
+  }
+
+  if (letterToRegion.size !== size) {
+    throw new Error(`Found ${letterToRegion.size} regions, expected ${size}`);
+  }
+
+  return { grid, stars };
+}
+
 // --- Entry point ---
 
 function parseArgs(): Record<string, string> {
@@ -238,75 +271,95 @@ function parseArgs(): Record<string, string> {
   return args;
 }
 
-const args = parseArgs();
+function readStdin(): Promise<string> {
+  return new Promise((resolve) => {
+    let data = "";
+    process.stdin.setEncoding("utf-8");
+    process.stdin.on("data", (chunk) => (data += chunk));
+    process.stdin.on("end", () => resolve(data));
+  });
+}
 
-if (args.help === "true") {
-  console.log(`Usage:
+async function main() {
+  const args = parseArgs();
+  const hasStdin = !process.stdin.isTTY;
+
+  if (args.help === "true") {
+    console.log(`Usage:
+  echo "<grid>" | sieve --stars n [--trace]
   sieve --file puzzles.sbn [--verbose] [--unsolved] [--trace]
   sieve [--size n] [--stars n] [--count n] [--seed n] [--trace]
   sieve [--minDiff n] [--maxDiff n]`);
-} else if (args.file) {
-  benchmark(
-    fs.readFileSync(args.file, "utf-8"),
-    args.verbose === "true",
-    args.unsolved === "true",
-    args.trace === "true",
-  );
-} else {
-  const size = args.size ? parseInt(args.size, 10) : 10;
-  const stars = args.stars ? parseInt(args.stars, 10) : 2;
-  const count = args.count ? parseInt(args.count, 10) : 1;
-  const seed = args.seed ? parseInt(args.seed, 10) : undefined;
-  const minDiff = args.minDiff ? parseInt(args.minDiff, 10) : undefined;
-  const maxDiff = args.maxDiff ? parseInt(args.maxDiff, 10) : undefined;
-
-  if (size < 4 || size > 25 || !Number.isFinite(size)) {
-    console.error("Error: size must be between 4 and 25");
-    process.exit(1);
-  }
-  if (stars < 1 || stars > 6 || !Number.isFinite(stars)) {
-    console.error("Error: stars must be between 1 and 6");
-    process.exit(1);
-  }
-  if (count < 1 || count > 300 || !Number.isFinite(count)) {
-    console.error("Error: count must be between 1 and 300");
-    process.exit(1);
-  }
-
-  if (args.trace === "true" && seed !== undefined) {
-    traceBoard(layout(size, stars, seed));
-  } else {
-    const diffRange =
-      minDiff !== undefined || maxDiff !== undefined
-        ? `, difficulty ${minDiff ?? 0}-${maxDiff ?? "\u221E"}`
-        : "";
-    console.log(
-      `${size}\u00D7${size}, ${stars} stars${seed !== undefined ? `, seed ${seed}` : ""}${diffRange}\n`,
+  } else if (hasStdin && !args.file) {
+    const input = await readStdin();
+    const stars = args.stars ? parseInt(args.stars, 10) : 2;
+    const board = parseGridFromStdin(input, stars);
+    traceBoard(board);
+  } else if (args.file) {
+    benchmark(
+      fs.readFileSync(args.file, "utf-8"),
+      args.verbose === "true",
+      args.unsolved === "true",
+      args.trace === "true",
     );
+  } else {
+    const size = args.size ? parseInt(args.size, 10) : 10;
+    const stars = args.stars ? parseInt(args.stars, 10) : 2;
+    const count = args.count ? parseInt(args.count, 10) : 1;
+    const seed = args.seed ? parseInt(args.seed, 10) : undefined;
+    const minDiff = args.minDiff ? parseInt(args.minDiff, 10) : undefined;
+    const maxDiff = args.maxDiff ? parseInt(args.maxDiff, 10) : undefined;
 
-    const startTime = Date.now();
-    const puzzles = sieve({
-      size,
-      stars,
-      count,
-      seed,
-      minDifficulty: minDiff,
-      maxDifficulty: maxDiff,
-      onProgress: (solved, attempts) =>
-        process.stdout.write(`\rGenerated: ${attempts} | Solved: ${solved}`),
-    });
-    console.log(` | ${((Date.now() - startTime) / 1000).toFixed(2)}s\n`);
+    if (size < 4 || size > 25 || !Number.isFinite(size)) {
+      console.error("Error: size must be between 4 and 25");
+      process.exit(1);
+    }
+    if (stars < 1 || stars > 6 || !Number.isFinite(stars)) {
+      console.error("Error: stars must be between 1 and 6");
+      process.exit(1);
+    }
+    if (count < 1 || count > 300 || !Number.isFinite(count)) {
+      console.error("Error: count must be between 1 and 300");
+      process.exit(1);
+    }
 
-    if (puzzles.length === 0) {
-      console.log("No solvable puzzles found");
+    if (args.trace === "true" && seed !== undefined) {
+      traceBoard(layout(size, stars, seed));
     } else {
-      for (const p of puzzles) {
-        console.log(
-          `Seed: ${p.seed}\nDifficulty: ${p.difficulty} (cycles: ${p.cycles}, maxLevel: ${p.maxLevel})`,
-        );
-        printBoard(p.board.grid);
-        console.log("");
+      const diffRange =
+        minDiff !== undefined || maxDiff !== undefined
+          ? `, difficulty ${minDiff ?? 0}-${maxDiff ?? "\u221E"}`
+          : "";
+      console.log(
+        `${size}\u00D7${size}, ${stars} stars${seed !== undefined ? `, seed ${seed}` : ""}${diffRange}\n`,
+      );
+
+      const startTime = Date.now();
+      const puzzles = sieve({
+        size,
+        stars,
+        count,
+        seed,
+        minDifficulty: minDiff,
+        maxDifficulty: maxDiff,
+        onProgress: (solved, attempts) =>
+          process.stdout.write(`\rGenerated: ${attempts} | Solved: ${solved}`),
+      });
+      console.log(` | ${((Date.now() - startTime) / 1000).toFixed(2)}s\n`);
+
+      if (puzzles.length === 0) {
+        console.log("No solvable puzzles found");
+      } else {
+        for (const p of puzzles) {
+          console.log(
+            `Seed: ${p.seed}\nDifficulty: ${p.difficulty} (cycles: ${p.cycles}, maxLevel: ${p.maxLevel})`,
+          );
+          printBoard(p.board.grid);
+          console.log("");
+        }
       }
     }
   }
 }
+
+main();
