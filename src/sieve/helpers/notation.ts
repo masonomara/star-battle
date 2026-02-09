@@ -1,6 +1,6 @@
 import { Board } from "./types";
 
-const REGION_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+export const REGION_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const MAX_REGIONS = 26;
 
 type PuzzleStringMetadata = {

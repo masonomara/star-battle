@@ -2,13 +2,13 @@ import * as fs from "fs";
 import { sieve } from "./sieve";
 import { layout } from "./generator";
 import { solve, StepInfo, RULE_METADATA } from "./solver";
-import { decodePuzzleString } from "./helpers/notation";
+import { decodePuzzleString, REGION_LETTERS } from "./helpers/notation";
 import { Board, CellState } from "./helpers/types";
 import { computeDifficulty } from "./helpers/difficulty";
 
 // --- Formatting ---
 
-const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const LETTERS = REGION_LETTERS;
 
 function printBoard(grid: number[][]) {
   const size = grid.length;
