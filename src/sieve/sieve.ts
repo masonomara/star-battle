@@ -1,7 +1,6 @@
 import { generate, layout } from "./generator";
 import { solve } from "./solver";
 import {
-  computeDifficulty,
   GeneratorError,
   Puzzle,
   SieveStats,
@@ -9,7 +8,8 @@ import {
 } from "./helpers/types";
 
 function assignDifficulty(solution: Solution): Puzzle {
-  return { ...solution, difficulty: computeDifficulty(solution.maxLevel, solution.cycles) };
+  const difficulty = Math.round(solution.maxLevel * 4 + solution.cycles / 4);
+  return { ...solution, difficulty };
 }
 
 type SieveOptions = {

@@ -9,7 +9,7 @@
 
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { hypotheticalLoop } from "../../helpers/hypotheticalLoop";
+import { hypotheticalLoop } from "../../helpers/hypothetical";
 
 export default function propagatedRowCount(
   board: Board,

@@ -1,10 +1,10 @@
 /**
- * Shared loop for tiling counting: for each line (row or column), compute
- * the minimum number of stars each touching region must place in that line
- * using tiling capacity of cells outside the line. When the sum of minimums
- * equals the line's star need, the constraint is tight — delegate deductions.
+ * Shared loop for tiling counting: for line groups (single or multi), compute
+ * the minimum number of stars each touching region must place in that group
+ * using tiling capacity of cells outside the group. When the sum of minimums
+ * equals the group's star need, the constraint is tight — delegate deductions.
  *
- * minContrib(region, line) = max(0, starsNeeded - capacity(cellsOutside))
+ * minContrib(region, group) = max(0, starsNeeded - capacity(cellsOutside))
  */
 
 import { Board, CellState, Coord } from "./types";
@@ -17,34 +17,63 @@ export function tilingCountingLoop(
   axis: "row" | "col",
   deduct: (
     cells: CellState[][],
-    lineIndex: number,
+    mask: number,
     regionMeta: RegionMeta,
     minContrib: number,
   ) => boolean,
+  minGroupSize = 1,
+  maxGroupSize = 1,
 ): boolean {
   const { size, regions } = analysis;
   const axisStars = axis === "row" ? analysis.rowStars : analysis.colStars;
-  const lineToRegions =
-    axis === "row" ? analysis.rowToRegions : analysis.colToRegions;
 
-  for (let line = 0; line < size; line++) {
-    const lineNeeded = board.stars - axisStars[line];
-    if (lineNeeded <= 0) continue;
+  // Precompute per-region: axisMask (which lines have unknowns)
+  const regionEntries: { meta: RegionMeta; axisMask: number }[] = [];
+  for (const meta of regions.values()) {
+    if (meta.starsNeeded <= 0) continue;
+    let axisMask = 0;
+    for (const [r, c] of meta.unknownCoords) {
+      axisMask |= 1 << (axis === "row" ? r : c);
+    }
+    regionEntries.push({ meta, axisMask });
+  }
 
-    const touchingIds = lineToRegions.get(line);
-    if (!touchingIds || touchingIds.size === 0) continue;
+  // Precompute stars needed per line
+  const lineNeeded = new Array(size);
+  for (let i = 0; i < size; i++) {
+    lineNeeded[i] = board.stars - axisStars[i];
+  }
 
+  const limit = 1 << size;
+
+  for (let mask = 1; mask < limit; mask++) {
+    let bits = mask;
+    let popcount = 0;
+    while (bits) {
+      popcount++;
+      bits &= bits - 1;
+    }
+    if (popcount < minGroupSize || popcount > maxGroupSize) continue;
+
+    // Total stars needed by these lines
+    let totalNeeded = 0;
+    for (let i = 0; i < size; i++) {
+      if ((mask >> i) & 1) totalNeeded += lineNeeded[i];
+    }
+    if (totalNeeded <= 0) continue;
+
+    // Sum min contributions from each region
     let totalMin = 0;
     let exceeded = false;
     const entries: { meta: RegionMeta; minContrib: number }[] = [];
 
-    for (const regionId of touchingIds) {
-      const meta = regions.get(regionId)!;
-      if (meta.starsNeeded <= 0) continue;
+    for (let ri = 0; ri < regionEntries.length; ri++) {
+      const { meta, axisMask } = regionEntries[ri];
+      if (!(axisMask & mask)) continue;
 
       const cellsOutside: Coord[] = [];
       for (const [r, c] of meta.unknownCoords) {
-        if ((axis === "row" ? r : c) !== line) {
+        if (!((mask >> (axis === "row" ? r : c)) & 1)) {
           cellsOutside.push([r, c]);
         }
       }
@@ -58,17 +87,17 @@ export function tilingCountingLoop(
       totalMin += minContrib;
       entries.push({ meta, minContrib });
 
-      if (totalMin > lineNeeded) {
+      if (totalMin > totalNeeded) {
         exceeded = true;
         break;
       }
     }
 
-    if (exceeded || totalMin !== lineNeeded) continue;
+    if (exceeded || totalMin !== totalNeeded) continue;
 
     let changed = false;
     for (const { meta, minContrib } of entries) {
-      if (deduct(cells, line, meta, minContrib)) {
+      if (deduct(cells, mask, meta, minContrib)) {
         changed = true;
       }
     }

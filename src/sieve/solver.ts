@@ -1,13 +1,11 @@
-import { Board, CellState, SolverResult, TilingResult } from "./helpers/types";
+import { Board, CellState, Progress, SolverResult, TilingResult } from "./helpers/types";
 import {
   buildBoardStructure,
-  buildBoardState,
+  buildBoardAnalysis,
   BoardAnalysis,
 } from "./helpers/boardAnalysis";
-import { makeTilingLens } from "./helpers/tiling";
-import { makeCountingFlowLens } from "./helpers/countingFlow";
-import { checkProgress } from "./helpers/checkProgress";
-import { isValidBoard } from "./helpers/validateBoard";
+import { computeTiling } from "./helpers/tiling";
+import { neighbors } from "./helpers/neighbors";
 import { allRules } from "./rules";
 
 export { RULE_METADATA } from "./rules";
@@ -23,6 +21,85 @@ export interface StepInfo {
 export interface SolveOptions {
   onStep?: (step: StepInfo) => void;
   timing?: Map<string, number>;
+}
+
+function isValidBoard(board: Board): boolean {
+  const size = board.grid.length;
+  const stars = board.stars;
+  const minRegionSize = stars > 1 ? stars * 2 - 1 : 1;
+
+  const regionCells = new Map<number, [number, number][]>();
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const id = board.grid[r][c];
+      if (!regionCells.has(id)) regionCells.set(id, []);
+      regionCells.get(id)!.push([r, c]);
+    }
+  }
+
+  if (regionCells.size !== size) return false;
+
+  for (const coords of regionCells.values()) {
+    if (coords.length < minRegionSize) return false;
+  }
+
+  for (let i = 0; i < size; i++) {
+    const rowCoords: [number, number][] = [];
+    const colCoords: [number, number][] = [];
+    for (let j = 0; j < size; j++) {
+      rowCoords.push([i, j]);
+      colCoords.push([j, i]);
+    }
+    if (computeTiling(rowCoords, size).capacity < stars) return false;
+    if (computeTiling(colCoords, size).capacity < stars) return false;
+  }
+
+  for (const coords of regionCells.values()) {
+    if (computeTiling(coords, size).capacity < stars) return false;
+  }
+
+  return true;
+}
+
+function checkProgress(
+  board: Board,
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+): Progress {
+  const { size, rowStars, colStars, regions } = analysis;
+  const stars = board.stars;
+  let solved = true;
+
+  for (let i = 0; i < size; i++) {
+    let rowUnknowns = 0;
+    let colUnknowns = 0;
+    for (let j = 0; j < size; j++) {
+      if (cells[i][j] === "unknown") rowUnknowns++;
+      if (cells[j][i] === "unknown") colUnknowns++;
+      if (cells[i][j] === "star") {
+        for (const [nr, nc] of neighbors(i, j, size)) {
+          if (cells[nr][nc] === "star") return "invalid";
+        }
+      }
+    }
+    if (rowStars[i] + rowUnknowns < stars || colStars[i] + colUnknowns < stars) {
+      return "invalid";
+    }
+    if (rowStars[i] !== stars || colStars[i] !== stars) {
+      solved = false;
+    }
+  }
+
+  for (const region of regions.values()) {
+    if (region.starsPlaced + region.unknownCoords.length < stars) {
+      return "invalid";
+    }
+    if (region.starsPlaced !== stars) {
+      solved = false;
+    }
+  }
+
+  return solved ? "solved" : "valid";
 }
 
 /**
@@ -48,12 +125,7 @@ export function solve(
   while (true) {
     cycles++;
 
-    const state = buildBoardState(structure, cells);
-    const analysis: BoardAnalysis = {
-      ...state,
-      getTiling: makeTilingLens(tilingCache, size),
-      getCountingFlow: makeCountingFlowLens(state, boardDef.stars),
-    };
+    const analysis = buildBoardAnalysis(structure, cells, tilingCache);
     const status = checkProgress(boardDef, cells, analysis);
 
     if (status === "solved") return { cells, cycles, maxLevel };

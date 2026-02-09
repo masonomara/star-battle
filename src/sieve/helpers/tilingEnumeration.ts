@@ -4,10 +4,11 @@ function cellsAreAdjacent(c1: Coord, c2: Coord): boolean {
   return Math.abs(c1[0] - c2[0]) <= 1 && Math.abs(c1[1] - c2[1]) <= 1;
 }
 
-export function enumerateStarAssignments(
+function enumerateStarAssignments(
   tiling: Tile[],
-  regionSet: Set<string>,
+  insideSet: Set<number>,
   cells: CellState[][],
+  size: number,
 ): Coord[][] {
   const fixed: Coord[] = [];
   const candidatesPerTile: Coord[][] = [];
@@ -20,8 +21,7 @@ export function enumerateStarAssignments(
       fixed.push(existingStar);
     } else {
       const candidates = tile.coveredCells.filter(
-        ([r, c]) =>
-          regionSet.has(`${r},${c}`) && cells[r][c] === "unknown",
+        ([r, c]) => insideSet.has(r * size + c) && cells[r][c] === "unknown",
       );
       if (candidates.length === 0) return [];
       candidatesPerTile.push(candidates);
@@ -53,14 +53,15 @@ export function enumerateStarAssignments(
 
 export function collectValidStarCells(
   allTilings: Tile[][],
-  regionSet: Set<string>,
+  insideSet: Set<number>,
   cells: CellState[][],
-): Set<string> {
-  const valid = new Set<string>();
+  size: number,
+): Set<number> {
+  const valid = new Set<number>();
   for (const tiling of allTilings) {
-    for (const assignment of enumerateStarAssignments(tiling, regionSet, cells)) {
+    for (const assignment of enumerateStarAssignments(tiling, insideSet, cells, size)) {
       for (const [r, c] of assignment) {
-        valid.add(`${r},${c}`);
+        valid.add(r * size + c);
       }
     }
   }
@@ -69,13 +70,14 @@ export function collectValidStarCells(
 
 export function filterActiveTilings(
   allTilings: Tile[][],
-  regionSet: Set<string>,
+  insideSet: Set<number>,
   cells: CellState[][],
+  size: number,
 ): Tile[][] {
   return allTilings.filter((tiling) => {
     for (const tile of tiling) {
       for (const [r, c] of tile.cells) {
-        if (!regionSet.has(`${r},${c}`) && cells[r][c] === "unknown") {
+        if (!insideSet.has(r * size + c) && cells[r][c] === "unknown") {
           return true;
         }
       }
@@ -86,16 +88,17 @@ export function filterActiveTilings(
 
 export function findForcedOverhangCells(
   activeTilings: Tile[][],
-  regionSet: Set<string>,
+  insideSet: Set<number>,
+  size: number,
 ): Coord[] {
   if (activeTilings.length === 0) return [];
 
-  const outsideSets: Set<string>[] = activeTilings.map((tiling) => {
-    const outside = new Set<string>();
+  const outsideSets: Set<number>[] = activeTilings.map((tiling) => {
+    const outside = new Set<number>();
     for (const tile of tiling) {
       for (const [r, c] of tile.cells) {
-        const key = `${r},${c}`;
-        if (!regionSet.has(key)) {
+        const key = r * size + c;
+        if (!insideSet.has(key)) {
           outside.add(key);
         }
       }
@@ -113,7 +116,8 @@ export function findForcedOverhangCells(
   }
 
   return [...intersection].map((key) => {
-    const [r, c] = key.split(",").map(Number);
+    const r = Math.floor(key / size);
+    const c = key % size;
     return [r, c] as Coord;
   });
 }

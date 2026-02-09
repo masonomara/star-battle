@@ -9,7 +9,7 @@
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { cellKey } from "../../helpers/neighbors";
-import { hypotheticalLoop } from "../../helpers/hypotheticalLoop";
+import { hypotheticalLoop } from "../../helpers/hypothetical";
 
 export default function propagatedColumnCapacity(
   board: Board,

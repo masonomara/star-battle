@@ -8,7 +8,7 @@
 import { Board, CellState, Coord } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { cellKey, neighbors } from "../../helpers/neighbors";
-import { hypotheticalLoop } from "../../helpers/hypotheticalLoop";
+import { hypotheticalLoop } from "../../helpers/hypothetical";
 
 export default function hypotheticalRegionCapacity(
   board: Board,

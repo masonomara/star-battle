@@ -1,6 +1,5 @@
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { Board, CellState, Coord } from "../../helpers/types";
-import { tilingForced } from "../../helpers/tilingForcedHelper";
 
 /**
  * Tiling Forced Stars (Column)
@@ -23,7 +22,15 @@ export default function tilingForcedColumn(
       }
     }
 
-    if (tilingForced(cells, unknowns, needed, analysis)) return true;
+    const tiling = analysis.getTiling(unknowns);
+    if (tiling.capacity !== needed) continue;
+
+    for (const [r, c] of tiling.forcedCells) {
+      if (cells[r][c] === "unknown") {
+        cells[r][c] = "star";
+        return true;
+      }
+    }
   }
 
   return false;

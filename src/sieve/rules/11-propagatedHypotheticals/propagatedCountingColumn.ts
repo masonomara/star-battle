@@ -9,8 +9,7 @@
 
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
-import { hypotheticalLoop } from "../../helpers/hypotheticalLoop";
-import { propagatedCountingViolation } from "../../helpers/propagatedCountingHelper";
+import { hypotheticalLoop, propagatedCountingViolation } from "../../helpers/hypothetical";
 
 export default function propagatedCountingColumn(
   board: Board,

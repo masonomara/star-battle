@@ -1,6 +1,5 @@
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 import { Board, CellState } from "../../helpers/types";
-import { tilingForced } from "../../helpers/tilingForcedHelper";
 
 /**
  * Tiling Forced Stars (Region)
@@ -11,8 +10,17 @@ export default function tilingForcedRegion(
   analysis: BoardAnalysis,
 ): boolean {
   for (const [, meta] of analysis.regions) {
-    if (tilingForced(cells, meta.unknownCoords, meta.starsNeeded, analysis))
-      return true;
+    if (meta.starsNeeded <= 0) continue;
+
+    const tiling = analysis.getTiling(meta.unknownCoords);
+    if (tiling.capacity !== meta.starsNeeded) continue;
+
+    for (const [r, c] of tiling.forcedCells) {
+      if (cells[r][c] === "unknown") {
+        cells[r][c] = "star";
+        return true;
+      }
+    }
   }
 
   return false;

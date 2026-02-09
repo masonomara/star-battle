@@ -22,10 +22,10 @@ import countingMarkRow from "./05-countingEnumeration/countingMarkRow";
 import countingMarkColumn from "./05-countingEnumeration/countingMarkColumn";
 
 // Level 4: Tiling Counting
-import tilingCountingMarkRow from "./05-tilingCounting/tilingCountingMarkRow";
-import tilingCountingMarkColumn from "./05-tilingCounting/tilingCountingMarkColumn";
-import tilingCountingForcedRow from "./05-tilingCounting/tilingCountingForcedRow";
-import tilingCountingForcedColumn from "./05-tilingCounting/tilingCountingForcedColumn";
+import tilingCountingMarkRow from "./07-tilingCounting/tilingCountingMarkRow";
+import tilingCountingMarkColumn from "./07-tilingCounting/tilingCountingMarkColumn";
+import tilingCountingForcedRow from "./07-tilingCounting/tilingCountingForcedRow";
+import tilingCountingForcedColumn from "./07-tilingCounting/tilingCountingForcedColumn";
 import tilingPairForcedRow from "./04-tilingEnumeration/tilingPairForcedRow";
 import tilingPairForcedColumn from "./04-tilingEnumeration/tilingPairForcedColumn";
 import tilingPairAdjacencyRow from "./04-tilingEnumeration/tilingPairAdjacencyRow";
@@ -34,22 +34,22 @@ import tilingPairOverhangRow from "./04-tilingEnumeration/tilingPairOverhangRow"
 import tilingPairOverhangColumn from "./04-tilingEnumeration/tilingPairOverhangColumn";
 
 // Level 6: Group Tiling Counting
-import groupTilingCountingMarkRow from "./05-tilingCounting/groupTilingCountingMarkRow";
-import groupTilingCountingMarkColumn from "./05-tilingCounting/groupTilingCountingMarkColumn";
+import groupTilingCountingMarkRow from "./07-tilingCounting/groupTilingCountingMarkRow";
+import groupTilingCountingMarkColumn from "./07-tilingCounting/groupTilingCountingMarkColumn";
 
 // Level 7: Direct Hypotheticals
-import hypotheticalRowCount from "./07-directHypotheticals/hypotheticalRowCount";
-import hypotheticalColumnCount from "./07-directHypotheticals/hypotheticalColumnCount";
-import hypotheticalRegionCount from "./07-directHypotheticals/hypotheticalRegionCount";
+import hypotheticalRowCount from "./08-directHypotheticals/hypotheticalRowCount";
+import hypotheticalColumnCount from "./08-directHypotheticals/hypotheticalColumnCount";
+import hypotheticalRegionCount from "./08-directHypotheticals/hypotheticalRegionCount";
 
 // Level 8: Tiling Hypotheticals
-import hypotheticalRowCapacity from "./08-tilingHypotheticals/hypotheticalRowCapacity";
-import hypotheticalColumnCapacity from "./08-tilingHypotheticals/hypotheticalColumnCapacity";
-import hypotheticalRegionCapacity from "./08-tilingHypotheticals/hypotheticalRegionCapacity";
+import hypotheticalRowCapacity from "./09-tilingHypotheticals/hypotheticalRowCapacity";
+import hypotheticalColumnCapacity from "./09-tilingHypotheticals/hypotheticalColumnCapacity";
+import hypotheticalRegionCapacity from "./09-tilingHypotheticals/hypotheticalRegionCapacity";
 
 // Level 9: Counting Hypotheticals
-import hypotheticalCountingRow from "./09-countingHypotheticals/hypotheticalUndercountingRow";
-import hypotheticalCountingColumn from "./09-countingHypotheticals/hypotheticalUndercountingColumn";
+import hypotheticalCountingRow from "./10-countingHypotheticals/hypotheticalUndercountingRow";
+import hypotheticalCountingColumn from "./10-countingHypotheticals/hypotheticalUndercountingColumn";
 
 // Level 10: Propagated Hypotheticals
 import propagatedRowCount from "./11-propagatedHypotheticals/propagatedRowCount";

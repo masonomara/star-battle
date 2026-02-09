@@ -1,17 +1,10 @@
 import { describe, it, expect } from "vitest";
 import columnComplete from "./trivialColumn";
 import { Board, CellState } from "../../helpers/types";
-import { buildBoardStructure, buildBoardState, BoardAnalysis } from "../../helpers/boardAnalysis";
-import { makeTilingLens } from "../../helpers/tiling";
-import { makeCountingFlowLens } from "../../helpers/countingFlow";
+import { buildBoardStructure, buildBoardAnalysis } from "../../helpers/boardAnalysis";
 
-function buildAnalysis(board: Board, cells: CellState[][]): BoardAnalysis {
-  const state = buildBoardState(buildBoardStructure(board), cells);
-  return {
-    ...state,
-    getTiling: makeTilingLens(new Map(), state.size),
-    getCountingFlow: makeCountingFlowLens(state, board.stars),
-  };
+function buildAnalysis(board: Board, cells: CellState[][]) {
+  return buildBoardAnalysis(buildBoardStructure(board), cells);
 }
 
 describe("03. columnComplete", () => {

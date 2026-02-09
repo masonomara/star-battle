@@ -1,29 +1,6 @@
 import { Coord, Tile, TilingResult } from "./types";
 import { dlxSolve } from "./dlx";
 
-export function makeTilingLens(
-  cache: Map<string, TilingResult>,
-  size: number,
-): (coords: Coord[]) => TilingResult {
-  return (coords) => {
-    if (coords.length === 0) {
-      return { capacity: 0, tilings: [[]], forcedCells: [] };
-    }
-
-    const key = coords
-      .map(([r, c]) => `${r},${c}`)
-      .sort()
-      .join("|");
-
-    let result = cache.get(key);
-    if (!result) {
-      result = computeTiling(coords, size);
-      cache.set(key, result);
-    }
-    return result;
-  };
-}
-
 export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
   if (cells.length === 0) {
     return { capacity: 0, tilings: [[]], forcedCells: [] };

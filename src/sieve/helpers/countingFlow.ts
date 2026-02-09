@@ -14,7 +14,6 @@
  */
 
 import { Coord } from "./types";
-import type { BoardState } from "./boardAnalysis";
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -113,6 +112,36 @@ function dinicMaxFlow(g: Edge[][], s: number, t: number): number {
   return flow;
 }
 
+// ── Flow Network Construction ─────────────────────────────────────────
+
+function buildCountingNetwork(
+  size: number,
+  axisNeeded: number[],
+  regionInfos: CountingFlowRegionInfo[],
+): { g: Edge[][]; source: number; sink: number } {
+  const R = regionInfos.length;
+  const nodeCount = 2 + size + R;
+  const source = 0;
+  const sink = nodeCount - 1;
+
+  const g = buildGraph(nodeCount);
+
+  for (let i = 0; i < size; i++) {
+    if (axisNeeded[i] > 0) addEdge(g, source, 1 + i, axisNeeded[i]);
+  }
+
+  for (let ri = 0; ri < R; ri++) {
+    const info = regionInfos[ri];
+    if (info.starsNeeded <= 0) continue;
+    addEdge(g, 1 + size + ri, sink, info.starsNeeded);
+    for (let i = 0; i < size; i++) {
+      if (info.unknownsByAxis[i] > 0) addEdge(g, 1 + i, 1 + size + ri, info.unknownsByAxis[i]);
+    }
+  }
+
+  return { g, source, sink };
+}
+
 // ── Violation Check (L9) ──────────────────────────────────────────────
 
 export function hasCountingViolation(input: CountingFlowInput): boolean {
@@ -134,79 +163,25 @@ export function hasCountingViolation(input: CountingFlowInput): boolean {
   }
   if (totalDemand === 0) return false;
 
-  // Build flow network
-  const R = regionInfos.length;
-  const nodeCount = 2 + size + R; // source, sink, lines, regions
-  const source = 0;
-  const sink = nodeCount - 1;
-  // Lines: 1..size, Regions: size+1..size+R
-
-  const g = buildGraph(nodeCount);
-
-  for (let i = 0; i < size; i++) {
-    if (axisNeeded[i] > 0) {
-      addEdge(g, source, 1 + i, axisNeeded[i]);
-    }
-  }
-
-  for (let ri = 0; ri < R; ri++) {
-    const info = regionInfos[ri];
-    if (info.starsNeeded <= 0) continue;
-    addEdge(g, 1 + size + ri, sink, info.starsNeeded);
-    for (let i = 0; i < size; i++) {
-      if (info.unknownsByAxis[i] > 0) {
-        addEdge(g, 1 + i, 1 + size + ri, info.unknownsByAxis[i]);
-      }
-    }
-  }
-
-  const maxFlow = dinicMaxFlow(g, source, sink);
-  return maxFlow < totalDemand;
+  const { g, source, sink } = buildCountingNetwork(size, axisNeeded, regionInfos);
+  return dinicMaxFlow(g, source, sink) < totalDemand;
 }
 
 // ── Tight Set Extraction (L3) ─────────────────────────────────────────
 
 export function computeCountingFlow(input: CountingFlowInput): CountingFlowResult {
   const { size, axisNeeded, regionInfos } = input;
-  const R = regionInfos.length;
 
   let totalDemand = 0;
   for (let i = 0; i < size; i++) totalDemand += axisNeeded[i];
 
-  if (totalDemand === 0) {
-    return { feasible: true, tightSets: [] };
-  }
+  if (totalDemand === 0) return { feasible: true, tightSets: [] };
 
-  // Build flow network
-  const nodeCount = 2 + size + R;
-  const source = 0;
-  const sink = nodeCount - 1;
-
-  const g = buildGraph(nodeCount);
-
-  for (let i = 0; i < size; i++) {
-    if (axisNeeded[i] > 0) {
-      addEdge(g, source, 1 + i, axisNeeded[i]);
-    }
-  }
-
-  for (let ri = 0; ri < R; ri++) {
-    const info = regionInfos[ri];
-    if (info.starsNeeded <= 0) continue;
-    addEdge(g, 1 + size + ri, sink, info.starsNeeded);
-    for (let i = 0; i < size; i++) {
-      if (info.unknownsByAxis[i] > 0) {
-        addEdge(g, 1 + i, 1 + size + ri, info.unknownsByAxis[i]);
-      }
-    }
-  }
-
+  const { g, source, sink } = buildCountingNetwork(size, axisNeeded, regionInfos);
   const maxFlow = dinicMaxFlow(g, source, sink);
-  if (maxFlow < totalDemand) {
-    return { feasible: false, tightSets: [] };
-  }
+  if (maxFlow < totalDemand) return { feasible: false, tightSets: [] };
 
-  // Extract tight sets via Dulmage-Mendelsohn decomposition
+  const R = regionInfos.length;
   const tightSets = extractTightSets(g, source, sink, size, R, axisNeeded, regionInfos);
   return { feasible: true, tightSets };
 }
@@ -224,33 +199,15 @@ function extractTightSets(
 ): TightSetInfo[] {
   const nodeCount = g.length;
 
-  // Step 1: Find SCCs in residual graph via Tarjan's algorithm
+  // Step 1: Find SCCs in residual graph via iterative Tarjan's algorithm
   const sccId = new Int32Array(nodeCount).fill(-1);
   const low = new Int32Array(nodeCount);
-  const disc = new Int32Array(nodeCount);
+  const disc = new Int32Array(nodeCount).fill(-1);
   const onStack = new Uint8Array(nodeCount);
   const stack: number[] = [];
   let timer = 0;
   let sccCount = 0;
 
-  function tarjanDfs(u: number): void {
-    disc[u] = low[u] = timer++;
-    stack.push(u);
-    onStack[u] = 1;
-
-    for (const e of g[u]) {
-      if (e.cap <= 0) continue; // only residual edges
-      const v = e.to;
-      if (disc[v] < 0) {
-        // Use iterative approach below to avoid stack overflow
-        disc[v] = -2; // mark as "to visit"
-      }
-      // handled iteratively below
-    }
-  }
-
-  // Iterative Tarjan's to avoid stack overflow on large graphs
-  disc.fill(-1);
   const callStack: { node: number; edgeIdx: number; isRoot: boolean }[] = [];
 
   for (let start = 0; start < nodeCount; start++) {
@@ -377,42 +334,4 @@ function extractTightSets(
   }
 
   return tightSets;
-}
-
-// ── Lens Factory ─────────────────────────────────────────────────────
-
-export function makeCountingFlowLens(
-  state: BoardState,
-  stars: number,
-): (axis: "row" | "col") => CountingFlowResult {
-  const cache = new Map<string, CountingFlowResult>();
-  return (axis) => {
-    let result = cache.get(axis);
-    if (result) return result;
-
-    const axisStars = axis === "row" ? state.rowStars : state.colStars;
-    const axisNeeded = new Array(state.size);
-    for (let i = 0; i < state.size; i++) {
-      axisNeeded[i] = stars - axisStars[i];
-    }
-
-    const regionInfos: CountingFlowInput["regionInfos"] = [];
-    for (const region of state.regions.values()) {
-      if (region.starsNeeded <= 0) continue;
-      const unknownsByAxis = new Array(state.size).fill(0);
-      for (const [r, c] of region.unknownCoords) {
-        const idx = axis === "row" ? r : c;
-        unknownsByAxis[idx]++;
-      }
-      regionInfos.push({
-        starsNeeded: region.starsNeeded,
-        unknownsByAxis,
-        unknownCoords: region.unknownCoords,
-      });
-    }
-
-    result = computeCountingFlow({ size: state.size, axisNeeded, regionInfos });
-    cache.set(axis, result);
-    return result;
-  };
 }
