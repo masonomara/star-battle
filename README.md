@@ -2,7 +2,7 @@
 
 ![February 2nd, 2026 version](assets/feb-2-demo.gif)
 
-A production rule system that generates human-solvable Star Battle puzzles using formalized deduction techniques - no brute-force guessing or backtracking. See [Production Rules](PRODUCTION_RULES.md) for the full system framework.
+A production rule system that generates Star Battle puzzles solvable by humans - no brute-force guessing or backtracking. Full system details in [Production Rules](PRODUCTION_RULES.md).
 
 ## Why Production Rules?
 
