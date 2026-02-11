@@ -2,43 +2,56 @@
 
 Cloudflare Worker routes for auth, sync, puzzles, and webhooks.
 
+Auth is handled by BetterAuth — all `/api/auth/*` routes are managed automatically. App routes use cookie-based sessions via `withAuth()` wrappers.
+
 ---
 
-## Authentication
+## Authentication (BetterAuth — Automatic)
+
+All `/api/auth/*` routes are handled by BetterAuth's built-in handler:
+
+```typescript
+if (path.startsWith("/api/auth")) {
+  return getAuth(env).handler(request);
+}
+```
+
+### Built-in Routes
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/api/auth/sign-up/email` | POST | Email/password registration |
+| `/api/auth/sign-in/email` | POST | Email/password login |
+| `/api/auth/sign-in/social` | POST | Social login (Google/Apple) |
+| `/api/auth/callback/:provider` | GET | OAuth callback |
+| `/api/auth/get-session` | GET | Get current session from cookie |
+| `/api/auth/sign-out` | POST | Sign out (clear session) |
+| `/api/auth/verify-email` | POST | Email verification |
+| `/api/auth/forget-password` | POST | Request password reset |
+| `/api/auth/reset-password` | POST | Set new password |
+
+### Custom Auth Route
 
 ```text
-POST /auth/anon
-  Request:  { deviceId: string }
-  Response: { userId: string, token: string }
+POST /api/check-email
+  Request:  { email: string }
+  Response: { exists: boolean, hasPassword: boolean }
 
-  Creates anonymous user, returns JWT.
-
-POST /auth/register
-  Request:  { email: string, password: string }
-  Headers:  Authorization: Bearer <token>
-  Response: { userId: string, token: string }
-
-  Upgrades anonymous user to registered account.
-  Existing progress transfers to new account.
-
-POST /auth/login
-  Request:  { email: string, password: string }
-  Response: { userId: string, token: string }
-
-  Returns JWT. Client merges any local anonymous data.
-
-POST /auth/logout
-  Headers:  Authorization: Bearer <token>
-  Response: { success: true }
+  Used by multi-step auth UI to determine which form to show:
+  - Not found → sign-up form
+  - Found with password → sign-in form
+  - Found without password (OAuth-only) → social prompt
 ```
 
 ---
 
 ## Sync
 
+Requires authentication (cookie-based session). Anonymous users have no server interaction.
+
 ```text
 GET /sync
-  Headers:  Authorization: Bearer <token>
+  Auth: Cookie session (withAuth)
   Response: {
     settings: UserSettings,
     purchases: Purchases,
@@ -49,8 +62,8 @@ GET /sync
   Pull full user state from D1.
 
 POST /sync
-  Headers:  Authorization: Bearer <token>
-  Request:  {
+  Auth: Cookie session (withAuth)
+  Request: {
     settings?: Partial<UserSettings>,
     progress?: Record<string, PuzzleProgress>,
     packProgress?: Record<string, number>  // packId -> unlocked_index
@@ -64,17 +77,19 @@ POST /sync
 
 ## Puzzles
 
+**v1:** All puzzle packs are bundled in the app binary (~54KB). No R2 dependency. The endpoints below are for future OTA pack updates.
+
 ```text
-GET /puzzles/versions
-  Headers:  Authorization: Bearer <token>
+GET /puzzles/versions                                        [post-v1]
+  Auth: Cookie session (optional)
   Response: Record<string, number>  // { "intro": 1, "1star-5x5": 2, ... }
 
-  - Returns current version number for each pack
-  - Client compares against cached versions on app open
-  - Re-downloads any pack where server version > local version
+  Returns current version number for each pack.
+  Client compares against cached versions on app open.
+  Re-downloads any pack where server version > local version.
 
-GET /puzzles/pack/:packId
-  Headers:  Authorization: Bearer <token> (optional for free packs)
+GET /puzzles/pack/:packId                                    [post-v1]
+  Auth: Cookie session (optional for free packs)
   Response: PackFile
 
   - Free packs: serve directly from R2
@@ -87,8 +102,8 @@ GET /puzzles/weekly/:week
 GET /puzzles/monthly/:month
   Response: { puzzle: string }
 
-  - Serve single SBN string from R2
-  - CDN caching: Cache-Control: public, max-age=86400
+  Serve single SBN string from R2.
+  CDN caching: Cache-Control: public, max-age=86400
 ```
 
 ---
@@ -97,11 +112,35 @@ GET /puzzles/monthly/:month
 
 ```text
 POST /webhook/revenuecat
+  Auth: Webhook signature (X-RevenueCat-Signature header)
   Request: RevenueCat webhook payload
 
-  1. Verify webhook signature
+  1. Verify signature using shared secret from env
   2. Extract user_id and entitlements
   3. Update purchases table in D1
+```
+
+### Webhook Signature Verification
+
+```typescript
+async function verifyRevenueCatSignature(
+  request: Request,
+  secret: string,
+): Promise<boolean> {
+  const signature = request.headers.get("X-RevenueCat-Signature");
+  if (!signature) return false;
+  const body = await request.text();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["verify"],
+  );
+  const expected = Uint8Array.from(atob(signature), (c) => c.charCodeAt(0));
+  const data = new TextEncoder().encode(body);
+  return crypto.subtle.verify("HMAC", key, expected, data);
+}
 ```
 
 ### Entitlement Mapping
