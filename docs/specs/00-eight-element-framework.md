@@ -37,7 +37,7 @@
 
 - Properly configured difficulty
 - Tracking completed puzzles and packs
-- Hints run the solver to show next cycle; AI wrapper explains in simple language
+- Hints run the solver to show next cycle; template-based explanation mapped from rule name
 
 ## Business Goals
 

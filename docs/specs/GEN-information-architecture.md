@@ -9,8 +9,9 @@ Technical specification for puzzle delivery, user state management, and sync inf
 | API / Auth / Sync | Cloudflare Workers     |
 | Database          | Cloudflare D1 (SQLite) |
 | Puzzle Storage    | Cloudflare R2          |
-| Hint AI           | Cloudflare Workers AI  |
+| Hints              | Client-side (solver + templates bundled in app) |
 | Purchases         | RevenueCat             |
+
 | Client Storage    | MMKV (React Native)    |
 
 ---
@@ -37,15 +38,15 @@ Technical specification for puzzle delivery, user state management, and sync inf
 │  │  /auth/*      - Anonymous + email auth                │  │
 │  │  /sync        - Push/pull user state                  │  │
 │  │  /puzzles/*   - Fetch puzzles from R2                 │  │
-│  │  /hint        - Solver + AI explanation               │  │
+│  │  (hints run client-side, no server endpoint)           │  │
 │  └───────────────────────────────────────────────────────┘  │
 │                              │                              │
 │         ┌────────────────────┼────────────────────┐         │
 │         ▼                    ▼                    ▼         │
-│  ┌─────────────┐  ┌───────────────────┐  ┌─────────────┐   │
-│  │     D1      │  │        R2         │  │ Workers AI  │   │
-│  │ (user state)│  │ (puzzle storage)  │  │  (hints)    │   │
-│  └─────────────┘  └───────────────────┘  └─────────────┘   │
+│         ┌─────────────┐       ┌───────────────────┐        │
+│         │     D1      │       │        R2         │        │
+│         │ (user state)│       │ (puzzle storage)  │        │
+│         └─────────────┘       └───────────────────┘        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -123,6 +124,7 @@ Metadata keys:
 type PackFile = {
   id: string; // "1star-5x5"
   name: string; // "1-Star 5×5"
+  version: number; // incremented when pack is updated
   free: boolean; // true for free packs
   puzzles: string[]; // Array of SBN strings
 };
@@ -392,12 +394,21 @@ POST /sync
 ### Puzzles
 
 ```text
+GET /puzzles/versions
+  Headers:  Authorization: Bearer <token>
+  Response: Record<string, number>  // { "intro": 1, "1star-5x5": 2, ... }
+
+  - Returns current version number for each pack
+  - Client compares against cached versions on app open
+  - Re-downloads any pack where server version > local version
+
 GET /puzzles/pack/:packId
   Headers:  Authorization: Bearer <token> (optional for free packs)
   Response: PackFile
 
   - Free packs: serve directly from R2
-  - Paid packs: verify purchase in D1, then serve
+  - Paid packs: check D1 purchases table for user entitlement, then serve from R2
+  - Returns 403 if user has not purchased the paid pack
   - CDN caching: Cache-Control: public, max-age=86400
 
 GET /puzzles/daily/:date
@@ -411,26 +422,7 @@ GET /puzzles/monthly/:month
 
 ### Hints
 
-```text
-POST /hint
-  Headers:  Authorization: Bearer <token>
-  Request:  {
-    puzzleId: string,
-    cells: EncodedCells
-  }
-  Response: {
-    rule: string,           // "forcedPlacement", "rowComplete", etc.
-    changedCells: Coord[],  // Cells to highlight
-    action: "star" | "mark",
-    explanation: string     // AI-generated natural language
-  }
-
-  1. Validate user has hints remaining (or unlimited)
-  2. Run solver one cycle on provided board state
-  3. Call Workers AI to explain the deduction
-  4. Decrement hints_remaining in D1 (after success)
-  5. Return hint data
-```
+Hints run entirely client-side. No server endpoint needed.
 
 ---
 
@@ -566,119 +558,52 @@ async function processOfflineQueue() {
 
 ## Hint System
 
+### Decision: Fully Client-Side
+
+Hints run entirely on the device. The solver and explanation templates are bundled in the app. No server calls needed.
+
+**Rationale:**
+- Works offline — no network dependency for hints
+- Free — no per-hint server cost
+- Instant — no round-trip latency
+- Deterministic — same rule always produces a correct explanation
+
 ### Flow
 
 ```text
-Client                      Worker                    Workers AI
-   │                           │                           │
-   │── POST /hint ────────────▶│                           │
-   │   {puzzleId, cells}       │                           │
-   │                           │                           │
-   │                           │── validate hints > 0      │
-   │                           │                           │
-   │                           │── decode SBN from puzzleId│
-   │                           │── apply cells state       │
-   │                           │── run solver 1 cycle      │
-   │                           │                           │
-   │                           │── prompt ────────────────▶│
-   │                           │◀─ explanation ────────────│
-   │                           │                           │
-   │                           │── decrement hints in D1   │
-   │                           │                           │
-   │◀── {rule, cells, text} ───│                           │
+1. User taps hint button
+2. Check hints_remaining in local storage (or unlimited purchase)
+3. Run solver one cycle on current board state
+4. Map rule name → explanation template
+5. Decrement hints_remaining in local storage
+6. Display hint (faded star/mark + explanation)
+7. Sync hints_remaining to server on next sync cycle
 ```
 
-### Solver in Worker
+### Explanation Templates
 
-Bundle the TypeScript solver directly in the Worker. The solver is pure functions, no Node dependencies.
-
-```typescript
-// worker/src/hint.ts
-import { solve, applyState } from "../../src/sieve/solver";
-import { decodePuzzleString } from "../../src/sieve/helpers/notation";
-
-export async function handleHint(
-  request: Request,
-  env: Env,
-): Promise<Response> {
-  const { puzzleId, cells } = await request.json();
-  const userId = getUserIdFromToken(request);
-
-  // Check hint balance
-  const settings = await env.DB.prepare(
-    "SELECT hints_remaining, unlimited_hints FROM user_settings s JOIN purchases p ON s.user_id = p.user_id WHERE s.user_id = ?",
-  )
-    .bind(userId)
-    .first();
-
-  if (!settings.unlimited_hints && settings.hints_remaining <= 0) {
-    return Response.json({ error: "no_hints" }, { status: 402 });
-  }
-
-  // Get puzzle and apply current state
-  const sbn = getPuzzleSBN(puzzleId);
-  const { board } = decodePuzzleString(sbn);
-  const boardState = applyState(board, decodeCells(cells));
-
-  // Run solver one cycle
-  const result = solveOneCycle(boardState);
-  if (!result) {
-    return Response.json({ error: "no_hint_available" }, { status: 404 });
-  }
-
-  // Generate explanation
-  const explanation = await generateExplanation(env.AI, result);
-
-  // Decrement hints (only after success)
-  if (!settings.unlimited_hints) {
-    await env.DB.prepare(
-      "UPDATE user_settings SET hints_remaining = hints_remaining - 1 WHERE user_id = ?",
-    )
-      .bind(userId)
-      .run();
-  }
-
-  return Response.json({
-    rule: result.rule,
-    changedCells: result.changedCells,
-    action: result.action,
-    explanation,
-  });
-}
-```
-
-### AI Prompt Template
+Each solver rule maps to a plain-language template. Templates interpolate cell coordinates and container names.
 
 ```typescript
-async function generateExplanation(
-  ai: Ai,
-  result: HintResult,
-): Promise<string> {
-  const prompt = `You are explaining a Star Battle puzzle hint to a player.
-
-Rule applied: ${result.rule}
-Action: Place a ${result.action} at cells ${formatCoords(result.changedCells)}
-Reason: ${result.technicalReason}
-
-Explain this in 1-2 simple sentences. Be encouraging. Don't reveal other moves.`;
-
-  const response = await ai.run("@cf/meta/llama-2-7b-chat-int8", {
-    prompt,
-    max_tokens: 100,
-  });
-
-  return response.response;
-}
+const explanationTemplates: Record<string, (ctx: HintContext) => string> = {
+  rowComplete: (ctx) =>
+    `Row ${ctx.row} already has all its stars, so the remaining cells must be marked.`,
+  colComplete: (ctx) =>
+    `Column ${ctx.col} already has all its stars, so the remaining cells must be marked.`,
+  regionComplete: (ctx) =>
+    `Cage ${ctx.region} already has all its stars, so the remaining cells must be marked.`,
+  forcedPlacement: (ctx) =>
+    `Cage ${ctx.region} only has ${ctx.count} unknown cells left and needs ${ctx.count} stars — they must all be stars.`,
+  // ... one entry per solver rule
+};
 ```
 
 ### Error Handling
 
-| Error                 | Response                  | Client Action             |
-| --------------------- | ------------------------- | ------------------------- |
-| No hints remaining    | 402 + `no_hints`          | Show purchase prompt      |
-| Puzzle already solved | 404 + `no_hint_available` | Hide hint button          |
-| AI timeout            | 500 + `ai_error`          | Refund hint, retry        |
-| Invalid puzzle state  | 400 + `invalid_state`     | Reset to last valid state |
+| Condition             | Client Action             |
+| --------------------- | ------------------------- |
+| No hints remaining    | Show purchase prompt      |
+| Puzzle already solved | Hide hint button          |
 
 ---
 
@@ -765,29 +690,19 @@ Client displays "New puzzle in X hours" based on UTC.
 
 ## Open Decisions
 
-### Puzzle Delivery
+All resolved.
 
 - [x] **Fetch strategy** — All free packs download on first launch; paid packs download on purchase
-- [ ] **Cache invalidation** — Manual clear in settings? Version-based invalidation?
-- [ ] **Paid pack gating** — Worker checks D1 purchases or RevenueCat API?
-- [ ] **Puzzle versioning** — What if a daily puzzle is regenerated due to bug?
-- [ ] **Offline limits** — How many puzzles can user cache? LRU eviction?
-
-### Auth & Sync
-
-- [ ] **Anonymous cleanup** — Delete anon users after N days of inactivity?
-- [ ] **Rate limiting** — Per-user or per-IP? What limits?
-- [ ] **Password hashing** — Use `crypto.subtle.digest` in Worker or external lib?
-
-### Hints
-
-- [ ] **Hint caching** — Same board state = same hint? Saves AI calls but reduces variety.
-- [ ] **Workers AI model** — `llama-2-7b-chat-int8` (free tier) or upgrade?
-
-### Progression
-
-- [ ] **Streak grace period** — Forgive one missed day? Purchasable streak freeze?
-- [ ] **Leaderboards** — Future feature, needs indexed queries on `completed_at` and `time_ms`.
+- [x] **Cache invalidation** — Version-based: each pack has a version number, client checks on app open, re-downloads if server version is newer
+- [x] **Paid pack gating** — RevenueCat webhook → Worker → D1. Worker checks D1 purchases table before serving paid packs from R2
+- [x] **Puzzle versioning** — No versioning for dailies/weeklies/monthlies. If one's broken, leave it.
+- [x] **Offline limits** — No limits. Packs are ~9KB, dailies ~300 bytes. Cache everything.
+- [x] **Anonymous cleanup** — Not needed for v1. Revisit at scale.
+- [x] **Rate limiting** — Not needed. Hints run client-side, no expensive server calls to protect.
+- [x] **Password hashing** — Deferred. Cross that bridge when auth is built.
+- [x] **Hint explanations** — Template-based, mapped from solver rule names. No AI dependency. Runs client-side.
+- [x] **Streak grace period** — No grace period. Miss a day, streak resets.
+- [x] **Leaderboards** — Not in scope.
 
 ---
 
@@ -800,11 +715,10 @@ worker/
     auth.ts           # /auth/* handlers
     sync.ts           # /sync handlers
     puzzles.ts        # /puzzles/* handlers (R2 access)
-    hint.ts           # /hint handler
     webhook.ts        # /webhook/revenuecat
     db.ts             # D1 queries
     types.ts          # Shared types
-  wrangler.toml       # Cloudflare config (binds D1, R2, AI)
+  wrangler.toml       # Cloudflare config (binds D1, R2)
 
 r2/
   puzzles/
@@ -825,4 +739,5 @@ app/
       storage.ts      # MMKV wrapper
       sync.ts         # Sync logic + offline queue
       puzzles.ts      # Puzzle fetching + caching
+      hint.ts         # Solver + explanation templates (client-side)
 ```

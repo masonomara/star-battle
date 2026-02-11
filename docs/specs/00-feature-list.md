@@ -29,8 +29,8 @@ Local First with Cloud backup
 
 ## Puzzle solver
 
-- expose solver via API or embed in app bundle?
-- hint endpoint: run one cycle, return rule used, cells changed, and AI explanation?
+- solver bundled in app (client-side); used for both hint system and difficulty validation
+- hints: run one cycle, return rule used, cells changed, and template-based explanation
   - do not auto-apply the marks; show faded mark for user to fill in
 - difficulty rating stored in puzzle metadata
 
@@ -53,6 +53,12 @@ Local First with Cloud backup
 
 - board renderer (grid, regions, stars, and marks)
 - touch input: tap to cycle empty, star, x, and empty. Must have haptics.
+- gesture handling via react-native-gesture-handler (RNGH):
+  - movement threshold: TapGestureHandler's maxDist (default 10pt, configurable) prevents taps from firing during scrolls
+  - gesture priority: simultaneousHandlers and waitFor props give declarative control over tap vs pan vs pinch conflicts
+  - short hold delay: minDurationMs on TapGestureHandler (configurable, default 0) to require brief hold before tap registers
+  - pinch-to-zoom: PinchGestureHandler for larger boards that exceed screen size
+  - all gestures run on native thread (no JS-thread race conditions)
 - auto-x around placed stars (toggle on and off; default on)
 - Highlight errors (configurable: off/on)
 - Undo/redo buttons
@@ -93,7 +99,7 @@ Local First with Cloud backup
 ## Hint system
 
 - run solver one cycle, get next deduction
-- AI wrapper (OpenAI/Claude, something cheap; look at Workers AI) to explain how hint worked in natural language
+- template-based explanation: each solver rule maps to a hand-written plain-language template (no AI dependency — free, instant, deterministic)
 - each user gets three hints; unlimited hints are available for subscription; hint packs available for purchase
 - show which cells changed and why; do not mark for user; show faded star/mark where it should go, and let user tap it
 
@@ -133,7 +139,7 @@ Local First with Cloud backup
 ## Error Handling
 
 - Puzzle won't load: show "Sorry partner, this puzzle is having trouble loading" with tap to retry
-- Hint fails: show "Sorry partner, this hint is giving us trouble right now" and refund hint (don't count as used)
+- Hint fails: show "Sorry partner, this hint is giving us trouble right now" (template-based hints are deterministic, so failures are rare — only on solver/network issues)
 - Network fails: silent (local-first means this is invisible; sync retries on next connection)
 - Hint count only decrements after successful response, not before request
 
