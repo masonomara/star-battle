@@ -4,6 +4,8 @@
 
 A production rule system that generates Star Battle puzzles solvable by humans - no brute-force guessing or backtracking. Full system details in [Production Rules](PRODUCTION_RULES.md).
 
+**Currently building a mobile puzzle app using this engine. If interested, feel free to reach out at mason@omaratechnologydesign.com**
+
 ## Why Production Rules?
 
 Generating a valid Star Battle layout is easy. Generating one that a human can solve through logic alone is hard. Each production rule in this system corresponds to a deduction a human can perform - the solver never guesses, so neither does the player.
