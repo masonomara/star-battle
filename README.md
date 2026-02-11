@@ -26,11 +26,11 @@ npm install
 ### Generate Puzzles
 
 ```bash
-npx tsx src/sieve/cli.ts                        # Default: 10x10, 2 stars
-npx tsx src/sieve/cli.ts --size 8               # 8x8 grid
-npx tsx src/sieve/cli.ts --stars 1              # 1 star per container
-npx tsx src/sieve/cli.ts --count 5              # Generate 5 puzzles
-npx tsx src/sieve/cli.ts --seed 417582859       # Reproducible generation from seed
+npx tsx src/cli.ts                        # Default: 10x10, 2 stars
+npx tsx src/cli.ts --size 8               # 8x8 grid
+npx tsx src/cli.ts --stars 1              # 1 star per container
+npx tsx src/cli.ts --count 5              # Generate 5 puzzles
+npx tsx src/cli.ts --seed 417582859       # Reproducible generation from seed
 ```
 
 ### Solve Custom Puzzles
@@ -41,7 +41,7 @@ Pipe a space-separated region grid via stdin. Each row is one line, each cell is
 echo "A A B B
 A A B B
 C C D D
-C C D D" | npx tsx src/sieve/cli.ts --stars 1
+C C D D" | npx tsx src/cli.ts --stars 1
 ```
 
 For batch solving, create a `.sbn` file with one puzzle string per line - format is `{size}x{stars}.{layout}`, where the layout is `size × size` region characters read left-to-right, top-to-bottom:
@@ -51,18 +51,18 @@ For batch solving, create a `.sbn` file with one puzzle string per line - format
 ```
 
 ```bash
-npx tsx src/sieve/cli.ts --file sample-puzzle.sbn
-npx tsx src/sieve/cli.ts --file sample-puzzle.sbn --verbose    # Details per puzzle
-npx tsx src/sieve/cli.ts --file sample-puzzle.sbn --unsolved   # Only show failures
-npx tsx src/sieve/cli.ts --file sample-puzzle.sbn --trace      # Step-by-step solve trace
+npx tsx src/cli.ts --file sample-puzzle.sbn
+npx tsx src/cli.ts --file sample-puzzle.sbn --verbose    # Details per puzzle
+npx tsx src/cli.ts --file sample-puzzle.sbn --unsolved   # Only show failures
+npx tsx src/cli.ts --file sample-puzzle.sbn --trace      # Step-by-step solve trace
 ```
 
 ### Filter by Difficulty
 
 ```bash
-npx tsx src/sieve/cli.ts --minDiff 20              # Harder puzzles only
-npx tsx src/sieve/cli.ts --maxDiff 10              # Easier puzzles only
-npx tsx src/sieve/cli.ts --minDiff 15 --maxDiff 25 # Specific range
+npx tsx src/cli.ts --minDiff 20              # Harder puzzles only
+npx tsx src/cli.ts --maxDiff 10              # Easier puzzles only
+npx tsx src/cli.ts --minDiff 15 --maxDiff 25 # Specific range
 ```
 
 ### Run Tests

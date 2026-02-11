@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "solve": "tsx src/sieve/cli.ts",
+    "solve": "tsx src/cli.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
