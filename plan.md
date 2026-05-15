@@ -146,7 +146,7 @@ Run `npm test` after each phase.
 
 ### Phase 6 — Rule Collapse
 
-- [ ] Record baseline rule usage counts: run `sieve --file puzzles.sbn` and save output
+- [x] Record baseline rule usage counts: run `sieve --file puzzles.sbn` and save output
 - [ ] **6-A** Create `src/rules/02-forcedPlacements/forcedPlacement.ts` with `forcedPlacement(axis)` factory
 - [ ] **6-A** Delete `forcedRow.ts` and `forcedColumn.ts`
 - [ ] **6-A** `src/rules/index.ts` — replace the two individual imports with `{ forcedPlacement }` and update `allRules` entries to `forcedPlacement("row")` / `forcedPlacement("col")`
