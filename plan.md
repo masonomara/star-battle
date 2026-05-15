@@ -164,10 +164,10 @@ Run `npm test` after each phase.
 - [x] **6-E** Create `src/rules/06-tilingPairs/tilingPairOverhang.ts` with `tilingPairOverhang(axis)` factory
 - [x] **6-E** Delete all six existing `tilingPair*Row.ts` and `tilingPair*Column.ts` files
 - [x] **6-E** `src/rules/index.ts` — replace six imports with three factory imports and update all six entries
-- [ ] **6-F** Create `src/rules/07-tilingCounting/tilingCountingMark.ts` with `tilingCountingMark(axis, minGroup, maxGroup)` factory
-- [ ] **6-F** Create `src/rules/07-tilingCounting/tilingCountingForced.ts` with `tilingCountingForced(axis)` factory
-- [ ] **6-F** Delete all six existing tiling counting files
-- [ ] **6-F** `src/rules/index.ts` — replace six imports with two factory imports; update entries (single-line entries use default `minGroup=1, maxGroup=1`; group entries use `minGroup=2, maxGroup=4`)
+- [x] **6-F** Create `src/rules/07-tilingCounting/tilingCountingMark.ts` with `tilingCountingMark(axis, minGroup, maxGroup)` factory
+- [x] **6-F** Create `src/rules/07-tilingCounting/tilingCountingForced.ts` with `tilingCountingForced(axis)` factory
+- [x] **6-F** Delete all six existing tiling counting files
+- [x] **6-F** `src/rules/index.ts` — replace six imports with two factory imports; update entries (single-line entries use default `minGroup=1, maxGroup=1`; group entries use `minGroup=2, maxGroup=4`)
 - [ ] **6-G** Create `src/rules/08-directHypotheticals/hypotheticalCount.ts` with `hypotheticalCount(axis)` factory
 - [ ] **6-G** Create `src/rules/09-tilingHypotheticals/hypotheticalCapacity.ts` with `hypotheticalCapacity(axis)` factory
 - [ ] **6-G** Delete `hypotheticalRowCount.ts`, `hypotheticalColumnCount.ts`, `hypotheticalRowCapacity.ts`, `hypotheticalColumnCapacity.ts`

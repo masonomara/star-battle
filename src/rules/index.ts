@@ -23,12 +23,8 @@ import { tilingPairAdjacency } from "./06-tilingPairs/tilingPairAdjacency";
 import { tilingPairOverhang } from "./06-tilingPairs/tilingPairOverhang";
 
 // Level 7: Tiling Counting + Group Tiling Counting
-import tilingCountingMarkRow from "./07-tilingCounting/tilingCountingMarkRow";
-import tilingCountingMarkColumn from "./07-tilingCounting/tilingCountingMarkColumn";
-import tilingCountingForcedRow from "./07-tilingCounting/tilingCountingForcedRow";
-import tilingCountingForcedColumn from "./07-tilingCounting/tilingCountingForcedColumn";
-import groupTilingCountingMarkRow from "./07-tilingCounting/groupTilingCountingMarkRow";
-import groupTilingCountingMarkColumn from "./07-tilingCounting/groupTilingCountingMarkColumn";
+import { tilingCountingMark } from "./07-tilingCounting/tilingCountingMark";
+import { tilingCountingForced } from "./07-tilingCounting/tilingCountingForced";
 
 // Level 8: Direct Hypotheticals
 import hypotheticalRowCount from "./08-directHypotheticals/hypotheticalRowCount";
@@ -96,12 +92,12 @@ export const allRules: RuleEntry[] = [
   { rule: tilingPairOverhang("col"), level: 6, name: "Tiling Pair Overhang Columns" },
 
   // Level 7: Tiling Counting
-  { rule: tilingCountingMarkRow, level: 7, name: "Tiling Counting Mark Rows" },
-  { rule: tilingCountingMarkColumn, level: 7, name: "Tiling Counting Mark Columns" },
-  { rule: tilingCountingForcedRow, level: 7, name: "Tiling Counting Forced Rows" },
-  { rule: tilingCountingForcedColumn, level: 7, name: "Tiling Counting Forced Columns" },
-  { rule: groupTilingCountingMarkRow, level: 7, name: "Group Tiling Counting Mark Rows" },
-  { rule: groupTilingCountingMarkColumn, level: 7, name: "Group Tiling Counting Mark Columns" },
+  { rule: tilingCountingMark("row"), level: 7, name: "Tiling Counting Mark Rows" },
+  { rule: tilingCountingMark("col"), level: 7, name: "Tiling Counting Mark Columns" },
+  { rule: tilingCountingForced("row"), level: 7, name: "Tiling Counting Forced Rows" },
+  { rule: tilingCountingForced("col"), level: 7, name: "Tiling Counting Forced Columns" },
+  { rule: tilingCountingMark("row", 2, 4), level: 7, name: "Group Tiling Counting Mark Rows" },
+  { rule: tilingCountingMark("col", 2, 4), level: 7, name: "Group Tiling Counting Mark Columns" },
 
   // Level 8: Direct Hypotheticals
   { rule: hypotheticalRowCount, level: 8, name: "Hypothetical Row Count" },
