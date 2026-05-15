@@ -32,7 +32,6 @@ export type GenerateOptions = {
 export type GenerateResult = {
   board: Board;
   seed: number;
-  attempts: number;
 };
 
 /**
@@ -52,7 +51,7 @@ export function generate(
     const seed = (baseSeed + attempt) | 0;
     try {
       const board = layoutWithSeed(size, stars, seed);
-      return { board, seed, attempts: attempt + 1 };
+      return { board, seed };
     } catch (e) {
       if (e instanceof GeneratorError) continue;
       throw e;

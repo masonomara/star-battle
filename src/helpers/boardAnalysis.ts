@@ -3,10 +3,7 @@ import { computeTiling } from "./tiling";
 import { computeCountingFlow, CountingFlowInput, CountingFlowResult } from "./counting";
 
 type RegionStructure = {
-  id: number;
   coords: Coord[];
-  rows: Set<number>;
-  cols: Set<number>;
 };
 
 export type BoardStructure = {
@@ -16,7 +13,6 @@ export type BoardStructure = {
 };
 
 export type RegionMeta = {
-  id: number;
   unknownCoords: Coord[];
   starsPlaced: number;
   starsNeeded: number;
@@ -31,8 +27,6 @@ type BoardState = {
   colStars: number[];
   rowUnknowns: Coord[][];
   colUnknowns: Coord[][];
-  rowToRegions: Map<number, Set<number>>;
-  colToRegions: Map<number, Set<number>>;
 };
 
 export type BoardAnalysis = BoardState & {
@@ -53,13 +47,7 @@ export function buildBoardStructure(board: Board): BoardStructure {
 
   const regions = new Map<number, RegionStructure>();
   for (const [id, coords] of coordsByRegion) {
-    const rows = new Set<number>();
-    const cols = new Set<number>();
-    for (const [row, col] of coords) {
-      rows.add(row);
-      cols.add(col);
-    }
-    regions.set(id, { id, coords, rows, cols });
+    regions.set(id, { coords });
   }
 
   return { size, stars: board.stars, regions };
@@ -99,7 +87,6 @@ function buildBoardState(
     }
 
     regions.set(id, {
-      id,
       unknownCoords,
       starsPlaced,
       starsNeeded: stars - starsPlaced,
@@ -108,35 +95,7 @@ function buildBoardState(
     });
   }
 
-  const rowToRegions = new Map<number, Set<number>>();
-  const colToRegions = new Map<number, Set<number>>();
-
-  for (let i = 0; i < size; i++) {
-    rowToRegions.set(i, new Set());
-  }
-  for (let i = 0; i < size; i++) {
-    colToRegions.set(i, new Set());
-  }
-
-  for (const [id, meta] of regions) {
-    for (const row of meta.unknownRows) {
-      rowToRegions.get(row)!.add(id);
-    }
-    for (const col of meta.unknownCols) {
-      colToRegions.get(col)!.add(id);
-    }
-  }
-
-  return {
-    size,
-    regions,
-    rowStars,
-    colStars,
-    rowUnknowns,
-    colUnknowns,
-    rowToRegions,
-    colToRegions,
-  };
+  return { size, regions, rowStars, colStars, rowUnknowns, colUnknowns };
 }
 
 export function buildBoardAnalysis(

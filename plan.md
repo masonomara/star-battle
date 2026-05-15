@@ -50,20 +50,20 @@ Run `npm test` after each phase.
 
 ### Phase 1 — Dead Field Elimination
 
-- [ ] **1-A** `src/helpers/boardAnalysis.ts` — remove `rowToRegions` and `colToRegions` from the `BoardState` type
-- [ ] **1-A** `src/helpers/boardAnalysis.ts` — delete the construction block for `rowToRegions` / `colToRegions` in `buildBoardState`
-- [ ] **1-A** `src/helpers/boardAnalysis.ts` — remove both fields from the `buildBoardState` return object
-- [ ] **1-B** `src/helpers/boardAnalysis.ts` — remove `rows` and `cols` from the `RegionStructure` type
-- [ ] **1-B** `src/helpers/boardAnalysis.ts` — delete the `rows`/`cols` Set construction and the `rows.add` / `cols.add` loop in `buildBoardStructure`
-- [ ] **1-B** `src/helpers/boardAnalysis.ts` — update the `regions.set(id, { ... })` call to drop `rows` and `cols`
-- [ ] **1-C** `src/helpers/boardAnalysis.ts` — remove `id: number` from `RegionStructure` type
-- [ ] **1-C** `src/helpers/boardAnalysis.ts` — remove `id: number` from `RegionMeta` type
-- [ ] **1-C** `src/helpers/boardAnalysis.ts` — remove `id` from both struct literals (`{ id, coords }` → `{ coords }`, `{ id, unknownCoords, ... }` → `{ unknownCoords, ... }`)
-- [ ] **1-D** `src/helpers/counting.ts` — remove `regionIndex` and `inside` from the `TightSetContrib` type
-- [ ] **1-D** `src/helpers/counting.ts` — in `extractTightSets`, keep `inside` as a local variable but drop it and `regionIndex` from the `regionContribs.push({ ... })` call
-- [ ] **1-E** `src/generator.ts` — remove `attempts` from the `GenerateResult` type
-- [ ] **1-E** `src/generator.ts` — update the `return` in `generate()` from `{ board, seed, attempts: attempt + 1 }` to `{ board, seed }`
-- [ ] Run `npm test`
+- [x] **1-A** `src/helpers/boardAnalysis.ts` — remove `rowToRegions` and `colToRegions` from the `BoardState` type
+- [x] **1-A** `src/helpers/boardAnalysis.ts` — delete the construction block for `rowToRegions` / `colToRegions` in `buildBoardState`
+- [x] **1-A** `src/helpers/boardAnalysis.ts` — remove both fields from the `buildBoardState` return object
+- [x] **1-B** `src/helpers/boardAnalysis.ts` — remove `rows` and `cols` from the `RegionStructure` type
+- [x] **1-B** `src/helpers/boardAnalysis.ts` — delete the `rows`/`cols` Set construction and the `rows.add` / `cols.add` loop in `buildBoardStructure`
+- [x] **1-B** `src/helpers/boardAnalysis.ts` — update the `regions.set(id, { ... })` call to drop `rows` and `cols`
+- [x] **1-C** `src/helpers/boardAnalysis.ts` — remove `id: number` from `RegionStructure` type
+- [x] **1-C** `src/helpers/boardAnalysis.ts` — remove `id: number` from `RegionMeta` type
+- [x] **1-C** `src/helpers/boardAnalysis.ts` — remove `id` from both struct literals (`{ id, coords }` → `{ coords }`, `{ id, unknownCoords, ... }` → `{ unknownCoords, ... }`)
+- [x] **1-D** `src/helpers/counting.ts` — remove `regionIndex` and `inside` from the `TightSetContrib` type
+- [x] **1-D** `src/helpers/counting.ts` — in `extractTightSets`, keep `inside` as a local variable but drop it and `regionIndex` from the `regionContribs.push({ ... })` call
+- [x] **1-E** `src/generator.ts` — remove `attempts` from the `GenerateResult` type
+- [x] **1-E** `src/generator.ts` — update the `return` in `generate()` from `{ board, seed, attempts: attempt + 1 }` to `{ board, seed }`
+- [x] Run `npm test`
 
 ### Phase 2 — Core Structural Fixes
 
