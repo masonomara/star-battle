@@ -18,12 +18,9 @@ import tilingOverhangMarks from "./04-tilingEnumeration/tilingOverhangMarks";
 import { countingMark } from "./05-countingEnumeration/countingMark";
 
 // Level 6: Tiling Pairs
-import tilingPairForcedRow from "./06-tilingPairs/tilingPairForcedRow";
-import tilingPairForcedColumn from "./06-tilingPairs/tilingPairForcedColumn";
-import tilingPairAdjacencyRow from "./06-tilingPairs/tilingPairAdjacencyRow";
-import tilingPairAdjacencyColumn from "./06-tilingPairs/tilingPairAdjacencyColumn";
-import tilingPairOverhangRow from "./06-tilingPairs/tilingPairOverhangRow";
-import tilingPairOverhangColumn from "./06-tilingPairs/tilingPairOverhangColumn";
+import { tilingPairForced } from "./06-tilingPairs/tilingPairForced";
+import { tilingPairAdjacency } from "./06-tilingPairs/tilingPairAdjacency";
+import { tilingPairOverhang } from "./06-tilingPairs/tilingPairOverhang";
 
 // Level 7: Tiling Counting + Group Tiling Counting
 import tilingCountingMarkRow from "./07-tilingCounting/tilingCountingMarkRow";
@@ -91,12 +88,12 @@ export const allRules: RuleEntry[] = [
   { rule: countingMark("col"), level: 5, name: "Counting Mark Columns" },
 
   // Level 6: Tiling Pairs
-  { rule: tilingPairForcedRow, level: 6, name: "Tiling Pair Forced Rows" },
-  { rule: tilingPairForcedColumn, level: 6, name: "Tiling Pair Forced Columns" },
-  { rule: tilingPairAdjacencyRow, level: 6, name: "Tiling Pair Adjacency Rows" },
-  { rule: tilingPairAdjacencyColumn, level: 6, name: "Tiling Pair Adjacency Columns" },
-  { rule: tilingPairOverhangRow, level: 6, name: "Tiling Pair Overhang Rows" },
-  { rule: tilingPairOverhangColumn, level: 6, name: "Tiling Pair Overhang Columns" },
+  { rule: tilingPairForced("row"), level: 6, name: "Tiling Pair Forced Rows" },
+  { rule: tilingPairForced("col"), level: 6, name: "Tiling Pair Forced Columns" },
+  { rule: tilingPairAdjacency("row"), level: 6, name: "Tiling Pair Adjacency Rows" },
+  { rule: tilingPairAdjacency("col"), level: 6, name: "Tiling Pair Adjacency Columns" },
+  { rule: tilingPairOverhang("row"), level: 6, name: "Tiling Pair Overhang Rows" },
+  { rule: tilingPairOverhang("col"), level: 6, name: "Tiling Pair Overhang Columns" },
 
   // Level 7: Tiling Counting
   { rule: tilingCountingMarkRow, level: 7, name: "Tiling Counting Mark Rows" },

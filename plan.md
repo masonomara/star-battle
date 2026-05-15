@@ -159,11 +159,11 @@ Run `npm test` after each phase.
 - [x] **6-D** Create `src/rules/05-countingEnumeration/countingMark.ts` with `countingMark(axis)` factory
 - [x] **6-D** Delete `countingMarkRow.ts` and `countingMarkColumn.ts`
 - [x] **6-D** `src/rules/index.ts` — replace the two individual imports with `{ countingMark }` and update entries
-- [ ] **6-E** Create `src/rules/06-tilingPairs/tilingPairForced.ts` with `tilingPairForced(axis)` factory
-- [ ] **6-E** Create `src/rules/06-tilingPairs/tilingPairAdjacency.ts` with `tilingPairAdjacency(axis)` factory
-- [ ] **6-E** Create `src/rules/06-tilingPairs/tilingPairOverhang.ts` with `tilingPairOverhang(axis)` factory
-- [ ] **6-E** Delete all six existing `tilingPair*Row.ts` and `tilingPair*Column.ts` files
-- [ ] **6-E** `src/rules/index.ts` — replace six imports with three factory imports and update all six entries
+- [x] **6-E** Create `src/rules/06-tilingPairs/tilingPairForced.ts` with `tilingPairForced(axis)` factory
+- [x] **6-E** Create `src/rules/06-tilingPairs/tilingPairAdjacency.ts` with `tilingPairAdjacency(axis)` factory
+- [x] **6-E** Create `src/rules/06-tilingPairs/tilingPairOverhang.ts` with `tilingPairOverhang(axis)` factory
+- [x] **6-E** Delete all six existing `tilingPair*Row.ts` and `tilingPair*Column.ts` files
+- [x] **6-E** `src/rules/index.ts` — replace six imports with three factory imports and update all six entries
 - [ ] **6-F** Create `src/rules/07-tilingCounting/tilingCountingMark.ts` with `tilingCountingMark(axis, minGroup, maxGroup)` factory
 - [ ] **6-F** Create `src/rules/07-tilingCounting/tilingCountingForced.ts` with `tilingCountingForced(axis)` factory
 - [ ] **6-F** Delete all six existing tiling counting files
