@@ -13,18 +13,19 @@ Everything else is debug infrastructure. Remove it last — keep it available wh
 
 ## Execution Order
 
-| Phase | Work                              | Files affected | Risk   | Research smells       |
-|-------|-----------------------------------|----------------|--------|-----------------------|
-| 0     | Library debug removals            | 3 files        | None   | §7.17                 |
-| 1     | Dead field elimination            | 4 files        | None   | §7.22–7.26, §7.30     |
-| 2     | Core structural fixes             | 4 files        | Low    | §7.4, §7.16–7.21      |
-| 3     | Correctness & consistency fixes   | 11 files       | Low    | §7.7–7.9, §7.37–7.43  |
-| 4     | Performance wins                  | 5 files        | Low    | §7.27–7.33            |
-| 5     | API completion                    | 3 files        | Low    | §7.10, §7.13, §7.23   |
-| 6     | Rule collapse (axis factory)      | ~45 files      | Medium | §7.1, §7.2            |
-| 7     | CLI debug removals                | 1 file         | None   | §7.6, §7.14, §7.17    |
+| Phase | Work                            | Files affected | Risk   | Research smells      |
+| ----- | ------------------------------- | -------------- | ------ | -------------------- |
+| 0     | Library debug removals          | 3 files        | None   | §7.17                |
+| 1     | Dead field elimination          | 4 files        | None   | §7.22–7.26, §7.30    |
+| 2     | Core structural fixes           | 4 files        | Low    | §7.4, §7.16–7.21     |
+| 3     | Correctness & consistency fixes | 11 files       | Low    | §7.7–7.9, §7.37–7.43 |
+| 4     | Performance wins                | 5 files        | Low    | §7.27–7.33           |
+| 5     | API completion                  | 3 files        | Low    | §7.10, §7.13, §7.23  |
+| 6     | Rule collapse (axis factory)    | ~45 files      | Medium | §7.1, §7.2           |
+| 7     | CLI debug removals              | 1 file         | None   | §7.6, §7.14, §7.17   |
 
 **Why this order:**
+
 - Phases 0–3 are independent, low-risk, and shrink the codebase before touching anything structural.
 - Phases 4–5 are also independent of Phase 6 and should land first — the benchmark CLI (retained through Phase 6) can validate that performance changes don't alter output.
 - Phase 6 is the largest change. Doing it after Phases 0–5 means the benchmark, `--file`, and `--trace` CLI modes are still alive and can be used to confirm rule coverage and counts haven't changed. Run `sieve --file puzzles.sbn` before and after Phase 6 and compare rule usage stats.
@@ -366,7 +367,16 @@ Remove from the return object:
 
 ```ts
 // BEFORE:
-return { size, regions, rowStars, colStars, rowUnknowns, colUnknowns, rowToRegions, colToRegions };
+return {
+  size,
+  regions,
+  rowStars,
+  colStars,
+  rowUnknowns,
+  colUnknowns,
+  rowToRegions,
+  colToRegions,
+};
 
 // AFTER:
 return { size, regions, rowStars, colStars, rowUnknowns, colUnknowns };
@@ -448,10 +458,23 @@ for (const [id, coords] of coordsByRegion) {
 
 ```ts
 // BEFORE in buildBoardState:
-regions.set(id, { id, unknownCoords, starsPlaced, starsNeeded: stars - starsPlaced, unknownRows, unknownCols });
+regions.set(id, {
+  id,
+  unknownCoords,
+  starsPlaced,
+  starsNeeded: stars - starsPlaced,
+  unknownRows,
+  unknownCols,
+});
 
 // AFTER:
-regions.set(id, { unknownCoords, starsPlaced, starsNeeded: stars - starsPlaced, unknownRows, unknownCols });
+regions.set(id, {
+  unknownCoords,
+  starsPlaced,
+  starsNeeded: stars - starsPlaced,
+  unknownRows,
+  unknownCols,
+});
 ```
 
 Any iteration using `for (const [id, meta] of regions)` keeps using the map key `id` — no other changes needed.
@@ -601,7 +624,7 @@ Also remove the `computeTiling` import from `solver.ts` — it is now unused the
 ```ts
 type BoardState = {
   size: number;
-  stars: number;        // ADD
+  stars: number; // ADD
   regions: Map<number, RegionMeta>;
   rowStars: number[];
   colStars: number[];
@@ -620,10 +643,17 @@ return { size, stars, regions, rowStars, colStars, rowUnknowns, colUnknowns };
 
 ```ts
 // BEFORE:
-function checkProgress(board: Board, cells: CellState[][], analysis: BoardAnalysis): Progress
+function checkProgress(
+  board: Board,
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+): Progress;
 
 // AFTER:
-function getSolveStatus(cells: CellState[][], analysis: BoardAnalysis): Progress
+function getSolveStatus(
+  cells: CellState[][],
+  analysis: BoardAnalysis,
+): Progress;
 ```
 
 Replace the redundant inner cell scan — `analysis.rowUnknowns[i].length` and `analysis.colUnknowns[i].length` already have exactly what the manual count computed:
@@ -693,7 +723,10 @@ After Phase 0 removes the deterministic branch, `generator_stuck` and `invalid_t
 
 ```ts
 // BEFORE:
-export type FailureReason = "generator_stuck" | "solver_failed" | "invalid_tiling";
+export type FailureReason =
+  | "generator_stuck"
+  | "solver_failed"
+  | "invalid_tiling";
 export type SieveStats = {
   attempts: number;
   failures: Record<FailureReason, number>;
@@ -759,7 +792,7 @@ The L-shape fallback in `computeTiling` returns `tilings: []` with `capacity = c
 ```ts
 const tiling = analysis.getTiling(meta.unknownCoords);
 if (tiling.capacity !== meta.starsNeeded) continue;
-if (tiling.tilings.length === 0) continue;  // ADD: L-shape fallback guard
+if (tiling.tilings.length === 0) continue; // ADD: L-shape fallback guard
 ```
 
 ### 3-B: Use `meta.starsNeeded === 0` in `trivialRegion` — §7.37
@@ -886,11 +919,11 @@ function search(
   solutions: number[][],
   minLen: { value: number },
 ): void {
-  if (solution.length >= minLen.value) return;  // prune: can't beat current best
+  if (solution.length >= minLen.value) return; // prune: can't beat current best
 
   if (root.right === root) {
     if (solution.length < minLen.value) {
-      solutions.length = 0;          // discard previously found longer solutions
+      solutions.length = 0; // discard previously found longer solutions
       minLen.value = solution.length;
     }
     solutions.push([...solution]);
@@ -930,7 +963,7 @@ function cover(col: ColumnHeader): void {
     for (let node = row.right; node !== row; node = node.right) {
       node.down.up = node.up;
       node.up.down = node.down;
-      if (node.column.isPrimary) node.column.size--;  // gate: primary only
+      if (node.column.isPrimary) node.column.size--; // gate: primary only
     }
 }
 // Mirror change in uncover: if (node.column.isPrimary) node.column.size++;
@@ -1058,7 +1091,10 @@ export function encodePuzzleString(puzzle: Puzzle): string {
   const size = board.grid.length;
 
   const layout = Array.from({ length: size }, (_, r) =>
-    Array.from({ length: size }, (_, c) => REGION_LETTERS[board.grid[r][c]]).join(""),
+    Array.from(
+      { length: size },
+      (_, c) => REGION_LETTERS[board.grid[r][c]],
+    ).join(""),
   ).join("");
 
   const header = `${size}x${board.stars}`;
@@ -1104,7 +1140,9 @@ function validateInputs(size: number, stars: number): void {
   if (!Number.isInteger(stars) || stars < 1 || stars > 6)
     throw new Error(`stars must be an integer between 1 and 6, got ${stars}`);
   if (stars > Math.floor(size / 2))
-    throw new Error(`stars (${stars}) cannot exceed size/2 (${Math.floor(size / 2)})`);
+    throw new Error(
+      `stars (${stars}) cannot exceed size/2 (${Math.floor(size / 2)})`,
+    );
 }
 ```
 
@@ -1171,9 +1209,14 @@ import { BoardAnalysis } from "../../helpers/boardAnalysis";
 // which may change what's forced elsewhere. Re-entering from rule 1 after each
 // placement is correct. Do NOT batch all containers into one pass.
 export function forcedPlacement(axis: "row" | "col") {
-  return function (board: Board, cells: CellState[][], analysis: BoardAnalysis): boolean {
+  return function (
+    board: Board,
+    cells: CellState[][],
+    analysis: BoardAnalysis,
+  ): boolean {
     const axisStars = axis === "row" ? analysis.rowStars : analysis.colStars;
-    const axisUnknowns = axis === "row" ? analysis.rowUnknowns : analysis.colUnknowns;
+    const axisUnknowns =
+      axis === "row" ? analysis.rowUnknowns : analysis.colUnknowns;
     for (let i = 0; i < analysis.size; i++) {
       const needed = board.stars - axisStars[i];
       const unknowns = axisUnknowns[i];
@@ -1195,9 +1238,14 @@ Delete both files. Create `03-trivialMarks/trivialMarks.ts`:
 
 ```ts
 export function trivialMarks(axis: "row" | "col") {
-  return function (_board: Board, cells: CellState[][], analysis: BoardAnalysis): boolean {
+  return function (
+    _board: Board,
+    cells: CellState[][],
+    analysis: BoardAnalysis,
+  ): boolean {
     const axisStars = axis === "row" ? analysis.rowStars : analysis.colStars;
-    const axisUnknowns = axis === "row" ? analysis.rowUnknowns : analysis.colUnknowns;
+    const axisUnknowns =
+      axis === "row" ? analysis.rowUnknowns : analysis.colUnknowns;
     let changed = false;
     for (let i = 0; i < analysis.size; i++) {
       if (axisStars[i] !== analysis.stars) continue;
@@ -1219,9 +1267,14 @@ Delete both files. Create `04-tilingEnumeration/tilingForcedLine.ts`:
 
 ```ts
 export function tilingForcedLine(axis: "row" | "col") {
-  return function (board: Board, cells: CellState[][], analysis: BoardAnalysis): boolean {
+  return function (
+    board: Board,
+    cells: CellState[][],
+    analysis: BoardAnalysis,
+  ): boolean {
     const axisStars = axis === "row" ? analysis.rowStars : analysis.colStars;
-    const axisUnknowns = axis === "row" ? analysis.rowUnknowns : analysis.colUnknowns;
+    const axisUnknowns =
+      axis === "row" ? analysis.rowUnknowns : analysis.colUnknowns;
     for (let i = 0; i < analysis.size; i++) {
       const needed = board.stars - axisStars[i];
       if (needed <= 0) continue;
@@ -1248,7 +1301,11 @@ Delete both. Create `05-countingEnumeration/countingMark.ts`:
 
 ```ts
 export function countingMark(axis: "row" | "col") {
-  return function (_board: Board, cells: CellState[][], analysis: BoardAnalysis): boolean {
+  return function (
+    _board: Board,
+    cells: CellState[][],
+    analysis: BoardAnalysis,
+  ): boolean {
     const flow = analysis.getCountingFlow(axis);
     if (!flow.feasible) return false;
     for (const ts of flow.tightSets) {
@@ -1278,14 +1335,28 @@ Delete all six. Create three files in `06-tilingPairs/`:
 
 ```ts
 export function tilingPairForced(axis: "row" | "col") {
-  return function (board: Board, cells: CellState[][], analysis: BoardAnalysis): boolean {
+  return function (
+    board: Board,
+    cells: CellState[][],
+    analysis: BoardAnalysis,
+  ): boolean {
     const { size } = analysis;
-    return squeezePairLoop(cells, size, board.stars, analysis, axis, (_pairCells, tiling) => {
-      for (const [r, c] of tiling.forcedCells) {
-        if (cells[r][c] === "unknown") { cells[r][c] = "star"; return true; }
-      }
-      return false;
-    });
+    return squeezePairLoop(
+      cells,
+      size,
+      board.stars,
+      analysis,
+      axis,
+      (_pairCells, tiling) => {
+        for (const [r, c] of tiling.forcedCells) {
+          if (cells[r][c] === "unknown") {
+            cells[r][c] = "star";
+            return true;
+          }
+        }
+        return false;
+      },
+    );
   };
 }
 ```
@@ -1294,21 +1365,39 @@ export function tilingPairForced(axis: "row" | "col") {
 
 ```ts
 export function tilingPairAdjacency(axis: "row" | "col") {
-  return function (board: Board, cells: CellState[][], analysis: BoardAnalysis): boolean {
+  return function (
+    board: Board,
+    cells: CellState[][],
+    analysis: BoardAnalysis,
+  ): boolean {
     const { size } = analysis;
-    return squeezePairLoop(cells, size, board.stars, analysis, axis, (pairCells, tiling) => {
-      if (tiling.tilings.length === 0) return false;
-      const pairSet = new Set<number>(pairCells.map(([r, c]) => r * size + c));
-      const validStarCells = collectValidStarCells(tiling.tilings, pairSet, cells, size);
-      let changed = false;
-      for (const [r, c] of pairCells) {
-        if (!validStarCells.has(r * size + c) && cells[r][c] === "unknown") {
-          cells[r][c] = "marked";
-          changed = true;
+    return squeezePairLoop(
+      cells,
+      size,
+      board.stars,
+      analysis,
+      axis,
+      (pairCells, tiling) => {
+        if (tiling.tilings.length === 0) return false;
+        const pairSet = new Set<number>(
+          pairCells.map(([r, c]) => r * size + c),
+        );
+        const validStarCells = collectValidStarCells(
+          tiling.tilings,
+          pairSet,
+          cells,
+          size,
+        );
+        let changed = false;
+        for (const [r, c] of pairCells) {
+          if (!validStarCells.has(r * size + c) && cells[r][c] === "unknown") {
+            cells[r][c] = "marked";
+            changed = true;
+          }
         }
-      }
-      return changed;
-    });
+        return changed;
+      },
+    );
   };
 }
 ```
@@ -1317,18 +1406,43 @@ export function tilingPairAdjacency(axis: "row" | "col") {
 
 ```ts
 export function tilingPairOverhang(axis: "row" | "col") {
-  return function (board: Board, cells: CellState[][], analysis: BoardAnalysis): boolean {
+  return function (
+    board: Board,
+    cells: CellState[][],
+    analysis: BoardAnalysis,
+  ): boolean {
     const { size } = analysis;
-    return squeezePairLoop(cells, size, board.stars, analysis, axis, (pairCells, tiling) => {
-      if (tiling.tilings.length === 0) return false;
-      const pairSet = new Set<number>(pairCells.map(([r, c]) => r * size + c));
-      const activeTilings = filterActiveTilings(tiling.tilings, pairSet, cells, size);
-      let changed = false;
-      for (const [r, c] of findForcedOverhangCells(activeTilings, pairSet, size)) {
-        if (cells[r][c] === "unknown") { cells[r][c] = "marked"; changed = true; }
-      }
-      return changed;
-    });
+    return squeezePairLoop(
+      cells,
+      size,
+      board.stars,
+      analysis,
+      axis,
+      (pairCells, tiling) => {
+        if (tiling.tilings.length === 0) return false;
+        const pairSet = new Set<number>(
+          pairCells.map(([r, c]) => r * size + c),
+        );
+        const activeTilings = filterActiveTilings(
+          tiling.tilings,
+          pairSet,
+          cells,
+          size,
+        );
+        let changed = false;
+        for (const [r, c] of findForcedOverhangCells(
+          activeTilings,
+          pairSet,
+          size,
+        )) {
+          if (cells[r][c] === "unknown") {
+            cells[r][c] = "marked";
+            changed = true;
+          }
+        }
+        return changed;
+      },
+    );
   };
 }
 ```
@@ -1342,9 +1456,21 @@ Delete all six. Create two files in `07-tilingCounting/`:
 **`tilingCountingMark.ts`** — handles single-line (`minGroup=1, maxGroup=1`) and group variants (`minGroup=2, maxGroup=4`) via the same callback:
 
 ```ts
-export function tilingCountingMark(axis: "row" | "col", minGroup = 1, maxGroup = 1) {
-  return function (board: Board, cells: CellState[][], analysis: BoardAnalysis): boolean {
-    return tilingCountingLoop(board, cells, analysis, axis,
+export function tilingCountingMark(
+  axis: "row" | "col",
+  minGroup = 1,
+  maxGroup = 1,
+) {
+  return function (
+    board: Board,
+    cells: CellState[][],
+    analysis: BoardAnalysis,
+  ): boolean {
+    return tilingCountingLoop(
+      board,
+      cells,
+      analysis,
+      axis,
       (cells, mask, regionMeta, minContrib) => {
         if (minContrib !== 0) return false;
         let changed = false;
@@ -1357,7 +1483,8 @@ export function tilingCountingMark(axis: "row" | "col", minGroup = 1, maxGroup =
         }
         return changed;
       },
-      minGroup, maxGroup,
+      minGroup,
+      maxGroup,
     );
   };
 }
@@ -1367,15 +1494,24 @@ export function tilingCountingMark(axis: "row" | "col", minGroup = 1, maxGroup =
 
 ```ts
 export function tilingCountingForced(axis: "row" | "col") {
-  return function (board: Board, cells: CellState[][], analysis: BoardAnalysis): boolean {
-    return tilingCountingLoop(board, cells, analysis, axis,
+  return function (
+    board: Board,
+    cells: CellState[][],
+    analysis: BoardAnalysis,
+  ): boolean {
+    return tilingCountingLoop(
+      board,
+      cells,
+      analysis,
+      axis,
       (cells, mask, regionMeta, minContrib) => {
         const starsOutside = regionMeta.starsNeeded - minContrib;
         if (starsOutside <= 0) return false;
         let outsideCount = 0;
         for (const [r, c] of regionMeta.unknownCoords) {
           const lineIdx = axis === "row" ? r : c;
-          if (!((mask >> lineIdx) & 1) && cells[r][c] === "unknown") outsideCount++;
+          if (!((mask >> lineIdx) & 1) && cells[r][c] === "unknown")
+            outsideCount++;
         }
         if (outsideCount !== starsOutside) return false;
         let changed = false;
@@ -1401,24 +1537,40 @@ Delete `hypotheticalRowCount.ts`, `hypotheticalColumnCount.ts`, `hypotheticalRow
 
 ```ts
 export function hypotheticalCount(axis: "row" | "col") {
-  return function (board: Board, cells: CellState[][], analysis: BoardAnalysis): boolean {
+  return function (
+    board: Board,
+    cells: CellState[][],
+    analysis: BoardAnalysis,
+  ): boolean {
     const { size } = analysis;
-    return hypotheticalLoop(board, cells, analysis, false, (row, col, state) => {
-      const idx = axis === "row" ? row : col;
-      for (let i = Math.max(0, idx - 1); i <= Math.min(size - 1, idx + 1); i++) {
-        let stars = 0, remaining = 0;
-        for (let j = 0; j < size; j++) {
-          const r = axis === "row" ? i : j;
-          const c = axis === "row" ? j : i;
-          const key = cellKey(r, c, size);
-          if (cells[r][c] === "star" || state.starKeys.has(key)) stars++;
-          else if (cells[r][c] === "unknown" && !state.marked.has(key)) remaining++;
+    return hypotheticalLoop(
+      board,
+      cells,
+      analysis,
+      false,
+      (row, col, state) => {
+        const idx = axis === "row" ? row : col;
+        for (
+          let i = Math.max(0, idx - 1);
+          i <= Math.min(size - 1, idx + 1);
+          i++
+        ) {
+          let stars = 0,
+            remaining = 0;
+          for (let j = 0; j < size; j++) {
+            const r = axis === "row" ? i : j;
+            const c = axis === "row" ? j : i;
+            const key = cellKey(r, c, size);
+            if (cells[r][c] === "star" || state.starKeys.has(key)) stars++;
+            else if (cells[r][c] === "unknown" && !state.marked.has(key))
+              remaining++;
+          }
+          const needed = board.stars - stars;
+          if (needed > 0 && remaining < needed) return true;
         }
-        const needed = board.stars - stars;
-        if (needed > 0 && remaining < needed) return true;
-      }
-      return false;
-    });
+        return false;
+      },
+    );
   };
 }
 ```
@@ -1427,28 +1579,43 @@ export function hypotheticalCount(axis: "row" | "col") {
 
 ```ts
 export function hypotheticalCapacity(axis: "row" | "col") {
-  return function (board: Board, cells: CellState[][], analysis: BoardAnalysis): boolean {
+  return function (
+    board: Board,
+    cells: CellState[][],
+    analysis: BoardAnalysis,
+  ): boolean {
     const { size } = analysis;
-    return hypotheticalLoop(board, cells, analysis, false, (row, col, state) => {
-      const idx = axis === "row" ? row : col;
-      for (let i = Math.max(0, idx - 1); i <= Math.min(size - 1, idx + 1); i++) {
-        let stars = 0;
-        const remaining: Coord[] = [];
-        for (let j = 0; j < size; j++) {
-          const r = axis === "row" ? i : j;
-          const c = axis === "row" ? j : i;
-          const key = cellKey(r, c, size);
-          if (cells[r][c] === "star" || state.starKeys.has(key)) stars++;
-          else if (cells[r][c] === "unknown" && !state.marked.has(key)) remaining.push([r, c]);
+    return hypotheticalLoop(
+      board,
+      cells,
+      analysis,
+      false,
+      (row, col, state) => {
+        const idx = axis === "row" ? row : col;
+        for (
+          let i = Math.max(0, idx - 1);
+          i <= Math.min(size - 1, idx + 1);
+          i++
+        ) {
+          let stars = 0;
+          const remaining: Coord[] = [];
+          for (let j = 0; j < size; j++) {
+            const r = axis === "row" ? i : j;
+            const c = axis === "row" ? j : i;
+            const key = cellKey(r, c, size);
+            if (cells[r][c] === "star" || state.starKeys.has(key)) stars++;
+            else if (cells[r][c] === "unknown" && !state.marked.has(key))
+              remaining.push([r, c]);
+          }
+          const needed = board.stars - stars;
+          if (needed <= 0) continue;
+          if (remaining.length < needed) return true;
+          if (remaining.length >= needed * 2) continue;
+          if (analysis.getTiling(remaining).capacity < needed) return true;
         }
-        const needed = board.stars - stars;
-        if (needed <= 0) continue;
-        if (remaining.length < needed) return true;
-        if (remaining.length >= needed * 2) continue;
-        if (analysis.getTiling(remaining).capacity < needed) return true;
-      }
-      return false;
-    });
+        return false;
+      },
+    );
   };
 }
 ```
@@ -1461,9 +1628,25 @@ Both files differ only in the `axis` argument to `propagatedCountingViolation`. 
 
 ```ts
 export function hypotheticalCounting(axis: "row" | "col") {
-  return function (board: Board, cells: CellState[][], analysis: BoardAnalysis): boolean {
-    return hypotheticalLoop(board, cells, analysis, false, (_row, _col, state) =>
-      propagatedCountingViolation(board, cells, state.starKeys, state.marked, analysis, axis),
+  return function (
+    board: Board,
+    cells: CellState[][],
+    analysis: BoardAnalysis,
+  ): boolean {
+    return hypotheticalLoop(
+      board,
+      cells,
+      analysis,
+      false,
+      (_row, _col, state) =>
+        propagatedCountingViolation(
+          board,
+          cells,
+          state.starKeys,
+          state.marked,
+          analysis,
+          axis,
+        ),
     );
   };
 }
@@ -1479,12 +1662,21 @@ Delete `propagatedRowCount.ts`, `propagatedColumnCount.ts`, `propagatedRowCapaci
 
 ```ts
 export function propagatedCount(axis: "row" | "col") {
-  return function (board: Board, cells: CellState[][], analysis: BoardAnalysis): boolean {
-    return hypotheticalLoop(board, cells, analysis, true, (_r, _c, state) =>
-      state.violation === axis ||
-      // Adjacency violations fall on the row checker — two adjacent stars
-      // always violate a row constraint before a column one.
-      (axis === "row" && state.violation === "adjacency"),
+  return function (
+    board: Board,
+    cells: CellState[][],
+    analysis: BoardAnalysis,
+  ): boolean {
+    return hypotheticalLoop(
+      board,
+      cells,
+      analysis,
+      true,
+      (_r, _c, state) =>
+        state.violation === axis ||
+        // Adjacency violations fall on the row checker — two adjacent stars
+        // always violate a row constraint before a column one.
+        (axis === "row" && state.violation === "adjacency"),
     );
   };
 }
@@ -1494,7 +1686,11 @@ export function propagatedCount(axis: "row" | "col") {
 
 ```ts
 export function propagatedCapacity(axis: "row" | "col") {
-  return function (board: Board, cells: CellState[][], analysis: BoardAnalysis): boolean {
+  return function (
+    board: Board,
+    cells: CellState[][],
+    analysis: BoardAnalysis,
+  ): boolean {
     const { size } = analysis;
     return hypotheticalLoop(board, cells, analysis, true, (_r, _c, state) => {
       if (state.violation !== null) return false;
@@ -1506,7 +1702,8 @@ export function propagatedCapacity(axis: "row" | "col") {
           const c = axis === "row" ? j : i;
           const key = cellKey(r, c, size);
           if (cells[r][c] === "star" || state.starKeys.has(key)) stars++;
-          else if (cells[r][c] === "unknown" && !state.marked.has(key)) remaining.push([r, c]);
+          else if (cells[r][c] === "unknown" && !state.marked.has(key))
+            remaining.push([r, c]);
         }
         const needed = board.stars - stars;
         if (needed <= 0) continue;
@@ -1524,10 +1721,21 @@ export function propagatedCapacity(axis: "row" | "col") {
 
 ```ts
 export function propagatedCounting(axis: "row" | "col") {
-  return function (board: Board, cells: CellState[][], analysis: BoardAnalysis): boolean {
+  return function (
+    board: Board,
+    cells: CellState[][],
+    analysis: BoardAnalysis,
+  ): boolean {
     return hypotheticalLoop(board, cells, analysis, true, (_r, _c, state) => {
       if (state.violation !== null) return false;
-      return propagatedCountingViolation(board, cells, state.starKeys, state.marked, analysis, axis);
+      return propagatedCountingViolation(
+        board,
+        cells,
+        state.starKeys,
+        state.marked,
+        analysis,
+        axis,
+      );
     });
   };
 }
@@ -1567,66 +1775,170 @@ import propagatedRegionCapacity from "./11-propagatedHypotheticals/propagatedReg
 import { propagatedCounting } from "./11-propagatedHypotheticals/propagatedCounting";
 
 export const allRules: RuleEntry[] = [
-  { rule: starNeighbors,                    level: 1,  name: "Star Neighbors" },
-  { rule: forcedPlacement("row"),           level: 2,  name: "Forced Rows" },
-  { rule: forcedPlacement("col"),           level: 2,  name: "Forced Columns" },
-  { rule: forcedRegion,                     level: 2,  name: "Forced Regions" },
-  { rule: trivialMarks("row"),              level: 3,  name: "Trivial Rows" },
-  { rule: trivialMarks("col"),              level: 3,  name: "Trivial Columns" },
-  { rule: trivialRegion,                    level: 3,  name: "Trivial Regions" },
-  { rule: tilingForcedLine("row"),          level: 4,  name: "Tiling Forced Rows" },
-  { rule: tilingForcedLine("col"),          level: 4,  name: "Tiling Forced Columns" },
-  { rule: tilingForcedRegion,               level: 4,  name: "Tiling Forced Regions" },
-  { rule: tilingAdjacencyMarks,             level: 4,  name: "Tiling Adjacency Marks" },
-  { rule: tilingOverhangMarks,              level: 4,  name: "Tiling Overhang Marks" },
-  { rule: countingMark("row"),              level: 5,  name: "Counting Mark Rows" },
-  { rule: countingMark("col"),              level: 5,  name: "Counting Mark Columns" },
-  { rule: tilingPairForced("row"),          level: 6,  name: "Tiling Pair Forced Rows" },
-  { rule: tilingPairForced("col"),          level: 6,  name: "Tiling Pair Forced Columns" },
-  { rule: tilingPairAdjacency("row"),       level: 6,  name: "Tiling Pair Adjacency Rows" },
-  { rule: tilingPairAdjacency("col"),       level: 6,  name: "Tiling Pair Adjacency Columns" },
-  { rule: tilingPairOverhang("row"),        level: 6,  name: "Tiling Pair Overhang Rows" },
-  { rule: tilingPairOverhang("col"),        level: 6,  name: "Tiling Pair Overhang Columns" },
-  { rule: tilingCountingMark("row"),        level: 7,  name: "Tiling Counting Mark Rows" },
-  { rule: tilingCountingMark("col"),        level: 7,  name: "Tiling Counting Mark Columns" },
-  { rule: tilingCountingForced("row"),      level: 7,  name: "Tiling Counting Forced Rows" },
-  { rule: tilingCountingForced("col"),      level: 7,  name: "Tiling Counting Forced Columns" },
-  { rule: tilingCountingMark("row", 2, 4),  level: 7,  name: "Group Tiling Counting Mark Rows" },
-  { rule: tilingCountingMark("col", 2, 4),  level: 7,  name: "Group Tiling Counting Mark Columns" },
-  { rule: hypotheticalCount("row"),         level: 8,  name: "Hypothetical Row Count" },
-  { rule: hypotheticalCount("col"),         level: 8,  name: "Hypothetical Column Count" },
-  { rule: hypotheticalRegionCount,          level: 8,  name: "Hypothetical Region Count" },
-  { rule: hypotheticalCapacity("row"),      level: 9,  name: "Hypothetical Row Capacity" },
-  { rule: hypotheticalCapacity("col"),      level: 9,  name: "Hypothetical Column Capacity" },
-  { rule: hypotheticalRegionCapacity,       level: 9,  name: "Hypothetical Region Capacity" },
-  { rule: hypotheticalCounting("row"),      level: 10, name: "Hypothetical Counting Row" },
-  { rule: hypotheticalCounting("col"),      level: 10, name: "Hypothetical Counting Column" },
-  { rule: propagatedCount("row"),           level: 11, name: "Propagated Hypothetical Row Count" },
-  { rule: propagatedCount("col"),           level: 11, name: "Propagated Hypothetical Column Count" },
-  { rule: propagatedRegionCount,            level: 11, name: "Propagated Hypothetical Region Count" },
-  { rule: propagatedCapacity("row"),        level: 11, name: "Propagated Hypothetical Row Capacity" },
-  { rule: propagatedCapacity("col"),        level: 11, name: "Propagated Hypothetical Column Capacity" },
-  { rule: propagatedRegionCapacity,         level: 11, name: "Propagated Hypothetical Region Capacity" },
-  { rule: propagatedCounting("row"),        level: 11, name: "Propagated Hypothetical Counting Row" },
-  { rule: propagatedCounting("col"),        level: 11, name: "Propagated Hypothetical Counting Column" },
+  { rule: starNeighbors, level: 1, name: "Star Neighbors" },
+  { rule: forcedPlacement("row"), level: 2, name: "Forced Rows" },
+  { rule: forcedPlacement("col"), level: 2, name: "Forced Columns" },
+  { rule: forcedRegion, level: 2, name: "Forced Regions" },
+  { rule: trivialMarks("row"), level: 3, name: "Trivial Rows" },
+  { rule: trivialMarks("col"), level: 3, name: "Trivial Columns" },
+  { rule: trivialRegion, level: 3, name: "Trivial Regions" },
+  { rule: tilingForcedLine("row"), level: 4, name: "Tiling Forced Rows" },
+  { rule: tilingForcedLine("col"), level: 4, name: "Tiling Forced Columns" },
+  { rule: tilingForcedRegion, level: 4, name: "Tiling Forced Regions" },
+  { rule: tilingAdjacencyMarks, level: 4, name: "Tiling Adjacency Marks" },
+  { rule: tilingOverhangMarks, level: 4, name: "Tiling Overhang Marks" },
+  { rule: countingMark("row"), level: 5, name: "Counting Mark Rows" },
+  { rule: countingMark("col"), level: 5, name: "Counting Mark Columns" },
+  { rule: tilingPairForced("row"), level: 6, name: "Tiling Pair Forced Rows" },
+  {
+    rule: tilingPairForced("col"),
+    level: 6,
+    name: "Tiling Pair Forced Columns",
+  },
+  {
+    rule: tilingPairAdjacency("row"),
+    level: 6,
+    name: "Tiling Pair Adjacency Rows",
+  },
+  {
+    rule: tilingPairAdjacency("col"),
+    level: 6,
+    name: "Tiling Pair Adjacency Columns",
+  },
+  {
+    rule: tilingPairOverhang("row"),
+    level: 6,
+    name: "Tiling Pair Overhang Rows",
+  },
+  {
+    rule: tilingPairOverhang("col"),
+    level: 6,
+    name: "Tiling Pair Overhang Columns",
+  },
+  {
+    rule: tilingCountingMark("row"),
+    level: 7,
+    name: "Tiling Counting Mark Rows",
+  },
+  {
+    rule: tilingCountingMark("col"),
+    level: 7,
+    name: "Tiling Counting Mark Columns",
+  },
+  {
+    rule: tilingCountingForced("row"),
+    level: 7,
+    name: "Tiling Counting Forced Rows",
+  },
+  {
+    rule: tilingCountingForced("col"),
+    level: 7,
+    name: "Tiling Counting Forced Columns",
+  },
+  {
+    rule: tilingCountingMark("row", 2, 4),
+    level: 7,
+    name: "Group Tiling Counting Mark Rows",
+  },
+  {
+    rule: tilingCountingMark("col", 2, 4),
+    level: 7,
+    name: "Group Tiling Counting Mark Columns",
+  },
+  { rule: hypotheticalCount("row"), level: 8, name: "Hypothetical Row Count" },
+  {
+    rule: hypotheticalCount("col"),
+    level: 8,
+    name: "Hypothetical Column Count",
+  },
+  {
+    rule: hypotheticalRegionCount,
+    level: 8,
+    name: "Hypothetical Region Count",
+  },
+  {
+    rule: hypotheticalCapacity("row"),
+    level: 9,
+    name: "Hypothetical Row Capacity",
+  },
+  {
+    rule: hypotheticalCapacity("col"),
+    level: 9,
+    name: "Hypothetical Column Capacity",
+  },
+  {
+    rule: hypotheticalRegionCapacity,
+    level: 9,
+    name: "Hypothetical Region Capacity",
+  },
+  {
+    rule: hypotheticalCounting("row"),
+    level: 10,
+    name: "Hypothetical Counting Row",
+  },
+  {
+    rule: hypotheticalCounting("col"),
+    level: 10,
+    name: "Hypothetical Counting Column",
+  },
+  {
+    rule: propagatedCount("row"),
+    level: 11,
+    name: "Propagated Hypothetical Row Count",
+  },
+  {
+    rule: propagatedCount("col"),
+    level: 11,
+    name: "Propagated Hypothetical Column Count",
+  },
+  {
+    rule: propagatedRegionCount,
+    level: 11,
+    name: "Propagated Hypothetical Region Count",
+  },
+  {
+    rule: propagatedCapacity("row"),
+    level: 11,
+    name: "Propagated Hypothetical Row Capacity",
+  },
+  {
+    rule: propagatedCapacity("col"),
+    level: 11,
+    name: "Propagated Hypothetical Column Capacity",
+  },
+  {
+    rule: propagatedRegionCapacity,
+    level: 11,
+    name: "Propagated Hypothetical Region Capacity",
+  },
+  {
+    rule: propagatedCounting("row"),
+    level: 11,
+    name: "Propagated Hypothetical Counting Row",
+  },
+  {
+    rule: propagatedCounting("col"),
+    level: 11,
+    name: "Propagated Hypothetical Counting Column",
+  },
 ];
 ```
 
 **File count after Phase 6:**
 
-| Directory      | Before | After | Delta |
-|----------------|--------|-------|-------|
-| `src/rules/02` | 3      | 2     | -1    |
-| `src/rules/03` | 3      | 2     | -1    |
-| `src/rules/04` | 5      | 4     | -1    |
-| `src/rules/05` | 2      | 1     | -1    |
-| `src/rules/06` | 6      | 3     | -3    |
-| `src/rules/07` | 6      | 2     | -4    |
-| `src/rules/08` | 3      | 2     | -1    |
-| `src/rules/09` | 3      | 2     | -1    |
-| `src/rules/10` | 2      | 1     | -1    |
-| `src/rules/11` | 8      | 5     | -3    |
-| **Total rules**| **41** | **24**| **-17** |
+| Directory       | Before | After  | Delta   |
+| --------------- | ------ | ------ | ------- |
+| `src/rules/02`  | 3      | 2      | -1      |
+| `src/rules/03`  | 3      | 2      | -1      |
+| `src/rules/04`  | 5      | 4      | -1      |
+| `src/rules/05`  | 2      | 1      | -1      |
+| `src/rules/06`  | 6      | 3      | -3      |
+| `src/rules/07`  | 6      | 2      | -4      |
+| `src/rules/08`  | 3      | 2      | -1      |
+| `src/rules/09`  | 3      | 2      | -1      |
+| `src/rules/10`  | 2      | 1      | -1      |
+| `src/rules/11`  | 8      | 5      | -3      |
+| **Total rules** | **41** | **24** | **-17** |
 
 ---
 
@@ -1679,7 +1991,10 @@ With `benchmark()` gone, `RULE_METADATA` has no callers.
 
 ```ts
 // DELETE from rules/index.ts:
-export const RULE_METADATA = allRules.map(({ name, level }) => ({ name, level }));
+export const RULE_METADATA = allRules.map(({ name, level }) => ({
+  name,
+  level,
+}));
 
 // DELETE from solver.ts:
 export { RULE_METADATA } from "./rules";
@@ -1691,15 +2006,15 @@ export { RULE_METADATA } from "./rules";
 
 These smells from `research.md` are real but are either minor, risky to change without deeper domain context, or would be better addressed as standalone follow-up work:
 
-| Smell | Description | Why deferred |
-|-------|-------------|--------------|
-| §7.3  | `tilingCountingLoop` is O(2^N) for group enumeration | Fixing requires replacing bitmask iteration with combinatorial enumeration — a standalone algorithm change, not a cleanup |
-| §7.5  | `buildBoardAnalysis` rebuilds all maps from scratch every cycle | True architectural inefficiency; requires incremental state tracking which is a larger rewrite |
+| Smell | Description                                                         | Why deferred                                                                                                                               |
+| ----- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| §7.3  | `tilingCountingLoop` is O(2^N) for group enumeration                | Fixing requires replacing bitmask iteration with combinatorial enumeration — a standalone algorithm change, not a cleanup                  |
+| §7.5  | `buildBoardAnalysis` rebuilds all maps from scratch every cycle     | True architectural inefficiency; requires incremental state tracking which is a larger rewrite                                             |
 | §7.9  | Some rule functions don't use all `(board, cells, analysis)` params | After Phase 6, region rules still legitimately use `board`. The axis factories use all params. Residual mismatch in region files is minor. |
-| §7.11 | `fillRemaining` in generator has O(N⁴) worst case | The `maxIterations` guard is adequate; the case is rare in practice. Not worth the risk of changing generator behavior. |
-| §7.12 | Seed arithmetic in `generate()` is confusing | Harmless for correctness; a cosmetic issue with no user-visible impact |
-| §7.15 | `computeTiling` "no cover" fallback is a silent approximation | Requires a deeper understanding of which board shapes trigger it and what the correct response should be |
-| §7.39 | `insideSet` rebuilt independently in two rules | After Phase 6, both rules are gone (collapsed into region-level factories). The issue resolves itself. |
+| §7.11 | `fillRemaining` in generator has O(N⁴) worst case                   | The `maxIterations` guard is adequate; the case is rare in practice. Not worth the risk of changing generator behavior.                    |
+| §7.12 | Seed arithmetic in `generate()` is confusing                        | Harmless for correctness; a cosmetic issue with no user-visible impact                                                                     |
+| §7.15 | `computeTiling` "no cover" fallback is a silent approximation       | Requires a deeper understanding of which board shapes trigger it and what the correct response should be                                   |
+| §7.39 | `insideSet` rebuilt independently in two rules                      | After Phase 6, both rules are gone (collapsed into region-level factories). The issue resolves itself.                                     |
 
 ---
 
