@@ -124,33 +124,55 @@ function growRegionsBalanced(
  * Fill remaining unfilled cells by assigning to adjacent regions.
  * Creates irregular region shapes.
  */
-function fillRemaining(
-  grid: number[][],
-  size: number,
-  rng: () => number,
-): void {
-  let unfilled = true;
-  let iterations = 0;
-  const maxIterations = size * size * 100;
+function fillRemaining(grid: number[][], size: number, rng: () => number): void {
+  const frontier: number[] = [];
+  const inFrontier = new Set<number>();
 
-  while (unfilled) {
-    if (++iterations > maxIterations) {
-      throw new GeneratorError("Layout generation stuck", "generator_stuck");
-    }
-    unfilled = false;
-
-    for (let row = 0; row < size; row++) {
-      for (let col = 0; col < size; col++) {
-        if (grid[row][col] !== -1) continue;
-
-        const neighbors = getNeighbors(grid, size, row, col, true);
-        if (neighbors.length > 0) {
-          const [nr, nc] = neighbors[Math.floor(rng() * neighbors.length)];
-          grid[row][col] = grid[nr][nc];
-        } else {
-          unfilled = true;
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (grid[r][c] !== -1) continue;
+      for (const [dr, dc] of DIRECTIONS) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < size && nc >= 0 && nc < size && grid[nr][nc] !== -1) {
+          const key = r * size + c;
+          frontier.push(key);
+          inFrontier.add(key);
+          break;
         }
       }
+    }
+  }
+
+  while (frontier.length > 0) {
+    const idx = Math.floor(rng() * frontier.length);
+    const key = frontier[idx];
+    frontier[idx] = frontier[frontier.length - 1];
+    frontier.pop();
+    inFrontier.delete(key);
+
+    const r = Math.floor(key / size);
+    const c = key % size;
+
+    const filledNeighbors = getNeighbors(grid, size, r, c, true);
+    const [nr, nc] = filledNeighbors[Math.floor(rng() * filledNeighbors.length)];
+    grid[r][c] = grid[nr][nc];
+
+    for (const [dr, dc] of DIRECTIONS) {
+      const nnr = r + dr, nnc = c + dc;
+      if (nnr >= 0 && nnr < size && nnc >= 0 && nnc < size && grid[nnr][nnc] === -1) {
+        const nkey = nnr * size + nnc;
+        if (!inFrontier.has(nkey)) {
+          frontier.push(nkey);
+          inFrontier.add(nkey);
+        }
+      }
+    }
+  }
+
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (grid[r][c] === -1)
+        throw new GeneratorError("Layout generation stuck", "generator_stuck");
     }
   }
 }
