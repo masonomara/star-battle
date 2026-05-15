@@ -1,11 +1,6 @@
-import { generate, layout } from "./generator";
+import { generate } from "./generator";
 import { solve } from "./solver";
-import {
-  GeneratorError,
-  Puzzle,
-  SieveStats,
-  Solution,
-} from "./helpers/types";
+import { Puzzle, SieveStats, Solution } from "./helpers/types";
 import { computeDifficulty } from "./helpers/difficulty";
 
 function assignDifficulty(solution: Solution): Puzzle {
@@ -16,26 +11,17 @@ type SieveOptions = {
   size?: number;
   stars?: number;
   count?: number;
-  seed?: number; // deterministic mode: use layout() with incrementing seeds
   maxAttempts?: number;
   minDifficulty?: number;
   maxDifficulty?: number;
   onProgress?: (solved: number, attempts: number, stats: SieveStats) => void;
 };
 
-/**
- * Generate puzzles by filtering random layouts through the solver.
- *
- * Stats note: In non-deterministic mode (no seed), generator failures are
- * handled internally by generate()—only solver_failed is tracked.
- * Use deterministic mode (with seed) for full failure visibility.
- */
 export function sieve(options: SieveOptions = {}): Puzzle[] {
   const size = options.size ?? 10;
   const stars = options.stars ?? 2;
   const count = options.count ?? 1;
   const maxAttempts = options.maxAttempts ?? 100000000;
-  const deterministic = options.seed !== undefined;
 
   const stats: SieveStats = {
     attempts: 0,
@@ -46,25 +32,7 @@ export function sieve(options: SieveOptions = {}): Puzzle[] {
 
   while (puzzles.length < count && stats.attempts < maxAttempts) {
     stats.attempts++;
-
-    let board, seed: number;
-
-    if (deterministic) {
-      seed = options.seed! + stats.attempts - 1;
-      try {
-        board = layout(size, stars, seed);
-      } catch (e) {
-        if (e instanceof GeneratorError) {
-          stats.failures[e.reason]++;
-          options.onProgress?.(puzzles.length, stats.attempts, stats);
-          continue;
-        }
-        throw e;
-      }
-    } else {
-      ({ board, seed } = generate(size, stars));
-    }
-
+    const { board, seed } = generate(size, stars);
     const result = solve(board);
 
     if (result) {

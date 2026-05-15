@@ -39,14 +39,14 @@ Run `npm test` after each phase.
 
 ### Phase 0 — Library Debug Removals
 
-- [ ] **0-A** `src/generator.ts` — delete `layout()` export and its JSDoc block
-- [ ] **0-B** `src/sieve.ts` — remove `seed` from `SieveOptions` type
-- [ ] **0-B** `src/sieve.ts` — remove `const deterministic = options.seed !== undefined` and the entire `if (deterministic) { ... } else { ... }` branch; replace with `const { board, seed } = generate(size, stars)`
-- [ ] **0-B** `src/sieve.ts` — remove `GeneratorError` import (no longer caught) and `layout` import (no longer called)
-- [ ] **0-C** `src/solver.ts` — remove `timing?: Map<string, number>` from `SolveOptions` interface
-- [ ] **0-C** `src/solver.ts` — replace the `if (options.timing) { ... } else { ... }` branch in the rule loop with `const fired = entry.rule(boardDef, cells, analysis)`
-- [ ] **0-C** `src/cli.ts` — remove the `timing` map creation and the `timing` field from the `solve()` call in `benchmark()` so the project compiles
-- [ ] Run `npm test`
+- [x] **0-A** `src/generator.ts` — delete `layout()` export and its JSDoc block
+- [x] **0-B** `src/sieve.ts` — remove `seed` from `SieveOptions` type
+- [x] **0-B** `src/sieve.ts` — remove `const deterministic = options.seed !== undefined` and the entire `if (deterministic) { ... } else { ... }` branch; replace with `const { board, seed } = generate(size, stars)`
+- [x] **0-B** `src/sieve.ts` — remove `GeneratorError` import (no longer caught) and `layout` import (no longer called)
+- [x] **0-C** `src/solver.ts` — remove `timing?: Map<string, number>` from `SolveOptions` interface
+- [x] **0-C** `src/solver.ts` — replace the `if (options.timing) { ... } else { ... }` branch in the rule loop with `const fired = entry.rule(boardDef, cells, analysis)`
+- [x] **0-C** `src/cli.ts` — remove the `timing` map creation and the `timing` field from the `solve()` call in `benchmark()` so the project compiles
+- [x] Run `npm test`
 
 ### Phase 1 — Dead Field Elimination
 

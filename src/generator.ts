@@ -65,14 +65,6 @@ export function generate(
   );
 }
 
-/**
- * Generate board layout from specific seed. For deterministic testing.
- */
-export function layout(size: number, stars: number, seed: number): Board {
-  validateInputs(size, stars);
-  return layoutWithSeed(size, stars, seed);
-}
-
 function validateInputs(size: number, stars: number): void {
   if (size <= 0) {
     throw new Error("Layout generation failed: size must be positive");

@@ -1,6 +1,5 @@
 import * as fs from "fs";
 import { sieve } from "./sieve";
-import { layout } from "./generator";
 import { solve, StepInfo, RULE_METADATA } from "./solver";
 import { decodePuzzleString, REGION_LETTERS } from "./helpers/notation";
 import { Board, CellState } from "./helpers/types";
@@ -120,7 +119,6 @@ function benchmark(content: string, verbose: boolean, filterUnsolved: boolean, t
 
     let prevCells: CellState[][] | null = null;
     const result = solve(puzzle, {
-      timing: ruleTiming,
       onStep: (step: StepInfo) => {
         const stats = ruleStats.get(step.rule);
         if (stats) {
@@ -323,9 +321,7 @@ async function main() {
       process.exit(1);
     }
 
-    if (args.trace === "true" && seed !== undefined) {
-      traceBoard(layout(size, stars, seed));
-    } else {
+    {
       const diffRange =
         minDiff !== undefined || maxDiff !== undefined
           ? `, difficulty ${minDiff ?? 0}-${maxDiff ?? "\u221E"}`
@@ -339,7 +335,6 @@ async function main() {
         size,
         stars,
         count,
-        seed,
         minDifficulty: minDiff,
         maxDifficulty: maxDiff,
         onProgress: (solved, attempts) =>

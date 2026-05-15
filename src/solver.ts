@@ -20,7 +20,6 @@ export interface StepInfo {
 
 export interface SolveOptions {
   onStep?: (step: StepInfo) => void;
-  timing?: Map<string, number>;
 }
 
 function isValidBoard(board: Board): boolean {
@@ -133,17 +132,7 @@ export function solve(
 
     let applied: (typeof allRules)[number] | undefined;
     for (const entry of allRules) {
-      let fired: boolean;
-      if (options.timing) {
-        const t0 = performance.now();
-        fired = entry.rule(boardDef, cells, analysis);
-        options.timing.set(
-          entry.name,
-          (options.timing.get(entry.name) ?? 0) + (performance.now() - t0),
-        );
-      } else {
-        fired = entry.rule(boardDef, cells, analysis);
-      }
+      const fired = entry.rule(boardDef, cells, analysis);
       if (fired) {
         applied = entry;
         break;
