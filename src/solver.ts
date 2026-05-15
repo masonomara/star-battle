@@ -18,6 +18,7 @@ export interface StepInfo {
 
 export interface SolveOptions {
   onStep?: (step: StepInfo) => void;
+  tilingCache?: Map<string, TilingResult>;
 }
 
 function isValidBoard(board: Board): boolean {
@@ -102,7 +103,7 @@ export function solve(
 
   let cycles = 0;
   let maxLevel = 0;
-  const tilingCache = new Map<string, TilingResult>();
+  const tilingCache = options.tilingCache ?? new Map<string, TilingResult>();
   const structure = buildBoardStructure(boardDef);
   const analysis = buildBoardAnalysis(structure, cells, tilingCache);
   const snapshot = new Uint8Array(size * size);
