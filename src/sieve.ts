@@ -10,7 +10,7 @@ type SieveOptions = {
   maxAttempts?: number;
   minDifficulty?: number;
   maxDifficulty?: number;
-  onProgress?: (solved: number, attempts: number, stats: SieveStats) => void;
+  onProgress?: (stats: SieveStats) => void;
 };
 
 export function sieve(options: SieveOptions = {}): Puzzle[] {
@@ -19,10 +19,7 @@ export function sieve(options: SieveOptions = {}): Puzzle[] {
   const count = options.count ?? 1;
   const maxAttempts = options.maxAttempts ?? 100000000;
 
-  const stats: SieveStats = {
-    attempts: 0,
-    failures: { generator_stuck: 0, solver_failed: 0, invalid_tiling: 0 },
-  };
+  const stats: SieveStats = { attempts: 0, solved: 0, solverFailed: 0 };
 
   const puzzles: Puzzle[] = [];
 
@@ -40,10 +37,11 @@ export function sieve(options: SieveOptions = {}): Puzzle[] {
         puzzles.push(puzzle);
       }
     } else {
-      stats.failures.solver_failed++;
+      stats.solverFailed++;
     }
 
-    options.onProgress?.(puzzles.length, stats.attempts, stats);
+    stats.solved = puzzles.length;
+    options.onProgress?.(stats);
   }
 
   return puzzles;

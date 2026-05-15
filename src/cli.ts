@@ -337,8 +337,8 @@ async function main() {
         count,
         minDifficulty: minDiff,
         maxDifficulty: maxDiff,
-        onProgress: (solved, attempts) =>
-          process.stdout.write(`\rGenerated: ${attempts} | Solved: ${solved}`),
+        onProgress: (stats) =>
+          process.stdout.write(`\rGenerated: ${stats.attempts} | Solved: ${stats.solved}`),
       });
       console.log(` | ${((Date.now() - startTime) / 1000).toFixed(2)}s\n`);
 

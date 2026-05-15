@@ -77,15 +77,15 @@ Run `npm test` after each phase.
 - [x] **2-B** `src/solver.ts` — update the call site: `checkProgress(boardDef, cells, analysis)` → `getSolveStatus(cells, analysis)`
 - [x] **2-C** `src/sieve.ts` — delete the `assignDifficulty` function
 - [x] **2-C** `src/sieve.ts` — replace the `assignDifficulty(solution)` call with `{ ...solution, difficulty: computeDifficulty(solution) }`
-- [ ] **2-D** `src/helpers/types.ts` — delete the `FailureReason` type entirely
-- [ ] **2-D** `src/helpers/types.ts` — replace `SieveStats` with `{ attempts: number; solved: number; solverFailed: number }`
-- [ ] **2-D** `src/sieve.ts` — update `stats` initialization to `{ attempts: 0, solved: 0, solverFailed: 0 }`
-- [ ] **2-D** `src/sieve.ts` — replace `stats.failures.solver_failed++` with `stats.solverFailed++`
-- [ ] **2-D** `src/sieve.ts` — add `stats.solved = puzzles.length` before calling `onProgress`
-- [ ] **2-D** `src/sieve.ts` — update `onProgress` type and call: `(stats: SieveStats) => void`, call as `options.onProgress?.(stats)`
-- [ ] **2-D** `src/cli.ts` — update `benchmark()`'s `onProgress` callback to use `stats.attempts` and `stats.solved`
-- [ ] **2-D** `src/sieve.ts` — remove `GeneratorError` import if not already removed in Phase 0
-- [ ] Run `npm test`
+- [x] **2-D** `src/helpers/types.ts` — delete the `FailureReason` type entirely
+- [x] **2-D** `src/helpers/types.ts` — replace `SieveStats` with `{ attempts: number; solved: number; solverFailed: number }`
+- [x] **2-D** `src/sieve.ts` — update `stats` initialization to `{ attempts: 0, solved: 0, solverFailed: 0 }`
+- [x] **2-D** `src/sieve.ts` — replace `stats.failures.solver_failed++` with `stats.solverFailed++`
+- [x] **2-D** `src/sieve.ts` — add `stats.solved = puzzles.length` before calling `onProgress`
+- [x] **2-D** `src/sieve.ts` — update `onProgress` type and call: `(stats: SieveStats) => void`, call as `options.onProgress?.(stats)`
+- [x] **2-D** `src/cli.ts` — update `benchmark()`'s `onProgress` callback to use `stats.attempts` and `stats.solved`
+- [x] **2-D** `src/sieve.ts` — remove `GeneratorError` import if not already removed in Phase 0
+- [x] Run `npm test`
 
 ### Phase 3 — Correctness & Consistency Fixes
 
