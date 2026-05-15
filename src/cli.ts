@@ -7,16 +7,14 @@ import { computeDifficulty } from "./helpers/difficulty";
 
 // --- Formatting ---
 
-const LETTERS = REGION_LETTERS;
-
 function printBoard(grid: number[][]) {
   const size = grid.length;
   const colHeader =
-    "    " + Array.from({ length: size }, (_, i) => LETTERS[i]).join(" ");
+    "    " + Array.from({ length: size }, (_, i) => REGION_LETTERS[i]).join(" ");
   console.log(colHeader);
   for (let r = 0; r < size; r++) {
     const label = String(r + 1).padStart(2);
-    const row = grid[r].map((id) => LETTERS[id]).join(" ");
+    const row = grid[r].map((id) => REGION_LETTERS[id]).join(" ");
     console.log(`${label}  ${row}`);
   }
 }
@@ -28,7 +26,7 @@ function printCellStateWithDiff(
   const size = cells.length;
   const sym = { unknown: ".", marked: "X", star: "\u2605" };
   const colHeader =
-    "    " + Array.from({ length: size }, (_, i) => LETTERS[i]).join(" ");
+    "    " + Array.from({ length: size }, (_, i) => REGION_LETTERS[i]).join(" ");
   console.log(colHeader);
   for (let r = 0; r < size; r++) {
     const label = String(r + 1).padStart(2);
