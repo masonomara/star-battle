@@ -1,21 +1,5 @@
 import { Board, GeneratorError } from "./helpers/types";
 
-const PCG_MULT = 6364136223846793005n;
-const PCG_INC = 1442695040888963407n;
-
-function makePCG32(seed: number): () => number {
-  let state = BigInt.asUintN(64, BigInt(seed >>> 0) + PCG_INC);
-  state = BigInt.asUintN(64, state * PCG_MULT + PCG_INC);
-  return (): number => {
-    const old = state;
-    state = BigInt.asUintN(64, old * PCG_MULT + PCG_INC);
-    const xorshifted = BigInt.asUintN(32, (old ^ (old >> 18n)) >> 27n);
-    const rot = Number(old >> 59n);
-    const result = (Number(xorshifted) >>> rot) | (Number(xorshifted) << ((-rot) & 31));
-    return (result >>> 0) / 0x100000000;
-  };
-}
-
 const DIRECTIONS: [number, number][] = [
   [-1, 0],
   [1, 0],
@@ -193,50 +177,24 @@ function fillRemaining(grid: number[][], size: number, rng: () => number): void 
   }
 }
 
-function placeSeeds(grid: number[][], size: number, rng: () => number): void {
-  const minDist = Math.max(2, Math.floor(Math.sqrt(size)));
-  const seeds: [number, number][] = [];
-  const maxTries = size * size * 4;
-
-  for (let id = 0; id < size; id++) {
-    let placed = false;
-
-    for (let attempt = 0; attempt < maxTries && !placed; attempt++) {
-      const row = Math.floor(rng() * size);
-      const col = Math.floor(rng() * size);
-      if (grid[row][col] !== -1) continue;
-      const tooClose = seeds.some(([sr, sc]) => Math.hypot(row - sr, col - sc) < minDist);
-      if (!tooClose) {
-        grid[row][col] = id;
-        seeds.push([row, col]);
-        placed = true;
-      }
-    }
-
-    if (!placed) {
-      let bestRow = -1, bestCol = -1, bestDist = -1;
-      for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-          if (grid[r][c] !== -1) continue;
-          const d = seeds.length === 0 ? Infinity :
-            Math.min(...seeds.map(([sr, sc]) => Math.hypot(r - sr, c - sc)));
-          if (d > bestDist) { bestDist = d; bestRow = r; bestCol = c; }
-        }
-      }
-      grid[bestRow][bestCol] = id;
-      seeds.push([bestRow, bestCol]);
-    }
-  }
-}
-
 export function layoutWithSeed(size: number, stars: number, seed: number): Board {
-  const rng = makePCG32(seed);
+  let s = seed | 0;
+  const rng = () => {
+    s = (Math.imul(s, 1103515245) + 12345) | 0;
+    return (s >>> 0) / 0x100000000;
+  };
 
   const grid: number[][] = Array.from({ length: size }, () =>
     Array.from({ length: size }, () => -1),
   );
 
-  placeSeeds(grid, size, rng);
+  // Place N region seeds randomly
+  let placed = 0;
+  while (placed < size) {
+    const row = Math.floor(rng() * size);
+    const col = Math.floor(rng() * size);
+    if (grid[row][col] === -1) grid[row][col] = placed++;
+  }
 
   const minRegionSize = stars * 2 - 1;
   const regionSizes = new Array(size).fill(1);
