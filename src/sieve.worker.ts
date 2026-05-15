@@ -24,7 +24,7 @@ type OutboundMessage =
   | { type: "progress"; attempts: number; solverFailed: number }
   | { type: "done" };
 
-const PROGRESS_BATCH = 10000;
+const PROGRESS_BATCH = 100000;
 
 const config: WorkerConfig = workerData as WorkerConfig;
 let stopped = false;
