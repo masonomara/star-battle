@@ -27,13 +27,11 @@ import { tilingCountingMark } from "./07-tilingCounting/tilingCountingMark";
 import { tilingCountingForced } from "./07-tilingCounting/tilingCountingForced";
 
 // Level 8: Direct Hypotheticals
-import hypotheticalRowCount from "./08-directHypotheticals/hypotheticalRowCount";
-import hypotheticalColumnCount from "./08-directHypotheticals/hypotheticalColumnCount";
+import { hypotheticalCount } from "./08-directHypotheticals/hypotheticalCount";
 import hypotheticalRegionCount from "./08-directHypotheticals/hypotheticalRegionCount";
 
 // Level 9: Tiling Hypotheticals
-import hypotheticalRowCapacity from "./09-tilingHypotheticals/hypotheticalRowCapacity";
-import hypotheticalColumnCapacity from "./09-tilingHypotheticals/hypotheticalColumnCapacity";
+import { hypotheticalCapacity } from "./09-tilingHypotheticals/hypotheticalCapacity";
 import hypotheticalRegionCapacity from "./09-tilingHypotheticals/hypotheticalRegionCapacity";
 
 // Level 10: Counting Hypotheticals
@@ -100,13 +98,13 @@ export const allRules: RuleEntry[] = [
   { rule: tilingCountingMark("col", 2, 4), level: 7, name: "Group Tiling Counting Mark Columns" },
 
   // Level 8: Direct Hypotheticals
-  { rule: hypotheticalRowCount, level: 8, name: "Hypothetical Row Count" },
-  { rule: hypotheticalColumnCount, level: 8, name: "Hypothetical Column Count" },
+  { rule: hypotheticalCount("row"), level: 8, name: "Hypothetical Row Count" },
+  { rule: hypotheticalCount("col"), level: 8, name: "Hypothetical Column Count" },
   { rule: hypotheticalRegionCount, level: 8, name: "Hypothetical Region Count" },
 
   // Level 9: Tiling Hypotheticals
-  { rule: hypotheticalRowCapacity, level: 9, name: "Hypothetical Row Capacity" },
-  { rule: hypotheticalColumnCapacity, level: 9, name: "Hypothetical Column Capacity" },
+  { rule: hypotheticalCapacity("row"), level: 9, name: "Hypothetical Row Capacity" },
+  { rule: hypotheticalCapacity("col"), level: 9, name: "Hypothetical Column Capacity" },
   { rule: hypotheticalRegionCapacity, level: 9, name: "Hypothetical Region Capacity" },
 
   // Level 10: Counting Hypotheticals

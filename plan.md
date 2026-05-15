@@ -168,10 +168,10 @@ Run `npm test` after each phase.
 - [x] **6-F** Create `src/rules/07-tilingCounting/tilingCountingForced.ts` with `tilingCountingForced(axis)` factory
 - [x] **6-F** Delete all six existing tiling counting files
 - [x] **6-F** `src/rules/index.ts` — replace six imports with two factory imports; update entries (single-line entries use default `minGroup=1, maxGroup=1`; group entries use `minGroup=2, maxGroup=4`)
-- [ ] **6-G** Create `src/rules/08-directHypotheticals/hypotheticalCount.ts` with `hypotheticalCount(axis)` factory
-- [ ] **6-G** Create `src/rules/09-tilingHypotheticals/hypotheticalCapacity.ts` with `hypotheticalCapacity(axis)` factory
-- [ ] **6-G** Delete `hypotheticalRowCount.ts`, `hypotheticalColumnCount.ts`, `hypotheticalRowCapacity.ts`, `hypotheticalColumnCapacity.ts`
-- [ ] **6-G** `src/rules/index.ts` — replace four imports with two factory imports and update entries
+- [x] **6-G** Create `src/rules/08-directHypotheticals/hypotheticalCount.ts` with `hypotheticalCount(axis)` factory
+- [x] **6-G** Create `src/rules/09-tilingHypotheticals/hypotheticalCapacity.ts` with `hypotheticalCapacity(axis)` factory
+- [x] **6-G** Delete `hypotheticalRowCount.ts`, `hypotheticalColumnCount.ts`, `hypotheticalRowCapacity.ts`, `hypotheticalColumnCapacity.ts`
+- [x] **6-G** `src/rules/index.ts` — replace four imports with two factory imports and update entries
 - [ ] **6-H** Create `src/rules/10-countingHypotheticals/hypotheticalCounting.ts` with `hypotheticalCounting(axis)` factory
 - [ ] **6-H** Delete `hypotheticalCountingRow.ts` and `hypotheticalCountingColumn.ts`
 - [ ] **6-H** `src/rules/index.ts` — replace two imports with one factory import and update entries
