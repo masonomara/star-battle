@@ -91,15 +91,15 @@ Run `npm test` after each phase.
 
 - [x] **3-A** `src/rules/04-tilingEnumeration/tilingAdjacencyMarks.ts` — add `if (tiling.tilings.length === 0) continue` guard after the capacity check
 - [x] **3-B** `src/rules/03-trivialMarks/trivialRegion.ts` — replace `meta.starsPlaced === board.stars` with `meta.starsNeeded === 0`; update function signature to `(_board, cells, analysis)`
-- [ ] **3-C** `src/rules/01-starNeighbors/starNeighbors.ts` — replace `const size = board.grid.length` with `const { size } = analysis`
-- [ ] **3-C** `src/rules/04-tilingEnumeration/tilingAdjacencyMarks.ts` — same replacement
-- [ ] **3-C** `src/rules/04-tilingEnumeration/tilingOverhangMarks.ts` — same replacement
-- [ ] **3-C** `src/rules/06-tilingPairs/tilingPairAdjacencyRow.ts` — same replacement
-- [ ] **3-C** `src/rules/06-tilingPairs/tilingPairAdjacencyColumn.ts` — same replacement
-- [ ] **3-C** `src/rules/06-tilingPairs/tilingPairOverhangRow.ts` — same replacement
-- [ ] **3-C** `src/rules/06-tilingPairs/tilingPairOverhangColumn.ts` — same replacement
-- [ ] **3-C** `src/rules/06-tilingPairs/tilingPairForcedRow.ts` — same replacement
-- [ ] **3-C** `src/rules/06-tilingPairs/tilingPairForcedColumn.ts` — same replacement
+- [x] **3-C** `src/rules/01-starNeighbors/starNeighbors.ts` — replace `const size = board.grid.length` with `const size = cells.length` (no analysis param needed; board renamed `_board`)
+- [x] **3-C** `src/rules/04-tilingEnumeration/tilingAdjacencyMarks.ts` — replaced with `const { size } = analysis`
+- [x] **3-C** `src/rules/04-tilingEnumeration/tilingOverhangMarks.ts` — replaced with `const { size } = analysis`
+- [x] **3-C** `src/rules/06-tilingPairs/tilingPairAdjacencyRow.ts` — replaced with `const { size } = analysis`
+- [x] **3-C** `src/rules/06-tilingPairs/tilingPairAdjacencyColumn.ts` — replaced with `const { size } = analysis`
+- [x] **3-C** `src/rules/06-tilingPairs/tilingPairOverhangRow.ts` — replaced with `const { size } = analysis`
+- [x] **3-C** `src/rules/06-tilingPairs/tilingPairOverhangColumn.ts` — replaced with `const { size } = analysis`
+- [x] **3-C** `src/rules/06-tilingPairs/tilingPairForcedRow.ts` — replaced with `const { size } = analysis`
+- [x] **3-C** `src/rules/06-tilingPairs/tilingPairForcedColumn.ts` — replaced with `const { size } = analysis`
 - [ ] **3-D** `src/rules/08-directHypotheticals/hypotheticalRegionCount.ts` — change `extraStars = 1` to `extraStars++`
 - [ ] **3-D** `src/rules/09-tilingHypotheticals/hypotheticalRegionCapacity.ts` — change `extraStars = 1` to `extraStars++`
 - [ ] **3-E** `src/rules/10-countingHypotheticals/` — rename `hypotheticalUndercountingRow.ts` → `hypotheticalCountingRow.ts`

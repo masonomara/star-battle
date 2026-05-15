@@ -8,7 +8,7 @@ export default function tilingPairAdjacencyColumn(
   cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
-  const size = board.grid.length;
+  const { size } = analysis;
 
   return squeezePairLoop(cells, size, board.stars, analysis, "col", (pairCells, tiling) => {
     if (tiling.tilings.length === 0) return false;

@@ -7,7 +7,7 @@ export default function tilingPairForcedRow(
   cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
-  const size = board.grid.length;
+  const { size } = analysis;
 
   return squeezePairLoop(cells, size, board.stars, analysis, "row", (_pairCells, tiling) => {
     for (const [r, c] of tiling.forcedCells) {

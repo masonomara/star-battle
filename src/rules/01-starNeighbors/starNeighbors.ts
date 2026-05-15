@@ -1,12 +1,11 @@
 import { neighbors } from "../../helpers/neighbors";
 import { Board, CellState } from "../../helpers/types";
 
-
 export default function starNeighbors(
-  board: Board,
+  _board: Board,
   cells: CellState[][],
 ): boolean {
-  const size = board.grid.length;
+  const size = cells.length;
   let changed = false;
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
