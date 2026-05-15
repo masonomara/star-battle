@@ -156,9 +156,9 @@ Run `npm test` after each phase.
 - [x] **6-C** Create `src/rules/04-tilingEnumeration/tilingForcedLine.ts` with `tilingForcedLine(axis)` factory
 - [x] **6-C** Delete `tilingForcedRow.ts` and `tilingForcedColumn.ts`
 - [x] **6-C** `src/rules/index.ts` — replace the two individual imports with `{ tilingForcedLine }` and update entries
-- [ ] **6-D** Create `src/rules/05-countingEnumeration/countingMark.ts` with `countingMark(axis)` factory
-- [ ] **6-D** Delete `countingMarkRow.ts` and `countingMarkColumn.ts`
-- [ ] **6-D** `src/rules/index.ts` — replace the two individual imports with `{ countingMark }` and update entries
+- [x] **6-D** Create `src/rules/05-countingEnumeration/countingMark.ts` with `countingMark(axis)` factory
+- [x] **6-D** Delete `countingMarkRow.ts` and `countingMarkColumn.ts`
+- [x] **6-D** `src/rules/index.ts` — replace the two individual imports with `{ countingMark }` and update entries
 - [ ] **6-E** Create `src/rules/06-tilingPairs/tilingPairForced.ts` with `tilingPairForced(axis)` factory
 - [ ] **6-E** Create `src/rules/06-tilingPairs/tilingPairAdjacency.ts` with `tilingPairAdjacency(axis)` factory
 - [ ] **6-E** Create `src/rules/06-tilingPairs/tilingPairOverhang.ts` with `tilingPairOverhang(axis)` factory
