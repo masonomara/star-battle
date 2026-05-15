@@ -150,9 +150,9 @@ Run `npm test` after each phase.
 - [x] **6-A** Create `src/rules/02-forcedPlacements/forcedPlacement.ts` with `forcedPlacement(axis)` factory
 - [x] **6-A** Delete `forcedRow.ts` and `forcedColumn.ts`
 - [x] **6-A** `src/rules/index.ts` — replace the two individual imports with `{ forcedPlacement }` and update `allRules` entries to `forcedPlacement("row")` / `forcedPlacement("col")`
-- [ ] **6-B** Create `src/rules/03-trivialMarks/trivialMarks.ts` with `trivialMarks(axis)` factory
-- [ ] **6-B** Delete `trivialRow.ts` and `trivialColumn.ts`
-- [ ] **6-B** `src/rules/index.ts` — replace the two individual imports with `{ trivialMarks }` and update entries
+- [x] **6-B** Create `src/rules/03-trivialMarks/trivialMarks.ts` with `trivialMarks(axis)` factory
+- [x] **6-B** Delete `trivialRow.ts` and `trivialColumn.ts`
+- [x] **6-B** `src/rules/index.ts` — replace the two individual imports with `{ trivialMarks }` and update entries
 - [ ] **6-C** Create `src/rules/04-tilingEnumeration/tilingForcedLine.ts` with `tilingForcedLine(axis)` factory
 - [ ] **6-C** Delete `tilingForcedRow.ts` and `tilingForcedColumn.ts`
 - [ ] **6-C** `src/rules/index.ts` — replace the two individual imports with `{ tilingForcedLine }` and update entries

@@ -5,8 +5,7 @@ import { BoardAnalysis } from "../helpers/boardAnalysis";
 import starNeighbors from "./01-starNeighbors/starNeighbors";
 import { forcedPlacement } from "./02-forcedPlacements/forcedPlacement";
 import forcedRegion from "./02-forcedPlacements/forcedRegion";
-import trivialRow from "./03-trivialMarks/trivialRow";
-import trivialColumn from "./03-trivialMarks/trivialColumn";
+import { trivialMarks } from "./03-trivialMarks/trivialMarks";
 import trivialRegion from "./03-trivialMarks/trivialRegion";
 
 // Level 4: Tiling Enumerations
@@ -78,8 +77,8 @@ export const allRules: RuleEntry[] = [
   { rule: forcedPlacement("row"), level: 2, name: "Forced Rows" },
   { rule: forcedPlacement("col"), level: 2, name: "Forced Columns" },
   { rule: forcedRegion, level: 2, name: "Forced Regions" },
-  { rule: trivialRow, level: 3, name: "Trivial Rows" },
-  { rule: trivialColumn, level: 3, name: "Trivial Columns" },
+  { rule: trivialMarks("row"), level: 3, name: "Trivial Rows" },
+  { rule: trivialMarks("col"), level: 3, name: "Trivial Columns" },
   { rule: trivialRegion, level: 3, name: "Trivial Regions" },
 
   // Level 4: Tiling Enumerations
