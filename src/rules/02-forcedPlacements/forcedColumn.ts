@@ -1,6 +1,8 @@
 import { Board, CellState } from "../../helpers/types";
 import { BoardAnalysis } from "../../helpers/boardAnalysis";
 
+// Fires on one container at a time — star placement cascades adjacency marks that
+// may change what's forced elsewhere. Re-entering from rule 1 is correct; do NOT batch.
 export default function forcedColumn(
   board: Board,
   cells: CellState[][],

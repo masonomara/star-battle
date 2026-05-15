@@ -7,6 +7,8 @@ export default function propagatedColumnCount(
   cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
+  // "adjacency" violations are caught by propagatedRowCount — two adjacent stars
+  // always violate a row constraint before a column one.
   return hypotheticalLoop(board, cells, analysis, true, (_row, _col, state) =>
     state.violation === "col",
   );

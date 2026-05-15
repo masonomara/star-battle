@@ -100,16 +100,16 @@ Run `npm test` after each phase.
 - [x] **3-C** `src/rules/06-tilingPairs/tilingPairOverhangColumn.ts` — replaced with `const { size } = analysis`
 - [x] **3-C** `src/rules/06-tilingPairs/tilingPairForcedRow.ts` — replaced with `const { size } = analysis`
 - [x] **3-C** `src/rules/06-tilingPairs/tilingPairForcedColumn.ts` — replaced with `const { size } = analysis`
-- [ ] **3-D** `src/rules/08-directHypotheticals/hypotheticalRegionCount.ts` — change `extraStars = 1` to `extraStars++`
-- [ ] **3-D** `src/rules/09-tilingHypotheticals/hypotheticalRegionCapacity.ts` — change `extraStars = 1` to `extraStars++`
-- [ ] **3-E** `src/rules/10-countingHypotheticals/` — rename `hypotheticalUndercountingRow.ts` → `hypotheticalCountingRow.ts`
-- [ ] **3-E** `src/rules/10-countingHypotheticals/` — rename `hypotheticalUndercountingColumn.ts` → `hypotheticalCountingColumn.ts`
-- [ ] **3-E** `src/rules/index.ts` — update the two import paths to match the new filenames
-- [ ] **3-F** `src/rules/11-propagatedHypotheticals/propagatedColumnCount.ts` — add comment explaining why `"adjacency"` is not checked here (row checker handles it; two adjacent stars always violate a row constraint first)
-- [ ] **3-G** `src/rules/02-forcedPlacements/forcedRow.ts` — add one-at-a-time comment
-- [ ] **3-G** `src/rules/02-forcedPlacements/forcedColumn.ts` — add one-at-a-time comment
-- [ ] **3-G** `src/rules/02-forcedPlacements/forcedRegion.ts` — add one-at-a-time comment
-- [ ] **3-H** `src/cli.ts` — delete `const LETTERS = REGION_LETTERS` alias; find-replace all `LETTERS` → `REGION_LETTERS` in the file
+- [x] **3-D** `src/rules/08-directHypotheticals/hypotheticalRegionCount.ts` — change `extraStars = 1` to `extraStars++`
+- [x] **3-D** `src/rules/09-tilingHypotheticals/hypotheticalRegionCapacity.ts` — change `extraStars = 1` to `extraStars++`
+- [x] **3-E** `src/rules/10-countingHypotheticals/` — rename `hypotheticalUndercountingRow.ts` → `hypotheticalCountingRow.ts`
+- [x] **3-E** `src/rules/10-countingHypotheticals/` — rename `hypotheticalUndercountingColumn.ts` → `hypotheticalCountingColumn.ts`
+- [x] **3-E** `src/rules/index.ts` — update the two import paths to match the new filenames
+- [x] **3-F** `src/rules/11-propagatedHypotheticals/propagatedColumnCount.ts` — add comment explaining why `"adjacency"` is not checked here (row checker handles it; two adjacent stars always violate a row constraint first)
+- [x] **3-G** `src/rules/02-forcedPlacements/forcedRow.ts` — add one-at-a-time comment
+- [x] **3-G** `src/rules/02-forcedPlacements/forcedColumn.ts` — add one-at-a-time comment
+- [x] **3-G** `src/rules/02-forcedPlacements/forcedRegion.ts` — add one-at-a-time comment
+- [x] **3-H** `src/cli.ts` — delete `const LETTERS = REGION_LETTERS` alias; find-replace all `LETTERS` → `REGION_LETTERS` in the file
 - [ ] Run `npm test`
 
 ### Phase 4 — Performance Wins
