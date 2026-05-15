@@ -38,14 +38,11 @@ import hypotheticalRegionCapacity from "./09-tilingHypotheticals/hypotheticalReg
 import { hypotheticalCounting } from "./10-countingHypotheticals/hypotheticalCounting";
 
 // Level 11: Propagated Hypotheticals
-import propagatedRowCount from "./11-propagatedHypotheticals/propagatedRowCount";
-import propagatedColumnCount from "./11-propagatedHypotheticals/propagatedColumnCount";
+import { propagatedCount } from "./11-propagatedHypotheticals/propagatedCount";
 import propagatedRegionCount from "./11-propagatedHypotheticals/propagatedRegionCount";
-import propagatedRowCapacity from "./11-propagatedHypotheticals/propagatedRowCapacity";
-import propagatedColumnCapacity from "./11-propagatedHypotheticals/propagatedColumnCapacity";
+import { propagatedCapacity } from "./11-propagatedHypotheticals/propagatedCapacity";
 import propagatedRegionCapacity from "./11-propagatedHypotheticals/propagatedRegionCapacity";
-import propagatedCountingRow from "./11-propagatedHypotheticals/propagatedCountingRow";
-import propagatedCountingColumn from "./11-propagatedHypotheticals/propagatedCountingColumn";
+import { propagatedCounting } from "./11-propagatedHypotheticals/propagatedCounting";
 
 export type Rule = (
   board: Board,
@@ -111,14 +108,14 @@ export const allRules: RuleEntry[] = [
   { rule: hypotheticalCounting("col"), level: 10, name: "Hypothetical Counting Column" },
 
   // Level 11: Propagated Hypotheticals
-  { rule: propagatedRowCount, level: 11, name: "Propagated Hypothetical Row Count" },
-  { rule: propagatedColumnCount, level: 11, name: "Propagated Hypothetical Column Count" },
+  { rule: propagatedCount("row"), level: 11, name: "Propagated Hypothetical Row Count" },
+  { rule: propagatedCount("col"), level: 11, name: "Propagated Hypothetical Column Count" },
   { rule: propagatedRegionCount, level: 11, name: "Propagated Hypothetical Region Count" },
-  { rule: propagatedRowCapacity, level: 11, name: "Propagated Hypothetical Row Capacity" },
-  { rule: propagatedColumnCapacity, level: 11, name: "Propagated Hypothetical Column Capacity" },
+  { rule: propagatedCapacity("row"), level: 11, name: "Propagated Hypothetical Row Capacity" },
+  { rule: propagatedCapacity("col"), level: 11, name: "Propagated Hypothetical Column Capacity" },
   { rule: propagatedRegionCapacity, level: 11, name: "Propagated Hypothetical Region Capacity" },
-  { rule: propagatedCountingRow, level: 11, name: "Propagated Hypothetical Counting Row" },
-  { rule: propagatedCountingColumn, level: 11, name: "Propagated Hypothetical Counting Column" },
+  { rule: propagatedCounting("row"), level: 11, name: "Propagated Hypothetical Counting Row" },
+  { rule: propagatedCounting("col"), level: 11, name: "Propagated Hypothetical Counting Column" },
 ];
 
 /** Rule metadata for external use (e.g., CLI reporting) */
