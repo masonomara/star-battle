@@ -147,9 +147,9 @@ Run `npm test` after each phase.
 ### Phase 6 — Rule Collapse
 
 - [x] Record baseline rule usage counts: run `sieve --file puzzles.sbn` and save output
-- [ ] **6-A** Create `src/rules/02-forcedPlacements/forcedPlacement.ts` with `forcedPlacement(axis)` factory
-- [ ] **6-A** Delete `forcedRow.ts` and `forcedColumn.ts`
-- [ ] **6-A** `src/rules/index.ts` — replace the two individual imports with `{ forcedPlacement }` and update `allRules` entries to `forcedPlacement("row")` / `forcedPlacement("col")`
+- [x] **6-A** Create `src/rules/02-forcedPlacements/forcedPlacement.ts` with `forcedPlacement(axis)` factory
+- [x] **6-A** Delete `forcedRow.ts` and `forcedColumn.ts`
+- [x] **6-A** `src/rules/index.ts` — replace the two individual imports with `{ forcedPlacement }` and update `allRules` entries to `forcedPlacement("row")` / `forcedPlacement("col")`
 - [ ] **6-B** Create `src/rules/03-trivialMarks/trivialMarks.ts` with `trivialMarks(axis)` factory
 - [ ] **6-B** Delete `trivialRow.ts` and `trivialColumn.ts`
 - [ ] **6-B** `src/rules/index.ts` — replace the two individual imports with `{ trivialMarks }` and update entries

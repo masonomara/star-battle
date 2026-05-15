@@ -3,8 +3,7 @@ import { BoardAnalysis } from "../helpers/boardAnalysis";
 
 // Levels 1-3: Direct Inferences
 import starNeighbors from "./01-starNeighbors/starNeighbors";
-import forcedRow from "./02-forcedPlacements/forcedRow";
-import forcedColumn from "./02-forcedPlacements/forcedColumn";
+import { forcedPlacement } from "./02-forcedPlacements/forcedPlacement";
 import forcedRegion from "./02-forcedPlacements/forcedRegion";
 import trivialRow from "./03-trivialMarks/trivialRow";
 import trivialColumn from "./03-trivialMarks/trivialColumn";
@@ -76,8 +75,8 @@ export type RuleEntry = {
 export const allRules: RuleEntry[] = [
   // Levels 1-3: Direct Inferences
   { rule: starNeighbors, level: 1, name: "Star Neighbors" },
-  { rule: forcedRow, level: 2, name: "Forced Rows" },
-  { rule: forcedColumn, level: 2, name: "Forced Columns" },
+  { rule: forcedPlacement("row"), level: 2, name: "Forced Rows" },
+  { rule: forcedPlacement("col"), level: 2, name: "Forced Columns" },
   { rule: forcedRegion, level: 2, name: "Forced Regions" },
   { rule: trivialRow, level: 3, name: "Trivial Rows" },
   { rule: trivialColumn, level: 3, name: "Trivial Columns" },
