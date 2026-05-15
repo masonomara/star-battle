@@ -1,9 +1,11 @@
 import { Board, CellState } from "../../helpers/types";
 import { describe, it, expect } from "vitest";
 import { buildBoardStructure, buildBoardAnalysis } from "../../helpers/boardAnalysis";
-import tilingForcedRow from "./tilingForcedRow";
-import tilingForcedColumn from "./tilingForcedColumn";
+import { tilingForcedLine } from "./tilingForcedLine";
 import tilingForcedRegion from "./tilingForcedRegion";
+
+const tilingForcedRow = tilingForcedLine("row");
+const tilingForcedColumn = tilingForcedLine("col");
 
 function buildAnalysis(board: Board, cells: CellState[][]) {
   return buildBoardAnalysis(buildBoardStructure(board), cells);

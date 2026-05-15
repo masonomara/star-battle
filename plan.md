@@ -153,9 +153,9 @@ Run `npm test` after each phase.
 - [x] **6-B** Create `src/rules/03-trivialMarks/trivialMarks.ts` with `trivialMarks(axis)` factory
 - [x] **6-B** Delete `trivialRow.ts` and `trivialColumn.ts`
 - [x] **6-B** `src/rules/index.ts` — replace the two individual imports with `{ trivialMarks }` and update entries
-- [ ] **6-C** Create `src/rules/04-tilingEnumeration/tilingForcedLine.ts` with `tilingForcedLine(axis)` factory
-- [ ] **6-C** Delete `tilingForcedRow.ts` and `tilingForcedColumn.ts`
-- [ ] **6-C** `src/rules/index.ts` — replace the two individual imports with `{ tilingForcedLine }` and update entries
+- [x] **6-C** Create `src/rules/04-tilingEnumeration/tilingForcedLine.ts` with `tilingForcedLine(axis)` factory
+- [x] **6-C** Delete `tilingForcedRow.ts` and `tilingForcedColumn.ts`
+- [x] **6-C** `src/rules/index.ts` — replace the two individual imports with `{ tilingForcedLine }` and update entries
 - [ ] **6-D** Create `src/rules/05-countingEnumeration/countingMark.ts` with `countingMark(axis)` factory
 - [ ] **6-D** Delete `countingMarkRow.ts` and `countingMarkColumn.ts`
 - [ ] **6-D** `src/rules/index.ts` — replace the two individual imports with `{ countingMark }` and update entries

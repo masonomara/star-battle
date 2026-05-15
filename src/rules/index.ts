@@ -9,8 +9,7 @@ import { trivialMarks } from "./03-trivialMarks/trivialMarks";
 import trivialRegion from "./03-trivialMarks/trivialRegion";
 
 // Level 4: Tiling Enumerations
-import tilingForcedRow from "./04-tilingEnumeration/tilingForcedRow";
-import tilingForcedColumn from "./04-tilingEnumeration/tilingForcedColumn";
+import { tilingForcedLine } from "./04-tilingEnumeration/tilingForcedLine";
 import tilingForcedRegion from "./04-tilingEnumeration/tilingForcedRegion";
 import tilingAdjacencyMarks from "./04-tilingEnumeration/tilingAdjacencyMarks";
 import tilingOverhangMarks from "./04-tilingEnumeration/tilingOverhangMarks";
@@ -82,8 +81,8 @@ export const allRules: RuleEntry[] = [
   { rule: trivialRegion, level: 3, name: "Trivial Regions" },
 
   // Level 4: Tiling Enumerations
-  { rule: tilingForcedRow, level: 4, name: "Tiling Forced Rows" },
-  { rule: tilingForcedColumn, level: 4, name: "Tiling Forced Columns" },
+  { rule: tilingForcedLine("row"), level: 4, name: "Tiling Forced Rows" },
+  { rule: tilingForcedLine("col"), level: 4, name: "Tiling Forced Columns" },
   { rule: tilingForcedRegion, level: 4, name: "Tiling Forced Regions" },
   { rule: tilingAdjacencyMarks, level: 4, name: "Tiling Adjacency Marks" },
   { rule: tilingOverhangMarks, level: 4, name: "Tiling Overhang Marks" },
