@@ -89,7 +89,7 @@ Run `npm test` after each phase.
 
 ### Phase 3 — Correctness & Consistency Fixes
 
-- [ ] **3-A** `src/rules/04-tilingEnumeration/tilingAdjacencyMarks.ts` — add `if (tiling.tilings.length === 0) continue` guard after the capacity check
+- [x] **3-A** `src/rules/04-tilingEnumeration/tilingAdjacencyMarks.ts` — add `if (tiling.tilings.length === 0) continue` guard after the capacity check
 - [ ] **3-B** `src/rules/03-trivialMarks/trivialRegion.ts` — replace `meta.starsPlaced === board.stars` with `meta.starsNeeded === 0`; update function signature to `(_board, cells, analysis)`
 - [ ] **3-C** `src/rules/01-starNeighbors/starNeighbors.ts` — replace `const size = board.grid.length` with `const { size } = analysis`
 - [ ] **3-C** `src/rules/04-tilingEnumeration/tilingAdjacencyMarks.ts` — same replacement

@@ -15,6 +15,7 @@ export default function tilingAdjacencyMarks(
 
     const tiling = analysis.getTiling(meta.unknownCoords);
     if (tiling.capacity !== meta.starsNeeded) continue;
+    if (tiling.tilings.length === 0) continue;
 
     const insideSet = new Set<number>();
     for (const [r, c] of meta.unknownCoords) {
