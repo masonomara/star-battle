@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { sieve } from "./sieve";
+import { sieve, sieveParallel } from "./sieve";
 import { solve, StepInfo, RULE_METADATA } from "./solver";
 import { decodePuzzleString, encodePuzzleString, REGION_LETTERS } from "./helpers/notation";
 import { Board, CellState } from "./helpers/types";
@@ -284,7 +284,7 @@ async function main() {
     console.log(`Usage:
   echo "<grid>" | sieve --stars n [--trace]
   sieve --file puzzles.sbn [--verbose] [--unsolved] [--trace]
-  sieve [--size n] [--stars n] [--count n] [--seed n] [--trace]
+  sieve [--size n] [--stars n] [--count n] [--workers n] [--seed n] [--trace]
   sieve [--minDiff n] [--maxDiff n]`);
   } else if (hasStdin && !args.file) {
     const input = await readStdin();
@@ -302,6 +302,7 @@ async function main() {
     const size = args.size ? parseInt(args.size, 10) : 10;
     const stars = args.stars ? parseInt(args.stars, 10) : 2;
     const count = args.count ? parseInt(args.count, 10) : 1;
+    const workers = args.workers ? parseInt(args.workers, 10) : undefined;
     const seed = args.seed ? parseInt(args.seed, 10) : undefined;
     const minDiff = args.minDiff ? parseInt(args.minDiff, 10) : undefined;
     const maxDiff = args.maxDiff ? parseInt(args.maxDiff, 10) : undefined;
@@ -315,16 +316,15 @@ async function main() {
         `${size}\u00D7${size}, ${stars} stars${seed !== undefined ? `, seed ${seed}` : ""}${diffRange}\n`,
       );
 
+      const onProgress = (stats: { attempts: number; solved: number }): void => {
+        process.stdout.write(`\rGenerated: ${stats.attempts} | Solved: ${stats.solved}`);
+      };
+
       const startTime = Date.now();
-      const puzzles = sieve({
-        size,
-        stars,
-        count,
-        minDifficulty: minDiff,
-        maxDifficulty: maxDiff,
-        onProgress: (stats) =>
-          process.stdout.write(`\rGenerated: ${stats.attempts} | Solved: ${stats.solved}`),
-      });
+      const puzzles =
+        count > 1 || workers !== undefined
+          ? await sieveParallel({ size, stars, count, minDifficulty: minDiff, maxDifficulty: maxDiff, workers, onProgress })
+          : sieve({ size, stars, count, minDifficulty: minDiff, maxDifficulty: maxDiff, onProgress });
       console.log(` | ${((Date.now() - startTime) / 1000).toFixed(2)}s\n`);
 
       if (puzzles.length === 0) {

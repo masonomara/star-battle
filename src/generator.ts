@@ -155,7 +155,7 @@ function fillRemaining(
   }
 }
 
-function layoutWithSeed(size: number, stars: number, seed: number): Board {
+export function layoutWithSeed(size: number, stars: number, seed: number): Board {
   let s = seed | 0;
   const rng = () => {
     s = (Math.imul(s, 1103515245) + 12345) | 0;
