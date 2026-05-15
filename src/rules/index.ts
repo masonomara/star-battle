@@ -48,8 +48,8 @@ import hypotheticalColumnCapacity from "./09-tilingHypotheticals/hypotheticalCol
 import hypotheticalRegionCapacity from "./09-tilingHypotheticals/hypotheticalRegionCapacity";
 
 // Level 10: Counting Hypotheticals
-import hypotheticalCountingRow from "./10-countingHypotheticals/hypotheticalUndercountingRow";
-import hypotheticalCountingColumn from "./10-countingHypotheticals/hypotheticalUndercountingColumn";
+import hypotheticalCountingRow from "./10-countingHypotheticals/hypotheticalCountingRow";
+import hypotheticalCountingColumn from "./10-countingHypotheticals/hypotheticalCountingColumn";
 
 // Level 11: Propagated Hypotheticals
 import propagatedRowCount from "./11-propagatedHypotheticals/propagatedRowCount";
