@@ -3,10 +3,6 @@ import { solve } from "./solver";
 import { Puzzle, SieveStats, Solution } from "./helpers/types";
 import { computeDifficulty } from "./helpers/difficulty";
 
-function assignDifficulty(solution: Solution): Puzzle {
-  return { ...solution, difficulty: computeDifficulty(solution) };
-}
-
 type SieveOptions = {
   size?: number;
   stars?: number;
@@ -37,7 +33,7 @@ export function sieve(options: SieveOptions = {}): Puzzle[] {
 
     if (result) {
       const solution: Solution = { ...result, board, seed };
-      const puzzle = assignDifficulty(solution);
+      const puzzle: Puzzle = { ...solution, difficulty: computeDifficulty(solution) };
       const minDiff = options.minDifficulty ?? 0;
       const maxDiff = options.maxDifficulty ?? Infinity;
       if (puzzle.difficulty >= minDiff && puzzle.difficulty <= maxDiff) {
