@@ -2008,8 +2008,8 @@ These smells from `research.md` are real but are either minor, risky to change w
 
 | Smell | Description                                                         | Why deferred                                                                                                                               |
 | ----- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| §7.3  | `tilingCountingLoop` is O(2^N) for group enumeration                | Fixing requires replacing bitmask iteration with combinatorial enumeration — a standalone algorithm change, not a cleanup                  |
-| §7.5  | `buildBoardAnalysis` rebuilds all maps from scratch every cycle     | True architectural inefficiency; requires incremental state tracking which is a larger rewrite                                             |
+| §7.3  | `tilingCountingLoop` is O(2^N) for group enumeration                | **Fixed** — replaced bitmask enumeration with combinatorial enumeration; O(C(N,k)) per group size                                          |
+| §7.5  | `buildBoardAnalysis` rebuilds all maps from scratch every cycle     | **Fixed** — `applyDelta` updates analysis in-place; `diffCells` detects changes via Uint8Array snapshot; zero heap allocs per cycle        |
 | §7.9  | Some rule functions don't use all `(board, cells, analysis)` params | After Phase 6, region rules still legitimately use `board`. The axis factories use all params. Residual mismatch in region files is minor. |
 | §7.11 | `fillRemaining` in generator has O(N⁴) worst case                   | The `maxIterations` guard is adequate; the case is rare in practice. Not worth the risk of changing generator behavior.                    |
 | §7.12 | Seed arithmetic in `generate()` is confusing                        | Harmless for correctness; a cosmetic issue with no user-visible impact                                                                     |

@@ -1,4 +1,4 @@
-Processed: 100/1000Processed: 200/1000Processed: 300/1000Processed: 400/1000Processed: 500/1000Processed: 600/1000Processed: 700/1000Processed: 800/1000Processed: 900/1000Processed: 1000/1000Processed 1000 puzzles in 7.29s
+Processed: 100/1000Processed: 200/1000Processed: 300/1000Processed: 400/1000Processed: 500/1000Processed: 600/1000Processed: 700/1000Processed: 800/1000Processed: 900/1000Processed: 1000/1000Processed 1000 puzzles in 13.11s
 
 Rule Usage:
   Star Neighbors                           L1   13820  100%    0.00s

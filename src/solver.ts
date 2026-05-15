@@ -1,4 +1,4 @@
-import { Board, CellState, Progress, SolverResult, TilingResult } from "./helpers/types";
+import { Board, CellState, Coord, Progress, SolverResult, TilingResult } from "./helpers/types";
 import {
   buildBoardStructure,
   buildBoardAnalysis,
@@ -9,7 +9,6 @@ import { allRules } from "./rules";
 
 export { RULE_METADATA } from "./rules";
 
-/** Step info passed to trace callback */
 export interface StepInfo {
   cycle: number;
   rule: string;
@@ -75,10 +74,21 @@ function getSolveStatus(cells: CellState[][], analysis: BoardAnalysis): Progress
   return solved ? "solved" : "valid";
 }
 
-/**
- * Attempt to solve a Star Battle puzzle using inference rules.
- * Flows rules through the board until it settles into a final state.
- */
+function diffCells(cells: CellState[][], snapshot: Uint8Array, size: number): Coord[] {
+  const changed: Coord[] = [];
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const cur = cells[r][c] === "star" ? 1 : cells[r][c] === "marked" ? 2 : 0;
+      const idx = r * size + c;
+      if (cur !== snapshot[idx]) {
+        snapshot[idx] = cur;
+        changed.push([r, c]);
+      }
+    }
+  }
+  return changed;
+}
+
 export function solve(
   boardDef: Board,
   options: SolveOptions = {},
@@ -94,20 +104,19 @@ export function solve(
   let maxLevel = 0;
   const tilingCache = new Map<string, TilingResult>();
   const structure = buildBoardStructure(boardDef);
+  const analysis = buildBoardAnalysis(structure, cells, tilingCache);
+  const snapshot = new Uint8Array(size * size);
 
   while (true) {
     cycles++;
 
-    const analysis = buildBoardAnalysis(structure, cells, tilingCache);
     const status = getSolveStatus(cells, analysis);
-
     if (status === "solved") return { cells, cycles, maxLevel };
     if (status === "invalid") return null;
 
     let applied: (typeof allRules)[number] | undefined;
     for (const entry of allRules) {
-      const fired = entry.rule(boardDef, cells, analysis);
-      if (fired) {
+      if (entry.rule(boardDef, cells, analysis)) {
         applied = entry;
         break;
       }
@@ -116,6 +125,7 @@ export function solve(
     if (!applied) return null;
 
     maxLevel = Math.max(maxLevel, applied.level);
+    analysis.applyDelta(cells, diffCells(cells, snapshot, size));
 
     if (options.onStep) {
       options.onStep({

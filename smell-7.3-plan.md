@@ -357,5 +357,5 @@ One file changes: `src/helpers/tilingCounting.ts`. All edits are inside `tilingC
 
 ### Phase F — Cleanup
 
-- [ ] **F-1** In `plan.md`, move §7.3 from the "Deferred Smells" table into the completed phases list with a note: "replaced O(2^N) bitmask enumeration with O(Σ C(N,k)) combinatorial enumeration in `tilingCountingLoop`."
-- [ ] **F-2** Delete `smell-7.3-plan.md` (this file) once the implementation is verified and merged.
+- [x] **F-1** In `plan.md`, move §7.3 from the "Deferred Smells" table into the completed phases list with a note: "replaced O(2^N) bitmask enumeration with O(Σ C(N,k)) combinatorial enumeration in `tilingCountingLoop`."
+- [x] **F-2** Delete `smell-7.3-plan.md` (this file) once the implementation is verified and merged.
