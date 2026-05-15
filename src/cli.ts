@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { sieve } from "./sieve";
 import { solve, StepInfo, RULE_METADATA } from "./solver";
-import { decodePuzzleString, REGION_LETTERS } from "./helpers/notation";
+import { decodePuzzleString, encodePuzzleString, REGION_LETTERS } from "./helpers/notation";
 import { Board, CellState } from "./helpers/types";
 import { computeDifficulty } from "./helpers/difficulty";
 
@@ -331,11 +331,7 @@ async function main() {
         console.log("No solvable puzzles found");
       } else {
         for (const p of puzzles) {
-          console.log(
-            `Seed: ${p.seed}\nDifficulty: ${p.difficulty} (cycles: ${p.cycles}, maxLevel: ${p.maxLevel})`,
-          );
-          printBoard(p.board.grid);
-          console.log("");
+          console.log(encodePuzzleString(p));
         }
       }
     }

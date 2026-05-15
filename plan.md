@@ -141,8 +141,8 @@ Run `npm test` after each phase.
 - [x] **5-B** `src/generator.ts` — extend `validateInputs` to also check `stars > Math.floor(size / 2)` and add clear error messages for out-of-range `size` and `stars`
 - [x] **5-B** `src/sieve.ts` — add `count` validation at function entry (integer, 1–300)
 - [x] **5-B** `src/cli.ts` — remove duplicate size/stars/count validation; let the library throw
-- [ ] **5-C** `src/cli.ts` — update generate mode to `console.log(encodePuzzleString(p))` for each puzzle; add `encodePuzzleString` import from `notation`
-- [ ] Run `npm test`; verify `sieve --file puzzles.sbn` produces identical results before and after
+- [x] **5-C** `src/cli.ts` — update generate mode to `console.log(encodePuzzleString(p))` for each puzzle; add `encodePuzzleString` import from `notation`
+- [x] Run `npm test`; verify `sieve --file puzzles.sbn` produces identical results before and after
 
 ### Phase 6 — Rule Collapse
 
