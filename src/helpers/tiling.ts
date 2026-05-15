@@ -97,17 +97,19 @@ export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
   const minimalSolutions = solutions.filter((s) => s.length === capacity);
   const tilings = minimalSolutions.map((sol) => sol.map((i) => tiles[i]));
 
-  const forcedCells: Coord[] = [];
-  for (const cell of cells) {
-    const key = cell[0] * gridSize + cell[1];
-    const forcedInAll = tilings.every((tiling) => {
-      const tile = tiling.find((t) =>
-        t.coveredCells.some((c) => c[0] * gridSize + c[1] === key),
-      );
-      return tile && tile.coveredCells.length === 1;
-    });
-    if (forcedInAll) forcedCells.push(cell);
-  }
+  const soloMaps = tilings.map((tiling) => {
+    const solo = new Set<number>();
+    for (const tile of tiling) {
+      if (tile.coveredCells.length === 1) {
+        const [r, c] = tile.coveredCells[0];
+        solo.add(r * gridSize + c);
+      }
+    }
+    return solo;
+  });
+  const forcedCells: Coord[] = cells.filter(([r, c]) =>
+    soloMaps.every((solo) => solo.has(r * gridSize + c)),
+  );
 
   return { capacity, tilings, forcedCells };
 }
