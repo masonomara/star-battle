@@ -6,7 +6,7 @@
 
 import { Board, CellState, Coord } from "./types";
 import { BoardAnalysis } from "./boardAnalysis";
-import { buildMarkedCellSet, cellKey, cellsAreAdjacent } from "./neighbors";
+import { buildMarkedCellSet, cellKey, cellsAreAdjacent, neighbors } from "./neighbors";
 import { hasCountingViolation, CountingFlowInput } from "./counting";
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -46,9 +46,18 @@ function propagateHypothetical(
     if (forced.length === 0) break;
 
     for (const [fr, fc] of forced) {
-      starKeys.add(cellKey(fr, fc, size));
-      for (const key of buildMarkedCellSet(fr, fc, size)) {
-        marked.add(key);
+      const newKey = cellKey(fr, fc, size);
+      for (const existingKey of starKeys) {
+        const er = Math.floor(existingKey / size);
+        const ec = existingKey % size;
+        if (cellsAreAdjacent([fr, fc], [er, ec])) {
+          return { violation: "adjacency", starKeys, marked };
+        }
+      }
+      starKeys.add(newKey);
+      marked.add(newKey);
+      for (const [nr, nc] of neighbors(fr, fc, size)) {
+        marked.add(cellKey(nr, nc, size));
       }
     }
   }
@@ -72,19 +81,6 @@ function scanBoard(
   size: number,
   analysis: BoardAnalysis,
 ): { violation: ViolationType; forced: Coord[] } {
-  // Adjacency check
-  const starCoords: [number, number][] = [];
-  for (const key of starKeys) {
-    starCoords.push([Math.floor(key / size), key % size]);
-  }
-  for (let i = 0; i < starCoords.length; i++) {
-    for (let j = i + 1; j < starCoords.length; j++) {
-      if (cellsAreAdjacent(starCoords[i], starCoords[j])) {
-        return { violation: "adjacency", forced: [] };
-      }
-    }
-  }
-
   const forced: Coord[] = [];
   const seen = new Set(starKeys);
 
