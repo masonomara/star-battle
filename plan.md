@@ -110,7 +110,7 @@ Run `npm test` after each phase.
 - [x] **3-G** `src/rules/02-forcedPlacements/forcedColumn.ts` — add one-at-a-time comment
 - [x] **3-G** `src/rules/02-forcedPlacements/forcedRegion.ts` — add one-at-a-time comment
 - [x] **3-H** `src/cli.ts` — delete `const LETTERS = REGION_LETTERS` alias; find-replace all `LETTERS` → `REGION_LETTERS` in the file
-- [ ] Run `npm test`
+- [x] Run `npm test`
 
 ### Phase 4 — Performance Wins
 
@@ -118,20 +118,20 @@ Run `npm test` after each phase.
 - [x] **4-A** `src/helpers/dlx.ts` — at the start of `search`, return early if `solution.length >= minLen.value`
 - [x] **4-A** `src/helpers/dlx.ts` — when a solution is found: if shorter than `minLen.value`, clear `solutions`, update `minLen.value`, then push
 - [x] **4-A** `src/helpers/dlx.ts` — in `dlxSolve`, initialize `const minLen = { value: Infinity }` and pass it to `search`
-- [ ] **4-B** `src/helpers/dlx.ts` — add `isPrimary: boolean` to `ColumnHeader` interface
-- [ ] **4-B** `src/helpers/dlx.ts` — in `buildMatrix`, set `isPrimary = true` for columns 0..numPrimary-1 and `isPrimary = false` for numPrimary..end
-- [ ] **4-B** `src/helpers/dlx.ts` — in `cover`, gate `node.column.size--` behind `if (node.column.isPrimary)`
-- [ ] **4-B** `src/helpers/dlx.ts` — in `uncover`, gate `node.column.size++` behind `if (node.column.isPrimary)`
-- [ ] **4-C** `src/helpers/tiling.ts` — replace the `forcedCells` O(cells × tilings × tiles × coveredCells) block with the two-pass `soloMaps` approach
-- [ ] **4-D** `src/helpers/tilingCounting.ts` — declare `entryMetas: RegionMeta[]` and `entryContribs: number[]` before the outer mask loop
-- [ ] **4-D** `src/helpers/tilingCounting.ts` — inside the mask loop, reset `entryMetas.length = 0` and `entryContribs.length = 0` at the top of each iteration
-- [ ] **4-D** `src/helpers/tilingCounting.ts` — replace `entries.push({ meta, minContrib })` with `entryMetas.push(meta); entryContribs.push(minContrib)`
-- [ ] **4-D** `src/helpers/tilingCounting.ts` — replace `for (const { meta, minContrib } of entries)` with an indexed loop over `entryMetas`/`entryContribs`
-- [ ] **4-E** `src/helpers/hypotheticals.ts` — in `propagateHypothetical`, move the adjacency check into the forced-star loop: for each new forced star, check it against all existing `starKeys` before adding
-- [ ] **4-E** `src/helpers/hypotheticals.ts` — inline neighbor marking directly (no intermediate Set): after adding the new star key, iterate `neighbors(fr, fc, size)` and add each to `marked`
-- [ ] **4-E** `src/helpers/hypotheticals.ts` — remove the pairwise adjacency loop from `scanBoard` (it is now done incrementally)
-- [ ] **4-E** `src/helpers/hypotheticals.ts` — remove `buildMarkedCellSet` call/import if it becomes unused
-- [ ] Run `npm test`
+- [x] **4-B** `src/helpers/dlx.ts` — add `isPrimary: boolean` to `ColumnHeader` interface
+- [x] **4-B** `src/helpers/dlx.ts` — in `buildMatrix`, set `isPrimary = true` for columns 0..numPrimary-1 and `isPrimary = false` for numPrimary..end
+- [x] **4-B** `src/helpers/dlx.ts` — in `cover`, gate `node.column.size--` behind `if (node.column.isPrimary)`
+- [x] **4-B** `src/helpers/dlx.ts` — in `uncover`, gate `node.column.size++` behind `if (node.column.isPrimary)`
+- [x] **4-C** `src/helpers/tiling.ts` — replace the `forcedCells` O(cells × tilings × tiles × coveredCells) block with the two-pass `soloMaps` approach
+- [x] **4-D** `src/helpers/tilingCounting.ts` — declare `entryMetas: RegionMeta[]` and `entryContribs: number[]` before the outer mask loop
+- [x] **4-D** `src/helpers/tilingCounting.ts` — inside the mask loop, reset `entryMetas.length = 0` and `entryContribs.length = 0` at the top of each iteration
+- [x] **4-D** `src/helpers/tilingCounting.ts` — replace `entries.push({ meta, minContrib })` with `entryMetas.push(meta); entryContribs.push(minContrib)`
+- [x] **4-D** `src/helpers/tilingCounting.ts` — replace `for (const { meta, minContrib } of entries)` with an indexed loop over `entryMetas`/`entryContribs`
+- [x] **4-E** `src/helpers/hypotheticals.ts` — in `propagateHypothetical`, move the adjacency check into the forced-star loop: for each new forced star, check it against all existing `starKeys` before adding
+- [x] **4-E** `src/helpers/hypotheticals.ts` — inline neighbor marking directly (no intermediate Set): after adding the new star key, iterate `neighbors(fr, fc, size)` and add each to `marked`
+- [x] **4-E** `src/helpers/hypotheticals.ts` — remove the pairwise adjacency loop from `scanBoard` (it is now done incrementally)
+- [x] **4-E** `src/helpers/hypotheticals.ts` — remove `buildMarkedCellSet` call/import if it becomes unused
+- [x] Run `npm test`
 
 ### Phase 5 — API Completion
 
