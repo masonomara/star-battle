@@ -67,8 +67,8 @@ Run `npm test` after each phase.
 
 ### Phase 2 — Core Structural Fixes
 
-- [ ] **2-A** `src/solver.ts` — replace `isValidBoard` body: remove the row/col/region DLX checks, replace `regionCells` map with `regionSizes` map (only track sizes, not coordinates)
-- [ ] **2-A** `src/solver.ts` — remove `computeTiling` import (no longer used in this file)
+- [x] **2-A** `src/solver.ts` — replace `isValidBoard` body: remove the row/col/region DLX checks, replace `regionCells` map with `regionSizes` map (only track sizes, not coordinates)
+- [x] **2-A** `src/solver.ts` — remove `computeTiling` import (no longer used in this file)
 - [ ] **2-B** `src/helpers/boardAnalysis.ts` — add `stars: number` to the `BoardState` type
 - [ ] **2-B** `src/helpers/boardAnalysis.ts` — add `stars` to the `buildBoardState` return object (it's already available as a param)
 - [ ] **2-B** `src/solver.ts` — rename `checkProgress` → `getSolveStatus`

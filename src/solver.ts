@@ -4,7 +4,6 @@ import {
   buildBoardAnalysis,
   BoardAnalysis,
 } from "./helpers/boardAnalysis";
-import { computeTiling } from "./helpers/tiling";
 import { neighbors } from "./helpers/neighbors";
 import { allRules } from "./rules";
 
@@ -23,40 +22,22 @@ export interface SolveOptions {
 }
 
 function isValidBoard(board: Board): boolean {
-  const size = board.grid.length;
-  const stars = board.stars;
+  const { grid, stars } = board;
+  const size = grid.length;
   const minRegionSize = stars > 1 ? stars * 2 - 1 : 1;
 
-  const regionCells = new Map<number, [number, number][]>();
+  const regionSizes = new Map<number, number>();
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
-      const id = board.grid[r][c];
-      if (!regionCells.has(id)) regionCells.set(id, []);
-      regionCells.get(id)!.push([r, c]);
+      const id = grid[r][c];
+      regionSizes.set(id, (regionSizes.get(id) ?? 0) + 1);
     }
   }
 
-  if (regionCells.size !== size) return false;
-
-  for (const coords of regionCells.values()) {
-    if (coords.length < minRegionSize) return false;
+  if (regionSizes.size !== size) return false;
+  for (const sz of regionSizes.values()) {
+    if (sz < minRegionSize) return false;
   }
-
-  for (let i = 0; i < size; i++) {
-    const rowCoords: [number, number][] = [];
-    const colCoords: [number, number][] = [];
-    for (let j = 0; j < size; j++) {
-      rowCoords.push([i, j]);
-      colCoords.push([j, i]);
-    }
-    if (computeTiling(rowCoords, size).capacity < stars) return false;
-    if (computeTiling(colCoords, size).capacity < stars) return false;
-  }
-
-  for (const coords of regionCells.values()) {
-    if (computeTiling(coords, size).capacity < stars) return false;
-  }
-
   return true;
 }
 
