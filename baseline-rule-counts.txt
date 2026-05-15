@@ -1,14 +1,14 @@
-Processed: 100/1000Processed: 200/1000Processed: 300/1000Processed: 400/1000Processed: 500/1000Processed: 600/1000Processed: 700/1000Processed: 800/1000Processed: 900/1000Processed: 1000/1000Processed 1000 puzzles in 7.38s
+Processed: 100/1000Processed: 200/1000Processed: 300/1000Processed: 400/1000Processed: 500/1000Processed: 600/1000Processed: 700/1000Processed: 800/1000Processed: 900/1000Processed: 1000/1000Processed 1000 puzzles in 7.29s
 
 Rule Usage:
   Star Neighbors                           L1   13820  100%    0.00s
-  Forced Rows                              L2    4950  100%    0.00s
+  Forced Rows                              L2    4949  100%    0.00s
   Forced Columns                           L2    4066   99%    0.00s
   Forced Regions                           L2    2890   97%    0.00s
   Trivial Rows                             L3    2208   92%    0.00s
-  Trivial Columns                          L3    1979   89%    0.00s
+  Trivial Columns                          L3    1978   89%    0.00s
   Trivial Regions                          L3     243   21%    0.00s
-  Tiling Forced Rows                       L4     856   58%    0.00s
+  Tiling Forced Rows                       L4     857   58%    0.00s
   Tiling Forced Columns                    L4     847   58%    0.00s
   Tiling Forced Regions                    L4    3420   99%    0.00s
   Tiling Adjacency Marks                   L4    1564   87%    0.00s
@@ -26,7 +26,7 @@ Rule Usage:
   Tiling Counting Forced Rows              L7      77    7%    0.00s
   Tiling Counting Forced Columns           L7      63    6%    0.00s
   Group Tiling Counting Mark Rows          L7     256   20%    0.00s
-  Group Tiling Counting Mark Columns       L7     210   18%    0.00s
+  Group Tiling Counting Mark Columns       L7     211   18%    0.00s
   Hypothetical Row Count                   L8     331   28%    0.00s
   Hypothetical Column Count                L8     265   23%    0.00s
   Hypothetical Region Count                L8     333   29%    0.00s
