@@ -45,6 +45,8 @@ export function tilingCountingLoop(
   }
 
   const limit = 1 << size;
+  const entryMetas: RegionMeta[] = [];
+  const entryContribs: number[] = [];
 
   for (let mask = 1; mask < limit; mask++) {
     let bits = mask;
@@ -65,7 +67,8 @@ export function tilingCountingLoop(
     // Sum min contributions from each region
     let totalMin = 0;
     let exceeded = false;
-    const entries: { meta: RegionMeta; minContrib: number }[] = [];
+    entryMetas.length = 0;
+    entryContribs.length = 0;
 
     for (let ri = 0; ri < regionEntries.length; ri++) {
       const { meta, axisMask } = regionEntries[ri];
@@ -85,7 +88,8 @@ export function tilingCountingLoop(
 
       const minContrib = Math.max(0, meta.starsNeeded - capacityOutside);
       totalMin += minContrib;
-      entries.push({ meta, minContrib });
+      entryMetas.push(meta);
+      entryContribs.push(minContrib);
 
       if (totalMin > totalNeeded) {
         exceeded = true;
@@ -96,8 +100,8 @@ export function tilingCountingLoop(
     if (exceeded || totalMin !== totalNeeded) continue;
 
     let changed = false;
-    for (const { meta, minContrib } of entries) {
-      if (deduct(cells, mask, meta, minContrib)) {
+    for (let ei = 0; ei < entryMetas.length; ei++) {
+      if (deduct(cells, mask, entryMetas[ei], entryContribs[ei])) {
         changed = true;
       }
     }
