@@ -22,6 +22,7 @@ export type RegionMeta = {
 
 type BoardState = {
   size: number;
+  stars: number;
   regions: Map<number, RegionMeta>;
   rowStars: number[];
   colStars: number[];
@@ -95,7 +96,7 @@ function buildBoardState(
     });
   }
 
-  return { size, regions, rowStars, colStars, rowUnknowns, colUnknowns };
+  return { size, stars, regions, rowStars, colStars, rowUnknowns, colUnknowns };
 }
 
 export function buildBoardAnalysis(

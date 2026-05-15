@@ -41,27 +41,20 @@ function isValidBoard(board: Board): boolean {
   return true;
 }
 
-function checkProgress(
-  board: Board,
-  cells: CellState[][],
-  analysis: BoardAnalysis,
-): Progress {
-  const { size, rowStars, colStars, regions } = analysis;
-  const stars = board.stars;
+function getSolveStatus(cells: CellState[][], analysis: BoardAnalysis): Progress {
+  const { size, stars, rowStars, colStars, regions } = analysis;
   let solved = true;
 
   for (let i = 0; i < size; i++) {
-    let rowUnknowns = 0;
-    let colUnknowns = 0;
     for (let j = 0; j < size; j++) {
-      if (cells[i][j] === "unknown") rowUnknowns++;
-      if (cells[j][i] === "unknown") colUnknowns++;
       if (cells[i][j] === "star") {
         for (const [nr, nc] of neighbors(i, j, size)) {
           if (cells[nr][nc] === "star") return "invalid";
         }
       }
     }
+    const rowUnknowns = analysis.rowUnknowns[i].length;
+    const colUnknowns = analysis.colUnknowns[i].length;
     if (rowStars[i] + rowUnknowns < stars || colStars[i] + colUnknowns < stars) {
       return "invalid";
     }
@@ -106,7 +99,7 @@ export function solve(
     cycles++;
 
     const analysis = buildBoardAnalysis(structure, cells, tilingCache);
-    const status = checkProgress(boardDef, cells, analysis);
+    const status = getSolveStatus(cells, analysis);
 
     if (status === "solved") return { cells, cycles, maxLevel };
     if (status === "invalid") return null;

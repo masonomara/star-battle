@@ -69,12 +69,12 @@ Run `npm test` after each phase.
 
 - [x] **2-A** `src/solver.ts` — replace `isValidBoard` body: remove the row/col/region DLX checks, replace `regionCells` map with `regionSizes` map (only track sizes, not coordinates)
 - [x] **2-A** `src/solver.ts` — remove `computeTiling` import (no longer used in this file)
-- [ ] **2-B** `src/helpers/boardAnalysis.ts` — add `stars: number` to the `BoardState` type
-- [ ] **2-B** `src/helpers/boardAnalysis.ts` — add `stars` to the `buildBoardState` return object (it's already available as a param)
-- [ ] **2-B** `src/solver.ts` — rename `checkProgress` → `getSolveStatus`
-- [ ] **2-B** `src/solver.ts` — drop `board: Board` from `getSolveStatus` signature; replace `board.stars` with `analysis.stars`
-- [ ] **2-B** `src/solver.ts` — in `getSolveStatus`, replace the manual `rowUnknowns`/`colUnknowns` count loop with `analysis.rowUnknowns[i].length` and `analysis.colUnknowns[i].length`
-- [ ] **2-B** `src/solver.ts` — update the call site: `checkProgress(boardDef, cells, analysis)` → `getSolveStatus(cells, analysis)`
+- [x] **2-B** `src/helpers/boardAnalysis.ts` — add `stars: number` to the `BoardState` type
+- [x] **2-B** `src/helpers/boardAnalysis.ts` — add `stars` to the `buildBoardState` return object (it's already available as a param)
+- [x] **2-B** `src/solver.ts` — rename `checkProgress` → `getSolveStatus`
+- [x] **2-B** `src/solver.ts` — drop `board: Board` from `getSolveStatus` signature; replace `board.stars` with `analysis.stars`
+- [x] **2-B** `src/solver.ts` — in `getSolveStatus`, replace the manual `rowUnknowns`/`colUnknowns` count loop with `analysis.rowUnknowns[i].length` and `analysis.colUnknowns[i].length`
+- [x] **2-B** `src/solver.ts` — update the call site: `checkProgress(boardDef, cells, analysis)` → `getSolveStatus(cells, analysis)`
 - [ ] **2-C** `src/sieve.ts` — delete the `assignDifficulty` function
 - [ ] **2-C** `src/sieve.ts` — replace the `assignDifficulty(solution)` call with `{ ...solution, difficulty: computeDifficulty(solution) }`
 - [ ] **2-D** `src/helpers/types.ts` — delete the `FailureReason` type entirely
