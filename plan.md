@@ -114,10 +114,10 @@ Run `npm test` after each phase.
 
 ### Phase 4 — Performance Wins
 
-- [ ] **4-A** `src/helpers/dlx.ts` — add `minLen: { value: number }` parameter to `search`
-- [ ] **4-A** `src/helpers/dlx.ts` — at the start of `search`, return early if `solution.length >= minLen.value`
-- [ ] **4-A** `src/helpers/dlx.ts` — when a solution is found: if shorter than `minLen.value`, clear `solutions`, update `minLen.value`, then push
-- [ ] **4-A** `src/helpers/dlx.ts` — in `dlxSolve`, initialize `const minLen = { value: Infinity }` and pass it to `search`
+- [x] **4-A** `src/helpers/dlx.ts` — add `minLen: { value: number }` parameter to `search`
+- [x] **4-A** `src/helpers/dlx.ts` — at the start of `search`, return early if `solution.length >= minLen.value`
+- [x] **4-A** `src/helpers/dlx.ts` — when a solution is found: if shorter than `minLen.value`, clear `solutions`, update `minLen.value`, then push
+- [x] **4-A** `src/helpers/dlx.ts` — in `dlxSolve`, initialize `const minLen = { value: Infinity }` and pass it to `search`
 - [ ] **4-B** `src/helpers/dlx.ts` — add `isPrimary: boolean` to `ColumnHeader` interface
 - [ ] **4-B** `src/helpers/dlx.ts` — in `buildMatrix`, set `isPrimary = true` for columns 0..numPrimary-1 and `isPrimary = false` for numPrimary..end
 - [ ] **4-B** `src/helpers/dlx.ts` — in `cover`, gate `node.column.size--` behind `if (node.column.isPrimary)`

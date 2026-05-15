@@ -106,8 +106,15 @@ function search(
   root: RootHeader,
   solution: number[],
   solutions: number[][],
+  minLen: { value: number },
 ): void {
+  if (solution.length >= minLen.value) return;
+
   if (root.right === root) {
+    if (solution.length < minLen.value) {
+      solutions.length = 0;
+      minLen.value = solution.length;
+    }
     solutions.push([...solution]);
     return;
   }
@@ -129,7 +136,7 @@ function search(
     solution.push(row.rowIndex);
     for (let node = row.right; node !== row; node = node.right)
       cover(node.column);
-    search(root, solution, solutions);
+    search(root, solution, solutions, minLen);
     for (let node = row.left; node !== row; node = node.left)
       uncover(node.column);
     solution.pop();
@@ -144,7 +151,8 @@ export function dlxSolve(
 ): number[][] {
   if (numPrimary === 0) return [[]];
   const solutions: number[][] = [];
-  search(buildMatrix(numPrimary, numSecondary, rows), [], solutions);
+  const minLen = { value: Infinity };
+  search(buildMatrix(numPrimary, numSecondary, rows), [], solutions, minLen);
   return solutions;
 }
 
