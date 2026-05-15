@@ -75,8 +75,8 @@ Run `npm test` after each phase.
 - [x] **2-B** `src/solver.ts` — drop `board: Board` from `getSolveStatus` signature; replace `board.stars` with `analysis.stars`
 - [x] **2-B** `src/solver.ts` — in `getSolveStatus`, replace the manual `rowUnknowns`/`colUnknowns` count loop with `analysis.rowUnknowns[i].length` and `analysis.colUnknowns[i].length`
 - [x] **2-B** `src/solver.ts` — update the call site: `checkProgress(boardDef, cells, analysis)` → `getSolveStatus(cells, analysis)`
-- [ ] **2-C** `src/sieve.ts` — delete the `assignDifficulty` function
-- [ ] **2-C** `src/sieve.ts` — replace the `assignDifficulty(solution)` call with `{ ...solution, difficulty: computeDifficulty(solution) }`
+- [x] **2-C** `src/sieve.ts` — delete the `assignDifficulty` function
+- [x] **2-C** `src/sieve.ts` — replace the `assignDifficulty(solution)` call with `{ ...solution, difficulty: computeDifficulty(solution) }`
 - [ ] **2-D** `src/helpers/types.ts` — delete the `FailureReason` type entirely
 - [ ] **2-D** `src/helpers/types.ts` — replace `SieveStats` with `{ attempts: number; solved: number; solverFailed: number }`
 - [ ] **2-D** `src/sieve.ts` — update `stats` initialization to `{ attempts: 0, solved: 0, solverFailed: 0 }`
