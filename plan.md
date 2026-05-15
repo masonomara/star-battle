@@ -172,9 +172,9 @@ Run `npm test` after each phase.
 - [x] **6-G** Create `src/rules/09-tilingHypotheticals/hypotheticalCapacity.ts` with `hypotheticalCapacity(axis)` factory
 - [x] **6-G** Delete `hypotheticalRowCount.ts`, `hypotheticalColumnCount.ts`, `hypotheticalRowCapacity.ts`, `hypotheticalColumnCapacity.ts`
 - [x] **6-G** `src/rules/index.ts` — replace four imports with two factory imports and update entries
-- [ ] **6-H** Create `src/rules/10-countingHypotheticals/hypotheticalCounting.ts` with `hypotheticalCounting(axis)` factory
-- [ ] **6-H** Delete `hypotheticalCountingRow.ts` and `hypotheticalCountingColumn.ts`
-- [ ] **6-H** `src/rules/index.ts` — replace two imports with one factory import and update entries
+- [x] **6-H** Create `src/rules/10-countingHypotheticals/hypotheticalCounting.ts` with `hypotheticalCounting(axis)` factory
+- [x] **6-H** Delete `hypotheticalCountingRow.ts` and `hypotheticalCountingColumn.ts`
+- [x] **6-H** `src/rules/index.ts` — replace two imports with one factory import and update entries
 - [ ] **6-I** Create `src/rules/11-propagatedHypotheticals/propagatedCount.ts` with `propagatedCount(axis)` factory
 - [ ] **6-I** Create `src/rules/11-propagatedHypotheticals/propagatedCapacity.ts` with `propagatedCapacity(axis)` factory
 - [ ] **6-I** Create `src/rules/11-propagatedHypotheticals/propagatedCounting.ts` with `propagatedCounting(axis)` factory

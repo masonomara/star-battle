@@ -35,8 +35,7 @@ import { hypotheticalCapacity } from "./09-tilingHypotheticals/hypotheticalCapac
 import hypotheticalRegionCapacity from "./09-tilingHypotheticals/hypotheticalRegionCapacity";
 
 // Level 10: Counting Hypotheticals
-import hypotheticalCountingRow from "./10-countingHypotheticals/hypotheticalCountingRow";
-import hypotheticalCountingColumn from "./10-countingHypotheticals/hypotheticalCountingColumn";
+import { hypotheticalCounting } from "./10-countingHypotheticals/hypotheticalCounting";
 
 // Level 11: Propagated Hypotheticals
 import propagatedRowCount from "./11-propagatedHypotheticals/propagatedRowCount";
@@ -108,8 +107,8 @@ export const allRules: RuleEntry[] = [
   { rule: hypotheticalRegionCapacity, level: 9, name: "Hypothetical Region Capacity" },
 
   // Level 10: Counting Hypotheticals
-  { rule: hypotheticalCountingRow, level: 10, name: "Hypothetical Counting Row" },
-  { rule: hypotheticalCountingColumn, level: 10, name: "Hypothetical Counting Column" },
+  { rule: hypotheticalCounting("row"), level: 10, name: "Hypothetical Counting Row" },
+  { rule: hypotheticalCounting("col"), level: 10, name: "Hypothetical Counting Column" },
 
   // Level 11: Propagated Hypotheticals
   { rule: propagatedRowCount, level: 11, name: "Propagated Hypothetical Row Count" },
