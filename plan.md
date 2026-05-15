@@ -175,13 +175,13 @@ Run `npm test` after each phase.
 - [x] **6-H** Create `src/rules/10-countingHypotheticals/hypotheticalCounting.ts` with `hypotheticalCounting(axis)` factory
 - [x] **6-H** Delete `hypotheticalCountingRow.ts` and `hypotheticalCountingColumn.ts`
 - [x] **6-H** `src/rules/index.ts` — replace two imports with one factory import and update entries
-- [ ] **6-I** Create `src/rules/11-propagatedHypotheticals/propagatedCount.ts` with `propagatedCount(axis)` factory
-- [ ] **6-I** Create `src/rules/11-propagatedHypotheticals/propagatedCapacity.ts` with `propagatedCapacity(axis)` factory
-- [ ] **6-I** Create `src/rules/11-propagatedHypotheticals/propagatedCounting.ts` with `propagatedCounting(axis)` factory
-- [ ] **6-I** Delete `propagatedRowCount.ts`, `propagatedColumnCount.ts`, `propagatedRowCapacity.ts`, `propagatedColumnCapacity.ts`, `propagatedCountingRow.ts`, `propagatedCountingColumn.ts`
-- [ ] **6-I** `src/rules/index.ts` — replace six imports with three factory imports and update all six entries
-- [ ] Run `npm test`
-- [ ] Validate: run `sieve --file puzzles.sbn` and confirm rule usage counts are identical to baseline
+- [x] **6-I** Create `src/rules/11-propagatedHypotheticals/propagatedCount.ts` with `propagatedCount(axis)` factory
+- [x] **6-I** Create `src/rules/11-propagatedHypotheticals/propagatedCapacity.ts` with `propagatedCapacity(axis)` factory
+- [x] **6-I** Create `src/rules/11-propagatedHypotheticals/propagatedCounting.ts` with `propagatedCounting(axis)` factory
+- [x] **6-I** Delete `propagatedRowCount.ts`, `propagatedColumnCount.ts`, `propagatedRowCapacity.ts`, `propagatedColumnCapacity.ts`, `propagatedCountingRow.ts`, `propagatedCountingColumn.ts`
+- [x] **6-I** `src/rules/index.ts` — replace six imports with three factory imports and update all six entries
+- [x] Run `npm test`
+- [x] Validate: run `sieve --file puzzles.sbn` and confirm rule usage counts are identical to baseline
 
 ### Phase 7 — CLI Debug Removals
 
