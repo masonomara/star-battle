@@ -25,7 +25,7 @@ export default function hypotheticalRegionCount(
       for (const [r, c] of region.unknownCoords) {
         if (cells[r][c] !== "unknown") continue;
         const key = cellKey(r, c, size);
-        if (state.starKeys.has(key)) extraStars = 1;
+        if (state.starKeys.has(key)) extraStars++;
         else if (!state.marked.has(key)) remaining++;
       }
 
