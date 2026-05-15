@@ -65,17 +65,12 @@ export function generate(
 }
 
 function validateInputs(size: number, stars: number): void {
-  if (size <= 0) {
-    throw new Error("Layout generation failed: size must be positive");
-  }
-  if (stars <= 0) {
-    throw new Error("Layout generation failed: stars must be positive");
-  }
-  if (stars > Math.floor(size / 2)) {
-    throw new Error(
-      `Layout generation failed: stars (${stars}) cannot exceed size/2 (${Math.floor(size / 2)})`,
-    );
-  }
+  if (!Number.isInteger(size) || size < 4 || size > 25)
+    throw new Error(`size must be an integer between 4 and 25, got ${size}`);
+  if (!Number.isInteger(stars) || stars < 1 || stars > 6)
+    throw new Error(`stars must be an integer between 1 and 6, got ${stars}`);
+  if (stars > Math.floor(size / 2))
+    throw new Error(`stars (${stars}) cannot exceed size/2 (${Math.floor(size / 2)})`);
 }
 
 /**

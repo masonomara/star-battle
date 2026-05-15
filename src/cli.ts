@@ -306,19 +306,6 @@ async function main() {
     const minDiff = args.minDiff ? parseInt(args.minDiff, 10) : undefined;
     const maxDiff = args.maxDiff ? parseInt(args.maxDiff, 10) : undefined;
 
-    if (size < 4 || size > 25 || !Number.isFinite(size)) {
-      console.error("Error: size must be between 4 and 25");
-      process.exit(1);
-    }
-    if (stars < 1 || stars > 6 || !Number.isFinite(stars)) {
-      console.error("Error: stars must be between 1 and 6");
-      process.exit(1);
-    }
-    if (count < 1 || count > 300 || !Number.isFinite(count)) {
-      console.error("Error: count must be between 1 and 300");
-      process.exit(1);
-    }
-
     {
       const diffRange =
         minDiff !== undefined || maxDiff !== undefined

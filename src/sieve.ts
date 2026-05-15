@@ -18,6 +18,8 @@ export function sieve(options: SieveOptions = {}): Puzzle[] {
   const stars = options.stars ?? 2;
   const count = options.count ?? 1;
   const maxAttempts = options.maxAttempts ?? 100000000;
+  if (!Number.isInteger(count) || count < 1 || count > 300)
+    throw new Error(`count must be an integer between 1 and 300, got ${count}`);
 
   const stats: SieveStats = { attempts: 0, solved: 0, solverFailed: 0 };
 
