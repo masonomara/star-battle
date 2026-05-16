@@ -1,4 +1,5 @@
 use wasm_bindgen::prelude::*;
+use std::collections::HashSet;
 
 // Flat SOA DLX. All "pointers" are u32 indices into parallel Vec<u32> arrays.
 //
@@ -265,4 +266,181 @@ pub fn dlx_solve(
         result.push(-1);
     }
     result
+}
+
+// ── Generator ─────────────────────────────────────────────────────────────────
+
+const DIRS: [(i32, i32); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
+
+// LCG matching TypeScript exactly:
+//   s = (Math.imul(s, 1103515245) + 12345) | 0
+//   return (s >>> 0) / 0x100000000
+#[inline(always)]
+fn rng_next(s: &mut i32) -> f64 {
+    *s = s.wrapping_mul(1103515245i32).wrapping_add(12345);
+    (*s as u32) as f64 / 4294967296.0
+}
+
+#[inline(always)]
+fn rng_idx(s: &mut i32, n: usize) -> usize {
+    (rng_next(s) * n as f64) as usize
+}
+
+fn unfilled_neighbor_keys(grid: &[i32], size: usize, r: usize, c: usize) -> Vec<u32> {
+    let mut out = Vec::with_capacity(4);
+    for (dr, dc) in DIRS {
+        let nr = r as i32 + dr;
+        let nc = c as i32 + dc;
+        if nr >= 0 && nr < size as i32 && nc >= 0 && nc < size as i32 {
+            let idx = nr as usize * size + nc as usize;
+            if grid[idx] == -1 { out.push(idx as u32); }
+        }
+    }
+    out
+}
+
+fn filled_neighbors(grid: &[i32], size: usize, r: usize, c: usize) -> Vec<(usize, usize)> {
+    let mut out = Vec::with_capacity(4);
+    for (dr, dc) in DIRS {
+        let nr = r as i32 + dr;
+        let nc = c as i32 + dc;
+        if nr >= 0 && nr < size as i32 && nc >= 0 && nc < size as i32 {
+            let (nr, nc) = (nr as usize, nc as usize);
+            if grid[nr * size + nc] != -1 { out.push((nr, nc)); }
+        }
+    }
+    out
+}
+
+fn grow_regions_balanced(
+    grid:         &mut Vec<i32>,
+    size:         usize,
+    min_size:     usize,
+    region_sizes: &mut Vec<usize>,
+    frontiers:    &mut Vec<HashSet<u32>>,
+    s:            &mut i32,
+) {
+    while region_sizes.iter().any(|&sz| sz < min_size) {
+        let mut needs_growth: Vec<usize> = Vec::new();
+        for id in 0..size {
+            if region_sizes[id] < min_size {
+                let g = &*grid;
+                frontiers[id].retain(|&k| g[k as usize] == -1);
+                if !frontiers[id].is_empty() { needs_growth.push(id); }
+            }
+        }
+        if needs_growth.is_empty() { break; }
+
+        let region_id = needs_growth[rng_idx(s, needs_growth.len())];
+
+        let keys: Vec<u32> = frontiers[region_id].iter().copied().collect();
+        let key = keys[rng_idx(s, keys.len())];
+        frontiers[region_id].remove(&key);
+
+        let r = key as usize / size;
+        let c = key as usize % size;
+        if grid[r * size + c] != -1 { continue; }
+
+        grid[r * size + c] = region_id as i32;
+        region_sizes[region_id] += 1;
+
+        for nk in unfilled_neighbor_keys(grid, size, r, c) {
+            frontiers[region_id].insert(nk);
+        }
+    }
+}
+
+fn fill_remaining(grid: &mut Vec<i32>, size: usize, s: &mut i32) -> bool {
+    let mut frontier: Vec<u32>     = Vec::new();
+    let mut in_frontier: Vec<bool> = vec![false; size * size];
+
+    for r in 0..size {
+        for c in 0..size {
+            let idx = r * size + c;
+            if grid[idx] != -1 { continue; }
+            let has_filled = DIRS.iter().any(|(dr, dc)| {
+                let nr = r as i32 + dr;
+                let nc = c as i32 + dc;
+                nr >= 0 && nr < size as i32 && nc >= 0 && nc < size as i32
+                    && grid[nr as usize * size + nc as usize] != -1
+            });
+            if has_filled {
+                frontier.push(idx as u32);
+                in_frontier[idx] = true;
+            }
+        }
+    }
+
+    while !frontier.is_empty() {
+        let i   = rng_idx(s, frontier.len());
+        let key = frontier[i];
+        let last = *frontier.last().unwrap();
+        frontier[i] = last;
+        frontier.pop();
+        in_frontier[key as usize] = false;
+
+        let r = key as usize / size;
+        let c = key as usize % size;
+
+        let filled = filled_neighbors(grid, size, r, c);
+        if filled.is_empty() { return false; }
+        let (nr, nc) = filled[rng_idx(s, filled.len())];
+        grid[r * size + c] = grid[nr * size + nc];
+
+        for (dr, dc) in DIRS {
+            let nnr = r as i32 + dr;
+            let nnc = c as i32 + dc;
+            if nnr >= 0 && nnr < size as i32 && nnc >= 0 && nnc < size as i32 {
+                let nidx = nnr as usize * size + nnc as usize;
+                if grid[nidx] == -1 && !in_frontier[nidx] {
+                    frontier.push(nidx as u32);
+                    in_frontier[nidx] = true;
+                }
+            }
+        }
+    }
+
+    grid.iter().all(|&v| v != -1)
+}
+
+/// Generate a board layout for the given seed.
+/// Returns flat row-major Int32Array of length size×size, or empty on failure.
+#[wasm_bindgen]
+pub fn layout_with_seed(size: u32, stars: u32, seed: i32) -> Vec<i32> {
+    if size == 0 || stars == 0 { return Vec::new(); }
+    let size = size as usize;
+    let mut s = seed;
+
+    let mut grid = vec![-1i32; size * size];
+
+    let mut placed = 0usize;
+    while placed < size {
+        let row = rng_idx(&mut s, size);
+        let col = rng_idx(&mut s, size);
+        let idx = row * size + col;
+        if grid[idx] == -1 { grid[idx] = placed as i32; placed += 1; }
+    }
+
+    let min_size = (stars * 2 - 1) as usize;
+    let mut region_sizes = vec![1usize; size];
+
+    let mut frontiers: Vec<HashSet<u32>> = vec![HashSet::new(); size];
+    for r in 0..size {
+        for c in 0..size {
+            let v = grid[r * size + c];
+            if v != -1 {
+                for k in unfilled_neighbor_keys(&grid, size, r, c) {
+                    frontiers[v as usize].insert(k);
+                }
+            }
+        }
+    }
+
+    grow_regions_balanced(&mut grid, size, min_size, &mut region_sizes, &mut frontiers, &mut s);
+
+    if !fill_remaining(&mut grid, size, &mut s) {
+        return Vec::new();
+    }
+
+    grid
 }
