@@ -444,3 +444,282 @@ pub fn layout_with_seed(size: u32, stars: u32, seed: i32) -> Vec<i32> {
 
     grid
 }
+
+// ── Counting Flow ─────────────────────────────────────────────────────────────
+
+#[derive(Clone)]
+struct CountingEdge { to: usize, cap: i32, rev: usize }
+type CountingGraph = Vec<Vec<CountingEdge>>;
+
+fn counting_add_edge(g: &mut CountingGraph, from: usize, to: usize, cap: i32) {
+    let rev_from = g[to].len();
+    let rev_to   = g[from].len();
+    g[from].push(CountingEdge { to, cap, rev: rev_from });
+    g[to].push(CountingEdge { to: from, cap: 0, rev: rev_to });
+}
+
+fn dinic_bfs(g: &CountingGraph, s: usize, t: usize, level: &mut Vec<i32>) -> bool {
+    let n = g.len();
+    level.clear();
+    level.resize(n, -1);
+    level[s] = 0;
+    let mut queue = std::collections::VecDeque::new();
+    queue.push_back(s);
+    while let Some(v) = queue.pop_front() {
+        for e in &g[v] {
+            if e.cap > 0 && level[e.to] < 0 {
+                level[e.to] = level[v] + 1;
+                queue.push_back(e.to);
+            }
+        }
+    }
+    level[t] >= 0
+}
+
+fn dinic_dfs(g: &mut CountingGraph, level: &[i32], iter: &mut Vec<usize>, v: usize, t: usize, pushed: i32) -> i32 {
+    if v == t { return pushed; }
+    while iter[v] < g[v].len() {
+        let i = iter[v];
+        let (to, cap, rev) = (g[v][i].to, g[v][i].cap, g[v][i].rev);
+        if cap > 0 && level[v] < level[to] {
+            let d = dinic_dfs(g, level, iter, to, t, pushed.min(cap));
+            if d > 0 {
+                g[v][i].cap -= d;
+                g[to][rev].cap += d;
+                return d;
+            }
+        }
+        iter[v] += 1;
+    }
+    0
+}
+
+fn dinic(g: &mut CountingGraph, s: usize, t: usize) -> i32 {
+    let n = g.len();
+    let mut flow = 0i32;
+    let mut level = vec![-1i32; n];
+    let mut iter  = vec![0usize; n];
+    while dinic_bfs(g, s, t, &mut level) {
+        iter.fill(0);
+        loop {
+            let d = dinic_dfs(g, &level, &mut iter, s, t, i32::MAX);
+            if d == 0 { break; }
+            flow += d;
+        }
+    }
+    flow
+}
+
+fn build_counting_network(
+    size:                  usize,
+    axis_needed:           &[i32],
+    region_stars_needed:   &[i32],
+    unknowns_by_axis_flat: &[i32],
+) -> (CountingGraph, usize, usize) {
+    let r_count = region_stars_needed.len();
+    let n       = 2 + size + r_count;
+    let source  = 0usize;
+    let sink    = n - 1;
+    let mut g: CountingGraph = vec![vec![]; n];
+
+    for i in 0..size {
+        let cap = axis_needed[i];
+        if cap > 0 { counting_add_edge(&mut g, source, 1 + i, cap); }
+    }
+    for ri in 0..r_count {
+        let sn = region_stars_needed[ri];
+        if sn <= 0 { continue; }
+        counting_add_edge(&mut g, 1 + size + ri, sink, sn);
+        for i in 0..size {
+            let cap = unknowns_by_axis_flat[ri * size + i];
+            if cap > 0 { counting_add_edge(&mut g, 1 + i, 1 + size + ri, cap); }
+        }
+    }
+    (g, source, sink)
+}
+
+#[wasm_bindgen]
+pub fn has_counting_violation(
+    size:                  u32,
+    axis_needed:           &[i32],
+    region_stars_needed:   &[i32],
+    unknowns_by_axis_flat: &[i32],
+) -> bool {
+    let size = size as usize;
+    let mut total_demand = 0i32;
+    for i in 0..size {
+        if axis_needed[i] < 0 { return true; }
+        total_demand += axis_needed[i];
+    }
+    if total_demand == 0 { return false; }
+    let (mut g, source, sink) = build_counting_network(size, axis_needed, region_stars_needed, unknowns_by_axis_flat);
+    dinic(&mut g, source, sink) < total_demand
+}
+
+// (mask, [(maxContrib, starsNeeded, [(r, c)])])
+type TightSet = (i32, Vec<(i32, i32, Vec<(i32, i32)>)>);
+
+fn extract_tight_sets(
+    g:                     &CountingGraph,
+    source:                usize,
+    sink:                  usize,
+    size:                  usize,
+    r_count:               usize,
+    axis_needed:           &[i32],
+    region_stars_needed:   &[i32],
+    unknowns_by_axis_flat: &[i32],
+    unknown_coords_flat:   &[i32],
+    unknown_coord_offsets: &[i32],
+) -> Vec<TightSet> {
+    let n = g.len();
+
+    // Iterative Tarjan's SCC on residual graph (edges with cap > 0)
+    let mut scc_id   = vec![-1i32; n];
+    let mut low      = vec![0i32;  n];
+    let mut disc     = vec![-1i32; n];
+    let mut on_stack = vec![false;  n];
+    let mut stack: Vec<usize> = Vec::new();
+    let mut timer    = 0i32;
+    let mut scc_count = 0usize;
+
+    struct Frame { node: usize, edge_idx: usize, first: bool }
+
+    for start in 0..n {
+        if disc[start] >= 0 { continue; }
+        let mut call_stack = vec![Frame { node: start, edge_idx: 0, first: true }];
+        while !call_stack.is_empty() {
+            let len = call_stack.len();
+            let u   = call_stack[len - 1].node;
+
+            if call_stack[len - 1].first {
+                disc[u] = timer; low[u] = timer; timer += 1;
+                stack.push(u); on_stack[u] = true;
+                call_stack[len - 1].first = false;
+            }
+
+            let mut pushed = false;
+            while call_stack[len - 1].edge_idx < g[u].len() {
+                let idx         = call_stack[len - 1].edge_idx;
+                let (ecap, eto) = (g[u][idx].cap, g[u][idx].to);
+                call_stack[len - 1].edge_idx += 1;
+                if ecap > 0 {
+                    let v = eto;
+                    if disc[v] < 0 {
+                        call_stack.push(Frame { node: v, edge_idx: 0, first: true });
+                        pushed = true;
+                        break;
+                    } else if on_stack[v] && disc[v] < low[u] {
+                        low[u] = disc[v];
+                    }
+                }
+            }
+
+            if !pushed {
+                if low[u] == disc[u] {
+                    let id = scc_count as i32; scc_count += 1;
+                    loop {
+                        let v = stack.pop().unwrap();
+                        on_stack[v] = false; scc_id[v] = id;
+                        if v == u { break; }
+                    }
+                }
+                call_stack.pop();
+                let len2 = call_stack.len();
+                if len2 > 0 {
+                    let pu = call_stack[len2 - 1].node;
+                    if low[u] < low[pu] { low[pu] = low[u]; }
+                }
+            }
+        }
+    }
+
+    // Collect lines and regions per SCC
+    let mut scc_lines:   Vec<Vec<usize>> = vec![vec![]; scc_count];
+    let mut scc_regions: Vec<Vec<usize>> = vec![vec![]; scc_count];
+    for i in 0..size   { scc_lines  [scc_id[1 + i]         as usize].push(i);  }
+    for ri in 0..r_count { scc_regions[scc_id[1 + size + ri] as usize].push(ri); }
+
+    let scc_source = scc_id[source] as usize;
+    let scc_sink   = scc_id[sink]   as usize;
+
+    // Walk SCCs in topological order (reverse of Tarjan's numbering = higher id first)
+    let mut tight_sets    = Vec::new();
+    let mut cum_demand    = 0i32;
+    let mut cum_supply    = 0i32;
+    let mut block_lines:   Vec<usize> = Vec::new();
+    let mut block_regions: Vec<usize> = Vec::new();
+
+    for si in (0..scc_count).rev() {
+        if si == scc_source || si == scc_sink { continue; }
+        for &line in &scc_lines[si]   { cum_demand += axis_needed[line]; block_lines.push(line); }
+        for &ri   in &scc_regions[si] { cum_supply += region_stars_needed[ri]; block_regions.push(ri); }
+
+        if cum_demand > 0 && cum_demand == cum_supply && !block_lines.is_empty() {
+            let mask = block_lines.iter().fold(0i32, |m, &l| m | (1 << l));
+            let mut contribs: Vec<(i32, i32, Vec<(i32, i32)>)> = Vec::new();
+
+            for &ri in &block_regions {
+                let sn     = region_stars_needed[ri];
+                let inside: i32 = block_lines.iter().map(|&l| unknowns_by_axis_flat[ri * size + l]).sum();
+                if inside > 0 || sn > 0 {
+                    let max_contrib = sn.min(inside);
+                    let coord_start = unknown_coord_offsets[ri]     as usize;
+                    let coord_end   = unknown_coord_offsets[ri + 1] as usize;
+                    let coords: Vec<(i32, i32)> = (coord_start..coord_end)
+                        .map(|k| (unknown_coords_flat[k * 2], unknown_coords_flat[k * 2 + 1]))
+                        .collect();
+                    contribs.push((max_contrib, sn, coords));
+                }
+            }
+
+            if !contribs.is_empty() { tight_sets.push((mask, contribs)); }
+
+            block_lines.clear();
+            block_regions.clear();
+        }
+    }
+
+    tight_sets
+}
+
+#[wasm_bindgen]
+pub fn compute_counting_flow(
+    size:                  u32,
+    axis_needed:           &[i32],
+    region_stars_needed:   &[i32],
+    unknowns_by_axis_flat: &[i32],
+    unknown_coords_flat:   &[i32],
+    unknown_coord_offsets: &[i32],
+) -> Vec<i32> {
+    let size    = size as usize;
+    let r_count = region_stars_needed.len();
+
+    let mut total_demand = 0i32;
+    for i in 0..size { total_demand += axis_needed[i]; }
+    if total_demand == 0 { return vec![1, 0]; }
+
+    let (mut g, source, sink) = build_counting_network(size, axis_needed, region_stars_needed, unknowns_by_axis_flat);
+    let max_flow = dinic(&mut g, source, sink);
+    if max_flow < total_demand { return vec![0, 0]; }
+
+    let tight_sets = extract_tight_sets(
+        &g, source, sink, size, r_count,
+        axis_needed, region_stars_needed, unknowns_by_axis_flat,
+        unknown_coords_flat, unknown_coord_offsets,
+    );
+
+    // Encoding: [feasible=1, num_tight_sets, for each: mask, num_contribs,
+    //            for each contrib: maxContrib, starsNeeded, num_coords, r0, c0, ...]
+    let mut out = vec![1i32, tight_sets.len() as i32];
+    for (mask, contribs) in &tight_sets {
+        out.push(*mask);
+        out.push(contribs.len() as i32);
+        for (max_contrib, stars_needed, coords) in contribs {
+            out.push(*max_contrib);
+            out.push(*stars_needed);
+            out.push(coords.len() as i32);
+            for (r, c) in coords { out.push(*r); out.push(*c); }
+        }
+    }
+    out
+}
