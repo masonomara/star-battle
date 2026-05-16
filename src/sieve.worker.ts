@@ -2,7 +2,7 @@ import { isMainThread, parentPort, workerData } from "node:worker_threads";
 import { layoutWithSeed } from "./generator";
 import { solve } from "./solver";
 import { computeDifficulty } from "./helpers/difficulty";
-import type { Board, Puzzle, Solution, TilingResult } from "./helpers/types";
+import type { Board, Puzzle, Solution } from "./helpers/types";
 
 if (isMainThread) throw new Error("sieve.worker.ts must run as a worker thread");
 
@@ -31,7 +31,6 @@ let stopped = false;
 let attempt = 0;
 let pendingAttempts = 0;
 let pendingSolverFailed = 0;
-const tilingCache = new Map<string, TilingResult>();
 
 parentPort!.on("message", (msg: InboundMessage) => {
   if (msg.type === "stop") stopped = true;
@@ -58,7 +57,7 @@ function runLoop(): void {
       continue;
     }
 
-    const result = solve(board, { tilingCache });
+    const result = solve(board);
 
     if (result) {
       const solution: Solution = { ...result, board, seed };

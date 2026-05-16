@@ -726,22 +726,8 @@ pub fn compute_counting_flow(
 
 // ── Tiling ────────────────────────────────────────────────────────────────────
 
-/// Compute a 2×2 tiling of the given cells.
-/// Input:  coords_flat = [r0,c0, r1,c1, ...], grid_size
-/// Output: [capacity, num_tilings,
-///            for each tiling: num_tiles,
-///              for each tile: ar, ac, num_covered, r0,c0, ...
-///          , num_forced, r0,c0, ...]
-/// Falls back to [n, 0, 0] when no exact cover exists.
-#[wasm_bindgen]
-pub fn compute_tiling(coords_flat: &[i32], grid_size: u32) -> Vec<i32> {
-    let gs = grid_size as usize;
-    let n  = coords_flat.len() / 2;
-    if n == 0 { return vec![0, 1, 0, 0]; }
-
-    let cells: Vec<(usize, usize)> = (0..n)
-        .map(|i| (coords_flat[i * 2] as usize, coords_flat[i * 2 + 1] as usize))
-        .collect();
+fn compute_tiling_inner(cells: &[(usize, usize)], gs: usize) -> Vec<i32> {
+    let n = cells.len();
 
     let mut cell_to_idx = vec![-1i32; gs * gs];
     for (i, &(r, c)) in cells.iter().enumerate() {
@@ -752,7 +738,7 @@ pub fn compute_tiling(coords_flat: &[i32], grid_size: u32) -> Vec<i32> {
     let mut seen_anchors = vec![false; gs * gs];
     let mut tiles: Vec<(usize, usize, Vec<usize>)> = Vec::new();
 
-    for &(r, c) in &cells {
+    for &(r, c) in cells {
         for dr in -1i32..=0 {
             for dc in -1i32..=0 {
                 let ar = r as i32 + dr;
@@ -850,8 +836,30 @@ pub fn compute_tiling(coords_flat: &[i32], grid_size: u32) -> Vec<i32> {
     out
 }
 
+/// Compute a 2×2 tiling of the given cells.
+/// Input:  coords_flat = [r0,c0, r1,c1, ...], grid_size
+/// Output: [capacity, num_tilings,
+///            for each tiling: num_tiles,
+///              for each tile: ar, ac, num_covered, r0,c0, ...
+///          , num_forced, r0,c0, ...]
+/// Falls back to [n, 0, 0] when no exact cover exists.
+#[wasm_bindgen]
+pub fn compute_tiling(coords_flat: &[i32], grid_size: u32) -> Vec<i32> {
+    let gs = grid_size as usize;
+    let n  = coords_flat.len() / 2;
+    if n == 0 { return vec![0, 1, 0, 0]; }
+    if n == 1 {
+        return vec![1, 0, 1, coords_flat[0], coords_flat[1]];
+    }
+    let cells: Vec<(usize, usize)> = (0..n)
+        .map(|i| (coords_flat[i * 2] as usize, coords_flat[i * 2 + 1] as usize))
+        .collect();
+    compute_tiling_inner(&cells, gs)
+}
+
 // ── Tiling Enumeration ────────────────────────────────────────────────────────
 
+#[derive(Clone)]
 struct EnumTile { covered: Vec<usize>, all_cells: [usize; 4] }
 
 fn parse_enum_tilings(flat: &[i32], sz: usize) -> Vec<Vec<EnumTile>> {
@@ -988,4 +996,1153 @@ pub fn find_forced_overhang(
         if inter[k] { out.push((k / sz) as i32); out.push((k % sz) as i32); }
     }
     out
+}
+
+// ── Solver ────────────────────────────────────────────────────────────────────
+
+#[derive(Clone)]
+struct CachedTiling {
+    capacity:    usize,
+    num_tilings: usize,
+    forced:      Vec<(usize, usize)>,
+    tilings_flat: Vec<i32>,  // [num_tilings, ...] for parse_enum_tilings
+}
+
+thread_local! {
+    static TILING_CACHE: std::cell::RefCell<std::collections::HashMap<Vec<i32>, CachedTiling>>
+        = std::cell::RefCell::new(std::collections::HashMap::new());
+}
+
+fn parse_tiling_flat(flat: &[i32]) -> CachedTiling {
+    let capacity = flat[0] as usize;
+    let num_t    = flat[1] as usize;
+    let mut i    = 2usize;
+    for _ in 0..num_t {
+        let nt = flat[i] as usize; i += 1;
+        for _ in 0..nt { let nc = flat[i+2] as usize; i += 3 + nc*2; }
+    }
+    let tilings_flat = flat[1..i].to_vec();
+    let nf = flat[i] as usize; i += 1;
+    let forced: Vec<(usize,usize)> = (0..nf).map(|j|
+        (flat[i+j*2] as usize, flat[i+j*2+1] as usize)
+    ).collect();
+    CachedTiling { capacity, num_tilings: num_t, forced, tilings_flat }
+}
+
+fn get_tiling(sz: usize, keys: &[usize]) -> CachedTiling {
+    let n = keys.len();
+    if n == 0 {
+        return CachedTiling { capacity: 0, num_tilings: 0, forced: vec![], tilings_flat: vec![0] };
+    }
+    if n == 1 {
+        let (r, c) = (keys[0] / sz, keys[0] % sz);
+        return CachedTiling { capacity: 1, num_tilings: 0, forced: vec![(r, c)], tilings_flat: vec![0] };
+    }
+    let mut sorted = keys.to_vec();
+    sorted.sort_unstable();
+    let cache_key: Vec<i32> = sorted.iter().map(|&k| k as i32).collect();
+    let maybe = TILING_CACHE.with(|c| c.borrow().get(&cache_key).cloned());
+    if let Some(ct) = maybe { return ct; }
+    let coords: Vec<(usize,usize)> = sorted.iter().map(|&k| (k/sz, k%sz)).collect();
+    let flat = compute_tiling_inner(&coords, sz);
+    let ct = parse_tiling_flat(&flat);
+    TILING_CACHE.with(|c| c.borrow_mut().insert(cache_key, ct.clone()));
+    ct
+}
+
+#[derive(Clone)]
+struct TightContrib { max_contrib: usize, stars_needed: usize, coords: Vec<usize> }
+
+#[derive(Clone)]
+struct TightSetData { mask: u32, contribs: Vec<TightContrib> }
+
+#[derive(Clone)]
+struct CountingResult { feasible: bool, tight_sets: Vec<TightSetData> }
+
+struct Region {
+    unknown: Vec<usize>,
+    needed:  usize,
+}
+
+struct SolverState {
+    sz:        usize,
+    stars:     usize,
+    grid:      Vec<i32>,
+    cells:     Vec<u8>,       // 0=unknown 1=star 2=marked
+    regions:   Vec<Region>,
+    row_stars: Vec<usize>,
+    col_stars: Vec<usize>,
+    row_unk:   Vec<Vec<usize>>,
+    col_unk:   Vec<Vec<usize>>,
+    count_row: Option<CountingResult>,
+    count_col: Option<CountingResult>,
+}
+
+impl SolverState {
+    fn new(grid: &[i32], sz: usize, stars: usize) -> Self {
+        let mut regions: Vec<Region> = (0..sz).map(|_| Region { unknown: vec![], needed: stars }).collect();
+        let mut row_unk: Vec<Vec<usize>> = vec![vec![]; sz];
+        let mut col_unk: Vec<Vec<usize>> = vec![vec![]; sz];
+        for r in 0..sz { for c in 0..sz {
+            let k = r * sz + c;
+            let id = grid[k] as usize;
+            regions[id].unknown.push(k);
+            row_unk[r].push(k);
+            col_unk[c].push(k);
+        }}
+        SolverState {
+            sz, stars, grid: grid.to_vec(), cells: vec![0u8; sz*sz],
+            regions, row_stars: vec![0; sz], col_stars: vec![0; sz],
+            row_unk, col_unk, count_row: None, count_col: None,
+        }
+    }
+
+    fn apply_delta(&mut self, changed: &[usize]) {
+        if changed.is_empty() { return; }
+        self.count_row = None;
+        self.count_col = None;
+        for &k in changed {
+            let (r, c) = (k / self.sz, k % self.sz);
+            let id = self.grid[k] as usize;
+            if self.cells[k] == 1 {
+                self.row_stars[r] += 1;
+                self.col_stars[c] += 1;
+                self.regions[id].needed = self.regions[id].needed.saturating_sub(1);
+            }
+            self.row_unk[r].retain(|&x| x != k);
+            self.col_unk[c].retain(|&x| x != k);
+            self.regions[id].unknown.retain(|&x| x != k);
+        }
+    }
+
+    fn snapshot(&self) -> Vec<u8> { self.cells.clone() }
+
+    fn diff(&self, snap: &[u8]) -> Vec<usize> {
+        (0..self.sz*self.sz).filter(|&k| self.cells[k] != snap[k]).collect()
+    }
+}
+
+fn compute_counting_for_state(s: &SolverState, axis: bool) -> CountingResult {
+    let sz = s.sz;
+    let axis_stars = if axis { &s.row_stars } else { &s.col_stars };
+    let axis_needed: Vec<i32> = (0..sz).map(|i| (s.stars as i32) - (axis_stars[i] as i32)).collect();
+    let total_demand: i32 = axis_needed.iter().sum();
+    if total_demand == 0 { return CountingResult { feasible: true, tight_sets: vec![] }; }
+
+    let mut region_stars_needed: Vec<i32> = Vec::new();
+    let mut unknowns_by_axis_flat: Vec<i32> = Vec::new();
+    let mut unknown_coords_flat: Vec<i32> = Vec::new();
+    let mut unknown_coord_offsets: Vec<i32> = Vec::new();
+
+    for region in &s.regions {
+        if region.needed == 0 { continue; }
+        let mut uby = vec![0i32; sz];
+        for &k in &region.unknown {
+            let line = if axis { k / sz } else { k % sz };
+            uby[line] += 1;
+        }
+        unknown_coord_offsets.push((unknown_coords_flat.len() / 2) as i32);
+        for &k in &region.unknown {
+            unknown_coords_flat.push((k / sz) as i32);
+            unknown_coords_flat.push((k % sz) as i32);
+        }
+        region_stars_needed.push(region.needed as i32);
+        unknowns_by_axis_flat.extend_from_slice(&uby);
+    }
+    let r_count = region_stars_needed.len();
+    unknown_coord_offsets.push((unknown_coords_flat.len() / 2) as i32);
+
+    let (mut g, source, sink) = build_counting_network(sz, &axis_needed, &region_stars_needed, &unknowns_by_axis_flat);
+    let max_flow = dinic(&mut g, source, sink);
+    if max_flow < total_demand { return CountingResult { feasible: false, tight_sets: vec![] }; }
+
+    let raw = extract_tight_sets(
+        &g, source, sink, sz, r_count,
+        &axis_needed, &region_stars_needed, &unknowns_by_axis_flat,
+        &unknown_coords_flat, &unknown_coord_offsets,
+    );
+    let tight_sets = raw.into_iter().map(|(mask, contribs)| {
+        let tc = contribs.into_iter().map(|(mc, sn, coords)| TightContrib {
+            max_contrib:  mc as usize,
+            stars_needed: sn as usize,
+            coords: coords.iter().map(|&(r,c)| r as usize * sz + c as usize).collect(),
+        }).collect();
+        TightSetData { mask: mask as u32, contribs: tc }
+    }).collect();
+    CountingResult { feasible: true, tight_sets }
+}
+
+fn get_counting(s: &mut SolverState, axis: bool) -> CountingResult {
+    if axis {
+        if let Some(ref r) = s.count_row { return r.clone(); }
+    } else {
+        if let Some(ref r) = s.count_col { return r.clone(); }
+    }
+    let result = compute_counting_for_state(s, axis);
+    if axis { s.count_row = Some(result.clone()); } else { s.count_col = Some(result.clone()); }
+    result
+}
+
+fn has_counting_violation_inner(
+    sz: usize, axis_needed: &[i32], region_stars_needed: &[i32], unknowns_by_axis_flat: &[i32],
+) -> bool {
+    let mut total = 0i32;
+    for i in 0..sz {
+        if axis_needed[i] < 0 { return true; }
+        total += axis_needed[i];
+    }
+    if total == 0 { return false; }
+    let (mut g, source, sink) = build_counting_network(sz, axis_needed, region_stars_needed, unknowns_by_axis_flat);
+    dinic(&mut g, source, sink) < total
+}
+
+fn collect_valid_keys_inner(tilings: &[Vec<EnumTile>], in_inside: &[bool], cells: &[u8], sz: usize) -> Vec<bool> {
+    let n = sz * sz;
+    let mut valid = vec![false; n];
+    for tiling in tilings {
+        let mut fixed: Vec<usize> = Vec::new();
+        let mut cands_per_tile: Vec<Vec<usize>> = Vec::new();
+        let mut ok = true;
+        for tile in tiling {
+            if let Some(&k) = tile.covered.iter().find(|&&k| cells[k] == 1) {
+                fixed.push(k);
+            } else {
+                let cands: Vec<usize> = tile.covered.iter()
+                    .filter(|&&k| in_inside[k] && cells[k] == 0)
+                    .copied().collect();
+                if cands.is_empty() { ok = false; break; }
+                cands_per_tile.push(cands);
+            }
+        }
+        if !ok { continue; }
+        'outer: for i in 0..fixed.len() {
+            for j in i+1..fixed.len() {
+                if keys_adjacent(fixed[i], fixed[j], sz) { ok = false; break 'outer; }
+            }
+        }
+        if !ok { continue; }
+        for &k in &fixed { valid[k] = true; }
+        backtrack(&mut fixed.clone(), &cands_per_tile, 0, sz, &mut valid);
+    }
+    valid
+}
+
+fn find_overhang_inner(tilings: &[Vec<EnumTile>], in_inside: &[bool], sz: usize) -> Vec<usize> {
+    if tilings.is_empty() { return Vec::new(); }
+    let n = sz * sz;
+    let mut inter: Option<Vec<bool>> = None;
+    for tiling in tilings {
+        let mut outside = vec![false; n];
+        for tile in tiling {
+            for &k in &tile.all_cells { if !in_inside[k] { outside[k] = true; } }
+        }
+        match inter {
+            None => inter = Some(outside),
+            Some(ref mut prev) => { for k in 0..n { prev[k] &= outside[k]; } }
+        }
+    }
+    let inter = inter.unwrap_or_else(|| vec![false; n]);
+    (0..n).filter(|&k| inter[k]).collect()
+}
+
+
+fn get_solve_status(s: &SolverState) -> u8 {
+    let sz = s.sz;
+    let mut solved = true;
+    for r in 0..sz {
+        for c in 0..sz {
+            if s.cells[r*sz+c] == 1 {
+                for dr in -1i32..=1 { for dc in -1i32..=1 {
+                    if dr == 0 && dc == 0 { continue; }
+                    let nr = r as i32 + dr; let nc = c as i32 + dc;
+                    if nr >= 0 && nr < sz as i32 && nc >= 0 && nc < sz as i32 {
+                        if s.cells[nr as usize * sz + nc as usize] == 1 { return 2; }
+                    }
+                }}
+            }
+        }
+        if s.row_stars[r] + s.row_unk[r].len() < s.stars || s.col_stars[r] + s.col_unk[r].len() < s.stars { return 2; }
+        if s.row_stars[r] != s.stars || s.col_stars[r] != s.stars { solved = false; }
+    }
+    for region in &s.regions {
+        if region.needed + region.unknown.len() < region.unknown.len() + region.needed {
+            // can't underflow, handled below
+        }
+        let placed = s.stars - region.needed;
+        if placed + region.unknown.len() < s.stars { return 2; }
+        if region.needed != 0 { solved = false; }
+    }
+    if solved { 1 } else { 0 }
+}
+
+fn is_valid_board(grid: &[i32], sz: usize, stars: usize) -> bool {
+    if sz == 0 || stars == 0 { return false; }
+    let min_size = if stars > 1 { stars * 2 - 1 } else { 1 };
+    let mut counts = vec![0usize; sz];
+    for &v in grid {
+        let id = v as usize;
+        if id >= sz { return false; }
+        counts[id] += 1;
+    }
+    if counts.iter().any(|&c| c == 0 || c < min_size) { return false; }
+    true
+}
+
+// ── Rules 1–3 ─────────────────────────────────────────────────────────────────
+
+fn rule_star_neighbors(s: &mut SolverState) -> bool {
+    let sz = s.sz;
+    let mut to_mark: Vec<usize> = Vec::new();
+    for r in 0..sz { for c in 0..sz {
+        if s.cells[r*sz+c] != 1 { continue; }
+        for dr in -1i32..=1 { for dc in -1i32..=1 {
+            if dr == 0 && dc == 0 { continue; }
+            let nr = r as i32 + dr; let nc = c as i32 + dc;
+            if nr >= 0 && nr < sz as i32 && nc >= 0 && nc < sz as i32 {
+                let k = nr as usize * sz + nc as usize;
+                if s.cells[k] == 0 { to_mark.push(k); }
+            }
+        }}
+    }}
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+fn rule_forced_placement(s: &mut SolverState, axis: bool) -> bool {
+    let sz = s.sz;
+    let lines = if axis { &s.row_unk } else { &s.col_unk };
+    let stars = if axis { &s.row_stars } else { &s.col_stars };
+    for i in 0..sz {
+        let needed = s.stars.saturating_sub(stars[i]);
+        if needed == 0 || lines[i].len() != needed { continue; }
+        let keys = lines[i].clone();
+        for k in keys { s.cells[k] = 1; }
+        return true;
+    }
+    false
+}
+
+fn rule_forced_region(s: &mut SolverState) -> bool {
+    for id in 0..s.regions.len() {
+        let needed = s.regions[id].needed;
+        if needed == 0 || s.regions[id].unknown.len() != needed { continue; }
+        let keys = s.regions[id].unknown.clone();
+        for k in keys { s.cells[k] = 1; }
+        return true;
+    }
+    false
+}
+
+fn rule_trivial_marks(s: &mut SolverState, axis: bool) -> bool {
+    let sz = s.sz;
+    let stars = if axis { &s.row_stars } else { &s.col_stars };
+    let mut to_mark: Vec<usize> = Vec::new();
+    for i in 0..sz {
+        if stars[i] == s.stars {
+            let unk = if axis { &s.row_unk[i] } else { &s.col_unk[i] };
+            for &k in unk { if s.cells[k] == 0 { to_mark.push(k); } }
+        }
+    }
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+fn rule_trivial_region(s: &mut SolverState) -> bool {
+    let mut to_mark: Vec<usize> = Vec::new();
+    for region in &s.regions {
+        if region.needed == 0 {
+            for &k in &region.unknown { if s.cells[k] == 0 { to_mark.push(k); } }
+        }
+    }
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+// ── Rules 4–5 ─────────────────────────────────────────────────────────────────
+
+fn rule_tiling_forced_line(s: &mut SolverState, axis: bool) -> bool {
+    let sz = s.sz;
+    for i in 0..sz {
+        let needed = s.stars.saturating_sub(if axis { s.row_stars[i] } else { s.col_stars[i] });
+        if needed == 0 { continue; }
+        let keys: Vec<usize> = if axis { s.row_unk[i].clone() } else { s.col_unk[i].clone() };
+        if keys.is_empty() { continue; }
+        let ct = get_tiling(sz, &keys);
+        if ct.capacity != needed { continue; }
+        for (r, c) in &ct.forced {
+            let k = r * sz + c;
+            if s.cells[k] == 0 { s.cells[k] = 1; return true; }
+        }
+    }
+    false
+}
+
+fn rule_tiling_forced_region(s: &mut SolverState) -> bool {
+    let sz = s.sz;
+    for id in 0..s.regions.len() {
+        let needed = s.regions[id].needed;
+        if needed == 0 { continue; }
+        let keys = s.regions[id].unknown.clone();
+        let ct = get_tiling(sz, &keys);
+        if ct.capacity != needed { continue; }
+        for (r, c) in &ct.forced {
+            let k = r * sz + c;
+            if s.cells[k] == 0 { s.cells[k] = 1; return true; }
+        }
+    }
+    false
+}
+
+fn rule_tiling_adjacency_marks(s: &mut SolverState) -> bool {
+    let sz = s.sz;
+    let mut to_mark: Vec<usize> = Vec::new();
+    for id in 0..s.regions.len() {
+        let needed = s.regions[id].needed;
+        if needed == 0 { continue; }
+        let keys = s.regions[id].unknown.clone();
+        let ct = get_tiling(sz, &keys);
+        if ct.capacity != needed || ct.num_tilings == 0 { continue; }
+        let tilings = parse_enum_tilings(&ct.tilings_flat, sz);
+        if tilings.is_empty() { continue; }
+        let mut in_inside = vec![false; sz*sz];
+        for &k in &keys { in_inside[k] = true; }
+        let valid = collect_valid_keys_inner(&tilings, &in_inside, &s.cells, sz);
+        for &k in &keys {
+            if !valid[k] && s.cells[k] == 0 { to_mark.push(k); }
+        }
+    }
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+fn rule_tiling_overhang_marks(s: &mut SolverState) -> bool {
+    let sz = s.sz;
+    let mut to_mark: Vec<usize> = Vec::new();
+    for id in 0..s.regions.len() {
+        let needed = s.regions[id].needed;
+        if needed == 0 { continue; }
+        let keys = s.regions[id].unknown.clone();
+        let ct = get_tiling(sz, &keys);
+        if ct.capacity != needed { continue; }
+        if ct.num_tilings == 0 { continue; }
+        let tilings = parse_enum_tilings(&ct.tilings_flat, sz);
+        if tilings.is_empty() { continue; }
+        let mut in_inside = vec![false; sz*sz];
+        for &k in &keys { in_inside[k] = true; }
+        let active: Vec<Vec<EnumTile>> = tilings.iter().filter(|tiling| {
+            tiling.iter().any(|tile| tile.all_cells.iter().any(|&k| !in_inside[k] && s.cells[k] == 0))
+        }).cloned().collect();
+        if active.is_empty() { continue; }
+        for k in find_overhang_inner(&active, &in_inside, sz) {
+            if s.cells[k] == 0 { to_mark.push(k); }
+        }
+    }
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+fn rule_counting_mark(s: &mut SolverState, axis: bool) -> bool {
+    let sz = s.sz;
+    let flow = get_counting(s, axis);
+    if !flow.feasible { return false; }
+    let mut to_mark: Vec<usize> = Vec::new();
+    for ts in &flow.tight_sets {
+        for contrib in &ts.contribs {
+            if contrib.max_contrib != contrib.stars_needed { continue; }
+            for &k in &contrib.coords {
+                let line = if axis { k / sz } else { k % sz };
+                if (ts.mask >> line) & 1 == 0 && s.cells[k] == 0 {
+                    to_mark.push(k);
+                }
+            }
+        }
+    }
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+// ── Rules 6–7 ─────────────────────────────────────────────────────────────────
+
+fn squeeze_pair_keys(s: &SolverState, axis: bool, i: usize) -> (Vec<usize>, usize) {
+    let sz = s.sz;
+    let mut pair_keys: Vec<usize> = Vec::new();
+    let mut existing_stars = 0usize;
+    for j in 0..sz {
+        let (r0, c0, r1, c1) = if axis { (i, j, i+1, j) } else { (j, i, j, i+1) };
+        let k0 = r0*sz+c0; let k1 = r1*sz+c1;
+        if s.cells[k0] == 0 { pair_keys.push(k0); }
+        if s.cells[k1] == 0 { pair_keys.push(k1); }
+        if s.cells[k0] == 1 { existing_stars += 1; }
+        if s.cells[k1] == 1 { existing_stars += 1; }
+    }
+    let needed = (s.stars * 2).saturating_sub(existing_stars);
+    (pair_keys, needed)
+}
+
+fn rule_tiling_pair_forced(s: &mut SolverState, axis: bool) -> bool {
+    let sz = s.sz;
+    for i in 0..sz.saturating_sub(1) {
+        let (pair_keys, needed) = squeeze_pair_keys(s, axis, i);
+        if pair_keys.is_empty() || needed == 0 { continue; }
+        let ct = get_tiling(sz, &pair_keys);
+        if ct.capacity != needed { continue; }
+        for (r, c) in &ct.forced {
+            let k = r*sz+c;
+            if s.cells[k] == 0 { s.cells[k] = 1; return true; }
+        }
+    }
+    false
+}
+
+fn rule_tiling_pair_adjacency(s: &mut SolverState, axis: bool) -> bool {
+    let sz = s.sz;
+    let mut to_mark: Vec<usize> = Vec::new();
+    for i in 0..sz.saturating_sub(1) {
+        let (pair_keys, needed) = squeeze_pair_keys(s, axis, i);
+        if pair_keys.is_empty() || needed == 0 { continue; }
+        let ct = get_tiling(sz, &pair_keys);
+        if ct.capacity != needed || ct.num_tilings == 0 { continue; }
+        let tilings = parse_enum_tilings(&ct.tilings_flat, sz);
+        if tilings.is_empty() { continue; }
+        let mut in_pair = vec![false; sz*sz];
+        for &k in &pair_keys { in_pair[k] = true; }
+        let valid = collect_valid_keys_inner(&tilings, &in_pair, &s.cells, sz);
+        for &k in &pair_keys {
+            if !valid[k] && s.cells[k] == 0 { to_mark.push(k); }
+        }
+    }
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+fn rule_tiling_pair_overhang(s: &mut SolverState, axis: bool) -> bool {
+    let sz = s.sz;
+    let mut to_mark: Vec<usize> = Vec::new();
+    for i in 0..sz.saturating_sub(1) {
+        let (pair_keys, needed) = squeeze_pair_keys(s, axis, i);
+        if pair_keys.is_empty() || needed == 0 { continue; }
+        let ct = get_tiling(sz, &pair_keys);
+        if ct.capacity != needed || ct.num_tilings == 0 { continue; }
+        let tilings = parse_enum_tilings(&ct.tilings_flat, sz);
+        if tilings.is_empty() { continue; }
+        let mut in_pair = vec![false; sz*sz];
+        for &k in &pair_keys { in_pair[k] = true; }
+        let active: Vec<Vec<EnumTile>> = tilings.iter().filter(|tiling| {
+            tiling.iter().any(|tile| tile.all_cells.iter().any(|&k| !in_pair[k] && s.cells[k] == 0))
+        }).cloned().collect();
+        if active.is_empty() { continue; }
+        for k in find_overhang_inner(&active, &in_pair, sz) {
+            if s.cells[k] == 0 { to_mark.push(k); }
+        }
+    }
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+struct TcEntry { reg_id: usize, axis_mask: u32, unknown: Vec<usize> }
+
+fn build_tc_entries(s: &SolverState, axis: bool) -> Vec<TcEntry> {
+    let sz = s.sz;
+    s.regions.iter().enumerate().filter_map(|(id, region)| {
+        if region.needed == 0 { return None; }
+        let mut axis_mask = 0u32;
+        for &k in &region.unknown { axis_mask |= 1u32 << (if axis { k/sz } else { k%sz }); }
+        Some(TcEntry { reg_id: id, axis_mask, unknown: region.unknown.clone() })
+    }).collect()
+}
+
+fn tc_line_needed(s: &SolverState, axis: bool) -> Vec<usize> {
+    let sz = s.sz;
+    (0..sz).map(|i| s.stars.saturating_sub(if axis { s.row_stars[i] } else { s.col_stars[i] })).collect()
+}
+
+fn rule_tiling_counting_mark(s: &mut SolverState, axis: bool, min_group: usize, max_group: usize) -> bool {
+    let sz = s.sz;
+    let entries = build_tc_entries(s, axis);
+    let line_needed = tc_line_needed(s, axis);
+    let mut combo = vec![0usize; max_group];
+    let mut to_mark: Vec<usize> = Vec::new();
+
+    'outer: for group_size in min_group..=max_group.min(sz) {
+        for j in 0..group_size { combo[j] = j; }
+        loop {
+            let mut mask = 0u32;
+            let mut total_needed = 0usize;
+            for j in 0..group_size { mask |= 1u32 << combo[j]; total_needed += line_needed[combo[j]]; }
+            if total_needed > 0 {
+                let mut total_min = 0usize;
+                let mut entry_mins: Vec<(usize, usize)> = Vec::new(); // (reg_id, min_contrib)
+                let mut exceeded = false;
+                for e in &entries {
+                    if e.axis_mask & mask == 0 { continue; }
+                    let outside: Vec<usize> = e.unknown.iter().filter(|&&k| {
+                        let line = if axis { k/sz } else { k%sz };
+                        (mask >> line) & 1 == 0
+                    }).copied().collect();
+                    let cap_outside = if outside.is_empty() { 0 } else { get_tiling(sz, &outside).capacity };
+                    let min_contrib = s.regions[e.reg_id].needed.saturating_sub(cap_outside);
+                    total_min += min_contrib;
+                    entry_mins.push((e.reg_id, min_contrib));
+                    if total_min > total_needed { exceeded = true; break; }
+                }
+                if !exceeded && total_min == total_needed {
+                    for (reg_id, min_contrib) in &entry_mins {
+                        if *min_contrib != 0 { continue; }
+                        for &k in &s.regions[*reg_id].unknown {
+                            let line = if axis { k/sz } else { k%sz };
+                            if (mask >> line) & 1 != 0 && s.cells[k] == 0 { to_mark.push(k); }
+                        }
+                    }
+                    if !to_mark.is_empty() { break 'outer; }
+                }
+            }
+            let mut j = group_size as i32 - 1;
+            while j >= 0 && combo[j as usize] == sz - group_size + j as usize { j -= 1; }
+            if j < 0 { break; }
+            combo[j as usize] += 1;
+            for p in (j as usize + 1)..group_size { combo[p] = combo[p-1] + 1; }
+        }
+    }
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+fn rule_tiling_counting_forced(s: &mut SolverState, axis: bool) -> bool {
+    let sz = s.sz;
+    let entries = build_tc_entries(s, axis);
+    let line_needed = tc_line_needed(s, axis);
+    let mut combo = [0usize; 1];
+    let mut to_star: Vec<usize> = Vec::new();
+
+    'outer: for i in 0..sz {
+        combo[0] = i;
+        let mask = 1u32 << i;
+        let total_needed = line_needed[i];
+        if total_needed == 0 { continue; }
+        let mut total_min = 0usize;
+        let mut entry_mins: Vec<(usize, usize)> = Vec::new();
+        let mut exceeded = false;
+        for e in &entries {
+            if e.axis_mask & mask == 0 { continue; }
+            let outside: Vec<usize> = e.unknown.iter().filter(|&&k| {
+                let line = if axis { k/sz } else { k%sz };
+                (mask >> line) & 1 == 0
+            }).copied().collect();
+            let cap_outside = if outside.is_empty() { 0 } else { get_tiling(sz, &outside).capacity };
+            let min_contrib = s.regions[e.reg_id].needed.saturating_sub(cap_outside);
+            total_min += min_contrib;
+            entry_mins.push((e.reg_id, min_contrib));
+            if total_min > total_needed { exceeded = true; break; }
+        }
+        if !exceeded && total_min == total_needed {
+            for (reg_id, min_contrib) in &entry_mins {
+                let stars_outside = s.regions[*reg_id].needed.saturating_sub(*min_contrib);
+                if stars_outside == 0 { continue; }
+                let outside_unk: Vec<usize> = s.regions[*reg_id].unknown.iter().filter(|&&k| {
+                    let line = if axis { k/sz } else { k%sz };
+                    (mask >> line) & 1 == 0 && s.cells[k] == 0
+                }).copied().collect();
+                if outside_unk.len() != stars_outside { continue; }
+                to_star.extend_from_slice(&outside_unk);
+                if !to_star.is_empty() { break 'outer; }
+            }
+        }
+    }
+    if to_star.is_empty() { return false; }
+    for k in to_star { s.cells[k] = 1; }
+    true
+}
+
+// ── Hypotheticals ─────────────────────────────────────────────────────────────
+
+struct HypState {
+    violation: u8,   // 0=none 1=adjacency 2=row 3=col 4=region
+    star_keys: Vec<bool>,
+    marked:    Vec<bool>,
+}
+
+fn mark_neighbors_in_hyp(hs: &mut HypState, r: usize, c: usize, sz: usize) {
+    for dr in -1i32..=1 { for dc in -1i32..=1 {
+        let nr = r as i32 + dr; let nc = c as i32 + dc;
+        if nr >= 0 && nr < sz as i32 && nc >= 0 && nc < sz as i32 {
+            hs.marked[nr as usize * sz + nc as usize] = true;
+        }
+    }}
+}
+
+fn scan_board_hyp(s: &SolverState, hs: &mut HypState) -> (u8, Vec<usize>) {
+    let sz = s.sz;
+    let mut forced: Vec<usize> = Vec::new();
+    let mut seen = hs.star_keys.clone();
+
+    // rows
+    for r in 0..sz {
+        let mut stars = 0usize;
+        let mut unknowns: Vec<usize> = Vec::new();
+        for c in 0..sz {
+            let k = r*sz+c;
+            if s.cells[k] == 1 || hs.star_keys[k] { stars += 1; }
+            else if s.cells[k] == 0 && !hs.marked[k] { unknowns.push(k); }
+        }
+        if stars > s.stars { return (2, vec![]); }
+        let needed = s.stars - stars;
+        if needed == 0 { for &k in &unknowns { hs.marked[k] = true; } }
+        else if unknowns.len() < needed { return (2, vec![]); }
+        else if unknowns.len() == needed {
+            for &k in &unknowns { if !seen[k] { seen[k] = true; forced.push(k); } }
+        }
+    }
+    // cols
+    for c in 0..sz {
+        let mut stars = 0usize;
+        let mut unknowns: Vec<usize> = Vec::new();
+        for r in 0..sz {
+            let k = r*sz+c;
+            if s.cells[k] == 1 || hs.star_keys[k] { stars += 1; }
+            else if s.cells[k] == 0 && !hs.marked[k] { unknowns.push(k); }
+        }
+        if stars > s.stars { return (3, vec![]); }
+        let needed = s.stars - stars;
+        if needed == 0 { for &k in &unknowns { hs.marked[k] = true; } }
+        else if unknowns.len() < needed { return (3, vec![]); }
+        else if unknowns.len() == needed {
+            for &k in &unknowns { if !seen[k] { seen[k] = true; forced.push(k); } }
+        }
+    }
+    // regions
+    for (id, region) in s.regions.iter().enumerate() {
+        let mut extra_stars = 0usize;
+        let mut unknowns: Vec<usize> = Vec::new();
+        for &k in &region.unknown {
+            if hs.star_keys[k] { extra_stars += 1; }
+            else if !hs.marked[k] { unknowns.push(k); }
+        }
+        if extra_stars > region.needed { return (4, vec![]); }
+        let needed = region.needed - extra_stars;
+        if needed == 0 { for &k in &unknowns { hs.marked[k] = true; } }
+        else if unknowns.len() < needed { return (4, vec![]); }
+        else if unknowns.len() == needed {
+            for &k in &unknowns { if !seen[k] { seen[k] = true; forced.push(k); } }
+        }
+        let _ = id;
+    }
+    (0, forced)
+}
+
+fn propagate_hypothetical(s: &SolverState, row: usize, col: usize) -> HypState {
+    let sz = s.sz;
+    let k0 = row*sz+col;
+    let mut hs = HypState {
+        violation: 0,
+        star_keys: vec![false; sz*sz],
+        marked:    vec![false; sz*sz],
+    };
+    hs.star_keys[k0] = true;
+    mark_neighbors_in_hyp(&mut hs, row, col, sz);
+
+    for _ in 0..sz*s.stars {
+        let (viol, forced) = scan_board_hyp(s, &mut hs);
+        if viol != 0 { hs.violation = viol; return hs; }
+        if forced.is_empty() { break; }
+        for fk in forced {
+            let fr = fk/sz; let fc = fk%sz;
+            for (sk, &is_star) in hs.star_keys.iter().enumerate() {
+                if !is_star { continue; }
+                let sr = sk/sz; let sc = sk%sz;
+                if (fr as i32 - sr as i32).abs() <= 1 && (fc as i32 - sc as i32).abs() <= 1 {
+                    hs.violation = 1; return hs;
+                }
+            }
+            hs.star_keys[fk] = true;
+            mark_neighbors_in_hyp(&mut hs, fr, fc, sz);
+        }
+    }
+    hs
+}
+
+fn simple_hyp_state(sz: usize, row: usize, col: usize) -> HypState {
+    let mut hs = HypState { violation: 0, star_keys: vec![false; sz*sz], marked: vec![false; sz*sz] };
+    hs.star_keys[row*sz+col] = true;
+    for dr in -1i32..=1 { for dc in -1i32..=1 {
+        let nr = row as i32+dr; let nc = col as i32+dc;
+        if nr >= 0 && nr < sz as i32 && nc >= 0 && nc < sz as i32 {
+            hs.marked[nr as usize*sz+nc as usize] = true;
+        }
+    }}
+    hs
+}
+
+fn propagated_counting_violation(s: &SolverState, hs: &HypState, axis: bool) -> bool {
+    let sz = s.sz;
+    let axis_stars = if axis { &s.row_stars } else { &s.col_stars };
+    let mut hyp_per_axis = vec![0i32; sz];
+    let mut hyp_per_region = vec![0i32; sz];
+    for (k, &is_star) in hs.star_keys.iter().enumerate() {
+        if !is_star { continue; }
+        let (r, c) = (k/sz, k%sz);
+        hyp_per_axis[if axis { r } else { c }] += 1;
+        hyp_per_region[s.grid[k] as usize] += 1;
+    }
+    let axis_needed: Vec<i32> = (0..sz).map(|i| (s.stars as i32) - (axis_stars[i] as i32) - hyp_per_axis[i]).collect();
+    let mut region_stars_needed: Vec<i32> = Vec::new();
+    let mut unknowns_by_axis_flat: Vec<i32> = Vec::new();
+    for (reg_id, region) in s.regions.iter().enumerate() {
+        let needed = region.needed as i32 - hyp_per_region[reg_id];
+        if needed <= 0 { continue; }
+        let mut uby = vec![0i32; sz];
+        let mut total = 0i32;
+        for &k in &region.unknown {
+            if hs.star_keys[k] || hs.marked[k] { continue; }
+            uby[if axis { k/sz } else { k%sz }] += 1;
+            total += 1;
+        }
+        if total < needed { return true; }
+        region_stars_needed.push(needed);
+        unknowns_by_axis_flat.extend_from_slice(&uby);
+    }
+    has_counting_violation_inner(sz, &axis_needed, &region_stars_needed, &unknowns_by_axis_flat)
+}
+
+// ── Rules 8–11 ────────────────────────────────────────────────────────────────
+
+fn rule_hyp_count(s: &mut SolverState, axis: bool) -> bool {
+    let sz = s.sz;
+    let mut to_mark: Vec<usize> = Vec::new();
+    for row in 0..sz { for col in 0..sz {
+        if s.cells[row*sz+col] != 0 { continue; }
+        let hs = simple_hyp_state(sz, row, col);
+        let idx = if axis { row } else { col };
+        let mut violated = false;
+        'check: for i in idx.saturating_sub(1)..=(idx+1).min(sz-1) {
+            let mut stars = 0usize; let mut remaining = 0usize;
+            for j in 0..sz {
+                let (r, c) = if axis { (i, j) } else { (j, i) };
+                let k = r*sz+c;
+                if s.cells[k] == 1 || hs.star_keys[k] { stars += 1; }
+                else if s.cells[k] == 0 && !hs.marked[k] { remaining += 1; }
+            }
+            if stars > s.stars { violated = true; break 'check; }
+            let needed = s.stars - stars;
+            if needed > 0 && remaining < needed { violated = true; break 'check; }
+        }
+        if violated { to_mark.push(row*sz+col); }
+    }}
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+fn rule_hyp_region_count(s: &mut SolverState) -> bool {
+    let sz = s.sz;
+    let mut to_mark: Vec<usize> = Vec::new();
+    for row in 0..sz { for col in 0..sz {
+        if s.cells[row*sz+col] != 0 { continue; }
+        let hs = simple_hyp_state(sz, row, col);
+        let mut affected: Vec<usize> = Vec::new();
+        affected.push(s.grid[row*sz+col] as usize);
+        for dr in -1i32..=1 { for dc in -1i32..=1 {
+            let nr = row as i32+dr; let nc = col as i32+dc;
+            if nr >= 0 && nr < sz as i32 && nc >= 0 && nc < sz as i32 {
+                let reg_id = s.grid[nr as usize*sz+nc as usize] as usize;
+                if !affected.contains(&reg_id) { affected.push(reg_id); }
+            }
+        }}
+        let mut violated = false;
+        'check: for &reg_id in &affected {
+            let region = &s.regions[reg_id];
+            let mut extra_stars = 0usize; let mut remaining = 0usize;
+            for &k in &region.unknown {
+                if hs.star_keys[k] { extra_stars += 1; }
+                else if !hs.marked[k] { remaining += 1; }
+            }
+            if extra_stars > region.needed { violated = true; break 'check; }
+            let needed = region.needed - extra_stars;
+            if needed > 0 && remaining < needed { violated = true; break 'check; }
+        }
+        if violated { to_mark.push(row*sz+col); }
+    }}
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+fn rule_hyp_capacity(s: &mut SolverState, axis: bool) -> bool {
+    let sz = s.sz;
+    let mut to_mark: Vec<usize> = Vec::new();
+    for row in 0..sz { for col in 0..sz {
+        if s.cells[row*sz+col] != 0 { continue; }
+        let hs = simple_hyp_state(sz, row, col);
+        let idx = if axis { row } else { col };
+        let mut violated = false;
+        'check: for i in idx.saturating_sub(1)..=(idx+1).min(sz-1) {
+            let mut stars = 0usize;
+            let mut remaining: Vec<usize> = Vec::new();
+            for j in 0..sz {
+                let (r, c) = if axis { (i, j) } else { (j, i) };
+                let k = r*sz+c;
+                if s.cells[k] == 1 || hs.star_keys[k] { stars += 1; }
+                else if s.cells[k] == 0 && !hs.marked[k] { remaining.push(k); }
+            }
+            if stars > s.stars { violated = true; break 'check; }
+            let needed = s.stars - stars;
+            if needed == 0 { continue; }
+            if remaining.len() < needed { violated = true; break 'check; }
+            if remaining.len() >= needed * 2 { continue; }
+            let ct = get_tiling(sz, &remaining);
+            if ct.capacity < needed { violated = true; break 'check; }
+        }
+        if violated { to_mark.push(row*sz+col); }
+    }}
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+fn rule_hyp_region_capacity(s: &mut SolverState) -> bool {
+    let sz = s.sz;
+    let mut to_mark: Vec<usize> = Vec::new();
+    for row in 0..sz { for col in 0..sz {
+        if s.cells[row*sz+col] != 0 { continue; }
+        let hs = simple_hyp_state(sz, row, col);
+        let mut affected: Vec<usize> = Vec::new();
+        affected.push(s.grid[row*sz+col] as usize);
+        for dr in -1i32..=1 { for dc in -1i32..=1 {
+            let nr = row as i32+dr; let nc = col as i32+dc;
+            if nr >= 0 && nr < sz as i32 && nc >= 0 && nc < sz as i32 {
+                let reg_id = s.grid[nr as usize*sz+nc as usize] as usize;
+                if !affected.contains(&reg_id) { affected.push(reg_id); }
+            }
+        }}
+        let mut violated = false;
+        'check: for &reg_id in &affected {
+            let region = &s.regions[reg_id];
+            let mut extra_stars = 0usize;
+            let mut remaining: Vec<usize> = Vec::new();
+            for &k in &region.unknown {
+                if hs.star_keys[k] { extra_stars += 1; }
+                else if !hs.marked[k] { remaining.push(k); }
+            }
+            if extra_stars > region.needed { violated = true; break 'check; }
+            let needed = region.needed - extra_stars;
+            if needed == 0 { continue; }
+            if remaining.len() < needed { violated = true; break 'check; }
+            if remaining.len() >= needed * 4 { continue; }
+            let ct = get_tiling(sz, &remaining);
+            if ct.capacity < needed { violated = true; break 'check; }
+        }
+        if violated { to_mark.push(row*sz+col); }
+    }}
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+fn rule_hyp_counting(s: &mut SolverState, axis: bool) -> bool {
+    let sz = s.sz;
+    let mut to_mark: Vec<usize> = Vec::new();
+    for row in 0..sz { for col in 0..sz {
+        if s.cells[row*sz+col] != 0 { continue; }
+        let hs = simple_hyp_state(sz, row, col);
+        if propagated_counting_violation(s, &hs, axis) { to_mark.push(row*sz+col); }
+    }}
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+fn rule_prop_count(s: &mut SolverState, axis: bool) -> bool {
+    let sz = s.sz;
+    let mut to_mark: Vec<usize> = Vec::new();
+    for row in 0..sz { for col in 0..sz {
+        if s.cells[row*sz+col] != 0 { continue; }
+        let hs = propagate_hypothetical(s, row, col);
+        let viol = hs.violation;
+        let fires = if axis { viol == 2 || viol == 1 } else { viol == 3 };
+        if fires { to_mark.push(row*sz+col); }
+    }}
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+fn rule_prop_region_count(s: &mut SolverState) -> bool {
+    let sz = s.sz;
+    let mut to_mark: Vec<usize> = Vec::new();
+    for row in 0..sz { for col in 0..sz {
+        if s.cells[row*sz+col] != 0 { continue; }
+        let hs = propagate_hypothetical(s, row, col);
+        if hs.violation == 4 { to_mark.push(row*sz+col); }
+    }}
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+fn rule_prop_capacity(s: &mut SolverState, axis: bool) -> bool {
+    let sz = s.sz;
+    let mut to_mark: Vec<usize> = Vec::new();
+    for row in 0..sz { for col in 0..sz {
+        if s.cells[row*sz+col] != 0 { continue; }
+        let hs = propagate_hypothetical(s, row, col);
+        if hs.violation != 0 { continue; }
+        let mut violated = false;
+        'check: for i in 0..sz {
+            let mut stars = 0usize;
+            let mut remaining: Vec<usize> = Vec::new();
+            for j in 0..sz {
+                let (r, c) = if axis { (i, j) } else { (j, i) };
+                let k = r*sz+c;
+                if s.cells[k] == 1 || hs.star_keys[k] { stars += 1; }
+                else if s.cells[k] == 0 && !hs.marked[k] { remaining.push(k); }
+            }
+            if stars > s.stars { violated = true; break 'check; }
+            let needed = s.stars - stars;
+            if needed == 0 { continue; }
+            if remaining.len() < needed { violated = true; break 'check; }
+            if remaining.len() >= needed * 2 { continue; }
+            let ct = get_tiling(sz, &remaining);
+            if ct.capacity < needed { violated = true; break 'check; }
+        }
+        if violated { to_mark.push(row*sz+col); }
+    }}
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+fn rule_prop_region_capacity(s: &mut SolverState) -> bool {
+    let sz = s.sz;
+    let mut to_mark: Vec<usize> = Vec::new();
+    for row in 0..sz { for col in 0..sz {
+        if s.cells[row*sz+col] != 0 { continue; }
+        let hs = propagate_hypothetical(s, row, col);
+        if hs.violation != 0 { continue; }
+        let mut violated = false;
+        'check: for region in &s.regions {
+            let mut extra_stars = 0usize;
+            let mut remaining: Vec<usize> = Vec::new();
+            for &k in &region.unknown {
+                if hs.star_keys[k] { extra_stars += 1; }
+                else if !hs.marked[k] { remaining.push(k); }
+            }
+            if extra_stars > region.needed { violated = true; break 'check; }
+            let needed = region.needed - extra_stars;
+            if needed == 0 { continue; }
+            if remaining.len() < needed { violated = true; break 'check; }
+            if remaining.len() >= needed * 4 { continue; }
+            let ct = get_tiling(sz, &remaining);
+            if ct.capacity < needed { violated = true; break 'check; }
+        }
+        if violated { to_mark.push(row*sz+col); }
+    }}
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+fn rule_prop_counting(s: &mut SolverState, axis: bool) -> bool {
+    let sz = s.sz;
+    let mut to_mark: Vec<usize> = Vec::new();
+    for row in 0..sz { for col in 0..sz {
+        if s.cells[row*sz+col] != 0 { continue; }
+        let hs = propagate_hypothetical(s, row, col);
+        if hs.violation != 0 { continue; }
+        if propagated_counting_violation(s, &hs, axis) { to_mark.push(row*sz+col); }
+    }}
+    if to_mark.is_empty() { return false; }
+    for k in to_mark { s.cells[k] = 2; }
+    true
+}
+
+// ── Main solver loop ──────────────────────────────────────────────────────────
+
+fn apply_next_rule(s: &mut SolverState) -> usize {
+    if rule_star_neighbors(s)                          { return 1; }
+    if rule_forced_placement(s, true)                  { return 2; }
+    if rule_forced_placement(s, false)                 { return 2; }
+    if rule_forced_region(s)                           { return 2; }
+    if rule_trivial_marks(s, true)                     { return 3; }
+    if rule_trivial_marks(s, false)                    { return 3; }
+    if rule_trivial_region(s)                          { return 3; }
+    if rule_tiling_forced_line(s, true)                { return 4; }
+    if rule_tiling_forced_line(s, false)               { return 4; }
+    if rule_tiling_forced_region(s)                    { return 4; }
+    if rule_tiling_adjacency_marks(s)                  { return 4; }
+    if rule_tiling_overhang_marks(s)                   { return 4; }
+    if rule_counting_mark(s, true)                     { return 5; }
+    if rule_counting_mark(s, false)                    { return 5; }
+    if rule_tiling_pair_forced(s, true)                { return 6; }
+    if rule_tiling_pair_forced(s, false)               { return 6; }
+    if rule_tiling_pair_adjacency(s, true)             { return 6; }
+    if rule_tiling_pair_adjacency(s, false)            { return 6; }
+    if rule_tiling_pair_overhang(s, true)              { return 6; }
+    if rule_tiling_pair_overhang(s, false)             { return 6; }
+    if rule_tiling_counting_mark(s, true,  1, 1)       { return 7; }
+    if rule_tiling_counting_mark(s, false, 1, 1)       { return 7; }
+    if rule_tiling_counting_forced(s, true)            { return 7; }
+    if rule_tiling_counting_forced(s, false)           { return 7; }
+    if rule_tiling_counting_mark(s, true,  2, 4)       { return 7; }
+    if rule_tiling_counting_mark(s, false, 2, 4)       { return 7; }
+    if rule_hyp_count(s, true)                         { return 8; }
+    if rule_hyp_count(s, false)                        { return 8; }
+    if rule_hyp_region_count(s)                        { return 8; }
+    if rule_hyp_capacity(s, true)                      { return 9; }
+    if rule_hyp_capacity(s, false)                     { return 9; }
+    if rule_hyp_region_capacity(s)                     { return 9; }
+    if rule_hyp_counting(s, true)                      { return 10; }
+    if rule_hyp_counting(s, false)                     { return 10; }
+    if rule_prop_count(s, true)                        { return 11; }
+    if rule_prop_count(s, false)                       { return 11; }
+    if rule_prop_region_count(s)                       { return 11; }
+    if rule_prop_capacity(s, true)                     { return 11; }
+    if rule_prop_capacity(s, false)                    { return 11; }
+    if rule_prop_region_capacity(s)                    { return 11; }
+    if rule_prop_counting(s, true)                     { return 11; }
+    if rule_prop_counting(s, false)                    { return 11; }
+    0
+}
+
+/// Solve a star-battle board entirely in Rust.
+/// Returns [0] on failure, [1, maxLevel, cycles, c00, c01, ...] on success.
+/// c values: 0=unknown, 1=star, 2=marked.
+#[wasm_bindgen]
+pub fn solve_board(grid_flat: &[i32], size: u32, stars: u32) -> Vec<i32> {
+    let sz = size as usize;
+    let st = stars as usize;
+    if !is_valid_board(grid_flat, sz, st) { return vec![0]; }
+
+    let mut s = SolverState::new(grid_flat, sz, st);
+    let mut cycles = 0usize;
+    let mut max_level = 0usize;
+
+    loop {
+        cycles += 1;
+        if cycles > sz * sz * 100 { return vec![0]; } // infinite loop guard
+
+        match get_solve_status(&s) {
+            2 => return vec![0],
+            1 => {
+                let mut out = vec![1i32, max_level as i32, cycles as i32];
+                out.extend(s.cells.iter().map(|&c| c as i32));
+                return out;
+            }
+            _ => {}
+        }
+
+        let snap = s.snapshot();
+        let level = apply_next_rule(&mut s);
+        if level == 0 { return vec![0]; }
+        max_level = max_level.max(level);
+        let changed = s.diff(&snap);
+        s.apply_delta(&changed);
+    }
 }

@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module';
 import { Board, CellState, Coord, Progress, SolverResult, TilingResult } from "./helpers/types";
 import {
   buildBoardStructure,
@@ -6,6 +7,11 @@ import {
 } from "./helpers/boardAnalysis";
 import { neighbors } from "./helpers/neighbors";
 import { allRules } from "./rules";
+
+const _req = createRequire(import.meta.url);
+const wasmSolver = _req('../pkg/dlx.js') as {
+  solve_board(gridFlat: Int32Array, size: number, stars: number): Int32Array;
+};
 
 export { RULE_METADATA } from "./rules";
 
@@ -95,6 +101,26 @@ export function solve(
   options: SolveOptions = {},
 ): SolverResult | null {
   if (!isValidBoard(boardDef)) return null;
+
+  // Fast Rust path when no step callback needed
+  if (!options.onStep) {
+    const size = boardDef.grid.length;
+    const gridFlat = new Int32Array(size * size);
+    for (let r = 0; r < size; r++)
+      for (let c = 0; c < size; c++)
+        gridFlat[r * size + c] = boardDef.grid[r][c];
+    const flat = wasmSolver.solve_board(gridFlat, size, boardDef.stars);
+    if (flat[0] === 0) return null;
+    const maxLevel = flat[1];
+    const cycles   = flat[2];
+    const cells: CellState[][] = Array.from({ length: size }, (_, r) =>
+      Array.from({ length: size }, (_, c) => {
+        const v = flat[3 + r * size + c];
+        return v === 1 ? 'star' : v === 2 ? 'marked' : 'unknown';
+      })
+    );
+    return { cells, cycles, maxLevel };
+  }
 
   const size = boardDef.grid.length;
   const cells: CellState[][] = Array.from({ length: size }, () =>
