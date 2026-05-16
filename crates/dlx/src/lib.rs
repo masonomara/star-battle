@@ -723,3 +723,129 @@ pub fn compute_counting_flow(
     }
     out
 }
+
+// ── Tiling ────────────────────────────────────────────────────────────────────
+
+/// Compute a 2×2 tiling of the given cells.
+/// Input:  coords_flat = [r0,c0, r1,c1, ...], grid_size
+/// Output: [capacity, num_tilings,
+///            for each tiling: num_tiles,
+///              for each tile: ar, ac, num_covered, r0,c0, ...
+///          , num_forced, r0,c0, ...]
+/// Falls back to [n, 0, 0] when no exact cover exists.
+#[wasm_bindgen]
+pub fn compute_tiling(coords_flat: &[i32], grid_size: u32) -> Vec<i32> {
+    let gs = grid_size as usize;
+    let n  = coords_flat.len() / 2;
+    if n == 0 { return vec![0, 1, 0, 0]; }
+
+    let cells: Vec<(usize, usize)> = (0..n)
+        .map(|i| (coords_flat[i * 2] as usize, coords_flat[i * 2 + 1] as usize))
+        .collect();
+
+    let mut cell_to_idx = vec![-1i32; gs * gs];
+    for (i, &(r, c)) in cells.iter().enumerate() {
+        cell_to_idx[r * gs + c] = i as i32;
+    }
+
+    let max_anchor = gs as i32 - 2;
+    let mut seen_anchors = vec![false; gs * gs];
+    let mut tiles: Vec<(usize, usize, Vec<usize>)> = Vec::new();
+
+    for &(r, c) in &cells {
+        for dr in -1i32..=0 {
+            for dc in -1i32..=0 {
+                let ar = r as i32 + dr;
+                let ac = c as i32 + dc;
+                if ar < 0 || ac < 0 || ar > max_anchor || ac > max_anchor { continue; }
+                let ak = ar as usize * gs + ac as usize;
+                if seen_anchors[ak] { continue; }
+                seen_anchors[ak] = true;
+
+                let covered: Vec<usize> = [
+                    (ar as usize,     ac as usize),
+                    (ar as usize,     ac as usize + 1),
+                    (ar as usize + 1, ac as usize),
+                    (ar as usize + 1, ac as usize + 1),
+                ].iter().filter_map(|&(tr, tc)| {
+                    let idx = cell_to_idx[tr * gs + tc];
+                    if idx >= 0 { Some(idx as usize) } else { None }
+                }).collect();
+
+                if !covered.is_empty() { tiles.push((ar as usize, ac as usize, covered)); }
+            }
+        }
+    }
+
+    if tiles.is_empty() { return vec![n as i32, 0, 0]; }
+
+    // Assign sequential secondary indices to non-primary tile cells
+    let mut secondary_idx = vec![-1i32; gs * gs];
+    let mut num_secondary = 0usize;
+    for &(ar, ac, _) in &tiles {
+        for (tr, tc) in [(ar, ac), (ar, ac + 1), (ar + 1, ac), (ar + 1, ac + 1)] {
+            let k = tr * gs + tc;
+            if cell_to_idx[k] < 0 && secondary_idx[k] < 0 {
+                secondary_idx[k] = num_secondary as i32;
+                num_secondary += 1;
+            }
+        }
+    }
+
+    // Build DLX rows: primary indices (covered cells) then secondary indices (other tile cells)
+    let mut rows_flat:   Vec<i32> = Vec::new();
+    let mut row_offsets: Vec<i32> = Vec::new();
+    for &(ar, ac, ref covered) in &tiles {
+        row_offsets.push(rows_flat.len() as i32);
+        for &ci in covered { rows_flat.push(ci as i32); }
+        for (tr, tc) in [(ar, ac), (ar, ac + 1), (ar + 1, ac), (ar + 1, ac + 1)] {
+            let k  = tr * gs + tc;
+            let si = secondary_idx[k];
+            if si >= 0 { rows_flat.push(n as i32 + si); }
+        }
+    }
+    row_offsets.push(rows_flat.len() as i32);
+
+    let mut dlx     = Dlx::build(n as u32, num_secondary as u32, &rows_flat, &row_offsets);
+    let mut sol     = Vec::new();
+    let mut solutions: Vec<Vec<i32>> = Vec::new();
+    let mut min_len = usize::MAX;
+    dlx.search(&mut sol, &mut solutions, &mut min_len);
+
+    if solutions.is_empty() { return vec![n as i32, 0, 0]; }
+
+    let capacity    = min_len;
+    let num_tilings = solutions.len();
+
+    // Forced: solo (covered.len()==1) in ALL minimal tilings
+    let mut solo_count = vec![0u32; n];
+    for sol in &solutions {
+        for &ti in sol {
+            let covered = &tiles[ti as usize].2;
+            if covered.len() == 1 { solo_count[covered[0]] += 1; }
+        }
+    }
+    let forced: Vec<usize> = (0..n)
+        .filter(|&ci| solo_count[ci] as usize == num_tilings)
+        .collect();
+
+    let mut out = vec![capacity as i32, num_tilings as i32];
+    for sol in &solutions {
+        out.push(sol.len() as i32);
+        for &ti in sol {
+            let (ar, ac, ref covered) = tiles[ti as usize];
+            out.push(ar as i32); out.push(ac as i32);
+            out.push(covered.len() as i32);
+            for &ci in covered {
+                let (r, c) = cells[ci];
+                out.push(r as i32); out.push(c as i32);
+            }
+        }
+    }
+    out.push(forced.len() as i32);
+    for ci in forced {
+        let (r, c) = cells[ci];
+        out.push(r as i32); out.push(c as i32);
+    }
+    out
+}

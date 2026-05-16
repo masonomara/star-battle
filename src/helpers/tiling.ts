@@ -1,115 +1,49 @@
-import { Coord, Tile, TilingResult } from "./types";
-import { dlxSolve } from "./dlx";
+import { createRequire } from 'node:module';
+import { Coord, Tile, TilingResult } from './types';
+
+const _req = createRequire(import.meta.url);
+const wasmTiling = _req('../../pkg/dlx.js') as {
+  compute_tiling(coordsFlat: Int32Array, gridSize: number): Int32Array;
+};
 
 export function computeTiling(cells: Coord[], gridSize: number): TilingResult {
-  if (cells.length === 0) {
-    return { capacity: 0, tilings: [[]], forcedCells: [] };
-  }
+  if (cells.length === 0) return { capacity: 0, tilings: [[]], forcedCells: [] };
+  if (cells.length === 1) return { capacity: 1, tilings: [], forcedCells: [cells[0]] };
 
-  if (cells.length === 1) {
-    return { capacity: 1, tilings: [], forcedCells: [cells[0]] };
-  }
-
-  const cellSet = new Set<number>();
-  const cellToIndex = new Map<number, number>();
+  const coordsFlat = new Int32Array(cells.length * 2);
   for (let i = 0; i < cells.length; i++) {
-    const key = cells[i][0] * gridSize + cells[i][1];
-    cellSet.add(key);
-    cellToIndex.set(key, i);
+    coordsFlat[i * 2]     = cells[i][0];
+    coordsFlat[i * 2 + 1] = cells[i][1];
   }
 
-  const tiles: Tile[] = [];
-  const seenAnchors = new Set<number>();
-  const maxAnchor = gridSize - 2;
+  const flat = wasmTiling.compute_tiling(coordsFlat, gridSize);
+  return parseFlat(flat);
+}
 
-  for (const [r, c] of cells) {
-    for (const dr of [-1, 0]) {
-      for (const dc of [-1, 0]) {
-        const ar = r + dr;
-        const ac = c + dc;
-        if (ar < 0 || ac < 0 || ar > maxAnchor || ac > maxAnchor) continue;
+function parseFlat(flat: Int32Array): TilingResult {
+  let i = 0;
+  const capacity   = flat[i++];
+  const numTimings = flat[i++];
 
-        const anchorKey = ar * gridSize + ac;
-        if (seenAnchors.has(anchorKey)) continue;
-        seenAnchors.add(anchorKey);
-
-        const allCells: Coord[] = [
-          [ar, ac],
-          [ar, ac + 1],
-          [ar + 1, ac],
-          [ar + 1, ac + 1],
-        ];
-        const coveredCells = allCells.filter((tc) =>
-          cellSet.has(tc[0] * gridSize + tc[1]),
-        );
-
-        if (coveredCells.length > 0) {
-          tiles.push({ cells: allCells, coveredCells });
-        }
-      }
+  const tilings: Tile[][] = [];
+  for (let t = 0; t < numTimings; t++) {
+    const numTiles = flat[i++];
+    const tiling: Tile[] = [];
+    for (let ti = 0; ti < numTiles; ti++) {
+      const ar         = flat[i++];
+      const ac         = flat[i++];
+      const numCovered = flat[i++];
+      const coveredCells: Coord[] = [];
+      for (let k = 0; k < numCovered; k++) coveredCells.push([flat[i++], flat[i++]]);
+      const cells: Coord[] = [[ar, ac], [ar, ac + 1], [ar + 1, ac], [ar + 1, ac + 1]];
+      tiling.push({ cells, coveredCells });
     }
+    tilings.push(tiling);
   }
 
-  if (tiles.length === 0) {
-    return { capacity: 0, tilings: [], forcedCells: [] };
-  }
-
-  const secondaryToIndex = new Map<number, number>();
-  for (const tile of tiles) {
-    for (const c of tile.cells) {
-      const key = c[0] * gridSize + c[1];
-      if (!cellToIndex.has(key) && !secondaryToIndex.has(key)) {
-        secondaryToIndex.set(key, secondaryToIndex.size);
-      }
-    }
-  }
-
-  const numPrimary = cells.length;
-  const numSecondary = secondaryToIndex.size;
-
-  const dlxRows: number[][] = tiles.map((tile) => {
-    const row: number[] = [];
-    for (const c of tile.coveredCells) {
-      row.push(cellToIndex.get(c[0] * gridSize + c[1])!);
-    }
-    for (const c of tile.cells) {
-      const key = c[0] * gridSize + c[1];
-      if (!cellToIndex.has(key) && secondaryToIndex.has(key)) {
-        row.push(numPrimary + secondaryToIndex.get(key)!);
-      }
-    }
-    return row;
-  });
-
-  const solutions = dlxSolve(numPrimary, numSecondary, dlxRows);
-
-  if (solutions.length === 0) {
-    // No exact cover exists (e.g. boundary L-shapes). Capacity is unknown;
-    // cells.length is a trivially correct upper bound so callers never
-    // see a false tight constraint or a false violation.
-    return { capacity: cells.length, tilings: [], forcedCells: [] };
-  }
-
-  let capacity = Infinity;
-  for (const s of solutions) {
-    if (s.length < capacity) capacity = s.length;
-  }
-  const minimalSolutions = solutions.filter((s) => s.length === capacity);
-  const tilings = minimalSolutions.map((sol) => sol.map((i) => tiles[i]));
-
-  const soloMaps = tilings.map((tiling) => {
-    const solo = new Set<number>();
-    for (const tile of tiling) {
-      if (tile.coveredCells.length === 1) {
-        const [r, c] = tile.coveredCells[0];
-        solo.add(r * gridSize + c);
-      }
-    }
-    return solo;
-  });
-  const forcedCells: Coord[] = cells.filter(([r, c]) =>
-    soloMaps.every((solo) => solo.has(r * gridSize + c)),
-  );
+  const numForced = flat[i++];
+  const forcedCells: Coord[] = [];
+  for (let k = 0; k < numForced; k++) forcedCells.push([flat[i++], flat[i++]]);
 
   return { capacity, tilings, forcedCells };
 }
