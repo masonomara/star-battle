@@ -1,120 +1,94 @@
-import { CellState, Coord, Tile } from "./types";
-import { cellsAreAdjacent } from "./neighbors";
+import { createRequire } from 'node:module';
+import { CellState, Coord, Tile } from './types';
 
-function enumerateStarAssignments(
-  tiling: Tile[],
-  insideSet: Set<number>,
-  cells: CellState[][],
-  size: number,
-): Coord[][] {
-  const fixed: Coord[] = [];
-  const candidatesPerTile: Coord[][] = [];
+const _req = createRequire(import.meta.url);
+const wasmEnum = _req('../../pkg/dlx.js') as {
+  collect_valid_star_cells(
+    tilingsFlat: Int32Array, insideKeys: Int32Array,
+    cellStates:  Int32Array, size: number,
+  ): Int32Array;
+  find_forced_overhang(
+    tilingsFlat: Int32Array, insideKeys: Int32Array, size: number,
+  ): Int32Array;
+};
 
-  for (const tile of tiling) {
-    const existingStar = tile.coveredCells.find(
-      ([r, c]) => cells[r][c] === "star",
-    );
-    if (existingStar) {
-      fixed.push(existingStar);
-    } else {
-      const candidates = tile.coveredCells.filter(
-        ([r, c]) => insideSet.has(r * size + c) && cells[r][c] === "unknown",
-      );
-      if (candidates.length === 0) return [];
-      candidatesPerTile.push(candidates);
+// ── Encoding helpers ──────────────────────────────────────────────────────────
+
+function encodeTilings(tilings: Tile[][]): Int32Array {
+  let total = 1;
+  for (const tiling of tilings) {
+    total += 1;
+    for (const tile of tiling) total += 3 + tile.coveredCells.length * 2;
+  }
+  const flat = new Int32Array(total);
+  let i = 0;
+  flat[i++] = tilings.length;
+  for (const tiling of tilings) {
+    flat[i++] = tiling.length;
+    for (const tile of tiling) {
+      flat[i++] = tile.cells[0][0]; // ar
+      flat[i++] = tile.cells[0][1]; // ac
+      flat[i++] = tile.coveredCells.length;
+      for (const [r, c] of tile.coveredCells) { flat[i++] = r; flat[i++] = c; }
     }
   }
-
-  for (let i = 0; i < fixed.length; i++) {
-    for (let j = i + 1; j < fixed.length; j++) {
-      if (cellsAreAdjacent(fixed[i], fixed[j])) return [];
-    }
-  }
-
-  let assignments: Coord[][] = [[...fixed]];
-
-  for (const candidates of candidatesPerTile) {
-    const extended: Coord[][] = [];
-    for (const partial of assignments) {
-      for (const cell of candidates) {
-        if (partial.some((p) => cellsAreAdjacent(cell, p))) continue;
-        extended.push([...partial, cell]);
-      }
-    }
-    if (extended.length === 0) return [];
-    assignments = extended;
-  }
-
-  return assignments;
+  return flat;
 }
+
+function encodeCellStates(cells: CellState[][], size: number): Int32Array {
+  const flat = new Int32Array(size * size); // 0 = unknown
+  for (let r = 0; r < size; r++)
+    for (let c = 0; c < size; c++) {
+      if      (cells[r][c] === 'star')   flat[r * size + c] = 1;
+      else if (cells[r][c] === 'marked') flat[r * size + c] = 2;
+    }
+  return flat;
+}
+
+// ── Exports ───────────────────────────────────────────────────────────────────
 
 export function collectValidStarCells(
   allTilings: Tile[][],
-  insideSet: Set<number>,
-  cells: CellState[][],
-  size: number,
+  insideSet:  Set<number>,
+  cells:      CellState[][],
+  size:       number,
 ): Set<number> {
-  const valid = new Set<number>();
-  for (const tiling of allTilings) {
-    for (const assignment of enumerateStarAssignments(tiling, insideSet, cells, size)) {
-      for (const [r, c] of assignment) {
-        valid.add(r * size + c);
-      }
-    }
-  }
-  return valid;
+  if (allTilings.length === 0) return new Set();
+  const flat = wasmEnum.collect_valid_star_cells(
+    encodeTilings(allTilings),
+    Int32Array.from(insideSet),
+    encodeCellStates(cells, size),
+    size,
+  );
+  return new Set(flat);
 }
 
 export function filterActiveTilings(
   allTilings: Tile[][],
-  insideSet: Set<number>,
-  cells: CellState[][],
-  size: number,
+  insideSet:  Set<number>,
+  cells:      CellState[][],
+  size:       number,
 ): Tile[][] {
   return allTilings.filter((tiling) => {
-    for (const tile of tiling) {
-      for (const [r, c] of tile.cells) {
-        if (!insideSet.has(r * size + c) && cells[r][c] === "unknown") {
-          return true;
-        }
-      }
-    }
+    for (const tile of tiling)
+      for (const [r, c] of tile.cells)
+        if (!insideSet.has(r * size + c) && cells[r][c] === 'unknown') return true;
     return false;
   });
 }
 
 export function findForcedOverhangCells(
   activeTilings: Tile[][],
-  insideSet: Set<number>,
-  size: number,
+  insideSet:     Set<number>,
+  size:          number,
 ): Coord[] {
   if (activeTilings.length === 0) return [];
-
-  const outsideSets: Set<number>[] = activeTilings.map((tiling) => {
-    const outside = new Set<number>();
-    for (const tile of tiling) {
-      for (const [r, c] of tile.cells) {
-        const key = r * size + c;
-        if (!insideSet.has(key)) {
-          outside.add(key);
-        }
-      }
-    }
-    return outside;
-  });
-
-  const intersection = new Set(outsideSets[0]);
-  for (let i = 1; i < outsideSets.length; i++) {
-    for (const key of intersection) {
-      if (!outsideSets[i].has(key)) {
-        intersection.delete(key);
-      }
-    }
-  }
-
-  return [...intersection].map((key) => {
-    const r = Math.floor(key / size);
-    const c = key % size;
-    return [r, c] as Coord;
-  });
+  const flat = wasmEnum.find_forced_overhang(
+    encodeTilings(activeTilings),
+    Int32Array.from(insideSet),
+    size,
+  );
+  const out: Coord[] = [];
+  for (let i = 0; i < flat.length; i += 2) out.push([flat[i], flat[i + 1]]);
+  return out;
 }

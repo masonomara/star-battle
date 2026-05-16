@@ -849,3 +849,143 @@ pub fn compute_tiling(coords_flat: &[i32], grid_size: u32) -> Vec<i32> {
     }
     out
 }
+
+// ── Tiling Enumeration ────────────────────────────────────────────────────────
+
+struct EnumTile { covered: Vec<usize>, all_cells: [usize; 4] }
+
+fn parse_enum_tilings(flat: &[i32], sz: usize) -> Vec<Vec<EnumTile>> {
+    if flat.is_empty() { return Vec::new(); }
+    let mut i = 0;
+    let num_tilings = flat[i] as usize; i += 1;
+    let mut tilings = Vec::with_capacity(num_tilings);
+    for _ in 0..num_tilings {
+        let num_tiles = flat[i] as usize; i += 1;
+        let mut tiling = Vec::with_capacity(num_tiles);
+        for _ in 0..num_tiles {
+            let ar = flat[i] as usize; let ac = flat[i + 1] as usize; i += 2;
+            let nc = flat[i] as usize; i += 1;
+            let mut covered = Vec::with_capacity(nc);
+            for _ in 0..nc {
+                covered.push(flat[i] as usize * sz + flat[i + 1] as usize); i += 2;
+            }
+            let all_cells = [ar*sz+ac, ar*sz+ac+1, (ar+1)*sz+ac, (ar+1)*sz+ac+1];
+            tiling.push(EnumTile { covered, all_cells });
+        }
+        tilings.push(tiling);
+    }
+    tilings
+}
+
+#[inline(always)]
+fn keys_adjacent(a: usize, b: usize, sz: usize) -> bool {
+    let (ar, ac) = (a / sz, a % sz);
+    let (br, bc) = (b / sz, b % sz);
+    (ar as i32 - br as i32).abs() <= 1 && (ac as i32 - bc as i32).abs() <= 1
+}
+
+fn backtrack(
+    partial:    &mut Vec<usize>,
+    candidates: &[Vec<usize>],
+    idx:        usize,
+    sz:         usize,
+    valid:      &mut Vec<bool>,
+) {
+    if idx == candidates.len() {
+        for &k in partial.iter() { valid[k] = true; }
+        return;
+    }
+    for &k in &candidates[idx] {
+        if partial.iter().any(|&p| keys_adjacent(k, p, sz)) { continue; }
+        partial.push(k);
+        backtrack(partial, candidates, idx + 1, sz, valid);
+        partial.pop();
+    }
+}
+
+/// Returns flat cell keys [k0, k1, ...] for every cell that appears in at
+/// least one valid star assignment across all tilings.
+/// cell_states: 0=unknown, 1=star, 2=marked  (length = size*size)
+#[wasm_bindgen]
+pub fn collect_valid_star_cells(
+    tilings_flat: &[i32],
+    inside_keys:  &[i32],
+    cell_states:  &[i32],
+    size:         u32,
+) -> Vec<i32> {
+    let sz = size as usize;
+    let mut in_inside = vec![false; sz * sz];
+    for &k in inside_keys { in_inside[k as usize] = true; }
+
+    let tilings = parse_enum_tilings(tilings_flat, sz);
+    let mut valid = vec![false; sz * sz];
+
+    for tiling in &tilings {
+        let mut fixed: Vec<usize> = Vec::new();
+        let mut cands_per_tile: Vec<Vec<usize>> = Vec::new();
+        let mut ok = true;
+
+        for tile in tiling {
+            if let Some(&k) = tile.covered.iter().find(|&&k| cell_states[k] == 1) {
+                fixed.push(k);
+            } else {
+                let cands: Vec<usize> = tile.covered.iter()
+                    .filter(|&&k| in_inside[k] && cell_states[k] == 0)
+                    .copied().collect();
+                if cands.is_empty() { ok = false; break; }
+                cands_per_tile.push(cands);
+            }
+        }
+        if !ok { continue; }
+
+        'outer: for i in 0..fixed.len() {
+            for j in i+1..fixed.len() {
+                if keys_adjacent(fixed[i], fixed[j], sz) { ok = false; break 'outer; }
+            }
+        }
+        if !ok { continue; }
+
+        for &k in &fixed { valid[k] = true; }
+        backtrack(&mut fixed.clone(), &cands_per_tile, 0, sz, &mut valid);
+    }
+
+    (0..sz*sz).filter(|&k| valid[k]).map(|k| k as i32).collect()
+}
+
+/// Given already-filtered active tilings, returns flat [r0,c0, r1,c1, ...]
+/// for cells outside insideSet that appear in ALL active tilings.
+#[wasm_bindgen]
+pub fn find_forced_overhang(
+    tilings_flat: &[i32],
+    inside_keys:  &[i32],
+    size:         u32,
+) -> Vec<i32> {
+    let sz = size as usize;
+    let mut in_inside = vec![false; sz * sz];
+    for &k in inside_keys { in_inside[k as usize] = true; }
+
+    let tilings = parse_enum_tilings(tilings_flat, sz);
+    if tilings.is_empty() { return Vec::new(); }
+
+    let mut inter: Vec<bool> = Vec::new();
+
+    for tiling in &tilings {
+        let mut outside = vec![false; sz * sz];
+        for tile in tiling {
+            for &k in &tile.all_cells {
+                if !in_inside[k] { outside[k] = true; }
+            }
+        }
+        if inter.is_empty() {
+            inter = outside;
+        } else {
+            for k in 0..sz*sz { inter[k] &= outside[k]; }
+        }
+    }
+
+    let mut out = Vec::new();
+    for k in 0..sz*sz {
+        if inter[k] { out.push((k / sz) as i32); out.push((k % sz) as i32); }
+    }
+    out
+}
