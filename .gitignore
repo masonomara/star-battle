@@ -7,3 +7,9 @@
 CLAUDE.md
 
 puzzles.md
+
+# wasm-pack output (generated — never commit)
+/pkg/
+
+# Rust build cache
+/crates/dlx/target/

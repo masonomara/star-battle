@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build:wasm": "wasm-pack build crates/dlx --target nodejs --out-dir ../../pkg --release",
     "solve": "tsx src/cli.ts",
     "test": "vitest run",
     "test:watch": "vitest"
