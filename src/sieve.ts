@@ -1,9 +1,6 @@
 import * as os from "node:os";
 import { Worker } from "node:worker_threads";
-import { generate } from "./generator";
-import { solve } from "./solver";
-import { Puzzle, SieveStats, Solution, TilingResult } from "./helpers/types";
-import { computeDifficulty } from "./helpers/difficulty";
+import { Puzzle, SieveStats } from "./helpers/types";
 
 type WorkerInboundMessage = { type: "stop" };
 
@@ -21,43 +18,6 @@ type SieveOptions = {
   maxDifficulty?: number;
   onProgress?: (stats: SieveStats) => void;
 };
-
-export function sieve(options: SieveOptions = {}): Puzzle[] {
-  const size = options.size ?? 10;
-  const stars = options.stars ?? 2;
-  const count = options.count ?? 1;
-  const maxAttempts = options.maxAttempts ?? 1000000000;
-  if (!Number.isInteger(count) || count < 1 || count > 300)
-    throw new Error(`count must be an integer between 1 and 300, got ${count}`);
-
-  const stats: SieveStats = { attempts: 0, solved: 0, solverFailed: 0 };
-  const tilingCache = new Map<string, TilingResult>();
-
-  const puzzles: Puzzle[] = [];
-
-  while (puzzles.length < count && stats.attempts < maxAttempts) {
-    stats.attempts++;
-    const { board, seed } = generate(size, stars);
-    const result = solve(board, { tilingCache });
-
-    if (result) {
-      const solution: Solution = { ...result, board, seed };
-      const puzzle: Puzzle = { ...solution, difficulty: computeDifficulty(solution) };
-      const minDiff = options.minDifficulty ?? 0;
-      const maxDiff = options.maxDifficulty ?? Infinity;
-      if (puzzle.difficulty >= minDiff && puzzle.difficulty <= maxDiff) {
-        puzzles.push(puzzle);
-      }
-    } else {
-      stats.solverFailed++;
-    }
-
-    stats.solved = puzzles.length;
-    options.onProgress?.(stats);
-  }
-
-  return puzzles;
-}
 
 type ParallelSieveOptions = SieveOptions & {
   workers?: number;

@@ -1,6 +1,6 @@
 import * as fs from "fs";
-import { sieve, sieveParallel } from "./sieve";
-import { solve, StepInfo, RULE_METADATA } from "./solver";
+import { sieveParallel } from "./sieve";
+import { solve } from "./solver";
 import { decodePuzzleString, encodePuzzleString, REGION_LETTERS } from "./helpers/notation";
 import { Board, CellState } from "./helpers/types";
 import { computeDifficulty } from "./helpers/difficulty";
@@ -43,24 +43,16 @@ function printCellStateWithDiff(
 function traceBoard(board: Board) {
   console.log("Region grid:");
   printBoard(board.grid);
-  let prevCells: CellState[][] | null = null;
   const start = Date.now();
-  const result = solve(board, {
-    onStep: (step: StepInfo) => {
-      console.log(
-        `\n--- Cycle ${step.cycle}: ${step.rule} (level ${step.level}) ---`,
-      );
-      printCellStateWithDiff(step.cells, prevCells);
-      prevCells = step.cells.map((row) => [...row]);
-    },
-  });
+  const result = solve(board);
   const elapsed = ((Date.now() - start) / 1000).toFixed(2);
-  const difficulty = result ? computeDifficulty(result) : null;
-  console.log(
-    result
-      ? `\n=== SOLVED === ${elapsed}s | difficulty: ${difficulty}`
-      : `\n=== STUCK === ${elapsed}s`,
-  );
+  if (result) {
+    const difficulty = computeDifficulty(result);
+    printCellStateWithDiff(result.cells, null);
+    console.log(`\n=== SOLVED === ${elapsed}s | difficulty: ${difficulty} | cycles: ${result.cycles} | maxLevel: ${result.maxLevel}`);
+  } else {
+    console.log(`\n=== STUCK === ${elapsed}s`);
+  }
 }
 
 // --- Benchmark ---
@@ -76,12 +68,6 @@ function benchmark(content: string, verbose: boolean, filterUnsolved: boolean, t
     console.log("No puzzles found in file");
     return;
   }
-
-  const ruleStats = new Map<string, { count: number; puzzlesUsed: Set<number> }>();
-  for (const { name } of RULE_METADATA) {
-    ruleStats.set(name, { count: 0, puzzlesUsed: new Set() });
-  }
-  const ruleTiming = new Map<string, number>();
 
   let solved = 0;
   const difficulties: number[] = [];
@@ -111,45 +97,24 @@ function benchmark(content: string, verbose: boolean, filterUnsolved: boolean, t
       console.log(`\n${"=".repeat(60)}`);
       console.log(`Puzzle ${i + 1}: ${puzzleStr}`);
       console.log(`${"=".repeat(60)}`);
-      console.log("Region grid:");
-      printBoard(puzzle.grid);
+      traceBoard(puzzle);
+      continue;
     }
 
-    let prevCells: CellState[][] | null = null;
-    const result = solve(puzzle, {
-      onStep: (step: StepInfo) => {
-        const stats = ruleStats.get(step.rule);
-        if (stats) {
-          stats.count++;
-          stats.puzzlesUsed.add(i);
-        }
-        if (trace) {
-          console.log(
-            `\n--- Cycle ${step.cycle}: ${step.rule} (level ${step.level}) ---`,
-          );
-          printCellStateWithDiff(step.cells, prevCells);
-          prevCells = step.cells.map((row) => [...row]);
-        }
-      },
-    });
+    const result = solve(puzzle);
 
     if (result) {
       solved++;
       const difficulty = computeDifficulty(result);
       difficulties.push(difficulty);
-
-      if (trace) {
-        console.log(`\n=== SOLVED === difficulty: ${difficulty}`);
-      } else if (verbose && !filterUnsolved) {
+      if (verbose && !filterUnsolved) {
         console.log(
           `Puzzle ${i + 1}: SOLVED (difficulty: ${difficulty}, cycles: ${result.cycles}, maxLevel: ${result.maxLevel})`,
         );
       }
     } else {
       unsolvedPuzzles.push({ index: i + 1, line, reason: "STUCK" });
-      if (trace) {
-        console.log(`\n=== STUCK ===`);
-      } else if (verbose && !filterUnsolved) {
+      if (verbose && !filterUnsolved) {
         console.log(`Puzzle ${i + 1}: STUCK`);
       }
     }
@@ -176,33 +141,7 @@ function benchmark(content: string, verbose: boolean, filterUnsolved: boolean, t
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
   console.log(`Processed ${lines.length} puzzles in ${elapsed}s\n`);
 
-  console.log("Rule Usage:");
-  const sortedRules = [...ruleStats.entries()].sort((a, b) => {
-    const indexA = RULE_METADATA.findIndex((r) => r.name === a[0]);
-    const indexB = RULE_METADATA.findIndex((r) => r.name === b[0]);
-    return indexA - indexB;
-  });
-
-  const maxName = Math.max(...sortedRules.map(([n]) => n.length));
-  let ruleTimeTotal = 0;
-
-  for (const [name, stats] of sortedRules) {
-    const level = RULE_METADATA.find((r) => r.name === name)?.level ?? 0;
-    const pct = ((stats.puzzlesUsed.size / lines.length) * 100).toFixed(0);
-    const ms = ruleTiming.get(name) ?? 0;
-    ruleTimeTotal += ms;
-    const time = (ms / 1000).toFixed(2);
-    const pad = " ".repeat(maxName - name.length + 2);
-    console.log(
-      `  ${name}${pad}L${level}  ${String(stats.count).padStart(6)}  ${pct.padStart(3)}%  ${time.padStart(6)}s`,
-    );
-  }
-
-  console.log(
-    `  ${"Rule time".padEnd(maxName + 2)}${" ".repeat(18)}${(ruleTimeTotal / 1000).toFixed(2).padStart(6)}s`,
-  );
-
-  console.log("\nDifficulty distribution:");
+  console.log("Difficulty distribution:");
   const easy = difficulties.filter((d) => d <= 20).length;
   const medium = difficulties.filter((d) => d > 20 && d <= 40).length;
   const hard = difficulties.filter((d) => d > 40).length;
@@ -321,10 +260,7 @@ async function main() {
       };
 
       const startTime = Date.now();
-      const puzzles =
-        count > 1 || workers !== undefined
-          ? await sieveParallel({ size, stars, count, minDifficulty: minDiff, maxDifficulty: maxDiff, workers, onProgress })
-          : sieve({ size, stars, count, minDifficulty: minDiff, maxDifficulty: maxDiff, onProgress });
+      const puzzles = await sieveParallel({ size, stars, count, minDifficulty: minDiff, maxDifficulty: maxDiff, workers, onProgress });
       console.log(` | ${((Date.now() - startTime) / 1000).toFixed(2)}s\n`);
 
       if (puzzles.length === 0) {
