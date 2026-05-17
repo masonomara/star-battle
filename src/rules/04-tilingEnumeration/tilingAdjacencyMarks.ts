@@ -7,7 +7,7 @@ export default function tilingAdjacencyMarks(
   cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
-  const size = board.grid.length;
+  const { size } = analysis;
   let changed = false;
 
   for (const [, meta] of analysis.regions) {
@@ -15,6 +15,7 @@ export default function tilingAdjacencyMarks(
 
     const tiling = analysis.getTiling(meta.unknownCoords);
     if (tiling.capacity !== meta.starsNeeded) continue;
+    if (tiling.tilings.length === 0) continue;
 
     const insideSet = new Set<number>();
     for (const [r, c] of meta.unknownCoords) {

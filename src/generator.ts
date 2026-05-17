@@ -32,7 +32,6 @@ export type GenerateOptions = {
 export type GenerateResult = {
   board: Board;
   seed: number;
-  attempts: number;
 };
 
 /**
@@ -52,7 +51,7 @@ export function generate(
     const seed = (baseSeed + attempt) | 0;
     try {
       const board = layoutWithSeed(size, stars, seed);
-      return { board, seed, attempts: attempt + 1 };
+      return { board, seed };
     } catch (e) {
       if (e instanceof GeneratorError) continue;
       throw e;
@@ -65,26 +64,13 @@ export function generate(
   );
 }
 
-/**
- * Generate board layout from specific seed. For deterministic testing.
- */
-export function layout(size: number, stars: number, seed: number): Board {
-  validateInputs(size, stars);
-  return layoutWithSeed(size, stars, seed);
-}
-
 function validateInputs(size: number, stars: number): void {
-  if (size <= 0) {
-    throw new Error("Layout generation failed: size must be positive");
-  }
-  if (stars <= 0) {
-    throw new Error("Layout generation failed: stars must be positive");
-  }
-  if (stars > Math.floor(size / 2)) {
-    throw new Error(
-      `Layout generation failed: stars (${stars}) cannot exceed size/2 (${Math.floor(size / 2)})`,
-    );
-  }
+  if (!Number.isInteger(size) || size < 4 || size > 25)
+    throw new Error(`size must be an integer between 4 and 25, got ${size}`);
+  if (!Number.isInteger(stars) || stars < 1 || stars > 6)
+    throw new Error(`stars must be an integer between 1 and 6, got ${stars}`);
+  if (stars > Math.floor(size / 2))
+    throw new Error(`stars (${stars}) cannot exceed size/2 (${Math.floor(size / 2)})`);
 }
 
 /**
@@ -138,38 +124,60 @@ function growRegionsBalanced(
  * Fill remaining unfilled cells by assigning to adjacent regions.
  * Creates irregular region shapes.
  */
-function fillRemaining(
-  grid: number[][],
-  size: number,
-  rng: () => number,
-): void {
-  let unfilled = true;
-  let iterations = 0;
-  const maxIterations = size * size * 100;
+function fillRemaining(grid: number[][], size: number, rng: () => number): void {
+  const frontier: number[] = [];
+  const inFrontier = new Set<number>();
 
-  while (unfilled) {
-    if (++iterations > maxIterations) {
-      throw new GeneratorError("Layout generation stuck", "generator_stuck");
-    }
-    unfilled = false;
-
-    for (let row = 0; row < size; row++) {
-      for (let col = 0; col < size; col++) {
-        if (grid[row][col] !== -1) continue;
-
-        const neighbors = getNeighbors(grid, size, row, col, true);
-        if (neighbors.length > 0) {
-          const [nr, nc] = neighbors[Math.floor(rng() * neighbors.length)];
-          grid[row][col] = grid[nr][nc];
-        } else {
-          unfilled = true;
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (grid[r][c] !== -1) continue;
+      for (const [dr, dc] of DIRECTIONS) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < size && nc >= 0 && nc < size && grid[nr][nc] !== -1) {
+          const key = r * size + c;
+          frontier.push(key);
+          inFrontier.add(key);
+          break;
         }
       }
     }
   }
+
+  while (frontier.length > 0) {
+    const idx = Math.floor(rng() * frontier.length);
+    const key = frontier[idx];
+    frontier[idx] = frontier[frontier.length - 1];
+    frontier.pop();
+    inFrontier.delete(key);
+
+    const r = Math.floor(key / size);
+    const c = key % size;
+
+    const filledNeighbors = getNeighbors(grid, size, r, c, true);
+    const [nr, nc] = filledNeighbors[Math.floor(rng() * filledNeighbors.length)];
+    grid[r][c] = grid[nr][nc];
+
+    for (const [dr, dc] of DIRECTIONS) {
+      const nnr = r + dr, nnc = c + dc;
+      if (nnr >= 0 && nnr < size && nnc >= 0 && nnc < size && grid[nnr][nnc] === -1) {
+        const nkey = nnr * size + nnc;
+        if (!inFrontier.has(nkey)) {
+          frontier.push(nkey);
+          inFrontier.add(nkey);
+        }
+      }
+    }
+  }
+
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (grid[r][c] === -1)
+        throw new GeneratorError("Layout generation stuck", "generator_stuck");
+    }
+  }
 }
 
-function layoutWithSeed(size: number, stars: number, seed: number): Board {
+export function layoutWithSeed(size: number, stars: number, seed: number): Board {
   let s = seed | 0;
   const rng = () => {
     s = (Math.imul(s, 1103515245) + 12345) | 0;

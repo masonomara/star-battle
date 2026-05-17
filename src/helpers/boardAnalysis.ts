@@ -3,20 +3,17 @@ import { computeTiling } from "./tiling";
 import { computeCountingFlow, CountingFlowInput, CountingFlowResult } from "./counting";
 
 type RegionStructure = {
-  id: number;
   coords: Coord[];
-  rows: Set<number>;
-  cols: Set<number>;
 };
 
 export type BoardStructure = {
   size: number;
   stars: number;
   regions: Map<number, RegionStructure>;
+  cellRegionIndex: Int32Array;
 };
 
 export type RegionMeta = {
-  id: number;
   unknownCoords: Coord[];
   starsPlaced: number;
   starsNeeded: number;
@@ -26,26 +23,29 @@ export type RegionMeta = {
 
 type BoardState = {
   size: number;
+  stars: number;
   regions: Map<number, RegionMeta>;
   rowStars: number[];
   colStars: number[];
   rowUnknowns: Coord[][];
   colUnknowns: Coord[][];
-  rowToRegions: Map<number, Set<number>>;
-  colToRegions: Map<number, Set<number>>;
 };
 
 export type BoardAnalysis = BoardState & {
   getTiling: (cells: Coord[]) => TilingResult;
   getCountingFlow: (axis: "row" | "col") => CountingFlowResult;
+  applyDelta: (cells: CellState[][], changed: Coord[]) => void;
 };
 
 export function buildBoardStructure(board: Board): BoardStructure {
   const size = board.grid.length;
+  const cellRegionIndex = new Int32Array(size * size);
   const coordsByRegion = new Map<number, Coord[]>();
+
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
       const id = board.grid[r][c];
+      cellRegionIndex[r * size + c] = id;
       if (!coordsByRegion.has(id)) coordsByRegion.set(id, []);
       coordsByRegion.get(id)!.push([r, c]);
     }
@@ -53,16 +53,10 @@ export function buildBoardStructure(board: Board): BoardStructure {
 
   const regions = new Map<number, RegionStructure>();
   for (const [id, coords] of coordsByRegion) {
-    const rows = new Set<number>();
-    const cols = new Set<number>();
-    for (const [row, col] of coords) {
-      rows.add(row);
-      cols.add(col);
-    }
-    regions.set(id, { id, coords, rows, cols });
+    regions.set(id, { coords });
   }
 
-  return { size, stars: board.stars, regions };
+  return { size, stars: board.stars, regions, cellRegionIndex };
 }
 
 function buildBoardState(
@@ -99,7 +93,6 @@ function buildBoardState(
     }
 
     regions.set(id, {
-      id,
       unknownCoords,
       starsPlaced,
       starsNeeded: stars - starsPlaced,
@@ -108,35 +101,12 @@ function buildBoardState(
     });
   }
 
-  const rowToRegions = new Map<number, Set<number>>();
-  const colToRegions = new Map<number, Set<number>>();
+  return { size, stars, regions, rowStars, colStars, rowUnknowns, colUnknowns };
+}
 
-  for (let i = 0; i < size; i++) {
-    rowToRegions.set(i, new Set());
-  }
-  for (let i = 0; i < size; i++) {
-    colToRegions.set(i, new Set());
-  }
-
-  for (const [id, meta] of regions) {
-    for (const row of meta.unknownRows) {
-      rowToRegions.get(row)!.add(id);
-    }
-    for (const col of meta.unknownCols) {
-      colToRegions.get(col)!.add(id);
-    }
-  }
-
-  return {
-    size,
-    regions,
-    rowStars,
-    colStars,
-    rowUnknowns,
-    colUnknowns,
-    rowToRegions,
-    colToRegions,
-  };
+function removeFromArr(arr: Coord[], r: number, c: number): void {
+  const i = arr.findIndex(([rr, cc]) => rr === r && cc === c);
+  if (i !== -1) arr.splice(i, 1);
 }
 
 export function buildBoardAnalysis(
@@ -175,5 +145,28 @@ export function buildBoardAnalysis(
     return result;
   };
 
-  return { ...state, getTiling, getCountingFlow };
+  function applyDelta(cells: CellState[][], changed: Coord[]): void {
+    if (changed.length === 0) return;
+    flowCache.clear();
+    for (const [r, c] of changed) {
+      const isStar = cells[r][c] === "star";
+      if (isStar) {
+        state.rowStars[r]++;
+        state.colStars[c]++;
+      }
+      removeFromArr(state.rowUnknowns[r], r, c);
+      removeFromArr(state.colUnknowns[c], r, c);
+      const regionId = structure.cellRegionIndex[r * size + c];
+      const region = state.regions.get(regionId)!;
+      if (isStar) {
+        region.starsPlaced++;
+        region.starsNeeded--;
+      }
+      removeFromArr(region.unknownCoords, r, c);
+      if (!region.unknownCoords.some(([rr]) => rr === r)) region.unknownRows.delete(r);
+      if (!region.unknownCoords.some(([, cc]) => cc === c)) region.unknownCols.delete(c);
+    }
+  }
+
+  return { ...state, getTiling, getCountingFlow, applyDelta };
 }

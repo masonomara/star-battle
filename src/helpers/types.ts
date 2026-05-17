@@ -35,20 +35,16 @@ export type TilingResult = {
   forcedCells: Coord[];
 };
 
-export type FailureReason =
-  | "generator_stuck"
-  | "solver_failed"
-  | "invalid_tiling";
-
 export type SieveStats = {
   attempts: number;
-  failures: Record<FailureReason, number>;
+  solved: number;
+  solverFailed: number;
 };
 
 export class GeneratorError extends Error {
   constructor(
     message: string,
-    public readonly reason: FailureReason,
+    public readonly reason: string,
   ) {
     super(message);
     this.name = "GeneratorError";

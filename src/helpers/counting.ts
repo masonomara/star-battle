@@ -30,8 +30,6 @@ export type CountingFlowInput = {
 };
 
 export type TightSetContrib = {
-  regionIndex: number;
-  inside: number;
   maxContrib: number;
   starsNeeded: number;
   unknownCoords: Coord[];
@@ -312,11 +310,8 @@ function extractTightSets(
         for (const line of blockLines) {
           inside += info.unknownsByAxis[line];
         }
-        // Only include regions that actually touch these lines
         if (inside > 0 || info.starsNeeded > 0) {
           regionContribs.push({
-            regionIndex: ri,
-            inside,
             maxContrib: Math.min(info.starsNeeded, inside),
             starsNeeded: info.starsNeeded,
             unknownCoords: info.unknownCoords,

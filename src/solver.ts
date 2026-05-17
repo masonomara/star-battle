@@ -1,16 +1,14 @@
-import { Board, CellState, Progress, SolverResult, TilingResult } from "./helpers/types";
+import { Board, CellState, Coord, Progress, SolverResult, TilingResult } from "./helpers/types";
 import {
   buildBoardStructure,
   buildBoardAnalysis,
   BoardAnalysis,
 } from "./helpers/boardAnalysis";
-import { computeTiling } from "./helpers/tiling";
 import { neighbors } from "./helpers/neighbors";
 import { allRules } from "./rules";
 
 export { RULE_METADATA } from "./rules";
 
-/** Step info passed to trace callback */
 export interface StepInfo {
   cycle: number;
   rule: string;
@@ -20,68 +18,43 @@ export interface StepInfo {
 
 export interface SolveOptions {
   onStep?: (step: StepInfo) => void;
-  timing?: Map<string, number>;
+  tilingCache?: Map<string, TilingResult>;
 }
 
 function isValidBoard(board: Board): boolean {
-  const size = board.grid.length;
-  const stars = board.stars;
+  const { grid, stars } = board;
+  const size = grid.length;
   const minRegionSize = stars > 1 ? stars * 2 - 1 : 1;
 
-  const regionCells = new Map<number, [number, number][]>();
+  const regionSizes = new Map<number, number>();
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
-      const id = board.grid[r][c];
-      if (!regionCells.has(id)) regionCells.set(id, []);
-      regionCells.get(id)!.push([r, c]);
+      const id = grid[r][c];
+      regionSizes.set(id, (regionSizes.get(id) ?? 0) + 1);
     }
   }
 
-  if (regionCells.size !== size) return false;
-
-  for (const coords of regionCells.values()) {
-    if (coords.length < minRegionSize) return false;
+  if (regionSizes.size !== size) return false;
+  for (const sz of regionSizes.values()) {
+    if (sz < minRegionSize) return false;
   }
-
-  for (let i = 0; i < size; i++) {
-    const rowCoords: [number, number][] = [];
-    const colCoords: [number, number][] = [];
-    for (let j = 0; j < size; j++) {
-      rowCoords.push([i, j]);
-      colCoords.push([j, i]);
-    }
-    if (computeTiling(rowCoords, size).capacity < stars) return false;
-    if (computeTiling(colCoords, size).capacity < stars) return false;
-  }
-
-  for (const coords of regionCells.values()) {
-    if (computeTiling(coords, size).capacity < stars) return false;
-  }
-
   return true;
 }
 
-function checkProgress(
-  board: Board,
-  cells: CellState[][],
-  analysis: BoardAnalysis,
-): Progress {
-  const { size, rowStars, colStars, regions } = analysis;
-  const stars = board.stars;
+function getSolveStatus(cells: CellState[][], analysis: BoardAnalysis): Progress {
+  const { size, stars, rowStars, colStars, regions } = analysis;
   let solved = true;
 
   for (let i = 0; i < size; i++) {
-    let rowUnknowns = 0;
-    let colUnknowns = 0;
     for (let j = 0; j < size; j++) {
-      if (cells[i][j] === "unknown") rowUnknowns++;
-      if (cells[j][i] === "unknown") colUnknowns++;
       if (cells[i][j] === "star") {
         for (const [nr, nc] of neighbors(i, j, size)) {
           if (cells[nr][nc] === "star") return "invalid";
         }
       }
     }
+    const rowUnknowns = analysis.rowUnknowns[i].length;
+    const colUnknowns = analysis.colUnknowns[i].length;
     if (rowStars[i] + rowUnknowns < stars || colStars[i] + colUnknowns < stars) {
       return "invalid";
     }
@@ -102,10 +75,21 @@ function checkProgress(
   return solved ? "solved" : "valid";
 }
 
-/**
- * Attempt to solve a Star Battle puzzle using inference rules.
- * Flows rules through the board until it settles into a final state.
- */
+function diffCells(cells: CellState[][], snapshot: Uint8Array, size: number): Coord[] {
+  const changed: Coord[] = [];
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const cur = cells[r][c] === "star" ? 1 : cells[r][c] === "marked" ? 2 : 0;
+      const idx = r * size + c;
+      if (cur !== snapshot[idx]) {
+        snapshot[idx] = cur;
+        changed.push([r, c]);
+      }
+    }
+  }
+  return changed;
+}
+
 export function solve(
   boardDef: Board,
   options: SolveOptions = {},
@@ -119,32 +103,21 @@ export function solve(
 
   let cycles = 0;
   let maxLevel = 0;
-  const tilingCache = new Map<string, TilingResult>();
+  const tilingCache = options.tilingCache ?? new Map<string, TilingResult>();
   const structure = buildBoardStructure(boardDef);
+  const analysis = buildBoardAnalysis(structure, cells, tilingCache);
+  const snapshot = new Uint8Array(size * size);
 
   while (true) {
     cycles++;
 
-    const analysis = buildBoardAnalysis(structure, cells, tilingCache);
-    const status = checkProgress(boardDef, cells, analysis);
-
+    const status = getSolveStatus(cells, analysis);
     if (status === "solved") return { cells, cycles, maxLevel };
     if (status === "invalid") return null;
 
     let applied: (typeof allRules)[number] | undefined;
     for (const entry of allRules) {
-      let fired: boolean;
-      if (options.timing) {
-        const t0 = performance.now();
-        fired = entry.rule(boardDef, cells, analysis);
-        options.timing.set(
-          entry.name,
-          (options.timing.get(entry.name) ?? 0) + (performance.now() - t0),
-        );
-      } else {
-        fired = entry.rule(boardDef, cells, analysis);
-      }
-      if (fired) {
+      if (entry.rule(boardDef, cells, analysis)) {
         applied = entry;
         break;
       }
@@ -153,6 +126,7 @@ export function solve(
     if (!applied) return null;
 
     maxLevel = Math.max(maxLevel, applied.level);
+    analysis.applyDelta(cells, diffCells(cells, snapshot, size));
 
     if (options.onStep) {
       options.onStep({

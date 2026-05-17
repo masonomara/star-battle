@@ -1,12 +1,3 @@
-/**
- * Shared loop for tiling counting: for line groups (single or multi), compute
- * the minimum number of stars each touching region must place in that group
- * using tiling capacity of cells outside the group. When the sum of minimums
- * equals the group's star need, the constraint is tight — delegate deductions.
- *
- * minContrib(region, group) = max(0, starsNeeded - capacity(cellsOutside))
- */
-
 import { Board, CellState, Coord } from "./types";
 import { BoardAnalysis, RegionMeta } from "./boardAnalysis";
 
@@ -27,7 +18,6 @@ export function tilingCountingLoop(
   const { size, regions } = analysis;
   const axisStars = axis === "row" ? analysis.rowStars : analysis.colStars;
 
-  // Precompute per-region: axisMask (which lines have unknowns)
   const regionEntries: { meta: RegionMeta; axisMask: number }[] = [];
   for (const meta of regions.values()) {
     if (meta.starsNeeded <= 0) continue;
@@ -38,70 +28,79 @@ export function tilingCountingLoop(
     regionEntries.push({ meta, axisMask });
   }
 
-  // Precompute stars needed per line
-  const lineNeeded = new Array(size);
+  const lineNeeded = new Array<number>(size);
   for (let i = 0; i < size; i++) {
     lineNeeded[i] = board.stars - axisStars[i];
   }
 
-  const limit = 1 << size;
+  const entryMetas: RegionMeta[] = [];
+  const entryContribs: number[] = [];
+  const combo = new Int32Array(maxGroupSize);
 
-  for (let mask = 1; mask < limit; mask++) {
-    let bits = mask;
-    let popcount = 0;
-    while (bits) {
-      popcount++;
-      bits &= bits - 1;
-    }
-    if (popcount < minGroupSize || popcount > maxGroupSize) continue;
+  for (let groupSize = minGroupSize; groupSize <= maxGroupSize; groupSize++) {
+    if (groupSize > size) break;
 
-    // Total stars needed by these lines
-    let totalNeeded = 0;
-    for (let i = 0; i < size; i++) {
-      if ((mask >> i) & 1) totalNeeded += lineNeeded[i];
-    }
-    if (totalNeeded <= 0) continue;
+    for (let j = 0; j < groupSize; j++) combo[j] = j;
 
-    // Sum min contributions from each region
-    let totalMin = 0;
-    let exceeded = false;
-    const entries: { meta: RegionMeta; minContrib: number }[] = [];
+    outer: while (true) {
+      let mask = 0;
+      let totalNeeded = 0;
+      for (let j = 0; j < groupSize; j++) {
+        const line = combo[j];
+        mask |= 1 << line;
+        totalNeeded += lineNeeded[line];
+      }
 
-    for (let ri = 0; ri < regionEntries.length; ri++) {
-      const { meta, axisMask } = regionEntries[ri];
-      if (!(axisMask & mask)) continue;
+      if (totalNeeded > 0) {
+        let totalMin = 0;
+        let exceeded = false;
+        entryMetas.length = 0;
+        entryContribs.length = 0;
 
-      const cellsOutside: Coord[] = [];
-      for (const [r, c] of meta.unknownCoords) {
-        if (!((mask >> (axis === "row" ? r : c)) & 1)) {
-          cellsOutside.push([r, c]);
+        for (let ri = 0; ri < regionEntries.length; ri++) {
+          const { meta, axisMask } = regionEntries[ri];
+          if (!(axisMask & mask)) continue;
+
+          const cellsOutside: Coord[] = [];
+          for (const [r, c] of meta.unknownCoords) {
+            if (!((mask >> (axis === "row" ? r : c)) & 1)) {
+              cellsOutside.push([r, c]);
+            }
+          }
+
+          const capacityOutside =
+            cellsOutside.length === 0
+              ? 0
+              : analysis.getTiling(cellsOutside).capacity;
+
+          const minContrib = Math.max(0, meta.starsNeeded - capacityOutside);
+          totalMin += minContrib;
+          entryMetas.push(meta);
+          entryContribs.push(minContrib);
+
+          if (totalMin > totalNeeded) {
+            exceeded = true;
+            break;
+          }
+        }
+
+        if (!exceeded && totalMin === totalNeeded) {
+          let changed = false;
+          for (let ei = 0; ei < entryMetas.length; ei++) {
+            if (deduct(cells, mask, entryMetas[ei], entryContribs[ei])) {
+              changed = true;
+            }
+          }
+          if (changed) return true;
         }
       }
 
-      const capacityOutside =
-        cellsOutside.length === 0
-          ? 0
-          : analysis.getTiling(cellsOutside).capacity;
-
-      const minContrib = Math.max(0, meta.starsNeeded - capacityOutside);
-      totalMin += minContrib;
-      entries.push({ meta, minContrib });
-
-      if (totalMin > totalNeeded) {
-        exceeded = true;
-        break;
-      }
+      let j = groupSize - 1;
+      while (j >= 0 && combo[j] === size - groupSize + j) j--;
+      if (j < 0) break outer;
+      combo[j]++;
+      for (let p = j + 1; p < groupSize; p++) combo[p] = combo[p - 1] + 1;
     }
-
-    if (exceeded || totalMin !== totalNeeded) continue;
-
-    let changed = false;
-    for (const { meta, minContrib } of entries) {
-      if (deduct(cells, mask, meta, minContrib)) {
-        changed = true;
-      }
-    }
-    if (changed) return true;
   }
 
   return false;

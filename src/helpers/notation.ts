@@ -1,4 +1,4 @@
-import { Board } from "./types";
+import { Board, Puzzle } from "./types";
 
 export const REGION_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const MAX_REGIONS = 26;
@@ -44,23 +44,24 @@ export function decodePuzzleString(str: string): { board: Board; metadata: Puzzl
     );
   }
 
+  const upperLayout = layout.toUpperCase();
   const grid: number[][] = [];
+  const regionIds = new Set<number>();
   for (let row = 0; row < size; row++) {
     const rowData: number[] = [];
     for (let col = 0; col < size; col++) {
-      const char = layout[row * size + col];
-      const regionId = REGION_LETTERS.indexOf(char.toUpperCase());
+      const regionId = REGION_LETTERS.indexOf(upperLayout[row * size + col]);
       if (regionId === -1) {
         throw new Error(
-          `Invalid region character: "${char}" at position ${row * size + col}`,
+          `Invalid region character: "${layout[row * size + col]}" at position ${row * size + col}`,
         );
       }
       rowData.push(regionId);
+      regionIds.add(regionId);
     }
     grid.push(rowData);
   }
 
-  const regionIds = new Set(grid.flat());
   if (regionIds.size !== size) {
     throw new Error(
       `Invalid puzzle: found ${regionIds.size} regions, expected ${size}`,
@@ -98,4 +99,13 @@ export function decodePuzzleString(str: string): { board: Board; metadata: Puzzl
     board: { grid, stars },
     metadata,
   };
+}
+
+export function encodePuzzleString(puzzle: Puzzle): string {
+  const { board, seed, difficulty, maxLevel, cycles } = puzzle;
+  const size = board.grid.length;
+  const layout = Array.from({ length: size }, (_, r) =>
+    Array.from({ length: size }, (_, c) => REGION_LETTERS[board.grid[r][c]]).join(""),
+  ).join("");
+  return `${size}x${board.stars}.${layout}.s${seed}d${difficulty}l${maxLevel}c${cycles}v1`;
 }

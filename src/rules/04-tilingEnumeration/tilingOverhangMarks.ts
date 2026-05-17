@@ -10,7 +10,7 @@ export default function tilingOverhangMarks(
   cells: CellState[][],
   analysis: BoardAnalysis,
 ): boolean {
-  const size = board.grid.length;
+  const { size } = analysis;
   let changed = false;
 
   for (const [, meta] of analysis.regions) {

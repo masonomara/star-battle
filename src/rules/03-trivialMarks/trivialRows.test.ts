@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { Board, CellState } from "../../helpers/types";
 import { buildBoardStructure, buildBoardAnalysis } from "../../helpers/boardAnalysis";
-import trivialRow from "./trivialRow";
+import { trivialMarks } from "./trivialMarks";
+
+const trivialRow = trivialMarks("row");
 
 function buildAnalysis(board: Board, cells: CellState[][]) {
   return buildBoardAnalysis(buildBoardStructure(board), cells);

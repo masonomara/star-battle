@@ -8,6 +8,7 @@ interface DLXNode {
 }
 interface ColumnHeader extends DLXNode {
   size: number;
+  isPrimary: boolean;
 }
 interface RootHeader {
   left: ColumnHeader | RootHeader;
@@ -33,6 +34,7 @@ function buildMatrix(
     col.column = col;
     col.rowIndex = -1;
     col.size = 0;
+    col.isPrimary = i < numPrimary;
     columns.push(col);
   }
 
@@ -87,14 +89,14 @@ function cover(col: ColumnHeader): void {
     for (let node = row.right; node !== row; node = node.right) {
       node.down.up = node.up;
       node.up.down = node.down;
-      node.column.size--;
+      if (node.column.isPrimary) node.column.size--;
     }
 }
 
 function uncover(col: ColumnHeader): void {
   for (let row = col.up; row !== col; row = row.up)
     for (let node = row.left; node !== row; node = node.left) {
-      node.column.size++;
+      if (node.column.isPrimary) node.column.size++;
       node.down.up = node;
       node.up.down = node;
     }
@@ -106,8 +108,15 @@ function search(
   root: RootHeader,
   solution: number[],
   solutions: number[][],
+  minLen: { value: number },
 ): void {
+  if (solution.length >= minLen.value) return;
+
   if (root.right === root) {
+    if (solution.length < minLen.value) {
+      solutions.length = 0;
+      minLen.value = solution.length;
+    }
     solutions.push([...solution]);
     return;
   }
@@ -129,7 +138,7 @@ function search(
     solution.push(row.rowIndex);
     for (let node = row.right; node !== row; node = node.right)
       cover(node.column);
-    search(root, solution, solutions);
+    search(root, solution, solutions, minLen);
     for (let node = row.left; node !== row; node = node.left)
       uncover(node.column);
     solution.pop();
@@ -144,7 +153,8 @@ export function dlxSolve(
 ): number[][] {
   if (numPrimary === 0) return [[]];
   const solutions: number[][] = [];
-  search(buildMatrix(numPrimary, numSecondary, rows), [], solutions);
+  const minLen = { value: Infinity };
+  search(buildMatrix(numPrimary, numSecondary, rows), [], solutions, minLen);
   return solutions;
 }
 
