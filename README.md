@@ -28,12 +28,19 @@ npm install
 ### Generate Puzzles
 
 ```bash
-npx tsx src/cli.ts                        # Default: 10x10, 2 stars
-npx tsx src/cli.ts --size 8               # 8x8 grid
+npx tsx src/cli.ts                        # Default: 10x10, 2 stars — saves to puzzles-10x2.sbn
+npx tsx src/cli.ts --size 8               # 8x8 grid — saves to puzzles-8x2.sbn
 npx tsx src/cli.ts --stars 1              # 1 star per container
-npx tsx src/cli.ts --count 5              # Generate 5 puzzles
-npx tsx src/cli.ts --seed 417582859       # Reproducible generation from seed
+npx tsx src/cli.ts --count 50             # Stop after 50 puzzles
+npx tsx src/cli.ts --output library.sbn   # Save to a specific file
 ```
+
+Each run automatically saves to `puzzles-{size}x{stars}.sbn` (or `--output <file>`) and resumes from where it left off. Run the same command again to accumulate more puzzles without repeating seeds.
+
+### Output Files
+
+- **`puzzles-10x2.sbn`** — the puzzle library. One puzzle string per line. This is what your app reads. You can `cat`, `grep`, `wc -l`, or split by difficulty with standard tools.
+- **`puzzles-10x2.sbn.state`** — the resume bookmark. Tracks how far along the seed space was searched so the next run continues without overlap. Only needed by the generator — delete it once you have enough puzzles and don't plan to add more.
 
 ### Solve Custom Puzzles
 
@@ -77,13 +84,14 @@ npm test
 
 - `--size` - Grid size (4–25, default: 10)
 - `--stars` - Stars per container (1–6, default: 2)
-- `--count` - Puzzles to generate (1–300, default: 1)
-- `--seed` - Deterministic generation seed (random by default)
-- `--minDiff` - Minimum difficulty
-- `--maxDiff` - Maximum difficulty
-- `--file` - Solve puzzles from a `.sbn` file
-- `--verbose` - Show details per puzzle
-- `--unsolved` - Only output unsolved puzzles
+- `--count` - Stop after N puzzles (default: run until stopped)
+- `--output` - Output file (default: `puzzles-{size}x{stars}.sbn`)
+- `--workers` - Number of parallel workers (default: CPU count)
+- `--minDiff` - Minimum difficulty (1–100)
+- `--maxDiff` - Maximum difficulty (1–100)
+- `--file` - Solve/benchmark puzzles from a `.sbn` file
+- `--verbose` - Show details per puzzle (with `--file`)
+- `--unsolved` - Only output unsolved puzzles (with `--file`)
 - `--trace` - Step-by-step solve trace
 - `--help` - Show options
 

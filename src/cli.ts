@@ -2,7 +2,7 @@ import * as fs from "fs";
 import { sieveParallel } from "./sieve";
 import { solve } from "./solver";
 import { decodePuzzleString, encodePuzzleString, REGION_LETTERS } from "./helpers/notation";
-import { Board, CellState } from "./helpers/types";
+import { Board, CellState, Puzzle } from "./helpers/types";
 import { computeDifficulty } from "./helpers/difficulty";
 
 // --- Formatting ---
@@ -186,6 +186,95 @@ function parseGridFromStdin(input: string, stars: number): Board {
   return { grid, stars };
 }
 
+// --- Library generation with resume ---
+
+type SieveState = {
+  size: number;
+  stars: number;
+  baseSeed: number;
+  attempts: number;
+  found: number;
+};
+
+function readState(stateFile: string): SieveState | null {
+  try { return JSON.parse(fs.readFileSync(stateFile, "utf-8")); }
+  catch { return null; }
+}
+
+function writeState(stateFile: string, state: SieveState): void {
+  fs.writeFileSync(stateFile, JSON.stringify(state) + "\n");
+}
+
+type GenerateToFileOptions = {
+  size: number;
+  stars: number;
+  count: number;
+  minDiff?: number;
+  maxDiff?: number;
+  workers?: number;
+};
+
+async function generateToFile(outputFile: string, opts: GenerateToFileOptions): Promise<void> {
+  const stateFile = outputFile + ".state";
+  const existingState = readState(stateFile);
+
+  if (existingState) {
+    if (existingState.size !== opts.size || existingState.stars !== opts.stars) {
+      throw new Error(
+        `Cannot resume: state file has size=${existingState.size} stars=${existingState.stars}, ` +
+        `but requested size=${opts.size} stars=${opts.stars}`
+      );
+    }
+    console.error(`Resuming from attempt ${existingState.attempts} (${existingState.found} puzzles already found)`);
+  }
+
+  const baseSeed = existingState?.baseSeed ?? ((Date.now() ^ (Math.random() * 0x100000000)) | 0);
+  const startAttemptOffset = existingState?.attempts ?? 0;
+  let found = existingState?.found ?? 0;
+  let latestAttempts = startAttemptOffset;
+
+  const state: SieveState = { size: opts.size, stars: opts.stars, baseSeed, attempts: startAttemptOffset, found };
+
+  if (!existingState) {
+    fs.writeFileSync(outputFile, "");
+    writeState(stateFile, state);
+  }
+
+  const onPuzzle = (p: Puzzle): void => {
+    fs.appendFileSync(outputFile, encodePuzzleString(p) + "\n");
+    found++;
+    state.found = found;
+    state.attempts = latestAttempts;
+    writeState(stateFile, state);
+  };
+
+  const onProgress = (stats: { attempts: number; solved: number }): void => {
+    latestAttempts = startAttemptOffset + stats.attempts;
+    state.attempts = latestAttempts;
+    writeState(stateFile, state);
+    process.stderr.write(`\rAttempts: ${latestAttempts} | Found: ${found}`);
+  };
+
+  const { attempts } = await sieveParallel({
+    size: opts.size,
+    stars: opts.stars,
+    count: opts.count,
+    minDifficulty: opts.minDiff,
+    maxDifficulty: opts.maxDiff,
+    workers: opts.workers,
+    baseSeed,
+    startAttemptOffset,
+    onPuzzle,
+    onProgress,
+  });
+
+  state.attempts = startAttemptOffset + attempts;
+  state.found = found;
+  writeState(stateFile, state);
+  process.stderr.write(`\rAttempts: ${state.attempts} | Found: ${found}\n`);
+  console.error(`Written to ${outputFile}`);
+}
+
 // --- Entry point ---
 
 function parseArgs(): Record<string, string> {
@@ -223,9 +312,9 @@ async function main() {
     console.log(`Usage:
   echo "<grid>" | sieve --stars n [--trace]
   sieve --file puzzles.sbn [--verbose] [--unsolved] [--trace]
-  sieve [--size n] [--stars n] [--count n] [--workers n] [--seed n] [--trace]
-  sieve [--minDiff n] [--maxDiff n]`);
-  } else if (hasStdin && !args.file) {
+  sieve [--size n] [--stars n] [--count n] [--workers n] [--minDiff n] [--maxDiff n]
+  sieve [--size n] [--stars n] [--count n] --output lib.sbn   (append/resume library)`);
+  } else if (hasStdin && !args.file && !args.output && !args.size && !args.stars && !args.count) {
     const input = await readStdin();
     const stars = args.stars ? parseInt(args.stars, 10) : 2;
     const board = parseGridFromStdin(input, stars);
@@ -255,21 +344,8 @@ async function main() {
         `${size}\u00D7${size}, ${stars} stars${seed !== undefined ? `, seed ${seed}` : ""}${diffRange}\n`,
       );
 
-      const onProgress = (stats: { attempts: number; solved: number }): void => {
-        process.stdout.write(`\rGenerated: ${stats.attempts} | Solved: ${stats.solved}`);
-      };
-
-      const startTime = Date.now();
-      const puzzles = await sieveParallel({ size, stars, count, minDifficulty: minDiff, maxDifficulty: maxDiff, workers, onProgress });
-      console.log(` | ${((Date.now() - startTime) / 1000).toFixed(2)}s\n`);
-
-      if (puzzles.length === 0) {
-        console.log("No solvable puzzles found");
-      } else {
-        for (const p of puzzles) {
-          console.log(encodePuzzleString(p));
-        }
-      }
+      const outputFile = args.output ?? `puzzles-${size}x${stars}.sbn`;
+      await generateToFile(outputFile, { size, stars, count, minDiff, maxDiff, workers });
     }
   }
 }

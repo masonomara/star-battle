@@ -10,6 +10,7 @@ type WorkerConfig = {
   size: number;
   stars: number;
   baseSeed: number;
+  startAttemptOffset: number;
   workerIndex: number;
   workerCount: number;
   maxAttempts: number;
@@ -24,7 +25,7 @@ type OutboundMessage =
   | { type: "progress"; attempts: number; solverFailed: number }
   | { type: "done" };
 
-const PROGRESS_BATCH = 100000;
+const PROGRESS_BATCH = 10_000;
 
 const config: WorkerConfig = workerData as WorkerConfig;
 let stopped = false;
@@ -46,7 +47,7 @@ function flushProgress(): void {
 
 function runLoop(): void {
   while (!stopped && attempt < config.maxAttempts) {
-    const seed = (config.baseSeed + config.workerIndex + attempt * config.workerCount) | 0;
+    const seed = (config.baseSeed + config.startAttemptOffset + config.workerIndex + attempt * config.workerCount) | 0;
     attempt++;
 
     let board: Board;
