@@ -1,5 +1,5 @@
 use wasm_bindgen::prelude::*;
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 
 // Flat SOA DLX. All "pointers" are u32 indices into parallel Vec<u32> arrays.
 //
@@ -317,7 +317,7 @@ fn grow_regions_balanced(
     size:         usize,
     min_size:     usize,
     region_sizes: &mut Vec<usize>,
-    frontiers:    &mut Vec<HashSet<u32>>,
+    frontiers:    &mut Vec<BTreeSet<u32>>,
     s:            &mut i32,
 ) {
     while region_sizes.iter().any(|&sz| sz < min_size) {
@@ -424,7 +424,7 @@ pub fn layout_with_seed(size: u32, stars: u32, seed: i32) -> Vec<i32> {
     let min_size = (stars * 2 - 1) as usize;
     let mut region_sizes = vec![1usize; size];
 
-    let mut frontiers: Vec<HashSet<u32>> = vec![HashSet::new(); size];
+    let mut frontiers: Vec<BTreeSet<u32>> = vec![BTreeSet::new(); size];
     for r in 0..size {
         for c in 0..size {
             let v = grid[r * size + c];
@@ -1040,7 +1040,9 @@ fn get_tiling(sz: usize, keys: &[usize]) -> CachedTiling {
     }
     let mut sorted = keys.to_vec();
     sorted.sort_unstable();
-    let cache_key: Vec<i32> = sorted.iter().map(|&k| k as i32).collect();
+    let mut cache_key: Vec<i32> = Vec::with_capacity(sorted.len() + 1);
+    cache_key.push(sz as i32);
+    cache_key.extend(sorted.iter().map(|&k| k as i32));
     let maybe = TILING_CACHE.with(|c| c.borrow().get(&cache_key).cloned());
     if let Some(ct) = maybe { return ct; }
     let coords: Vec<(usize,usize)> = sorted.iter().map(|&k| (k/sz, k%sz)).collect();
