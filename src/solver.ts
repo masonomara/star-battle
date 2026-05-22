@@ -4,6 +4,7 @@ import { Board, CellState, SolverResult } from "./helpers/types";
 const _req = createRequire(import.meta.url);
 const wasmSolver = _req('../pkg/dlx.js') as {
   solve_board(gridFlat: Int32Array, size: number, stars: number): Int32Array;
+  has_unique_solution(gridFlat: Int32Array, size: number, stars: number): boolean;
 };
 
 export function solve(boardDef: Board): SolverResult | null {
@@ -22,3 +23,13 @@ export function solve(boardDef: Board): SolverResult | null {
   );
   return { cells, cycles: flat[2], maxLevel: flat[1] };
 }
+
+export function hasUniqueSolution(board: Board): boolean {
+  const size = board.grid.length;
+  const gridFlat = new Int32Array(size * size);
+  for (let r = 0; r < size; r++)
+    for (let c = 0; c < size; c++)
+      gridFlat[r * size + c] = board.grid[r][c];
+  return wasmSolver.has_unique_solution(gridFlat, size, board.stars);
+}
+

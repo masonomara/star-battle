@@ -18,6 +18,8 @@ type SieveOptions = {
   maxDifficulty?: number;
   baseSeed?: number;
   startAttemptOffset?: number;
+  useInverse?: boolean;
+  useBacktrack?: boolean;
   onPuzzle?: (puzzle: Puzzle) => void;
   onProgress?: (stats: SieveStats) => void;
 };
@@ -80,6 +82,8 @@ export function sieveParallel(options: ParallelSieveOptions = {}): Promise<{ puz
           maxAttempts: Math.ceil(maxAttempts / workerCount),
           minDifficulty,
           maxDifficulty: maxDifficulty === Infinity ? Number.MAX_SAFE_INTEGER : maxDifficulty,
+          useInverse:   options.useInverse   ?? false,
+          useBacktrack: options.useBacktrack ?? false,
         },
       });
 

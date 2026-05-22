@@ -1,5 +1,5 @@
 use wasm_bindgen::prelude::*;
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, VecDeque};
 
 // Flat SOA DLX. All "pointers" are u32 indices into parallel Vec<u32> arrays.
 //
@@ -401,6 +401,326 @@ fn fill_remaining(grid: &mut Vec<i32>, size: usize, s: &mut i32) -> bool {
     }
 
     grid.iter().all(|&v| v != -1)
+}
+
+// ── Inverse Generator ─────────────────────────────────────────────────────────
+
+
+fn shuffle_vec(v: &mut Vec<usize>, s: &mut i32) {
+    for i in (1..v.len()).rev() {
+        let j = rng_idx(s, i + 1);
+        v.swap(i, j);
+    }
+}
+
+fn choose_cols(
+    idx: usize, remaining: usize,
+    candidates: &[usize], chosen: &mut Vec<usize>,
+    row: usize, size: usize, stars: usize,
+    col_counts: &mut Vec<usize>,
+    result: &mut Vec<(usize, usize)>,
+    s: &mut i32,
+    iters: &mut u64,
+    limit: u64,
+) -> bool {
+    if *iters > limit { return false; }
+    if remaining == 0 {
+        let mut cols = chosen.clone();
+        cols.sort_unstable();
+        for i in 0..cols.len().saturating_sub(1) {
+            if cols[i + 1] == cols[i] + 1 { return false; }
+        }
+        for &c in &cols { result.push((row, c)); col_counts[c] += 1; }
+        let ok = place_stars_row(row + 1, size, stars, col_counts, result, s, iters, limit);
+        if !ok {
+            for _ in 0..cols.len() { result.pop(); }
+            for &c in &cols { col_counts[c] -= 1; }
+        }
+        return ok;
+    }
+    if candidates.len().saturating_sub(idx) < remaining { return false; }
+    for i in idx..=candidates.len() - remaining {
+        *iters += 1;
+        if *iters > limit { return false; }
+        chosen.push(candidates[i]);
+        if choose_cols(i + 1, remaining - 1, candidates, chosen, row, size, stars, col_counts, result, s, iters, limit) {
+            return true;
+        }
+        chosen.pop();
+    }
+    false
+}
+
+fn place_stars_row(
+    row: usize, size: usize, stars: usize,
+    col_counts: &mut Vec<usize>,
+    result: &mut Vec<(usize, usize)>,
+    s: &mut i32,
+    iters: &mut u64,
+    limit: u64,
+) -> bool {
+    if *iters > limit { return false; }
+    if row == size {
+        return col_counts.iter().all(|&c| c == stars);
+    }
+    let remaining_rows = size - row;
+    for &cnt in col_counts.iter() {
+        if stars.saturating_sub(cnt) > remaining_rows { return false; }
+    }
+    let mut blocked = vec![false; size];
+    if row > 0 {
+        for i in (row - 1) * stars..row * stars {
+            let pc = result[i].1;
+            if pc > 0 { blocked[pc - 1] = true; }
+            blocked[pc] = true;
+            if pc + 1 < size { blocked[pc + 1] = true; }
+        }
+    }
+    let mut candidates: Vec<usize> = (0..size)
+        .filter(|&c| !blocked[c] && col_counts[c] < stars)
+        .collect();
+    if candidates.len() < stars { return false; }
+    shuffle_vec(&mut candidates, s);
+    choose_cols(0, stars, &candidates, &mut Vec::new(), row, size, stars, col_counts, result, s, iters, limit)
+}
+
+fn generate_stars(size: usize, stars: usize, s: &mut i32) -> Vec<(usize, usize)> {
+    let mut col_counts = vec![0usize; size];
+    let mut result: Vec<(usize, usize)> = Vec::with_capacity(size * stars);
+    let limit = (size as u64) * (size as u64) * 5_000;
+    let mut iters = 0u64;
+    if place_stars_row(0, size, stars, &mut col_counts, &mut result, s, &mut iters, limit) {
+        result
+    } else {
+        Vec::new()
+    }
+}
+
+fn assign_and_grow_regions(
+    star_positions: &[(usize, usize)],
+    size: usize,
+    stars: usize,
+    s: &mut i32,
+) -> Vec<i32> {
+    let n = star_positions.len(); // size * stars
+
+    // O(1) lookup: which star index lives at a given cell (-1 if none)
+    let mut cell_to_star = vec![-1i32; size * size];
+    for (i, &(r, c)) in star_positions.iter().enumerate() {
+        cell_to_star[r * size + c] = i as i32;
+    }
+
+    // ── Phase 1: Build regions by greedy nearest-star claiming ────────────────
+    //
+    // For each region in random order:
+    //   a) Pick a random unclaimed star as seed.
+    //   b) BFS from current territory through unclaimed non-star cells to the
+    //      nearest unclaimed star; claim the path + that star.
+    //   c) Repeat until the region has exactly `stars` stars.
+    //
+    // This guarantees each region is connected by construction; the only failure
+    // mode is a fully-blocked BFS (extremely rare at 17×17 densities).
+
+    let mut grid = vec![-1i32; size * size];
+    let mut region_sizes = vec![0usize; size];
+    let mut unclaimed = vec![true; n]; // which star indices are still unclaimed
+
+    for region_id in 0..size {
+        // Pick a random unclaimed star as the seed for this region
+        let avail: Vec<usize> = (0..n).filter(|&i| unclaimed[i]).collect();
+        if avail.is_empty() { return Vec::new(); }
+        let seed_si = avail[rng_idx(s, avail.len())];
+        let (sr, sc) = star_positions[seed_si];
+        grid[sr * size + sc] = region_id as i32;
+        region_sizes[region_id] += 1;
+        unclaimed[seed_si] = false;
+
+        // Grow to `stars` stars by BFS-nearest claiming
+        for _ in 1..stars {
+            // Multi-source BFS from all current region cells
+            let mut visited = vec![false; size * size];
+            let mut parent = vec![usize::MAX; size * size];
+            let mut queue: VecDeque<usize> = VecDeque::new();
+            for k in 0..size * size {
+                if grid[k] == region_id as i32 { visited[k] = true; queue.push_back(k); }
+            }
+
+            let mut target: Option<usize> = None;
+            'bfs: while let Some(curr) = queue.pop_front() {
+                let r = curr / size; let c = curr % size;
+                for (dr, dc) in DIRS {
+                    let nr = r as i32 + dr; let nc = c as i32 + dc;
+                    if nr < 0 || nr >= size as i32 || nc < 0 || nc >= size as i32 { continue; }
+                    let nk = nr as usize * size + nc as usize;
+                    if visited[nk] { continue; }
+                    visited[nk] = true;
+                    parent[nk] = curr;
+                    let si = cell_to_star[nk];
+                    if si >= 0 && unclaimed[si as usize] {
+                        target = Some(nk); break 'bfs;  // nearest unclaimed star found
+                    } else if grid[nk] == -1 && si < 0 {
+                        queue.push_back(nk);  // unclaimed non-star: traverse
+                    }
+                    // claimed cells or unclaimed foreign stars: skip
+                }
+            }
+
+            let t = match target { Some(t) => t, None => return Vec::new() };
+
+            // Claim the star
+            unclaimed[cell_to_star[t] as usize] = false;
+            grid[t] = region_id as i32;
+            region_sizes[region_id] += 1;
+
+            // Claim all unclaimed non-star routing cells along the BFS path back to territory
+            let mut curr = parent[t];
+            while curr != usize::MAX {
+                if grid[curr] == -1 && cell_to_star[curr] < 0 {
+                    grid[curr] = region_id as i32;
+                    region_sizes[region_id] += 1;
+                }
+                curr = parent[curr];
+            }
+        }
+    }
+
+    // ── Phase 2: Grow to min_size, then fill remaining ────────────────────────
+
+    let mut frontiers: Vec<BTreeSet<u32>> = vec![BTreeSet::new(); size];
+    for k in 0..size * size {
+        let id = grid[k];
+        if id == -1 { continue; }
+        let r = k / size; let c = k % size;
+        for nk in unfilled_neighbor_keys(&grid, size, r, c) {
+            frontiers[id as usize].insert(nk);
+        }
+    }
+
+    let min_size = if stars > 1 { 2 * stars - 1 } else { 1 };
+    grow_regions_balanced(&mut grid, size, min_size, &mut region_sizes, &mut frontiers, s);
+
+    if !fill_remaining(&mut grid, size, s) { return Vec::new(); }
+
+    grid
+}
+
+#[wasm_bindgen]
+pub fn layout_inverse(size: u32, stars: u32, seed: i32) -> Vec<i32> {
+    if size == 0 || stars == 0 { return Vec::new(); }
+    let sz = size as usize;
+    let st = stars as usize;
+    let mut s = seed;
+    let star_positions = generate_stars(sz, st, &mut s);
+    if star_positions.is_empty() { return Vec::new(); }
+    assign_and_grow_regions(&star_positions, sz, st, &mut s)
+}
+
+// ── Uniqueness Checker ────────────────────────────────────────────────────────
+
+fn choose_for_count(
+    idx: usize, remaining: usize,
+    candidates: &[usize], chosen: &mut Vec<usize>,
+    row: usize, sz: usize, stars: usize,
+    grid: &[i32],
+    region_counts: &mut Vec<usize>,
+    col_counts: &mut Vec<usize>,
+    row_stars: &mut Vec<Vec<usize>>,
+    count: &mut usize,
+    iters: &mut u64,
+) {
+    if *count >= 2 { return; }
+    if remaining == 0 {
+        let mut cols = chosen.clone();
+        cols.sort_unstable();
+        for i in 0..cols.len().saturating_sub(1) {
+            if cols[i + 1] == cols[i] + 1 { return; }
+        }
+        for &c in &cols {
+            col_counts[c] += 1;
+            region_counts[grid[row * sz + c] as usize] += 1;
+        }
+        row_stars[row] = cols.clone();
+        count_solutions(row + 1, sz, stars, grid, region_counts, col_counts, row_stars, count, iters);
+        row_stars[row].clear();
+        for &c in &cols {
+            col_counts[c] -= 1;
+            region_counts[grid[row * sz + c] as usize] -= 1;
+        }
+        return;
+    }
+    if candidates.len().saturating_sub(idx) < remaining { return; }
+    for i in idx..=candidates.len() - remaining {
+        if *count >= 2 { return; }
+        *iters += 1;
+        if *iters > (sz as u64) * (sz as u64) * 10_000 { return; }
+        chosen.push(candidates[i]);
+        choose_for_count(i + 1, remaining - 1, candidates, chosen, row, sz, stars, grid, region_counts, col_counts, row_stars, count, iters);
+        chosen.pop();
+    }
+}
+
+fn count_solutions(
+    row: usize, sz: usize, stars: usize,
+    grid: &[i32],
+    region_counts: &mut Vec<usize>,
+    col_counts: &mut Vec<usize>,
+    row_stars: &mut Vec<Vec<usize>>,
+    count: &mut usize,
+    iters: &mut u64,
+) {
+    if *count >= 2 { return; }
+    if *iters > (sz as u64) * (sz as u64) * 10_000 { return; }
+
+    if row == sz {
+        if region_counts.iter().all(|&c| c == stars) && col_counts.iter().all(|&c| c == stars) {
+            *count += 1;
+        }
+        return;
+    }
+
+    // Prune: any column can't reach quota in remaining rows
+    let remaining_rows = sz - row;
+    for &cnt in col_counts.iter() {
+        if stars.saturating_sub(cnt) > remaining_rows { return; }
+        if cnt > stars { return; }
+    }
+    for &cnt in region_counts.iter() {
+        if cnt > stars { return; }
+    }
+
+    let mut blocked = vec![false; sz];
+    if row > 0 {
+        for &pc in &row_stars[row - 1] {
+            if pc > 0 { blocked[pc - 1] = true; }
+            blocked[pc] = true;
+            if pc + 1 < sz { blocked[pc + 1] = true; }
+        }
+    }
+
+    let candidates: Vec<usize> = (0..sz)
+        .filter(|&c| !blocked[c] && col_counts[c] < stars)
+        .collect();
+
+    if candidates.len() < stars { return; }
+
+    choose_for_count(0, stars, &candidates, &mut Vec::new(), row, sz, stars, grid, region_counts, col_counts, row_stars, count, iters);
+}
+
+#[wasm_bindgen]
+pub fn has_unique_solution(grid_flat: &[i32], size: u32, stars: u32) -> bool {
+    let sz = size as usize;
+    let st = stars as usize;
+    if !is_valid_board(grid_flat, sz, st) { return false; }
+
+    let mut col_counts    = vec![0usize; sz];
+    let mut region_counts = vec![0usize; sz];
+    let mut row_stars: Vec<Vec<usize>> = vec![vec![]; sz];
+    let mut count = 0usize;
+    let mut iters = 0u64;
+
+    count_solutions(0, sz, st, grid_flat, &mut region_counts, &mut col_counts, &mut row_stars, &mut count, &mut iters);
+
+    count == 1
 }
 
 /// Generate a board layout for the given seed.

@@ -1,8 +1,8 @@
 import { isMainThread, parentPort, workerData } from "node:worker_threads";
-import { layoutWithSeed } from "./generator";
-import { solve } from "./solver";
+import { layoutWithSeed, layoutInverse } from "./generator";
+import { solve, hasUniqueSolution } from "./solver";
 import { computeDifficulty } from "./helpers/difficulty";
-import type { Board, Puzzle, Solution } from "./helpers/types";
+import type { Board, CellState, Puzzle, Solution } from "./helpers/types";
 
 if (isMainThread) throw new Error("sieve.worker.ts must run as a worker thread");
 
@@ -16,6 +16,8 @@ type WorkerConfig = {
   maxAttempts: number;
   minDifficulty: number;
   maxDifficulty: number;
+  useInverse: boolean;
+  useBacktrack: boolean;
 };
 
 type InboundMessage = { type: "stop" };
@@ -52,7 +54,9 @@ function runLoop(): void {
 
     let board: Board;
     try {
-      board = layoutWithSeed(config.size, config.stars, seed);
+      board = config.useInverse
+        ? layoutInverse(config.size, config.stars, seed)
+        : layoutWithSeed(config.size, config.stars, seed);
     } catch {
       pendingAttempts++;
       continue;
@@ -63,6 +67,18 @@ function runLoop(): void {
     if (result) {
       const solution: Solution = { ...result, board, seed };
       const puzzle: Puzzle = { ...solution, difficulty: computeDifficulty(solution) };
+      if (puzzle.difficulty >= config.minDifficulty && puzzle.difficulty <= config.maxDifficulty) {
+        const msg: OutboundMessage = { type: "puzzle", puzzle };
+        parentPort!.postMessage(msg);
+      }
+    } else if (config.useBacktrack && hasUniqueSolution(board)) {
+      const size = config.size;
+      // cells not needed by encodePuzzleString; maxLevel=12 signals backtracking-required
+      const cells: CellState[][] = Array.from({ length: size }, () =>
+        Array(size).fill('unknown' as CellState));
+      const syntheticResult = { cells, cycles: 0, maxLevel: 12 };
+      const solution: Solution = { ...syntheticResult, board, seed };
+      const puzzle: Puzzle = { ...solution, difficulty: computeDifficulty(syntheticResult) };
       if (puzzle.difficulty >= config.minDifficulty && puzzle.difficulty <= config.maxDifficulty) {
         const msg: OutboundMessage = { type: "puzzle", puzzle };
         parentPort!.postMessage(msg);

@@ -212,6 +212,8 @@ type GenerateToFileOptions = {
   minDiff?: number;
   maxDiff?: number;
   workers?: number;
+  useInverse?: boolean;
+  useBacktrack?: boolean;
 };
 
 async function generateToFile(outputFile: string, opts: GenerateToFileOptions): Promise<void> {
@@ -264,6 +266,8 @@ async function generateToFile(outputFile: string, opts: GenerateToFileOptions): 
     workers: opts.workers,
     baseSeed,
     startAttemptOffset,
+    useInverse:   opts.useInverse,
+    useBacktrack: opts.useBacktrack,
     onPuzzle,
     onProgress,
   });
@@ -334,6 +338,8 @@ async function main() {
     const seed = args.seed ? parseInt(args.seed, 10) : undefined;
     const minDiff = args.minDiff ? parseInt(args.minDiff, 10) : undefined;
     const maxDiff = args.maxDiff ? parseInt(args.maxDiff, 10) : undefined;
+    const useInverse   = args.inverse   === "true";
+    const useBacktrack = args.backtrack === "true";
 
     {
       const diffRange =
@@ -345,7 +351,7 @@ async function main() {
       );
 
       const outputFile = args.output ?? `puzzles-${size}x${stars}.sbn`;
-      await generateToFile(outputFile, { size, stars, count, minDiff, maxDiff, workers });
+      await generateToFile(outputFile, { size, stars, count, minDiff, maxDiff, workers, useInverse, useBacktrack });
     }
   }
 }

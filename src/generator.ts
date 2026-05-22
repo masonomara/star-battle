@@ -4,7 +4,18 @@ import { Board, GeneratorError } from "./helpers/types";
 const _req = createRequire(import.meta.url);
 const wasmGen = _req('../pkg/dlx.js') as {
   layout_with_seed(size: number, stars: number, seed: number): Int32Array;
+  layout_inverse(size: number, stars: number, seed: number): Int32Array;
 };
+
+export function layoutInverse(size: number, stars: number, seed: number): Board {
+  const flat = wasmGen.layout_inverse(size, stars, seed);
+  if (flat.length === 0) throw new GeneratorError("Inverse layout generation stuck", "generator_stuck");
+  const grid: number[][] = [];
+  for (let r = 0; r < size; r++) {
+    grid.push(Array.from(flat.subarray(r * size, (r + 1) * size)));
+  }
+  return { grid, stars };
+}
 
 export type GenerateOptions = {
   maxAttempts?: number;
