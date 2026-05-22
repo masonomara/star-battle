@@ -471,9 +471,7 @@ fn place_stars_row(
     if row > 0 {
         for i in (row - 1) * stars..row * stars {
             let pc = result[i].1;
-            if pc > 0 { blocked[pc - 1] = true; }
             blocked[pc] = true;
-            if pc + 1 < size { blocked[pc + 1] = true; }
         }
     }
     let mut candidates: Vec<usize> = (0..size)

@@ -25,22 +25,57 @@ cd star-battle
 npm install
 ```
 
-### Generate Puzzles
+### Generation Modes
+
+There are two generation strategies. Which one to use depends on the puzzle size.
+
+**Forward generation** (default) — generates a random region layout, then tries to solve it. Efficient for small puzzles where the rule-based solver succeeds often.
 
 ```bash
-npx tsx src/cli.ts                        # Default: 10x10, 2 stars — saves to puzzles-10x2.sbn
-npx tsx src/cli.ts --size 8               # 8x8 grid — saves to puzzles-8x2.sbn
-npx tsx src/cli.ts --stars 1              # 1 star per container
-npx tsx src/cli.ts --count 50             # Stop after 50 puzzles
-npx tsx src/cli.ts --output library.sbn   # Save to a specific file
+npx tsx src/cli.ts --size 10 --stars 2 --count 120
 ```
 
-Each run automatically saves to `puzzles-{size}x{stars}.sbn` (or `--output <file>`) and resumes from where it left off. Run the same command again to accumulate more puzzles without repeating seeds.
+**Inverse generation** (`--inverse --backtrack`) — places a valid star solution first, then builds regions around it. Required for large puzzles where random layouts are almost never rule-solvable. The `--backtrack` flag adds a second acceptance path: puzzles the rule-based solver can't prove are still accepted if a backtracking uniqueness check confirms exactly one solution exists (these get `difficulty=71`, `maxLevel=12`).
+
+```bash
+npx tsx src/cli.ts --size 17 --stars 4 --count 120 --inverse --backtrack
+```
+
+**When to use which:**
+
+| Size / Stars | Recommended mode |
+| --- | --- |
+| ≤ 10×2, ≤ 8×1 | Forward (default) |
+| 14×3 | Forward works (~1 in 65k seeds yields a puzzle) |
+| 17×4 and larger | `--inverse --backtrack` — forward yields 0 |
+
+Both modes write to the same `.sbn` format and resume seamlessly. You can run forward and inverse against the same output file at different times.
 
 ### Output Files
 
-- **`puzzles-10x2.sbn`** — the puzzle library. One puzzle string per line. This is what your app reads. You can `cat`, `grep`, `wc -l`, or split by difficulty with standard tools.
-- **`puzzles-10x2.sbn.state`** — the resume bookmark. Tracks how far along the seed space was searched so the next run continues without overlap. Only needed by the generator — delete it once you have enough puzzles and don't plan to add more.
+Every generation run produces two files:
+
+**`puzzles-{size}x{stars}.sbn`** (e.g. `puzzles-17x4.sbn`)
+
+The puzzle library. One puzzle string per line, format:
+
+```
+17x4.DDDDIIIIIIIIKKKKKDDD...s-176440323d81l5c129v1
+```
+
+Fields encoded in the suffix: `s` = seed, `d` = difficulty (1–100), `l` = max rule level used (1–12), `c` = solver cycle count, `v` = version. This is what your app reads. You can `cat`, `grep`, `wc -l`, or filter by difficulty with standard tools.
+
+**`puzzles-{size}x{stars}.sbn.state`**
+
+The resume bookmark. JSON file tracking the base seed, how many seeds have been searched, and how many puzzles were found. The next run reads this and picks up exactly where the last one stopped — no seeds are ever repeated.
+
+```json
+{"size":17,"stars":4,"baseSeed":-176440323,"attempts":8400,"found":26}
+```
+
+Delete the `.state` file only if you want to start over with a fresh seed space. The `.sbn` file is independent — delete it to clear the puzzle library without resetting the search position, or keep both to continue accumulating.
+
+> The `.state` file is only written during generation. It has no effect on `--file` (batch solving) or stdin mode.
 
 ### Solve Custom Puzzles
 
@@ -66,14 +101,6 @@ npx tsx src/cli.ts --file sample-puzzle.sbn --unsolved   # Only show failures
 npx tsx src/cli.ts --file sample-puzzle.sbn --trace      # Step-by-step solve trace
 ```
 
-### Filter by Difficulty
-
-```bash
-npx tsx src/cli.ts --minDiff 20              # Harder puzzles only
-npx tsx src/cli.ts --maxDiff 10              # Easier puzzles only
-npx tsx src/cli.ts --minDiff 15 --maxDiff 25 # Specific range
-```
-
 ### Run Tests
 
 ```bash
@@ -82,18 +109,41 @@ npm test
 
 ### CLI Reference
 
-- `--size` - Grid size (4–25, default: 10)
-- `--stars` - Stars per container (1–6, default: 2)
-- `--count` - Stop after N puzzles (default: run until stopped)
-- `--output` - Output file (default: `puzzles-{size}x{stars}.sbn`)
-- `--workers` - Number of parallel workers (default: CPU count)
-- `--minDiff` - Minimum difficulty (1–100)
-- `--maxDiff` - Maximum difficulty (1–100)
-- `--file` - Solve/benchmark puzzles from a `.sbn` file
-- `--verbose` - Show details per puzzle (with `--file`)
-- `--unsolved` - Only output unsolved puzzles (with `--file`)
-- `--trace` - Step-by-step solve trace
-- `--help` - Show options
+#### Generation flags
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--size` | int | `10` | Grid size N (produces an N×N puzzle with N regions). Valid: 4–25. |
+| `--stars` | int | `2` | Stars required per row, column, and region. Valid: 1–6, and must be ≤ size/2. |
+| `--count` | int | `1` | Stop after finding this many new puzzles and append them to the output file. |
+| `--output` | path | `puzzles-{size}x{stars}.sbn` | Output `.sbn` file. A `.state` bookmark is written alongside it automatically. |
+| `--inverse` | flag | off | Use inverse generation: place a valid star solution first, then grow regions around it. Required for large puzzles (17×4+). Without this, large puzzles yield 0 results. |
+| `--backtrack` | flag | off | When `--inverse` is on, also accept puzzles that the rule-based solver can't prove but that a backtracking uniqueness check confirms have exactly one solution. These puzzles get `difficulty=71`, `maxLevel=12`. Adds ~100ms per candidate but significantly increases yield. |
+| `--minDiff` | int | — | Only keep puzzles at or above this difficulty score (1–100). |
+| `--maxDiff` | int | — | Only keep puzzles at or below this difficulty score (1–100). |
+| `--workers` | int | CPU count | Number of parallel worker threads. Each worker runs its own WASM instance independently. Scaling is near-linear up to CPU count. |
+
+#### File / solve flags
+
+| Flag | Type | Description |
+| --- | --- | --- |
+| `--file` | path | Batch-solve all puzzles in a `.sbn` file and print statistics. Does not generate. |
+| `--verbose` | flag | Print per-puzzle results when using `--file`. |
+| `--unsolved` | flag | Print only puzzles the solver could not solve when using `--file`. |
+| `--trace` | flag | Print a step-by-step solve trace. Works with `--file` or stdin. |
+| `--help` | flag | Print usage summary. |
+
+#### Difficulty scoring
+
+Difficulty is computed from the highest rule level the solver needed (`maxLevel`) and the number of solver cycles. The scale is roughly:
+
+| Score | Description |
+| --- | --- |
+| 1–20 | Easy — solved with basic inference only (L1–L3) |
+| 21–40 | Medium — requires tiling enumeration (L4–L5) |
+| 41–60 | Hard — requires tiling pairs or hypotheticals (L6–L9) |
+| 61–80 | Expert — requires propagated hypotheticals (L10–L11) |
+| 71 | Backtrack-only — rule solver couldn't prove it; uniqueness confirmed via backtracking (`maxLevel=12`) |
 
 ## Production Rules Overview
 

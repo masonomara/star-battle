@@ -28,12 +28,14 @@ type OutboundMessage =
   | { type: "done" };
 
 const PROGRESS_BATCH = 10_000;
+const PROGRESS_INTERVAL_MS = 1_000;
 
 const config: WorkerConfig = workerData as WorkerConfig;
 let stopped = false;
 let attempt = 0;
 let pendingAttempts = 0;
 let pendingSolverFailed = 0;
+let lastFlushTime = Date.now();
 
 parentPort!.on("message", (msg: InboundMessage) => {
   if (msg.type === "stop") stopped = true;
@@ -45,6 +47,7 @@ function flushProgress(): void {
   parentPort!.postMessage(msg);
   pendingAttempts = 0;
   pendingSolverFailed = 0;
+  lastFlushTime = Date.now();
 }
 
 function runLoop(): void {
@@ -59,6 +62,11 @@ function runLoop(): void {
         : layoutWithSeed(config.size, config.stars, seed);
     } catch {
       pendingAttempts++;
+      if (Date.now() - lastFlushTime >= PROGRESS_INTERVAL_MS) {
+        flushProgress();
+        setImmediate(runLoop);
+        return;
+      }
       continue;
     }
 
@@ -88,7 +96,9 @@ function runLoop(): void {
     pendingAttempts++;
     if (!result) pendingSolverFailed++;
 
-    if (attempt % PROGRESS_BATCH === 0) {
+    const elapsed = Date.now() - lastFlushTime;
+    const shouldFlush = attempt % PROGRESS_BATCH === 0 || elapsed >= PROGRESS_INTERVAL_MS;
+    if (shouldFlush) {
       flushProgress();
       setImmediate(runLoop);
       return;
