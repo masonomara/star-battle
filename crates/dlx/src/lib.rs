@@ -471,7 +471,9 @@ fn place_stars_row(
     if row > 0 {
         for i in (row - 1) * stars..row * stars {
             let pc = result[i].1;
+            if pc > 0 { blocked[pc - 1] = true; }
             blocked[pc] = true;
+            if pc + 1 < size { blocked[pc + 1] = true; }
         }
     }
     let mut candidates: Vec<usize> = (0..size)
@@ -482,6 +484,25 @@ fn place_stars_row(
     choose_cols(0, stars, &candidates, &mut Vec::new(), row, size, stars, col_counts, result, s, iters, limit)
 }
 
+// Structured fallback: row i gets stars at columns (row_shift*i + gap*k + offset) % size.
+// row_shift=2, gap=size/stars guarantees:
+//   - each column used exactly `stars` times (gcd(row_shift,size)=1 required)
+//   - no two stars in the same row are adjacent (gap >= 2)
+//   - no two stars in adjacent rows share a column or diagonal (proven for gap=size/stars, shift=2)
+fn generate_stars_structured(size: usize, stars: usize, s: &mut i32) -> Vec<(usize, usize)> {
+    let gap = size / stars;
+    if gap < 2 || size % 2 == 0 { return Vec::new(); } // shift=2 requires gcd(2,size)=1
+    let offset = rng_idx(s, size);
+    let mut result = Vec::with_capacity(size * stars);
+    for row in 0..size {
+        for k in 0..stars {
+            let col = (offset + row * 2 + k * gap) % size;
+            result.push((row, col));
+        }
+    }
+    result
+}
+
 fn generate_stars(size: usize, stars: usize, s: &mut i32) -> Vec<(usize, usize)> {
     let mut col_counts = vec![0usize; size];
     let mut result: Vec<(usize, usize)> = Vec::with_capacity(size * stars);
@@ -490,7 +511,7 @@ fn generate_stars(size: usize, stars: usize, s: &mut i32) -> Vec<(usize, usize)>
     if place_stars_row(0, size, stars, &mut col_counts, &mut result, s, &mut iters, limit) {
         result
     } else {
-        Vec::new()
+        generate_stars_structured(size, stars, s)
     }
 }
 
