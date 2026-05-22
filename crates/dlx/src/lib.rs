@@ -2452,6 +2452,69 @@ fn apply_next_rule(s: &mut SolverState) -> usize {
     0
 }
 
+/// Returns (level, rule_id). rule_id is a stable integer identifier for each rule variant.
+/// IDs: 1=StarNeighbors, 2=ForcedRow, 3=ForcedCol, 4=ForcedRegion,
+///      5=TrivialRow, 6=TrivialCol, 7=TrivialRegion,
+///      8=TilingForcedRow, 9=TilingForcedCol, 10=TilingForcedRegion,
+///      11=TilingAdjacency, 12=TilingOverhang,
+///      13=CountingRow, 14=CountingCol,
+///      15=PairForcedRow, 16=PairForcedCol,
+///      17=PairAdjRow, 18=PairAdjCol, 19=PairOvhRow, 20=PairOvhCol,
+///      21=TilingCountingMarkRow1, 22=TilingCountingMarkCol1,
+///      23=TilingCountingForcedRow, 24=TilingCountingForcedCol,
+///      25=TilingCountingMarkRow2, 26=TilingCountingMarkCol2,
+///      27=HypCountRow, 28=HypCountCol, 29=HypRegionCount,
+///      30=HypCapRow, 31=HypCapCol, 32=HypRegionCap,
+///      33=HypCountingRow, 34=HypCountingCol,
+///      35=PropCountRow, 36=PropCountCol, 37=PropRegionCount,
+///      38=PropCapRow, 39=PropCapCol, 40=PropRegionCap,
+///      41=PropCountingRow, 42=PropCountingCol
+fn apply_next_rule_tagged(s: &mut SolverState) -> (usize, u8) {
+    if rule_star_neighbors(s)                          { return (1,  1); }
+    if rule_forced_placement(s, true)                  { return (2,  2); }
+    if rule_forced_placement(s, false)                 { return (2,  3); }
+    if rule_forced_region(s)                           { return (2,  4); }
+    if rule_trivial_marks(s, true)                     { return (3,  5); }
+    if rule_trivial_marks(s, false)                    { return (3,  6); }
+    if rule_trivial_region(s)                          { return (3,  7); }
+    if rule_tiling_forced_line(s, true)                { return (4,  8); }
+    if rule_tiling_forced_line(s, false)               { return (4,  9); }
+    if rule_tiling_forced_region(s)                    { return (4, 10); }
+    if rule_tiling_adjacency_marks(s)                  { return (4, 11); }
+    if rule_tiling_overhang_marks(s)                   { return (4, 12); }
+    if rule_counting_mark(s, true)                     { return (5, 13); }
+    if rule_counting_mark(s, false)                    { return (5, 14); }
+    if rule_tiling_pair_forced(s, true)                { return (6, 15); }
+    if rule_tiling_pair_forced(s, false)               { return (6, 16); }
+    if rule_tiling_pair_adjacency(s, true)             { return (6, 17); }
+    if rule_tiling_pair_adjacency(s, false)            { return (6, 18); }
+    if rule_tiling_pair_overhang(s, true)              { return (6, 19); }
+    if rule_tiling_pair_overhang(s, false)             { return (6, 20); }
+    if rule_tiling_counting_mark(s, true,  1, 1)       { return (7, 21); }
+    if rule_tiling_counting_mark(s, false, 1, 1)       { return (7, 22); }
+    if rule_tiling_counting_forced(s, true)            { return (7, 23); }
+    if rule_tiling_counting_forced(s, false)           { return (7, 24); }
+    if rule_tiling_counting_mark(s, true,  2, 4)       { return (7, 25); }
+    if rule_tiling_counting_mark(s, false, 2, 4)       { return (7, 26); }
+    if rule_hyp_count(s, true)                         { return (8, 27); }
+    if rule_hyp_count(s, false)                        { return (8, 28); }
+    if rule_hyp_region_count(s)                        { return (8, 29); }
+    if rule_hyp_capacity(s, true)                      { return (9, 30); }
+    if rule_hyp_capacity(s, false)                     { return (9, 31); }
+    if rule_hyp_region_capacity(s)                     { return (9, 32); }
+    if rule_hyp_counting(s, true)                      { return (10, 33); }
+    if rule_hyp_counting(s, false)                     { return (10, 34); }
+    if rule_prop_count(s, true)                        { return (11, 35); }
+    if rule_prop_count(s, false)                       { return (11, 36); }
+    if rule_prop_region_count(s)                       { return (11, 37); }
+    if rule_prop_capacity(s, true)                     { return (11, 38); }
+    if rule_prop_capacity(s, false)                    { return (11, 39); }
+    if rule_prop_region_capacity(s)                    { return (11, 40); }
+    if rule_prop_counting(s, true)                     { return (11, 41); }
+    if rule_prop_counting(s, false)                    { return (11, 42); }
+    (0, 0)
+}
+
 /// Solve a star-battle board entirely in Rust.
 /// Returns [0] on failure, [1, maxLevel, cycles, c00, c01, ...] on success.
 /// c values: 0=unknown, 1=star, 2=marked.
@@ -2485,5 +2548,63 @@ pub fn solve_board(grid_flat: &[i32], size: u32, stars: u32) -> Vec<i32> {
         max_level = max_level.max(level);
         let changed = s.diff(&snap);
         s.apply_delta(&changed);
+    }
+}
+
+/// Solve and return step-by-step deductions.
+/// Returns [0] on failure.
+/// On success: [1, maxLevel, cycles, num_steps,
+///   for each step: rule_id, level, n_placements, r0, c0, ..., n_marks, r0, c0, ...,
+///   then sz*sz cell states (0=unknown, 1=star, 2=marked)]
+#[wasm_bindgen]
+pub fn solve_board_steps(grid_flat: &[i32], size: u32, stars: u32) -> Vec<i32> {
+    let sz = size as usize;
+    let st = stars as usize;
+    if !is_valid_board(grid_flat, sz, st) { return vec![0]; }
+
+    let mut s = SolverState::new(grid_flat, sz, st);
+    let mut cycles = 0usize;
+    let mut max_level = 0usize;
+    let mut steps: Vec<i32> = Vec::new();
+    let mut num_steps = 0i32;
+
+    loop {
+        cycles += 1;
+        if cycles > sz * sz * 100 { return vec![0]; }
+
+        match get_solve_status(&s) {
+            2 => return vec![0],
+            1 => {
+                let mut out = vec![1i32, max_level as i32, cycles as i32, num_steps];
+                out.extend_from_slice(&steps);
+                out.extend(s.cells.iter().map(|&c| c as i32));
+                return out;
+            }
+            _ => {}
+        }
+
+        let snap = s.snapshot();
+        let (level, rule_id) = apply_next_rule_tagged(&mut s);
+        if level == 0 { return vec![0]; }
+        max_level = max_level.max(level);
+        let changed = s.diff(&snap);
+        s.apply_delta(&changed);
+
+        let mut placements: Vec<i32> = Vec::new();
+        let mut marks: Vec<i32> = Vec::new();
+        for &k in &changed {
+            let r = (k / sz) as i32;
+            let c = (k % sz) as i32;
+            if s.cells[k] == 1 { placements.push(r); placements.push(c); }
+            else                { marks.push(r);      marks.push(c);      }
+        }
+
+        steps.push(rule_id as i32);
+        steps.push(level as i32);
+        steps.push((placements.len() / 2) as i32);
+        steps.extend_from_slice(&placements);
+        steps.push((marks.len() / 2) as i32);
+        steps.extend_from_slice(&marks);
+        num_steps += 1;
     }
 }
