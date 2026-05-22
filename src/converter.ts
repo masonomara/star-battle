@@ -86,10 +86,10 @@ export function convertToPack(opts: ConverterOptions): Pack {
 
   entries.sort((a, b) => a.difficulty - b.difficulty);
 
-  const skipped = opts.skip ?? 0;
+  const skipOffset = opts.skip ?? 0;
   const selected = opts.count !== undefined
-    ? entries.slice(skipped, skipped + opts.count)
-    : entries.slice(skipped);
+    ? entries.slice(skipOffset, skipOffset + opts.count)
+    : entries.slice(skipOffset);
   if (selected.length === 0) throw new Error("No solvable puzzles found in input file");
 
   const first = selected[0];
